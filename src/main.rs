@@ -15,8 +15,10 @@ fn app() -> Element {
 }
 
 fn AppHeader() -> Element {
-    const RESIZED_PNG_ASSET: manganis::ImageAsset =
-        manganis::mg!(image("public/images/Doitsu-Tech-Logo-Square.png").size(68, 68));
+    const RESIZED_PNG_ASSET: manganis::ImageAsset = manganis::mg!(image(
+        "public/images/Square/no-text/logo_transparent_background.png"
+    )
+    .size(50, 50));
     rsx! {
         header { class: "flex p-4",
             a { href: "/",
@@ -27,10 +29,7 @@ fn AppHeader() -> Element {
                     class: "rounded-lg"
                 }
             }
-            a { p {
-                class: "flex px-2 my-auto", "Home 1"
-            }
-        }
+            a { class: "flex", p { class: "flex px-2 my-auto", "Home 1" } }
         }
     }
 }
