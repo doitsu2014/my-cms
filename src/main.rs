@@ -30,6 +30,7 @@ fn AppHeader() -> Element {
                 }
             }
             a { class: "flex", p { class: "flex px-2 my-auto", "Home 1" } }
+            a { class: "flex", href: "/blogs" }
         }
     }
 }
