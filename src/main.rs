@@ -1,36 +1,75 @@
-#![allow(non_snake_case, unused)]
-use dioxus::prelude::*;
+#![allow(non_snake_case)]
 
-// You can also collect google fonts
-const ROBOTO_FONT: &str = manganis::mg!(font().families(["Roboto"]));
-const _STYLE: &str = manganis::mg!(file("public/tailwind.css"));
+use dioxus::prelude::*;
+use log::LevelFilter;
+
+#[derive(Clone, Routable, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+enum Route {
+    #[route("/")]
+    Home {},
+    #[route("/blog/:id")]
+    Blog { id: i32 },
+}
 
 fn main() {
-    launch(app)
+    // Init debug
+    dioxus_logger::init(LevelFilter::Info).expect("failed to init logger");
+
+    launch(App);
 }
 
-fn app() -> Element {
-    let mut count = use_signal(|| 0);
-    rsx! { AppHeader {} }
-}
-
-fn AppHeader() -> Element {
-    const RESIZED_PNG_ASSET: manganis::ImageAsset = manganis::mg!(image(
-        "public/images/Square/no-text/logo_transparent_background.png"
-    )
-    .size(50, 50));
+fn App() -> Element {
     rsx! {
-        header { class: "flex p-4",
-            a { href: "/",
-                img {
-                    src: RESIZED_PNG_ASSET,
-                    referrerpolicy: "no-referrer",
-                    alt: "hero",
-                    class: "rounded-lg"
-                }
+        Router::<Route> {}
+    }
+}
+
+#[component]
+fn Blog(id: i32) -> Element {
+    rsx! {
+        Link { to: Route::Home {}, "Go to counter" }
+        "Blog post {id}"
+    }
+}
+
+#[component]
+fn Home() -> Element {
+    let mut count = use_signal(|| 0);
+    let mut text = use_signal(|| String::from("..."));
+
+    rsx! {
+        Link {
+            to: Route::Blog {
+                id: count()
+            },
+            "Go to blog"
+        }
+        div {
+            h1 { "High-Five counter: {count}" }
+            button { onclick: move |_| count += 1, "Up high!" }
+            button { onclick: move |_| count -= 1, "Down low!" }
+            button {
+                onclick: move |_| async move {
+                    if let Ok(data) = get_server_data().await {
+                        log::info!("Client received: {}", data);
+                        text.set(data.clone());
+                        post_server_data(data).await.unwrap();
+                    }
+                },
+                "Get Server Data"
             }
-            a { class: "flex", p { class: "flex px-2 my-auto", "Home 1" } }
-            a { class: "flex", href: "/blogs" }
+            p { "Server data: {text}"}
         }
     }
+}
+
+#[server(PostServerData)]
+async fn post_server_data(data: String) -> Result<(), ServerFnError> {
+    println!("Server received: {}", data);
+    Ok(())
+}
+
+#[server(GetServerData)]
+async fn get_server_data() -> Result<String, ServerFnError> {
+    Ok("Hello from the server!".to_string())
 }
