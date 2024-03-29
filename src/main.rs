@@ -45,7 +45,7 @@ fn Home() -> Element {
             "Go to blog"
         }
         div {
-            h1 { "High-Five counter: {count}" }
+            h1 { class: "text-green", "High-Five counter: {count}" }
             button { onclick: move |_| count += 1, "Up high!" }
             button { onclick: move |_| count -= 1, "Down low!" }
             button {

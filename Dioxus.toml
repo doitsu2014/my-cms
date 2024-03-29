@@ -11,12 +11,14 @@ default_platform = "web"
 out_dir = "dist"
 
 # resource (assets) file folder
-asset_dir = "assets"
+asset_dir = "public"
 
 [web.app]
 
 # HTML title tag content
 title = "My Blogs with Rust Programming"
+base_path = ""
+
 
 [web.watcher]
 
@@ -24,7 +26,7 @@ title = "My Blogs with Rust Programming"
 reload_html = true
 
 # which files or dirs will be watcher monitoring
-watch_path = ["src", "assets"]
+watch_path = ["src", "public"]
 
 # include `assets` in web platform
 [web.resource]
