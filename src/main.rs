@@ -5,6 +5,7 @@ use log::LevelFilter;
 
 #[derive(Clone, Routable, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 enum Route {
+    #[layout(NavBar)]
     #[route("/")]
     Home {},
     #[route("/blog/:id")]
@@ -21,6 +22,25 @@ fn main() {
 fn App() -> Element {
     rsx! {
         Router::<Route> {}
+    }
+}
+
+#[component]
+fn NavBar() -> Element {
+    rsx! {
+        nav {
+            class: "flex",
+            Logo {}
+            ul {
+                li {
+                    Link { to: Route::Home {}, "Home" }
+                }
+                li {
+                    Link { to: Route::Blog { id: 123 }, "Blog" }
+                }
+            }
+        }
+        Outlet::<Route> {}
     }
 }
 
@@ -72,4 +92,16 @@ async fn post_server_data(data: String) -> Result<(), ServerFnError> {
 #[server(GetServerData)]
 async fn get_server_data() -> Result<String, ServerFnError> {
     Ok("Hello from the server!".to_string())
+}
+
+#[component]
+fn Logo() -> Element {
+    rsx! {
+        div { class: "flex p-2",
+            div { class: "logo bg-cyan-400 rounded-lg p-3 shadow-md",
+                span { class: "font-bold text-xl text-white", "d" }
+                span { class: "font-bold text-xl text-black", " tech" }
+            }
+        }
+    }
 }
