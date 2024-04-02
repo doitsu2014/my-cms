@@ -31,7 +31,7 @@ mod tests {
         let redis_password = "21345";
         let redis_cluster = docker.run(create_redis(&redis_password));
         let connection_string: String = format!(
-            "redis://:{}@{}/0",
+            "redis://{}@127.0.0.1:{}/0",
             &redis_password,
             redis_cluster.get_host_port_ipv4(6379)
         );
@@ -43,6 +43,8 @@ mod tests {
 
         let _: () = con.set("my_key", 42).unwrap();
         // please explain _: ()
+        let result: i32 = con.get("my_key").unwrap();
+        assert_eq!(result, 42);
     }
 
     /// Create a Redis module with `6.2-alpine` tag and custom password
@@ -50,5 +52,6 @@ mod tests {
         RunnableImage::from(Redis::default())
             .with_tag("6.2-alpine")
             .with_env_var(("REDIS_PASSWORD", password))
+            .with_env_var(("REDIS_HOST_PASSWORD", password))
     }
 }
