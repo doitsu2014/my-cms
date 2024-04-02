@@ -1,3 +1,5 @@
+workspace = { members = ["adder"] }
+
 [package]
 name = "cms"
 version = "0.1.0"
