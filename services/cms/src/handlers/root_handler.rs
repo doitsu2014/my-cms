@@ -1,3 +1,3 @@
-pub async fn handle_root() -> &'static str {
+pub async fn handle() -> &'static str {
     "Hello, world!"
 }

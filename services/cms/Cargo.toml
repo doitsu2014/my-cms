@@ -1,9 +1,8 @@
-workspace = { members = ["adder"] }
-
 [package]
 name = "cms"
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -12,3 +11,11 @@ tokio = { version = "1.37.0", features = ["full"] }
 axum = "0.7.5"
 serde = { version = "1.0.197", features = ["derive"] }
 tracing-subscriber = "0.3.18"
+dotenv = "0.15.0"
+diesel = { version = "2.1.5", features = ["postgres"] }
+chrono = { version = "0.4.37", features = ["serde"] }
+redis = "0.25.2"
+
+# For Dev and Testing
+testcontainers = "0.15"
+testcontainers-modules = { version = "0.3.6", features = ["postgres", "redis"] }
