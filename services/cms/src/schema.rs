@@ -6,10 +6,10 @@ diesel::table! {
         title -> Text,
         slug -> Text,
         content -> Text,
-        published -> Nullable<Bool>,
-        created_at -> Nullable<Timestamp>,
+        published -> Bool,
+        created_at -> Timestamp,
         created_by -> Text,
-        last_modified_at -> Nullable<Timestamp>,
+        last_modified_at -> Timestamp,
         last_modified_by -> Text,
     }
 }

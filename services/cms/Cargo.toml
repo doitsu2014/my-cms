@@ -13,7 +13,6 @@ serde = { version = "1.0.197", features = ["derive"] }
 tracing-subscriber = "0.3.18"
 dotenv = "0.15.0"
 diesel = { version = "2.1.5", features = ["postgres"] }
-chrono = { version = "0.4.37", features = ["serde"] }
 redis = "0.25.2"
 
 # For Dev and Testing
