@@ -1,14 +1,10 @@
+# Overview
 
-1. Install npm: https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
-2. Install the tailwind css cli: https://tailwindcss.com/docs/installation
-3. Run the following command in the root of the project to start the tailwind CSS compiler:
+This project is using rust programming language to building up a website, which shows my posts about technology, and my hobbits., etc.
 
-```bash
-npx tailwindcss -i ./input.css -o ./public/tailwind.css --watch
-```
+## Services
 
-Launch the Dioxus Fullstack app:
+### 1. cms: Content Management System
 
-```bash
-dx serve --platform fullstack
-```
+I am using `axum` to build up the backend server, and `diesel` to interact with the database (postgresql). I am using `testcontainers-rs` to write integration tests for this api.
+
