@@ -1,3 +1,7 @@
+[workspace]
+members = ["migration"]
+
+
 [package]
 name = "cms"
 version = "0.1.0"
@@ -12,9 +16,9 @@ axum = "0.7.5"
 serde = { version = "1.0.197", features = ["derive"] }
 tracing-subscriber = "0.3.18"
 dotenv = "0.15.0"
-diesel = { version = "2.1.5", features = ["postgres"] }
-diesel_migrations = "2.1.0"
 redis = "0.25.2"
+migration = { path = "migration" }
+
 
 # For Dev and Testing
 testcontainers = "0.15"
