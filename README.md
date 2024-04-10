@@ -6,5 +6,4 @@ This project is using rust programming language to building up a website, which 
 
 ### 1. cms: Content Management System
 
-I am using `axum` to build up the backend server, and `diesel` to interact with the database (postgresql). I am using `testcontainers-rs` to write integration tests for this api.
-
+I am using `axum` to build up the backend server, and `SeaORM` to interact with the database (postgresql). I am using `testcontainers-rs` to write integration tests for this api.
