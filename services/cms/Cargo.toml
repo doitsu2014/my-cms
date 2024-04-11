@@ -22,6 +22,10 @@ sea-orm = "0.12.15"
 sea-orm-migration = "0.12.15"
 chrono = "0.4.37"
 
+tower = "0.4.13"
+tower-http = { version = "0.5.2", features = ["fs"] }
+tower-cookies = "0.10.0"
+
 migration = { path = "migration" }
 entity = { path = "entity" }
 

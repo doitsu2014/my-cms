@@ -1,16 +1,5 @@
-use axum::{
-    routing::{get, post},
-    Router,
-};
+use axum::extract::State;
 
-pub async fn handle_get_list() {}
+use crate::AppState;
 
-pub trait RouterPostHandlerExt {
-    fn build_post_routes(self) -> Self;
-}
-
-impl RouterPostHandlerExt for Router {
-    fn build_post_routes(self) -> Self {
-        self.route("/posts", get(handle_get_list))
-    }
-}
+pub async fn handle_get_list(state: State<AppState>) {}

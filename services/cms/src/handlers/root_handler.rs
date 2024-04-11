@@ -1,4 +1,7 @@
-use axum::{routing::get, Router};
+use axum::extract::State;
+use migration::{Migrator, MigratorTrait};
+
+use crate::AppState;
 
 pub async fn handle() -> &'static str {
     "CMS is running successfully!"
@@ -8,19 +11,7 @@ pub async fn check_health() -> &'static str {
     "CMS is running successfully!"
 }
 
-pub async fn admin_database_migration() -> &'static str {
+pub async fn admin_database_migration(state: State<AppState>) -> &'static str {
+    Migrator::up(&state.conn, None).await.unwrap();
     "CMS is running successfully!"
-}
-
-pub trait RouterRootHandlerExt {
-    fn build_root_routes(self) -> Self;
-}
-
-impl RouterRootHandlerExt for Router {
-    fn build_root_routes(self) -> Self {
-        self.route("/", get(handle))
-            .route("/health", get(check_health))
-            .route("/healthz", get(check_health))
-            .route("/admin/database/migration", get(admin_database_migration))
-    }
 }

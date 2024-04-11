@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
 
-    use chrono::{NaiveDateTime, Utc};
+    use chrono::Utc;
     use entity::{prelude::*, *};
     use migration::Migrator;
     use sea_orm::{ActiveModelTrait, ActiveValue, ConnectOptions, Database, EntityTrait};
@@ -30,7 +30,7 @@ mod tests {
             last_modified_by: ActiveValue::Set("Duc Tran".to_string()),
         };
 
-        let mut opt = ConnectOptions::new(connection_string);
+        let opt = ConnectOptions::new(connection_string);
         let db = Database::connect(opt).await.unwrap();
         Migrator::refresh(&db).await.unwrap();
 
