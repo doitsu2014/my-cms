@@ -1,5 +1,5 @@
 [workspace]
-members = ["migration"]
+members = ["entity", "migration"]
 
 
 [package]
@@ -21,7 +21,9 @@ redis = "0.25.2"
 sea-orm = "0.12.15"
 sea-orm-migration = "0.12.15"
 chrono = "0.4.37"
+
 migration = { path = "migration" }
+entity = { path = "entity" }
 
 
 # For Dev and Testing

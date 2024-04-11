@@ -1,4 +1,3 @@
-pub mod domains;
 pub mod handlers;
 pub mod tests;
 

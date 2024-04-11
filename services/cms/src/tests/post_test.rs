@@ -1,31 +1,8 @@
-// use diesel::{
-//     deserialize::Queryable, prelude::Insertable, Connection, ExpressionMethods, PgConnection,
-//     QueryResult, RunQueryDsl, Selectable,
-// };
-//
-// use crate::schema::posts;
-// use std::time::SystemTime;
-//
-// #[derive(Queryable, Selectable, Insertable)]
-// #[diesel(table_name = posts)]
-// #[diesel(check_for_backend(diesel::pg::Pg))]
-// pub struct Post {
-//     pub id: i32,
-//     pub title: String,
-//     pub slug: String,
-//     pub content: String,
-//     pub published: bool,
-//     pub created_at: SystemTime,
-//     pub created_by: String,
-//     pub last_modified_at: SystemTime,
-//     pub last_modified_by: String,
-// }
-//
-//
 #[cfg(test)]
 mod tests {
-    use crate::domains::{prelude::*, *};
+
     use chrono::{NaiveDateTime, Utc};
+    use entity::{prelude::*, *};
     use migration::Migrator;
     use sea_orm::{ActiveModelTrait, ActiveValue, ConnectOptions, Database, EntityTrait};
     use sea_orm_migration::prelude::*;
