@@ -1,5 +1,4 @@
 pub mod handlers;
-pub mod integration_tests;
 pub mod presentation_models;
 
 pub use handlers::*;

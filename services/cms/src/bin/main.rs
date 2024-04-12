@@ -1,4 +1,7 @@
-use axum::{routing::get, Router};
+use axum::{
+    routing::{get, post},
+    Router,
+};
 use cms::{post_handler, root_handler, AppState};
 use dotenv::dotenv;
 use sea_orm::Database;
@@ -22,8 +25,11 @@ async fn main() {
             "/admin/database/migration",
             get(root_handler::admin_database_migration),
         )
-        .route("/posts", get(post_handler::handle_get_list))
-        .layer(CookieManagerLayer::new())
+        .route(
+            "/posts",
+            get(post_handler::handle_get_list), // .post(post_handler::handle_post)
+        )
+        // .layer(CookieManagerLayer::new())
         .with_state(app_state);
 
     let host = env::var("HOST").expect("HOST must be set in .env file");

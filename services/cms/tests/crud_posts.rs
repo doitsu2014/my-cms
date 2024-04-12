@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-
     use chrono::Utc;
     use entity::{prelude::*, *};
     use migration::Migrator;

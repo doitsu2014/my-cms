@@ -1,9 +1,4 @@
-use axum::{
-    body::Body,
-    http::StatusCode,
-    response::{IntoResponse, Response},
-    Json,
-};
+use axum::http::StatusCode;
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -12,12 +7,13 @@ pub struct ApiResponseWith<TData> {
     data: TData,
 }
 
+#[derive(Serialize)]
 pub struct ApiResponseError<TError> {
     error_code: ErrorCode,
     error: TError,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum ErrorCode {
     UnAuthorized = 401,
     ForBidden = 403,
