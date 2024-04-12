@@ -1,7 +1,10 @@
 pub mod handlers;
-pub mod tests;
+pub mod integration_tests;
+pub mod presentation_models;
 
 pub use handlers::*;
+pub use presentation_models::*;
+
 use sea_orm::DatabaseConnection;
 
 #[derive(Clone)]
