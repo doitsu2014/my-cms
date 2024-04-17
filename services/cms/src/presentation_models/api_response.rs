@@ -37,15 +37,13 @@ impl<TError> ApiResponseError<TError> {
             ErrorCode::ConnectionError => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
-    //
-    // fn get_axum_response(self) -> Response<Json<Self>> {
-    //     let status = self.get_status_code();
-    //     let body_respone = Json(self).unwrap();
-    //
-    //     let a = Builder::new().status(status).body(body_respone).unwrap();
-    //
-    //     a
-    // }
+
+    fn get_axum_response(self) -> Response {
+        Builder::new()
+            .status(self.get_status_code())
+            .body(Body::from(""))
+            .unwrap()
+    }
 }
 
 #[cfg(test)]
