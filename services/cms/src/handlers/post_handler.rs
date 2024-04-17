@@ -11,7 +11,6 @@ pub async fn handle_post(
     Json(post): Json<RequestCreatePost>,
 ) -> impl IntoResponse {
     let active_model: post::ActiveModel = post.into_model().into();
-
     post::Entity::insert(active_model).exec(&state.conn).await;
 
     (StatusCode::CREATED, "Post created").into_response()
