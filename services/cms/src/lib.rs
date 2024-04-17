@@ -1,3 +1,4 @@
+pub mod common;
 pub mod handlers;
 pub mod presentation_models;
 

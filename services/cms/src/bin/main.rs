@@ -16,7 +16,6 @@ async fn main() {
     let conn = Database::connect(&database_url).await.unwrap();
 
     let app_state = AppState { conn };
-
     let app = Router::new()
         .route("/", get(root_handler::handle))
         .route("/health", get(root_handler::check_health))
@@ -25,7 +24,11 @@ async fn main() {
             "/admin/database/migration",
             get(root_handler::admin_database_migration),
         )
-        .route("/posts", post(post_handler::handle_post))
+        .route(
+            "/posts",
+            get(post_handler::handle_get_list).post(post_handler::handle_post),
+        )
+        .layer(CookieManagerLayer::new())
         .with_state(app_state);
 
     let host = env::var("HOST").expect("HOST must be set in .env file");

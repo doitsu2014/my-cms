@@ -1,7 +1,8 @@
 use chrono::Utc;
-use entity::{post, prelude::*};
-use sea_orm::ActiveValue;
+use entity::post;
+use serde::{Deserialize, Serialize};
 
+#[derive(Deserialize, Serialize, Debug)]
 pub struct RequestCreatePost {
     pub title: String,
     pub content: String,
@@ -12,7 +13,7 @@ pub struct RequestCreatePost {
 impl RequestCreatePost {
     pub fn into_model(&self) -> post::Model {
         post::Model {
-            id: 0,
+            id: Default::default(),
             title: self.title.to_owned(),
             content: self.content.to_owned(),
             slug: self.slug.to_owned(),

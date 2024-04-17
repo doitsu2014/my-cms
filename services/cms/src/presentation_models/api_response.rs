@@ -1,55 +1,103 @@
-use axum::{
-    extract::State,
-    http::StatusCode,
-    response::{IntoResponse, Response},
-    Json,
-};
+use axum::{http::StatusCode, response::IntoResponse, Json};
 use serde::Serialize;
 
+pub trait AxumResponse {
+    fn to_axum_response(self) -> impl IntoResponse;
+}
+
 #[derive(Serialize)]
-pub struct ApiResponseWith<TData> {
+pub struct ApiResponseWith<TData>
+where
+    TData: Serialize,
+{
     message: String,
     data: TData,
 }
 
+impl<TData> ApiResponseWith<TData>
+where
+    TData: Serialize,
+{
+    pub fn new(data: TData) -> Self {
+        Self {
+            message: "".to_string(),
+            data,
+        }
+    }
+
+    pub fn with_message(self, message: String) -> Self {
+        Self { message, ..self }
+    }
+}
+
+impl<TData> AxumResponse for ApiResponseWith<TData>
+where
+    TData: Serialize,
+{
+    fn to_axum_response(self) -> impl IntoResponse {
+        Json(self)
+    }
+}
+
 #[derive(Serialize)]
-pub struct ApiResponseError<TError>
-where
-    TError: Serialize,
-{
+pub struct ApiResponseError {
     error_code: ErrorCode,
-    error: TError,
+    errors: Vec<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone, Copy, PartialEq)]
 pub enum ErrorCode {
-    UnAuthorized = 401,
-    ForBidden = 403,
-    NotFound = 404,
-    ValidationError = 1000,
-    ConnectionError = 1001,
+    #[serde(rename = "0")]
+    UnknownError,
+    #[serde(rename = "401")]
+    UnAuthorized,
+    #[serde(rename = "401")]
+    ForBidden,
+    #[serde(rename = "404")]
+    NotFound,
+    #[serde(rename = "10000")]
+    ValidationError,
+    #[serde(rename = "10001")]
+    ConnectionError,
 }
 
-impl<TError> ApiResponseError<TError>
-where
-    TError: Serialize,
-{
-    fn get_status_code(&self) -> StatusCode {
-        match self.error_code {
+impl AxumResponse for ApiResponseError {
+    fn to_axum_response(self) -> impl IntoResponse {
+        let status_code = match self.error_code {
+            ErrorCode::UnknownError => StatusCode::INTERNAL_SERVER_ERROR,
             ErrorCode::UnAuthorized => StatusCode::UNAUTHORIZED,
             ErrorCode::ForBidden => StatusCode::FORBIDDEN,
             ErrorCode::NotFound => StatusCode::NOT_FOUND,
             ErrorCode::ValidationError => StatusCode::BAD_REQUEST,
             ErrorCode::ConnectionError => StatusCode::INTERNAL_SERVER_ERROR,
+        };
+
+        (status_code, Json(self))
+    }
+}
+
+impl ApiResponseError {
+    pub fn with_error_code(self, error_code: ErrorCode) -> Self {
+        Self {
+            error_code,
+            errors: self.errors,
         }
     }
 
-    pub fn to_axum_response(self) -> impl IntoResponse {
-        (self.get_status_code(), Json(self))
+    pub fn add_error(self, error: String) -> Self {
+        let mut errors = self.errors;
+        errors.push(error);
+        Self {
+            error_code: self.error_code,
+            errors,
+        }
     }
 
-    pub fn new(error_code: ErrorCode, error: TError) -> Self {
-        Self { error_code, error }
+    pub fn new() -> Self {
+        Self {
+            error_code: ErrorCode::UnknownError,
+            errors: vec![],
+        }
     }
 }
 
@@ -59,12 +107,11 @@ mod tests {
 
     #[test]
     fn test_case_one() {
-        let response_message = ApiResponseError::<String> {
-            error_code: ErrorCode::UnAuthorized,
-            error: "User is unauthorized".to_string(),
-        };
+        let response_message = ApiResponseError::new()
+            .with_error_code(ErrorCode::UnAuthorized)
+            .add_error("User is unauthorized".to_string());
 
-        let response_status_code = response_message.get_status_code();
-        assert_eq!(StatusCode::UNAUTHORIZED, response_status_code);
+        assert_eq!(ErrorCode::UnAuthorized, response_message.error_code);
+        assert_eq!(1, response_message.errors.len());
     }
 }
