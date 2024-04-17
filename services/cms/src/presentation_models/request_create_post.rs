@@ -10,13 +10,13 @@ pub struct RequestCreatePost {
 }
 
 impl RequestCreatePost {
-    pub fn into_model(self) -> post::Model {
+    pub fn into_model(&self) -> post::Model {
         post::Model {
             id: 0,
-            title: self.title,
-            content: self.content,
-            slug: self.slug,
-            published: self.published,
+            title: self.title.to_owned(),
+            content: self.content.to_owned(),
+            slug: self.slug.to_owned(),
+            published: self.published.to_owned(),
             created_at: Utc::now().naive_utc(),
             created_by: "System".to_string(),
             last_modified_at: Utc::now().naive_utc(),

@@ -1,6 +1,6 @@
 use axum::{
-    body::{Body, HttpBody},
-    http::{response::Builder, StatusCode},
+    extract::State,
+    http::StatusCode,
     response::{IntoResponse, Response},
     Json,
 };
@@ -13,7 +13,10 @@ pub struct ApiResponseWith<TData> {
 }
 
 #[derive(Serialize)]
-pub struct ApiResponseError<TError> {
+pub struct ApiResponseError<TError>
+where
+    TError: Serialize,
+{
     error_code: ErrorCode,
     error: TError,
 }
@@ -27,8 +30,11 @@ pub enum ErrorCode {
     ConnectionError = 1001,
 }
 
-impl<TError> ApiResponseError<TError> {
-    fn get_status_code(self) -> StatusCode {
+impl<TError> ApiResponseError<TError>
+where
+    TError: Serialize,
+{
+    fn get_status_code(&self) -> StatusCode {
         match self.error_code {
             ErrorCode::UnAuthorized => StatusCode::UNAUTHORIZED,
             ErrorCode::ForBidden => StatusCode::FORBIDDEN,
@@ -38,11 +44,12 @@ impl<TError> ApiResponseError<TError> {
         }
     }
 
-    fn get_axum_response(self) -> Response {
-        Builder::new()
-            .status(self.get_status_code())
-            .body(Body::from(""))
-            .unwrap()
+    pub fn to_axum_response(self) -> impl IntoResponse {
+        (self.get_status_code(), Json(self))
+    }
+
+    pub fn new(error_code: ErrorCode, error: TError) -> Self {
+        Self { error_code, error }
     }
 }
 
