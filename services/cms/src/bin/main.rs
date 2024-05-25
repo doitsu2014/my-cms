@@ -1,24 +1,164 @@
-use axum::{extract::Request, routing::get, Router};
+use std::env;
+
+use axum::{routing::get, Router};
 use cms::{post_handler, root_handler, AppState};
 use dotenv::dotenv;
-use hyper::{body::Incoming, server};
+use opentelemetry_otlp::WithExportConfig;
 use sea_orm::Database;
-use std::env;
-use tower::Service;
 use tower_cookies::CookieManagerLayer;
-use tracing_subscriber::layer::SubscriberExt;
-use hyper-util::conn::TokioExecutor;
+
+use opentelemetry::{global, Key, KeyValue};
+use opentelemetry_sdk::{
+    metrics::{
+        reader::{DefaultAggregationSelector, DefaultTemporalitySelector},
+        Aggregation, Instrument, MeterProviderBuilder, PeriodicReader, SdkMeterProvider, Stream,
+    },
+    runtime,
+    trace::{BatchConfig, RandomIdGenerator, Sampler, Tracer},
+    Resource,
+};
+use opentelemetry_semantic_conventions::{
+    resource::{DEPLOYMENT_ENVIRONMENT, SERVICE_NAME, SERVICE_VERSION},
+    SCHEMA_URL,
+};
+use tracing::{info, Level};
+use tracing_opentelemetry::{MetricsLayer, OpenTelemetryLayer};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+// Create a Resource that captures information about the entity for which telemetry is recorded.
+fn resource() -> Resource {
+    Resource::from_schema_url(
+        [
+            KeyValue::new(SERVICE_NAME, env!("CARGO_PKG_NAME")),
+            KeyValue::new(SERVICE_VERSION, env!("CARGO_PKG_VERSION")),
+            KeyValue::new(DEPLOYMENT_ENVIRONMENT, "develop"),
+        ],
+        SCHEMA_URL,
+    )
+}
+
+// Construct MeterProvider for MetricsLayer
+fn init_meter_provider() -> SdkMeterProvider {
+    let exporter = opentelemetry_otlp::new_exporter()
+        .tonic()
+        .build_metrics_exporter(
+            Box::new(DefaultAggregationSelector::new()),
+            Box::new(DefaultTemporalitySelector::new()),
+        )
+        .unwrap();
+
+    let reader = PeriodicReader::builder(exporter, runtime::Tokio)
+        .with_interval(std::time::Duration::from_secs(30))
+        .build();
+
+    // For debugging in development
+    let stdout_reader = PeriodicReader::builder(
+        opentelemetry_stdout::MetricsExporter::default(),
+        runtime::Tokio,
+    )
+    .build();
+
+    // Rename foo metrics to foo_named and drop key_2 attribute
+    let view_foo = |instrument: &Instrument| -> Option<Stream> {
+        if instrument.name == "foo" {
+            Some(
+                Stream::new()
+                    .name("foo_named")
+                    .allowed_attribute_keys([Key::from("key_1")]),
+            )
+        } else {
+            None
+        }
+    };
+
+    // Set Custom histogram boundaries for baz metrics
+    let view_baz = |instrument: &Instrument| -> Option<Stream> {
+        if instrument.name == "baz" {
+            Some(
+                Stream::new()
+                    .name("baz")
+                    .aggregation(Aggregation::ExplicitBucketHistogram {
+                        boundaries: vec![0.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0],
+                        record_min_max: true,
+                    }),
+            )
+        } else {
+            None
+        }
+    };
+
+    let meter_provider = MeterProviderBuilder::default()
+        .with_resource(resource())
+        .with_reader(reader)
+        .with_reader(stdout_reader)
+        .with_view(view_foo)
+        .with_view(view_baz)
+        .build();
+
+    global::set_meter_provider(meter_provider.clone());
+
+    meter_provider
+}
+
+// Construct Tracer for OpenTelemetryLayer
+fn init_tracer() -> Tracer {
+    opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_trace_config(
+            opentelemetry_sdk::trace::Config::default()
+                // Customize sampling strategy
+                .with_sampler(Sampler::ParentBased(Box::new(Sampler::TraceIdRatioBased(
+                    1.0,
+                ))))
+                // If export trace to AWS X-Ray, you can use XrayIdGenerator
+                .with_id_generator(RandomIdGenerator::default())
+                .with_resource(resource()),
+        )
+        .with_batch_config(BatchConfig::default())
+        .with_exporter(
+            opentelemetry_otlp::new_exporter()
+                .tonic()
+                .with_endpoint("http://localhost:4317"),
+        )
+        .install_batch(runtime::Tokio)
+        .unwrap()
+}
+
+// Initialize tracing-subscriber and return OtelGuard for opentelemetry-related termination processing
+fn init_tracing_subscriber() -> OtelGuard {
+    let meter_provider = init_meter_provider();
+
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::filter::LevelFilter::from_level(
+            Level::INFO,
+        ))
+        .with(tracing_subscriber::fmt::layer())
+        .with(MetricsLayer::new(meter_provider.clone()))
+        .with(OpenTelemetryLayer::new(init_tracer()))
+        .init();
+
+    OtelGuard { meter_provider }
+}
+
+struct OtelGuard {
+    meter_provider: SdkMeterProvider,
+}
+
+impl Drop for OtelGuard {
+    fn drop(&mut self) {
+        if let Err(err) = self.meter_provider.shutdown() {
+            eprintln!("{err:?}");
+        }
+        opentelemetry::global::shutdown_tracer_provider();
+    }
+}
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::registry()
-        .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "example_dependency_injection=debug".into()),
-        )
-        .with(tracing_subscriber::fmt::layer());
-
     dotenv().ok();
+
+    let _guatd = init_tracing_subscriber();
+
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let conn = Database::connect(&database_url).await.unwrap();
 
@@ -36,21 +176,14 @@ async fn main() {
         )
         .layer(CookieManagerLayer::new())
         .with_state(app_state);
-    let tower_service = app.clone();
+
+    info!("Starting server...");
 
     let host = env::var("HOST").expect("HOST must be set in .env file");
     let port = env::var("PORT").expect("PORT must be set in .env file");
     let host_port = format!("{}:{}", host, port);
     let listener = tokio::net::TcpListener::bind(&host_port).await.unwrap();
-    let (socket, _remote_addr) = listener.accept().await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 
-    let hyper_service = hyper::service::service_fn(move |request: Request<Incoming>| {
-        tower_service.clone().call(request)
-    });
-
-    let server = server::conn::http2::Builder::new(TokioExecutor::new()).serve_connection();
-
-    // axum::serve(listener, app).await.unwrap();
-
-    println!("Listening on port {}", host_port);
+    info!("Server is running on http://{}", host_port);
 }

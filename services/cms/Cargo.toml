@@ -13,25 +13,51 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 tokio = { version = "1.37.0", features = ["full"] }
 async-std = "1.12.0"
-axum = { version = "0.7.5", features = ["http2"] }
+axum = { version = "0.7.5", features = ["http2", "tracing"] }
 serde = { version = "1.0.197", features = ["derive"] }
-tracing-subscriber = "0.3.18"
 dotenv = "0.15.0"
 redis = "0.25.2"
+
 sea-orm = "0.12.15"
 sea-orm-migration = "0.12.15"
 chrono = "0.4.37"
 
 hyper = { version = "1.3.1" }
-hyper-util = { version = "0.1.3" }
+hyper-util = { version = "0.1.4" }
 tower = "0.4.13"
-tower-http = { version = "0.5.2", features = ["fs"] }
+tower-http = { version = "0.5.2", features = ["fs", "tracing"] }
 tower-cookies = "0.10.0"
 
 migration = { path = "migration" }
 entity = { path = "entity" }
 
 
-# For Dev and Testing
-testcontainers = "0.15"
-testcontainers-modules = { version = "0.3.6", features = ["postgres", "redis"] }
+opentelemetry = { version = "0.22.0", features = ["trace", "metrics"] }
+opentelemetry_sdk = { version = "0.22.0", default-features = false, features = [
+  "trace",
+  "rt-tokio",
+] }
+opentelemetry-jaeger = "0.21.0"
+opentelemetry-stdout = { version = "0.3.0", features = ["trace", "metrics"] }
+opentelemetry-otlp = { version = "0.15.0", features = [
+  "metrics",
+  "http-proto",
+  "reqwest-client",
+  "logs",
+] }
+opentelemetry-semantic-conventions = "0.14.0"
+tracing = { version = "0.1.35", default-features = false, features = [
+  "std",
+  "attributes",
+] }
+tracing-error = "0.2.0"
+tracing-subscriber = { version = "0.3.0", default-features = false, features = [
+  "registry",
+  "std",
+  "fmt",
+] }
+tracing-opentelemetry = { version = "0.23" }
+
+[dev-dependencies]
+testcontainers = "0.16.7"
+testcontainers-modules = { version = "0.4.3", features = ["postgres", "redis"] }
