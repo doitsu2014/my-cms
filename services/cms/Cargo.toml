@@ -32,21 +32,19 @@ tower-cookies = "0.10.0"
 migration = { path = "migration" }
 entity = { path = "entity" }
 
-
-opentelemetry = { version = "0.22.0", features = ["trace", "metrics"] }
-opentelemetry_sdk = { version = "0.22.0", default-features = false, features = [
-  "trace",
-  "rt-tokio",
-] }
-opentelemetry-jaeger = "0.21.0"
-opentelemetry-stdout = { version = "0.3.0", features = ["trace", "metrics"] }
-opentelemetry-otlp = { version = "0.15.0", features = [
-  "metrics",
-  "http-proto",
-  "reqwest-client",
-  "logs",
-] }
-opentelemetry-semantic-conventions = "0.14.0"
+# opentelemetry_sdk = { version = "0.22.0", default-features = false, features = [
+#   "trace",
+#   "rt-tokio",
+# ] }
+# opentelemetry-jaeger = "0.21.0"
+# opentelemetry-stdout = { version = "0.3.0", features = ["trace", "metrics"] }
+# opentelemetry-otlp = { version = "0.15.0", features = [
+#   "metrics",
+#   "http-proto",
+#   "reqwest-client",
+#   "logs",
+# ] }
+# opentelemetry-semantic-conventions = "0.14.0"
 tracing = { version = "0.1.35", default-features = false, features = [
   "std",
   "attributes",
@@ -58,8 +56,16 @@ tracing-subscriber = { version = "0.3.0", default-features = false, features = [
   "fmt",
 ] }
 tracing-opentelemetry = { version = "0.23" }
+
 tracing-opentelemetry-instrumentation-sdk = { version = "0.18.1" }
-axum-tracing-opentelemetry = "0.18.1"
+axum-tracing-opentelemetry = { version = "0.18.1" }
+init-tracing-opentelemetry = { version = "0.18.1", features = [
+  "otlp",
+  "tracing_subscriber_ext",
+] }
+
+opentelemetry = { version = "0.22.0" }
+opentelemetry-otlp = { version = "0.16.0" }
 
 [dev-dependencies]
 testcontainers = "0.16.7"

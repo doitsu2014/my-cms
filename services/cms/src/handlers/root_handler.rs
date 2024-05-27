@@ -1,10 +1,5 @@
 use axum::{extract::State, response::IntoResponse};
 use migration::{Migrator, MigratorTrait};
-use opentelemetry::{
-    global,
-    trace::{TraceContextExt, Tracer},
-    KeyValue,
-};
 use serde_json::json;
 use tracing_opentelemetry_instrumentation_sdk::find_current_trace_id;
 

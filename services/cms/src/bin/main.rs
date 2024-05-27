@@ -12,7 +12,7 @@ use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer}
 #[tokio::main]
 async fn main() {
     dotenv().ok();
-    let _guatd = tracing_initializer::init_tracing_subscriber();
+    init_tracing_opentelemetry::tracing_subscriber_ext::init_subscribers().unwrap();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let conn = Database::connect(&database_url).await.unwrap();
