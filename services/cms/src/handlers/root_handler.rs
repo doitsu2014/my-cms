@@ -1,35 +1,32 @@
-use axum::extract::State;
+use axum::{extract::State, response::IntoResponse};
 use migration::{Migrator, MigratorTrait};
 use opentelemetry::{
     global,
     trace::{TraceContextExt, Tracer},
     KeyValue,
 };
+use serde_json::json;
+use tracing_opentelemetry_instrumentation_sdk::find_current_trace_id;
 
 use crate::AppState;
 
+#[tracing::instrument]
 pub async fn handle() -> &'static str {
     "CMS is running successfully!"
 }
 
-pub async fn check_health() -> &'static str {
-    let tracer2 = global::tracer("tracing-jaeger");
-    tracer2.in_span("main-operation", |cx| {
-        let span = cx.span();
-        span.set_attribute(KeyValue::new("my-attribute", "my-value"));
-        span.add_event(
-            "Main span event".to_string(),
-            vec![KeyValue::new("foo", "1")],
-        );
-        tracer2.in_span("child-operation...", |cx| {
-            let span = cx.span();
-            span.add_event("Sub span event", vec![KeyValue::new("bar", "1")]);
-        });
-    });
+#[tracing::instrument]
+pub async fn check_health() -> impl IntoResponse {
+    let trace_id = find_current_trace_id();
+    dbg!(&trace_id);
 
-    "CMS is running successfully!"
+    axum::Json(json!({
+        "message": "CMS is running healthy",
+        "trace_id": trace_id
+    }))
 }
 
+#[tracing::instrument]
 pub async fn admin_database_migration(state: State<AppState>) -> &'static str {
     Migrator::up(&state.conn, None).await.unwrap();
     "CMS is running successfully!"

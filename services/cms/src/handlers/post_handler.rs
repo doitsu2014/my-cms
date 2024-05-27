@@ -3,7 +3,9 @@ use axum::{extract::State, response::IntoResponse, Json};
 use entity::post;
 use sea_orm::{ActiveValue, EntityTrait, IntoActiveModel};
 use tower_cookies::Cookies;
+use tracing::instrument;
 
+#[instrument]
 pub async fn handle_get_list(state: State<AppState>) -> impl IntoResponse {
     let all = post::Entity::find()
         .all(&state.conn)
@@ -13,6 +15,7 @@ pub async fn handle_get_list(state: State<AppState>) -> impl IntoResponse {
     ApiResponseWith::new(all).to_axum_response()
 }
 
+#[instrument]
 pub async fn handle_post(
     state: State<AppState>,
     mut cookies: Cookies,
