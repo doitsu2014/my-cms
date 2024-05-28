@@ -41,6 +41,4 @@ async fn main() {
     let host_port = format!("{}:{}", host, port);
     let listener = tokio::net::TcpListener::bind(&host_port).await.unwrap();
     axum::serve(listener, app).await.unwrap();
-
-    info!("Server is running on http://{}", host_port);
 }
