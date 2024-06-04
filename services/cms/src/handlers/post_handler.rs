@@ -1,4 +1,7 @@
-use crate::{request_create_post::RequestCreatePost, ApiResponseWith, AppState, AxumResponse};
+use crate::{
+    request_create_post::RequestCreatePost, ApiResponseError, ApiResponseWith, AppState,
+    AxumResponse,
+};
 use axum::{extract::State, response::IntoResponse, Json};
 use entity::post;
 use sea_orm::{ActiveValue, EntityTrait, IntoActiveModel};
@@ -18,7 +21,7 @@ pub async fn handle_get_list(state: State<AppState>) -> impl IntoResponse {
 #[instrument]
 pub async fn handle_post(
     state: State<AppState>,
-    mut cookies: Cookies,
+    cookies: Cookies,
     Json(body): Json<RequestCreatePost>,
 ) -> impl IntoResponse {
     let model = body.into_model();
@@ -27,9 +30,19 @@ pub async fn handle_post(
         id: ActiveValue::NotSet,
         ..model.into_active_model()
     };
-    post::Entity::insert(active_model).exec(&state.conn).await;
+    let result = post::Entity::insert(active_model).exec(&state.conn).await;
 
-    ApiResponseWith::new(body)
-        .with_message("Post created successfully".to_string())
-        .to_axum_response()
+    match result {
+        Ok(_) => {
+            ApiResponseWith::new(body)
+                .with_message("Post created successfully".to_string())
+                .to_axum_response();
+        }
+        Err(e) => {
+            ApiResponseError::new()
+                .with_error_code(crate::ErrorCode::UnknownError)
+                .add_error(e.to_string())
+                .to_axum_response();
+        }
+    };
 }
