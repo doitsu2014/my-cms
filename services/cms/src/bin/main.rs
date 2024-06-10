@@ -1,7 +1,7 @@
 use std::env;
 
 use axum::{routing::get, Router};
-use cms::{post_handler, root_handler, tracing_initializer, AppState};
+use cms::{post_handler, root_handler, AppState};
 use dotenv::dotenv;
 use sea_orm::Database;
 use tower_cookies::CookieManagerLayer;
