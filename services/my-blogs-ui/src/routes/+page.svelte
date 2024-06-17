@@ -1,4 +1,13 @@
-<div><Canvas><Scene></Scene></Canvas></div><div><Canvas><Scene></Scene></Canvas></div><h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
-<style></style><script>import Scene from "$lib/Scene.svelte";
-import { Canvas } from "@threlte/core";</script><style></style>
+<script lang="ts">
+	// import { Canvas } from '@threlte/core';
+	// import Scene from '$lib/Scene.svelte';
+
+	// import type { IndexPageData } from './$types';
+	export let data;
+</script>
+
+<!-- <div><Canvas><Scene></Scene></Canvas></div> -->
+<!-- <div><Canvas><Scene></Scene></Canvas></div> -->
+<h1>Welcome to {data.organization}, my name is {data.author}</h1>
+
+<style></style>
