@@ -1,1 +1,13 @@
-<slot></slot><slot></slot><slot></slot><style></style><slot></slot><script>import "../app.css";</script><style></style>
+<script>
+	import '../app.css';
+</script>
+
+<nav>
+	<a href="/">Home</a>
+	<a href="/blog">Blog</a>
+	<a href="/about">About</a>
+</nav>
+
+<slot></slot>
+
+<style></style>
