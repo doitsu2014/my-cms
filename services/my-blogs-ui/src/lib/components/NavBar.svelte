@@ -12,9 +12,21 @@
 			<a href="/">{title}</a>
 		</div>
 		<div class="space-x-4">
-			<a href="/" class="underline-hover text-black hover:underline dark:text-white">Home</a>
-			<a href="/blog" class="underline-hover text-black hover:underline dark:text-white">Blog</a>
-			<a href="/about" class="underline-hover text-black hover:underline dark:text-white">About</a>
+			<a
+				href="/"
+				class="border-2 border-surface-100 p-2 text-black hover:border-2 hover:border-primary dark:border-surface-900 dark:text-white dark:hover:border-primary-50 transition-colors duration-200"
+				>Home</a
+			>
+			<a
+				href="/blog"
+				class="border-2 border-surface-100 p-2 text-black hover:border-2 hover:border-primary dark:border-surface-900 dark:text-white dark:hover:border-primary-50 transition-colors duration-200"
+				>Blog</a
+			>
+			<a
+				href="/about"
+				class="border-2 border-surface-100 p-2 text-black hover:border-2 hover:border-primary dark:border-surface-900 dark:text-white dark:hover:border-primary-50 transition-colors duration-200"
+				>About</a
+			>
 		</div>
 		<button
 			class="rounded bg-primary px-4 py-2 font-bold text-white dark:bg-primary-50 dark:text-black"
