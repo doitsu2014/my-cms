@@ -7,49 +7,32 @@ export default {
 		extend: {
 			colors: {
 				primary: {
-					light: '#333333',
-					DEFAULT: '#000000',
-					dark: '#000000'
+					light: '#3b82f6', // Light mode primary color
+					dark: '#2563eb' // Dark mode primary color
 				},
 				secondary: {
-					light: '#FFFFFF',
-					DEFAULT: '#FFFFFF',
-					dark: '#CCCCCC'
+					light: '#fbbf24',
+					dark: '#f59e0b'
 				},
 				tertiary: {
-					light: '#E0E0E0',
-					DEFAULT: '#B0B0B0',
-					dark: '#808080'
+					light: '#10b981',
+					dark: '#059669'
 				},
 				success: {
-					light: '#A5D6A7',
-					DEFAULT: '#4CAF50',
-					dark: '#388E3C'
+					light: '#34d399',
+					dark: '#10b981'
 				},
 				warning: {
-					light: '#FFE082',
-					DEFAULT: '#FFC107',
-					dark: '#FFA000'
+					light: '#f97316',
+					dark: '#ea580c'
 				},
 				error: {
-					light: '#EF9A9A',
-					DEFAULT: '#F44336',
-					dark: '#D32F2F'
+					light: '#ef4444',
+					dark: '#dc2626'
 				},
 				surface: {
-					light: '#F5F5F5',
-					DEFAULT: '#EEEEEE',
-					dark: '#E0E0E0'
-				},
-				text: {
-					light: '#FFFFFF',
-					DEFAULT: '#000000',
-					dark: '#000000'
-				},
-				background: {
-					light: '#FFFFFF',
-					DEFAULT: '#F5F5F5',
-					dark: '#121212' // Dark mode background color
+					light: '#ffffff',
+					dark: '#1f2937'
 				}
 			}
 		}
