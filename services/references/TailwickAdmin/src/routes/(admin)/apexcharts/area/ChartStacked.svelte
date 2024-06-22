@@ -1,0 +1,87 @@
+<script>
+	import { onMount } from 'svelte';
+	import { getChartColorsArray } from '../../../../common/components/ChartColorsArray.svelte';
+    import {series} from "../../../../common/data/stock-prices"
+	export let chartColors;
+
+    //Stacked chart
+var generateDayWiseTimeSeries = function (baseval, count, yrange) {
+    var i = 0;
+    var series = [];
+    while (i < count) {
+        var x = baseval;
+        var y = Math.floor(Math.random() * (yrange.max - yrange.min + 1)) + yrange.min;
+
+        series.push([x, y]);
+        baseval += 86400000;
+        i++;
+    }
+    return series;
+}
+
+	var options = {
+		series: [
+        {
+            name: 'South',
+            data: generateDayWiseTimeSeries(new Date('11 Feb 2017 GMT').getTime(), 20, {
+                min: 10,
+                max: 60
+            })
+        },
+        {
+            name: 'North',
+            data: generateDayWiseTimeSeries(new Date('11 Feb 2017 GMT').getTime(), 20, {
+                min: 10,
+                max: 20
+            })
+        },
+        {
+            name: 'Central',
+            data: generateDayWiseTimeSeries(new Date('11 Feb 2017 GMT').getTime(), 20, {
+                min: 10,
+                max: 15
+            })
+        }
+    ],
+    chart: {
+        type: 'area',
+        height: 350,
+        stacked: true,
+        events: {
+            selection: function (chart, e) {
+                console.log(new Date(e.xaxis.min))
+            }
+        },
+    },
+    colors: getChartColorsArray(chartColors),
+    dataLabels: {
+        enabled: false
+    },
+    stroke: {
+        curve: 'smooth'
+    },
+    fill: {
+        type: 'gradient',
+        gradient: {
+            opacityFrom: 0.6,
+            opacityTo: 0.8,
+        }
+    },
+    legend: {
+        position: 'top',
+        horizontalAlign: 'left'
+    },
+    xaxis: {
+        type: 'datetime'
+    },
+	};
+
+	onMount(() => {
+		setTimeout(() => {
+			var chart = new ApexCharts(document.querySelector('#chartStacked'), options);
+			chart.render();
+		}, 100);
+	});
+</script>
+
+<div id="chartStacked" class="apex-charts"></div>

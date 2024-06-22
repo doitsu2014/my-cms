@@ -1,0 +1,37 @@
+/*
+Template Name: Tailwick - Admin & Dashboard Template
+Author: Themesdesign
+Version: 1.1.0
+Website: https://themesdesign.in/
+Contact: Themesdesign@gmail.com
+File: tailwind scss File
+*/
+
+@import 'fonts/fonts';
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@import 'plugins/gridjs';
+
+.group\/menu-link:hover,
+.animate {
+	animation-iteration-count: 2;
+	stroke-dasharray: 10;
+}
+
+button.svelte-1a1bwoj {
+	@apply w-auto #{!important};
+}
+
+div.svelte-6lhts,
+div.svelte-13oqf85 {
+	@apply bg-white dark:bg-zink-600 border-slate-200 dark:border-zink-500 #{!important};
+}
+
+input.svelte-11z4jba,
+button.svelte-11z4jba {
+	@apply bg-slate-100 dark:bg-zink-500 #{!important};
+}
+
