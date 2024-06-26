@@ -1,11 +1,12 @@
-[![build and test cms](https://github.com/doitsu2014/my-blogs-with-rust/actions/workflows/rust.yml/badge.svg)](https://github.com/doitsu2014/my-blogs-with-rust/actions/workflows/rust.yml)
-
 # Overview
 
-This project is using rust programming language to building up a website, which shows my posts about technology, and my hobbits., etc.
+## Architecture
 
-## Services
+### 1. ORM
 
-### 1. cms: Content Management System
+The project using SeaORM to interact with the database. SeaORM is a modern and easy-to-use ORM for Rust.
 
-I am using `axum` to build up the backend server, and `SeaORM` to interact with the database (postgresql). I am using `testcontainers-rs` to write integration tests for this api.
+### 2. Unit Tests and Integration Tests
+
+For unit tests, we use built-in feature mock of SeaORM to test the database interaction. For integration tests, we use the test database to test the whole system.
+For integration tests, we use testcontainers to setup whole infrastructure to make sure the system is working as expected.
