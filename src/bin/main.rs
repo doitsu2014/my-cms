@@ -12,6 +12,7 @@ use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer}
 #[tokio::main]
 async fn main() {
     dotenv().ok();
+
     init_tracing_opentelemetry::tracing_subscriber_ext::init_subscribers().unwrap();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
@@ -32,6 +33,7 @@ async fn main() {
         .layer(OtelInResponseLayer::default())
         .layer(OtelAxumLayer::default())
         .layer(CookieManagerLayer::new())
+        .layer()
         .with_state(app_state);
 
     info!("Starting server...");
