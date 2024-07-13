@@ -10,11 +10,11 @@ mod tests {
 
     #[async_std::test]
     async fn test_post_save() {
-        let postgres = Postgres::default().start().await;
+        let postgres = Postgres::default().start().await.unwrap();
 
         let connection_string: String = format!(
             "postgres://postgres:postgres@127.0.0.1:{}/postgres",
-            postgres.get_host_port_ipv4(5432).await
+            postgres.get_host_port_ipv4(5432).await.unwrap()
         );
 
         let title = post::ActiveModel {

@@ -1,8 +1,17 @@
 use std::env;
 
-use axum::{routing::get, Router};
-use cms::{post_handler, root_handler, AppState};
+use axum::{
+    routing::{get, post},
+    Router,
+};
+use axum_keycloak_auth::{
+    instance::{KeycloakAuthInstance, KeycloakConfig},
+    layer::KeycloakAuthLayer,
+    PassthroughMode,
+};
+use cms::{administrator_handler, post_handler, root_handler, AppState};
 use dotenv::dotenv;
+use reqwest::Url;
 use sea_orm::Database;
 use tower_cookies::CookieManagerLayer;
 use tracing::info;
@@ -12,19 +21,47 @@ use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer}
 #[tokio::main]
 async fn main() {
     dotenv().ok();
-
     init_tracing_opentelemetry::tracing_subscriber_ext::init_subscribers().unwrap();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let conn = Database::connect(&database_url).await.unwrap();
-
     let app_state = AppState { conn };
-    let app = Router::new()
+    let keycloak_auth_instance = KeycloakAuthInstance::new(
+        KeycloakConfig::builder()
+            .server(Url::parse("https://keycloak-admin.doitsu.tech").unwrap())
+            .realm(String::from("master"))
+            .build(),
+    );
+
+    let app = public_router().merge(protected_router(keycloak_auth_instance, app_state));
+
+    info!("Starting server...");
+
+    let host = env::var("HOST").expect("HOST must be set in .env file");
+    let port = env::var("PORT").expect("PORT must be set in .env file");
+    let host_port = format!("{}:{}", host, port);
+
+    tracing::info!("try to call `curl -i http://{}/`", host_port); //Devskim: ignore DS137138
+    tracing::info!("try to call `curl -i http://{}/healthz`", host_port); //Devskim: ignore DS137138
+
+    let listener = tokio::net::TcpListener::bind(&host_port).await.unwrap();
+    axum::serve(listener, app).await.unwrap();
+}
+
+pub fn public_router() -> Router {
+    Router::new()
         .route("/", get(root_handler::handle))
+        .route("/health", get(root_handler::check_health))
         .route("/healthz", get(root_handler::check_health))
+        .layer(OtelInResponseLayer::default())
+        .layer(OtelAxumLayer::default())
+}
+
+pub fn protected_router(instance: KeycloakAuthInstance, app_state: AppState) -> Router {
+    Router::new()
         .route(
-            "/admin/database/migration",
-            get(root_handler::admin_database_migration),
+            "/administrator/database/migration",
+            post(administrator_handler::administrator_database_migration),
         )
         .route(
             "/posts",
@@ -33,14 +70,14 @@ async fn main() {
         .layer(OtelInResponseLayer::default())
         .layer(OtelAxumLayer::default())
         .layer(CookieManagerLayer::new())
-        .layer()
-        .with_state(app_state);
-
-    info!("Starting server...");
-
-    let host = env::var("HOST").expect("HOST must be set in .env file");
-    let port = env::var("PORT").expect("PORT must be set in .env file");
-    let host_port = format!("{}:{}", host, port);
-    let listener = tokio::net::TcpListener::bind(&host_port).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+        .layer(
+            KeycloakAuthLayer::<String>::builder()
+                .instance(instance)
+                .passthrough_mode(PassthroughMode::Block)
+                .persist_raw_claims(false)
+                .expected_audiences(vec![String::from("my-headless-cms-api")])
+                .required_roles(vec![String::from("my-cms-headless-administrator")])
+                .build(),
+        )
+        .with_state(app_state)
 }

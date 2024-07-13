@@ -2,19 +2,14 @@ use jsonwebtoken::jwk::JwkSet;
 use reqwest::Url;
 use std::env;
 
-async fn fetch_jwks() -> Result<JwkSet, reqwest::Error>  {
-    let ids_url_str = env::var("IDS_URL")
-        .unwrap_or("https://ids-sts.doitsu.tech".to_string());
+async fn fetch_jwks() -> Result<JwkSet, reqwest::Error> {
+    let ids_url_str = env::var("IDS_URL").unwrap_or("https://ids-sts.doitsu.tech".to_string());
 
     let ids_url = Url::parse(&ids_url_str)
         .map(|e| e.join(".well-known/openid-configuration/jwks").unwrap())
         .unwrap();
 
-    let body = reqwest::get(ids_url)
-        .await?
-        .bytes()
-        .await
-        .unwrap();
+    let body = reqwest::get(ids_url).await?.bytes().await.unwrap();
 
     let jwk_set: JwkSet = serde_json::from_slice(&body).unwrap();
     Ok(jwk_set)
