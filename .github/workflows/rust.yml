@@ -21,14 +21,10 @@ jobs:
       run: cargo build
     - name: Run tests
       run: cargo test  -- -Z unstable-options --format json --report-time | tee results.json
-    - name: Prepare junit report
-      id: cargo_reporter 
-      uses: innoq/action-cargo-test-report
-      with:
-        cargo-test-report-json: 'results.json'
-    - name: Publish Test Report
-      uses: mikepenz/action-junit-report@main
-      if: always() # always run even if the previous step fails
+    - name: JUnit Report Action
+      uses: mikepenz/action-junit-report@v4.3.1
+
+    - uses: mikepenz/action-junit-report@main
       with:
         check_name: Test Report
         fail_on_failure: true
