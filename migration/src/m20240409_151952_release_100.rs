@@ -19,6 +19,20 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Categories::DisplayName).string().not_null())
                     .col(ColumnDef::new(Categories::CategoryType).string().not_null())
+                    .col(ColumnDef::new(Categories::CreatedBy).string().not_null())
+                    .col(
+                        ColumnDef::new(Categories::CreatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null()
+                            .default(Expr::current_timestamp()),
+                    )
+                    .col(ColumnDef::new(Categories::LastModifiedBy).string().null())
+                    .col(
+                        ColumnDef::new(Categories::LastModifiedAt)
+                            .timestamp_with_time_zone()
+                            .null()
+                            .default(Expr::current_timestamp()),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -38,10 +52,20 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .default(false),
                     )
-                    .col(ColumnDef::new(Posts::CreatedAt).timestamp().not_null())
-                    .col(ColumnDef::new(Posts::CreatedBy).string().not_null())
-                    .col(ColumnDef::new(Posts::LastModifiedAt).timestamp().not_null())
-                    .col(ColumnDef::new(Posts::LastModifiedBy).string().not_null())
+                    .col(ColumnDef::new(Categories::CreatedBy).string().not_null())
+                    .col(
+                        ColumnDef::new(Categories::CreatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null()
+                            .default(Expr::current_timestamp()),
+                    )
+                    .col(ColumnDef::new(Categories::LastModifiedBy).string().null())
+                    .col(
+                        ColumnDef::new(Categories::LastModifiedAt)
+                            .timestamp_with_time_zone()
+                            .null()
+                            .default(Expr::current_timestamp()),
+                    )
                     .col(ColumnDef::new(Posts::CategoryId).uuid().not_null())
                     .foreign_key(
                         ForeignKey::create()
@@ -73,6 +97,10 @@ pub enum Categories {
     Id,
     DisplayName,
     CategoryType,
+    CreatedAt,
+    CreatedBy,
+    LastModifiedAt,
+    LastModifiedBy,
 }
 
 #[derive(Iden)]

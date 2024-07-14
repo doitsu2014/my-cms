@@ -22,6 +22,10 @@ pub struct Model {
     pub id: Uuid,
     pub display_name: String,
     pub category_type: CategoryTypeEnum,
+    pub created_at: DateTimeUtc,
+    pub created_by: String,
+    pub last_modified_at: Option<DateTimeUtc>,
+    pub last_modified_by: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

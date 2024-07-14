@@ -65,13 +65,13 @@ pub fn protected_router(instance: KeycloakAuthInstance, app_state: AppState) -> 
         )
         .route(
             "/categories",
-            get(commands::category::read::read_handler::handle)
-                .post(commands::category::create::create_handler::handle),
+            get(commands::category::read::read_handler::handle_api_get_all_categories)
+                .post(commands::category::create::create_handler::handle_api_create_category),
         )
         .route(
             "/posts",
-            get(commands::post::read::read_handler::handle)
-                .post(commands::post::create::create_handler::handle),
+            get(commands::post::read::read_handler::handle_api_get_all_posts)
+                .post(commands::post::create::create_handler::handle_api_create_post),
         )
         .layer(
             KeycloakAuthLayer::<String>::builder()

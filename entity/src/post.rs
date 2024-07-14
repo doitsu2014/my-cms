@@ -11,11 +11,12 @@ pub struct Model {
     pub content: String,
     pub slug: String,
     pub published: bool,
-    pub category_id: Uuid,
-    pub created_at: DateTime,
+    pub created_at: DateTimeUtc,
     pub created_by: String,
-    pub last_modified_at: DateTime,
-    pub last_modified_by: String,
+    pub last_modified_at: Option<DateTimeUtc>,
+    pub last_modified_by: Option<String>,
+
+    pub category_id: Uuid,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
