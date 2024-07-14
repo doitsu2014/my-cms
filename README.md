@@ -1,4 +1,9 @@
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/summary/new_code?id=doitsu2014_my-cms)
+---
+
 # Overview
+
+
 
 ## Architecture
 
