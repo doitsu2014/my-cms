@@ -9,7 +9,7 @@ use axum_keycloak_auth::{
     layer::KeycloakAuthLayer,
     PassthroughMode,
 };
-use cms::{administrator_handler, post_handler, root_handler, AppState};
+use cms::{administrator_handler, commands, root_handler, AppState};
 use dotenv::dotenv;
 use reqwest::Url;
 use sea_orm::Database;
@@ -64,12 +64,15 @@ pub fn protected_router(instance: KeycloakAuthInstance, app_state: AppState) -> 
             post(administrator_handler::administrator_database_migration),
         )
         .route(
-            "/posts",
-            get(post_handler::handle_get_list).post(post_handler::handle_post),
+            "/categories",
+            get(commands::category::read::read_handler::handle)
+                .post(commands::category::create::create_handler::handle),
         )
-        .layer(OtelInResponseLayer::default())
-        .layer(OtelAxumLayer::default())
-        .layer(CookieManagerLayer::new())
+        .route(
+            "/posts",
+            get(commands::post::read::read_handler::handle)
+                .post(commands::post::create::create_handler::handle),
+        )
         .layer(
             KeycloakAuthLayer::<String>::builder()
                 .instance(instance)
@@ -79,5 +82,8 @@ pub fn protected_router(instance: KeycloakAuthInstance, app_state: AppState) -> 
                 .required_roles(vec![String::from("my-cms-headless-administrator")])
                 .build(),
         )
+        .layer(OtelInResponseLayer::default())
+        .layer(OtelAxumLayer::default())
+        .layer(CookieManagerLayer::new())
         .with_state(app_state)
 }

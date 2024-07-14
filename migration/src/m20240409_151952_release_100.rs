@@ -6,53 +6,84 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Replace the sample below with your own migration scripts
         manager
             .create_table(
                 Table::create()
-                    .table(Post::Table)
+                    .table(Categories::Table)
                     .if_not_exists()
                     .col(
-                        ColumnDef::new(Post::Id)
-                            .integer()
+                        ColumnDef::new(Categories::Id)
+                            .uuid()
                             .not_null()
-                            .auto_increment()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Post::Title).string().not_null())
-                    .col(ColumnDef::new(Post::Content).string().not_null())
-                    .col(ColumnDef::new(Post::Slug).string().not_null())
+                    .col(ColumnDef::new(Categories::DisplayName).string().not_null())
+                    .col(ColumnDef::new(Categories::CategoryType).string().not_null())
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Posts::Table)
+                    .if_not_exists()
+                    .col(ColumnDef::new(Posts::Id).uuid().not_null().primary_key())
+                    .col(ColumnDef::new(Posts::Title).string().not_null())
+                    .col(ColumnDef::new(Posts::Content).string().not_null())
+                    .col(ColumnDef::new(Posts::Slug).string().not_null())
                     .col(
-                        ColumnDef::new(Post::Published)
+                        ColumnDef::new(Posts::Published)
                             .boolean()
                             .not_null()
                             .default(false),
                     )
-                    .col(ColumnDef::new(Post::CreatedAt).timestamp().not_null())
-                    .col(ColumnDef::new(Post::CreatedBy).string().not_null())
-                    .col(ColumnDef::new(Post::LastModifiedAt).timestamp().not_null())
-                    .col(ColumnDef::new(Post::LastModifiedBy).string().not_null())
+                    .col(ColumnDef::new(Posts::CreatedAt).timestamp().not_null())
+                    .col(ColumnDef::new(Posts::CreatedBy).string().not_null())
+                    .col(ColumnDef::new(Posts::LastModifiedAt).timestamp().not_null())
+                    .col(ColumnDef::new(Posts::LastModifiedBy).string().not_null())
+                    .col(ColumnDef::new(Posts::CategoryId).uuid().not_null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk-posts-category_id")
+                            .from(Posts::Table, Posts::CategoryId)
+                            .to(Categories::Table, Categories::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
                     .to_owned(),
             )
             .await
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Replace the sample below with your own migration scripts
+        // Drop the posts table first to remove the foreign key constraint
         manager
-            .drop_table(Table::drop().table(Post::Table).to_owned())
+            .drop_table(Table::drop().table(Posts::Table).to_owned())
+            .await?;
+        // Then drop the categories table
+        manager
+            .drop_table(Table::drop().table(Categories::Table).to_owned())
             .await
     }
 }
 
-#[derive(DeriveIden)]
-enum Post {
+#[derive(Iden)]
+pub enum Categories {
+    Table,
+    Id,
+    DisplayName,
+    CategoryType,
+}
+
+#[derive(Iden)]
+pub enum Posts {
     Table,
     Id,
     Title,
     Content,
     Slug,
     Published,
+    CategoryId,
     CreatedAt,
     CreatedBy,
     LastModifiedAt,

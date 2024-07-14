@@ -1,7 +1,6 @@
 [workspace]
 members = ["entity", "migration"]
 
-
 [package]
 name = "cms"
 version = "0.1.0"

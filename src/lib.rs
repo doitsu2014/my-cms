@@ -1,4 +1,4 @@
-pub mod biz_services;
+pub mod commands;
 pub mod common;
 pub mod handlers;
 pub mod presentation_models;

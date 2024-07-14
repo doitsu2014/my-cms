@@ -9,17 +9,7 @@ use tower_cookies::Cookies;
 use tracing::instrument;
 
 #[instrument]
-pub async fn handle_get_list(state: State<AppState>) -> impl IntoResponse {
-    let all = post::Entity::find()
-        .all(&state.conn)
-        .await
-        .expect("Failed to fetch all posts");
-
-    ApiResponseWith::new(all).to_axum_response()
-}
-
-#[instrument]
-pub async fn handle_post(
+pub async fn handle(
     state: State<AppState>,
     cookies: Cookies,
     Json(body): Json<RequestCreatePost>,
@@ -35,7 +25,7 @@ pub async fn handle_post(
     match result {
         Ok(_) => {
             ApiResponseWith::new(body)
-                .with_message("Post created successfully".to_string())
+                .with_message("System has already created Post successfully".to_string())
                 .to_axum_response();
         }
         Err(e) => {
