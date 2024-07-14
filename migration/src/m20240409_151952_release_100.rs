@@ -52,16 +52,16 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .default(false),
                     )
-                    .col(ColumnDef::new(Categories::CreatedBy).string().not_null())
+                    .col(ColumnDef::new(Posts::CreatedBy).string().not_null())
                     .col(
-                        ColumnDef::new(Categories::CreatedAt)
+                        ColumnDef::new(Posts::CreatedAt)
                             .timestamp_with_time_zone()
                             .not_null()
                             .default(Expr::current_timestamp()),
                     )
-                    .col(ColumnDef::new(Categories::LastModifiedBy).string().null())
+                    .col(ColumnDef::new(Posts::LastModifiedBy).string().null())
                     .col(
-                        ColumnDef::new(Categories::LastModifiedAt)
+                        ColumnDef::new(Posts::LastModifiedAt)
                             .timestamp_with_time_zone()
                             .null()
                             .default(Expr::current_timestamp()),
