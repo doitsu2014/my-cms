@@ -21,10 +21,14 @@ jobs:
       run: cargo build
     - name: Run tests
       run: cargo test  -- -Z unstable-options --format json --report-time | tee results.json
+    - name: Pull action cargo test report
+      run: docker pull ghcr.io/innoq/action-cargo-test-report:sha-10bec49
+    - name: Test Report
+      uses: innoq/action-cargo-test-report
+      with:
+        cargo-test-report-json: 'results.json'
     - name: JUnit Report Action
       uses: mikepenz/action-junit-report@v4.3.1
-
-    - uses: mikepenz/action-junit-report@main
       with:
         check_name: Test Report
         fail_on_failure: true
