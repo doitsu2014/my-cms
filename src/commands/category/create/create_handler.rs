@@ -46,7 +46,8 @@ pub async fn handle_api_create_category(
 
 #[cfg(test)]
 mod tests {
-    use entity::category::CategoryTypeEnum;
+    use entity::category::{CategoryTypeEnum, Model};
+    use entity::prelude::*;
     use migration::Migrator;
     use sea_orm::Database;
     use sea_orm_migration::prelude::*;
@@ -61,9 +62,7 @@ mod tests {
     #[async_std::test]
     async fn handle_create_cartegory_testcase_01() {
         let beginning_test_timestamp = chrono::Utc::now();
-
         let postgres = Postgres::default().start().await.unwrap();
-
         let connection_string: String = format!(
             "postgres://postgres:postgres@127.0.0.1:{}/postgres",
             postgres.get_host_port_ipv4(5432).await.unwrap()
@@ -74,6 +73,7 @@ mod tests {
         let request = CreateCategoryRequest {
             display_name: "Category 1".to_string(),
             category_type: CategoryTypeEnum::Blog,
+            parent_id: None,
         };
         let result = handle_create_category(&conn, request).await.unwrap();
         assert!(!result.is_nil());
@@ -83,5 +83,48 @@ mod tests {
         assert_eq!(result, first.id);
         assert!(first.created_by == "System");
         assert!(first.created_at >= beginning_test_timestamp);
+    }
+
+    #[async_std::test]
+    async fn handle_create_cartegory_testcase_parent() {
+        let beginning_test_timestamp = chrono::Utc::now();
+
+        // TODO: Make those steps to common_tests
+        let postgres = Postgres::default().start().await.unwrap();
+        let connection_string: String = format!(
+            "postgres://postgres:postgres@127.0.0.1:{}/postgres",
+            postgres.get_host_port_ipv4(5432).await.unwrap()
+        );
+        let conn = Database::connect(&connection_string).await.unwrap();
+        Migrator::refresh(&conn).await.unwrap();
+
+        let parent_request = CreateCategoryRequest {
+            display_name: "Category 1".to_string(),
+            category_type: CategoryTypeEnum::Blog,
+            parent_id: None,
+        };
+        let parent = handle_create_category(&conn, parent_request).await.unwrap();
+
+        let child_request = CreateCategoryRequest {
+            display_name: "Child of Category 1".to_string(),
+            category_type: CategoryTypeEnum::Blog,
+            parent_id: Some(parent),
+        };
+        let child = handle_create_category(&conn, child_request).await.unwrap();
+        let categories_in_db: Vec<CategoryModel> = handle_get_all_categories(&conn).await.unwrap();
+
+        let first = categories_in_db
+            .iter()
+            .filter(|x| x.parent_id.is_none())
+            .next()
+            .unwrap();
+
+        let child_instance = categories_in_db
+            .iter()
+            .filter(|x| x.id == child)
+            .next()
+            .unwrap();
+
+        assert_eq!(child_instance.parent_id.unwrap(), first.id);
     }
 }

@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct CreateCategoryRequest {
     pub display_name: String,
     pub category_type: CategoryTypeEnum,
+    pub parent_id: Option<Uuid>,
 }
 
 impl CreateCategoryRequest {
@@ -18,6 +19,7 @@ impl CreateCategoryRequest {
             created_by: "System".to_string(),
             last_modified_at: None,
             last_modified_by: None,
+            parent_id: self.parent_id.to_owned(),
         }
     }
 }

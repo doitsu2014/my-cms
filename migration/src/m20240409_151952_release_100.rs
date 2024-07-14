@@ -33,6 +33,14 @@ impl MigrationTrait for Migration {
                             .null()
                             .default(Expr::current_timestamp()),
                     )
+                    .col(ColumnDef::new(Categories::ParentId).uuid().null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_categories_parent_id")
+                            .from(Categories::Table, Categories::ParentId)
+                            .to(Categories::Table, Categories::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -101,6 +109,8 @@ pub enum Categories {
     CreatedBy,
     LastModifiedAt,
     LastModifiedBy,
+
+    ParentId,
 }
 
 #[derive(Iden)]

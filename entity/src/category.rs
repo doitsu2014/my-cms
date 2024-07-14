@@ -1,3 +1,4 @@
+pub use super::category::Entity as ParentCategory;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -26,9 +27,19 @@ pub struct Model {
     pub created_by: String,
     pub last_modified_at: Option<DateTimeUtc>,
     pub last_modified_by: Option<String>,
+
+    pub parent_id: Option<Uuid>, // Optional parent_id for self-referencing
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(
+        belongs_to = "ParentCategory",
+        from = "Column::ParentId",
+        to = "Column::Id",
+        on_delete = "Cascade"
+    )]
+    Parent,
+}
 
 impl ActiveModelBehavior for ActiveModel {}

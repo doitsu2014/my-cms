@@ -56,6 +56,7 @@ mod tests {
         let create_category_request = CreateCategoryRequest {
             display_name: "Blog Category".to_string(),
             category_type: CategoryTypeEnum::Blog,
+            parent_id: None,
         };
 
         let created_category_id = handle_create_category(&conn, create_category_request)

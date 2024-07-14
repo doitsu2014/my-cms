@@ -61,6 +61,7 @@ mod tests {
                 CreateCategoryRequest {
                     display_name: format!("Category {}", i),
                     category_type: CategoryTypeEnum::Blog,
+                    parent_id: None,
                 },
             )
             .await;
