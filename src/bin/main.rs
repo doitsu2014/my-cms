@@ -53,7 +53,7 @@ pub fn public_router() -> Router {
         .route("/", get(root_handler::handle))
         .route("/health", get(root_handler::check_health))
         .route("/healthz", get(root_handler::check_health))
-        .layer(OtelInResponseLayer::default())
+        .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
 }
 
@@ -82,7 +82,7 @@ pub fn protected_router(instance: KeycloakAuthInstance, app_state: AppState) -> 
                 .required_roles(vec![String::from("my-cms-headless-administrator")])
                 .build(),
         )
-        .layer(OtelInResponseLayer::default())
+        .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
         .layer(CookieManagerLayer::new())
         .with_state(app_state)

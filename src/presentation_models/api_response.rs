@@ -1,8 +1,9 @@
-use axum::{http::StatusCode, response::IntoResponse, Json};
+use axum::{http::StatusCode, response::Response};
+use hyper::header::CONTENT_TYPE;
 use serde::Serialize;
 
 pub trait AxumResponse {
-    fn to_axum_response(self) -> impl IntoResponse;
+    fn to_axum_response(self) -> Response<String>;
 }
 
 #[derive(Serialize)]
@@ -34,8 +35,13 @@ impl<TData> AxumResponse for ApiResponseWith<TData>
 where
     TData: Serialize,
 {
-    fn to_axum_response(self) -> impl IntoResponse {
-        Json(self)
+    fn to_axum_response(self) -> Response<String> {
+        let json_body = serde_json::to_string(&self).unwrap();
+        Response::builder()
+            .status(StatusCode::OK)
+            .header(CONTENT_TYPE, "application/json")
+            .body(json_body)
+            .unwrap()
     }
 }
 
@@ -62,7 +68,7 @@ pub enum ErrorCode {
 }
 
 impl AxumResponse for ApiResponseError {
-    fn to_axum_response(self) -> impl IntoResponse {
+    fn to_axum_response(self) -> Response<String> {
         let status_code = match self.error_code {
             ErrorCode::UnknownError => StatusCode::INTERNAL_SERVER_ERROR,
             ErrorCode::UnAuthorized => StatusCode::UNAUTHORIZED,
@@ -72,7 +78,12 @@ impl AxumResponse for ApiResponseError {
             ErrorCode::ConnectionError => StatusCode::INTERNAL_SERVER_ERROR,
         };
 
-        (status_code, Json(self))
+        let json_body = serde_json::to_string(&self).unwrap();
+        Response::builder()
+            .status(status_code)
+            .header(CONTENT_TYPE, "application/json")
+            .body(json_body)
+            .unwrap()
     }
 }
 
@@ -98,6 +109,12 @@ impl ApiResponseError {
             error_code: ErrorCode::UnknownError,
             errors: vec![],
         }
+    }
+}
+
+impl Default for ApiResponseError {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

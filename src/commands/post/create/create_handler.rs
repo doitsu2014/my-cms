@@ -5,7 +5,7 @@ use sea_orm::{prelude::Uuid, DatabaseConnection, DbErr, EntityTrait, IntoActiveM
 use tower_cookies::Cookies;
 use tracing::instrument;
 
-use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
+use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse, ErrorCode};
 
 use super::create_request::CreatePostRequest;
 
@@ -30,18 +30,12 @@ pub async fn handle_api_create_post(
 ) -> impl IntoResponse {
     let result = handle_create_post(&state.conn, body).await;
     match result {
-        Ok(last_id) => {
-            ApiResponseWith::new(last_id)
-                .with_message("System has already created Post successfully".to_string())
-                .to_axum_response();
-        }
-        Err(e) => {
-            ApiResponseError::new()
-                .with_error_code(crate::ErrorCode::UnknownError)
-                .add_error(e.to_string())
-                .to_axum_response();
-        }
-    };
+        Ok(inserted_id) => ApiResponseWith::new(inserted_id.to_string()).to_axum_response(),
+        Err(e) => ApiResponseError::new()
+            .with_error_code(ErrorCode::UnknownError)
+            .add_error(e.to_string())
+            .to_axum_response(),
+    }
 }
 
 #[cfg(test)]

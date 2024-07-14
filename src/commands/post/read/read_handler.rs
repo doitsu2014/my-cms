@@ -1,12 +1,14 @@
 use axum::{extract::State, response::IntoResponse};
-use entity::post;
 use entity::prelude::*;
 use sea_orm::DatabaseConnection;
 use sea_orm::DbErr;
 use sea_orm::EntityTrait;
 use tracing::instrument;
 
-use crate::{ApiResponseWith, AppState, AxumResponse};
+use crate::ApiResponseError;
+use crate::AxumResponse;
+use crate::ErrorCode;
+use crate::{ApiResponseWith, AppState};
 
 #[instrument]
 pub async fn handle_get_all_posts(conn: &DatabaseConnection) -> Result<Vec<PostModel>, DbErr> {
@@ -16,11 +18,14 @@ pub async fn handle_get_all_posts(conn: &DatabaseConnection) -> Result<Vec<PostM
 
 #[instrument]
 pub async fn handle_api_get_all_posts(state: State<AppState>) -> impl IntoResponse {
-    let all = post::Entity::find()
-        .all(&state.conn)
-        .await
-        .expect("Failed to fetch all posts");
-    ApiResponseWith::new(all).to_axum_response()
+    let result = handle_get_all_posts(&state.conn).await;
+    match result {
+        Ok(posts) => ApiResponseWith::new(posts).to_axum_response(),
+        Err(e) => ApiResponseError::new()
+            .with_error_code(ErrorCode::UnknownError)
+            .add_error(e.to_string())
+            .to_axum_response(),
+    }
 }
 
 #[cfg(test)]

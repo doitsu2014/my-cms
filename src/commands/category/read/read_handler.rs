@@ -1,4 +1,4 @@
-use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
+use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse, ErrorCode};
 use axum::{extract::State, response::IntoResponse};
 use entity::prelude::*;
 use sea_orm::{DatabaseConnection, DbErr, EntityTrait};
@@ -15,16 +15,13 @@ pub async fn handle_get_all_categories(
 #[instrument]
 pub async fn handle_api_get_all_categories(state: State<AppState>) -> impl IntoResponse {
     let result = handle_get_all_categories(&state.conn).await;
+
     match result {
-        Ok(categories) => {
-            ApiResponseWith::new(categories).to_axum_response();
-        }
-        Err(e) => {
-            ApiResponseError::new()
-                .with_error_code(crate::ErrorCode::UnknownError)
-                .add_error(e.to_string())
-                .to_axum_response();
-        }
+        Ok(categories) => ApiResponseWith::new(categories).to_axum_response(),
+        Err(e) => ApiResponseError::new()
+            .with_error_code(ErrorCode::UnknownError)
+            .add_error(e.to_string())
+            .to_axum_response(),
     }
 }
 

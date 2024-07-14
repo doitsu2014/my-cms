@@ -1,9 +1,6 @@
-[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/summary/new_code?id=doitsu2014_my-cms)
----
+## [![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/summary/new_code?id=doitsu2014_my-cms)
 
 # Overview
-
-
 
 ## Architecture
 
@@ -21,7 +18,6 @@ For integration tests, we use testcontainers to setup whole infrastructure to ma
 Use .env file to configure the system.
 
 ```text
-
 # App Host and Port
 HOST=127.0.0.1
 PORT=8989
@@ -40,7 +36,6 @@ OTEL_TRACES_SAMPLER=always_on
 
 ```bash
 docker image pull jaegertracing/all-in-one:1.49
-
 docker run --rm -d --name jaeger \
   -e COLLECTOR_OTLP_ENABLED:true \
   -e LOG_LEVEL:debug \

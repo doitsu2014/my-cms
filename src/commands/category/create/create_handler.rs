@@ -1,5 +1,5 @@
 use super::create_request::CreateCategoryRequest;
-use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
+use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse, ErrorCode};
 use axum::{extract::State, response::IntoResponse, Json};
 use entity::category;
 use entity::prelude::Category;
@@ -30,23 +30,17 @@ pub async fn handle_api_create_category(
     let result = handle_create_category(&state.conn, body).await;
 
     match result {
-        Ok(inserted_id) => {
-            ApiResponseWith::new(inserted_id)
-                .with_message("System has already create Category successfully".to_string())
-                .to_axum_response();
-        }
-        Err(e) => {
-            ApiResponseError::new()
-                .with_error_code(crate::ErrorCode::UnknownError)
-                .add_error(e.to_string())
-                .to_axum_response();
-        }
+        Ok(inserted_id) => ApiResponseWith::new(inserted_id.to_string()).to_axum_response(),
+        Err(e) => ApiResponseError::new()
+            .with_error_code(ErrorCode::UnknownError)
+            .add_error(e.to_string())
+            .to_axum_response(),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use entity::category::{CategoryTypeEnum, Model};
+    use entity::category::CategoryTypeEnum;
     use entity::prelude::*;
     use migration::Migrator;
     use sea_orm::Database;
@@ -87,8 +81,6 @@ mod tests {
 
     #[async_std::test]
     async fn handle_create_cartegory_testcase_parent() {
-        let beginning_test_timestamp = chrono::Utc::now();
-
         // TODO: Make those steps to common_tests
         let postgres = Postgres::default().start().await.unwrap();
         let connection_string: String = format!(
