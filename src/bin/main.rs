@@ -50,9 +50,9 @@ async fn main() {
 
 pub fn public_router() -> Router {
     Router::new()
-        .route("/", get(public::root::handler::))
-        .route("/health", get(root_handler::check_health))
-        .route("/healthz", get(root_handler::check_health))
+        .route("/", get(public::root::handler::handle))
+        .route("/health", get(public::root::handler::check_health))
+        .route("/healthz", get(public::root::handler::check_health))
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
 }
