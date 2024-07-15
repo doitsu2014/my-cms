@@ -1,5 +1,5 @@
-## [![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/summary/new_code?id=doitsu2014_my-cms)
-
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/summary/new_code?id=doitsu2014_my-cms)<br/>
+[![build and test cms](https://github.com/doitsu2014/my-cms/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/doitsu2014/my-cms/actions/workflows/rust.yml)
 # Overview
 
 ## Architecture
