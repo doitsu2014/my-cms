@@ -9,7 +9,7 @@ use axum_keycloak_auth::{
     layer::KeycloakAuthLayer,
     PassthroughMode,
 };
-use cms::{administrator_handler, commands, root_handler, AppState};
+use cms::{commands, public, AppState};
 use dotenv::dotenv;
 use reqwest::Url;
 use sea_orm::Database;
@@ -50,7 +50,7 @@ async fn main() {
 
 pub fn public_router() -> Router {
     Router::new()
-        .route("/", get(root_handler::handle))
+        .route("/", get(public::root::handler::))
         .route("/health", get(root_handler::check_health))
         .route("/healthz", get(root_handler::check_health))
         .layer(OtelInResponseLayer)
@@ -61,7 +61,7 @@ pub fn protected_router(instance: KeycloakAuthInstance, app_state: AppState) -> 
     Router::new()
         .route(
             "/administrator/database/migration",
-            post(administrator_handler::administrator_database_migration),
+            post(commands::administrator::migration::migration_handler::handle_api_database_migration),
         )
         .route(
             "/categories",
