@@ -9,7 +9,7 @@ use axum_keycloak_auth::{
     layer::KeycloakAuthLayer,
     PassthroughMode,
 };
-use cms::{administrator_handler, commands, root_handler, AppState};
+use cms::{commands, public, AppState};
 use dotenv::dotenv;
 use reqwest::Url;
 use sea_orm::Database;
@@ -23,18 +23,9 @@ async fn main() {
     dotenv().ok();
     init_tracing_opentelemetry::tracing_subscriber_ext::init_subscribers().unwrap();
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let conn = Database::connect(&database_url).await.unwrap();
-    let app_state = AppState { conn };
-    let keycloak_auth_instance = KeycloakAuthInstance::new(
-        KeycloakConfig::builder()
-            .server(Url::parse("https://keycloak-admin.doitsu.tech").unwrap())
-            .realm(String::from("master"))
-            .build(),
-    );
-
-    let app = public_router().merge(protected_router(keycloak_auth_instance, app_state));
-
+    let app = public_router()
+        .merge(protected_router().await)
+        .merge(protected_administrator_router().await);
     info!("Starting server...");
 
     let host = env::var("HOST").expect("HOST must be set in .env file");
@@ -50,19 +41,17 @@ async fn main() {
 
 pub fn public_router() -> Router {
     Router::new()
-        .route("/", get(root_handler::handle))
-        .route("/health", get(root_handler::check_health))
-        .route("/healthz", get(root_handler::check_health))
+        .route("/", get(public::root::handler::handle))
+        .route("/health", get(public::root::handler::check_health))
+        .route("/healthz", get(public::root::handler::check_health))
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
 }
 
-pub fn protected_router(instance: KeycloakAuthInstance, app_state: AppState) -> Router {
+pub async fn protected_router() -> Router {
+    let app_state = construct_app_state().await;
+
     Router::new()
-        .route(
-            "/administrator/database/migration",
-            post(administrator_handler::administrator_database_migration),
-        )
         .route(
             "/categories",
             get(commands::category::read::read_handler::handle_api_get_all_categories)
@@ -75,15 +64,53 @@ pub fn protected_router(instance: KeycloakAuthInstance, app_state: AppState) -> 
         )
         .layer(
             KeycloakAuthLayer::<String>::builder()
-                .instance(instance)
+                .instance(construct_keycloak_auth_instance())
                 .passthrough_mode(PassthroughMode::Block)
                 .persist_raw_claims(false)
                 .expected_audiences(vec![String::from("my-headless-cms-api")])
-                .required_roles(vec![String::from("my-cms-headless-administrator")])
+                .required_roles(vec![String::from("my-headless-cms-writer")])
                 .build(),
         )
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
         .layer(CookieManagerLayer::new())
         .with_state(app_state)
+}
+
+pub async fn protected_administrator_router() -> Router {
+    let app_state = construct_app_state().await;
+
+    Router::new()
+        .route(
+            "/administrator/database/migration",
+            post(commands::administrator::migration::migration_handler::handle_api_database_migration),
+        )
+        .layer(
+            KeycloakAuthLayer::<String>::builder()
+                .instance(construct_keycloak_auth_instance())
+                .passthrough_mode(PassthroughMode::Block)
+                .persist_raw_claims(false)
+                .expected_audiences(vec![String::from("my-headless-cms-api")])
+                .required_roles(vec![String::from("my-headless-cms-administrator")])
+                .build(),
+        )
+        .layer(OtelInResponseLayer)
+        .layer(OtelAxumLayer::default())
+        .layer(CookieManagerLayer::new())
+        .with_state(app_state)
+}
+
+async fn construct_app_state() -> AppState {
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let conn = Database::connect(&database_url).await.unwrap();
+    AppState { conn }
+}
+
+fn construct_keycloak_auth_instance() -> KeycloakAuthInstance {
+    KeycloakAuthInstance::new(
+        KeycloakConfig::builder()
+            .server(Url::parse("https://keycloak-admin.doitsu.tech").unwrap())
+            .realm(String::from("master"))
+            .build(),
+    )
 }

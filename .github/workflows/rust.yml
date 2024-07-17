@@ -17,14 +17,33 @@ jobs:
         working-directory: ./
     steps:
       - uses: actions/checkout@v3
-      - name: Build
-        run: cargo build
-      - name: Run tests
-        run: cargo test
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clean
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features --no-fail-fast # Customize args for your own needs
+        env:
+          CARGO_INCREMENTAL: "0"
+          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+          RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+      - id: coverage
+        uses: actions-rs/grcov@v0.1.5
+
+      # - name: Build
+      #   run: cargo build
+      # - name: Run tests
+      #   run: cargo test
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ${{ steps.coverage.outputs.report }}
   # sonar_cloud:
   #   runs-on: ubuntu-latest
   #   defaults:
