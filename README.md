@@ -1,4 +1,6 @@
 [![build and test cms](https://github.com/doitsu2014/my-cms/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/doitsu2014/my-cms/actions/workflows/rust.yml)
+<br/>
+[![codecov](https://codecov.io/gh/doitsu2014/my-cms/graph/badge.svg?token=7V6BYO0TJO)](https://codecov.io/gh/doitsu2014/my-cms)
 
 # Overview
 
