@@ -20,7 +20,11 @@ jobs:
       - name: Build
         run: cargo build
       - name: Run tests
-        run: cargo test  -- -Z unstable-options --format json --report-time | tee results.json
+        run: cargo test
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
   # sonar_cloud:
   #   runs-on: ubuntu-latest
   #   defaults:
