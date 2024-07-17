@@ -12,9 +12,9 @@ env:
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./
+    # defaults:
+    #   run:
+    #     working-directory: ./
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -34,6 +34,8 @@ jobs:
           RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
       - id: coverage
         uses: actions-rs/grcov@v0.1.5
+        with:
+          config: .github/action-rs/grcov.yml
 
       # - name: Build
       #   run: cargo build

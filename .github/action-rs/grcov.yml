@@ -2,7 +2,7 @@ branch: true
 ignore-not-existing: true
 llvm: true
 # filter: covered
-# output-type: lcov
+output-type: cobertura
 # output-path: ./lcov.info
 # prefix-dir: /home/user/build/
 ignore: []
