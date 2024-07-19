@@ -28,8 +28,8 @@ async fn main() {
         .merge(protected_administrator_router().await);
     info!("Starting server...");
 
-    let host = env::var("HOST").expect("HOST must be set in .env file");
-    let port = env::var("PORT").expect("PORT must be set in .env file");
+    let host = env::var("HOST").unwrap_or("127.0.0.1".to_string());
+    let port = env::var("PORT").unwrap_or("8989".to_string());
     let host_port = format!("{}:{}", host, port);
 
     tracing::info!("try to call `curl -i http://{}/`", host_port); //Devskim: ignore DS137138
@@ -107,10 +107,14 @@ async fn construct_app_state() -> AppState {
 }
 
 fn construct_keycloak_auth_instance() -> KeycloakAuthInstance {
+    let issuer =
+        env::var("KEYCLOAK_ISSUER").unwrap_or("https://keycloak-admin.doitsu.tech".to_string());
+    let realm = env::var("KEYCLOAK_REALM").unwrap_or("master".to_string());
+
     KeycloakAuthInstance::new(
         KeycloakConfig::builder()
-            .server(Url::parse("https://keycloak-admin.doitsu.tech").unwrap())
-            .realm(String::from("master"))
+            .server(Url::parse(&issuer).unwrap())
+            .realm(realm)
             .build(),
     )
 }

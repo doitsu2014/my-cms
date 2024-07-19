@@ -9,6 +9,6 @@ pub mod post;
 mod tests {
     #[async_std::test]
     async fn handle_create_post_testcase_01() {
-        assert!(true);
+        let var_name = assert!(true);
     }
 }

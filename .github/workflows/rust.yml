@@ -1,8 +1,6 @@
-name: build and test cms
+name: build and test my-cms for each pull request
 
 on:
-  push:
-    branches: ["main"]
   pull_request:
     branches: ["main"]
 
@@ -10,11 +8,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build_and_test:
+  test:
     runs-on: ubuntu-latest
-    # defaults:
-    #   run:
-    #     working-directory: ./
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1

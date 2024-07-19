@@ -30,8 +30,6 @@ tower-http = { version = "0.5.2", features = ["fs", "tracing"] }
 tower-cookies = "0.10.0"
 
 # Auth
-
-
 migration = { path = "migration" }
 entity = { path = "entity" }
 

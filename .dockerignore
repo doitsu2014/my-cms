@@ -1,0 +1,25 @@
+# Ignore any build artifacts
+**/*.rs.bk
+**/*.log
+
+# Ignore node_modules if using frontend frameworks
+node_modules
+
+# Ignore any secret keys or credentials
+**/*.pem
+.env
+
+# Ignore the Dockerfile and .dockerignore themselves
+Dockerfile
+.dockerignore
+
+# Ignore any other files/directories specific to your development environment
+.vscode
+.idea
+*.iml
+
+# Ignore any temporary files or directories
+tmp
+*.tmp
+*.swp
+*~
