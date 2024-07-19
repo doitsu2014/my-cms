@@ -48,7 +48,7 @@ OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://localhost:4317
 OTEL_TRACES_SAMPLER=always_on
 ```
 
-## Key to take-away
+## Keys to take-away
 
 ### 1. ORM
 
