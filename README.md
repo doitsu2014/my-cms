@@ -4,35 +4,12 @@
 
 # Overview
 
-## Architecture
-
-### 1. ORM
-
-The project using SeaORM to interact with the database. SeaORM is a modern and easy-to-use ORM for Rust.
-
-### 2. Unit Tests and Integration Tests
-
-For unit tests, we use built-in feature mock of SeaORM to test the database interaction. For integration tests, we use the test database to test the whole system.
-For integration tests, we use testcontainers to setup whole infrastructure to make sure the system is working as expected.
+There is my-cms project, it is an api system to handle biz services of a headless CMS for my website. I choose Rust as the main programming language to build the system because of its performance and safety.
+Let's see how far I can go with this project.
 
 ## Configuration
 
-Use .env file to configure the system.
-
-```text
-# App Host and Port
-HOST=127.0.0.1
-PORT=8989
-
-# App Infrastructure
-DATABASE_URL=postgresql://postgres:1234567890@localhost:5432/my-cms
-
-OTEL_SERVICE_NAME=my-cms-headless-api
-OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://localhost:4317
-OTEL_TRACES_SAMPLER=always_on
-```
-
-## Cross-cutting concerns
+### 1. Cross-cutting concerns
 
 - Jaeger
 
@@ -53,3 +30,35 @@ docker run --rm -d --name jaeger \
   -p 9411:9411 \
   jaegertracing/all-in-one:1.49
 ```
+
+### 2. Environment Setup
+
+Use .env file to configure the system.
+
+```text
+# App Host and Port
+HOST=127.0.0.1
+PORT=8989
+
+# App Infrastructure
+DATABASE_URL=postgresql://postgres:1234567890@localhost:5432/my-cms
+
+OTEL_SERVICE_NAME=my-cms-headless-api
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://localhost:4317
+OTEL_TRACES_SAMPLER=always_on
+```
+
+## Key to take-away
+
+### 1. ORM
+
+The project using SeaORM to interact with the database. SeaORM is a modern and easy-to-use ORM for Rust.
+
+### 2. Unit Tests and Integration Tests
+
+For unit tests, we use built-in feature mock of SeaORM to test the database interaction. For integration tests, we use the test database to test the whole system.
+For integration tests, we use testcontainers to setup whole infrastructure to make sure the system is working as expected.
+
+### 3. CI/CD
+
+I use Docker to build the image and Github Actions to run the CI/CD pipeline.
