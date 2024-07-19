@@ -1,6 +1,3 @@
-# Ignore target directory
-target
-
 # Ignore any build artifacts
 **/*.rs.bk
 **/*.log
