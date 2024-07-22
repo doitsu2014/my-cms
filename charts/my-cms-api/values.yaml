@@ -1,0 +1,121 @@
+# Default values for k8s-instance.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+replicaCount: 1
+
+image:
+  repository: registry.hub.docker.com/doitsu2014/doitsu-technology-ids-admin-api
+  pullPolicy: Always
+  tag: latest
+
+imageCredentials:
+  registry: hub.docker.com
+  username: doitsu2014
+  password: __
+  email: no-reply@dtech.com
+
+nameOverride: ""
+fullnameOverride: ""
+env: []
+podAnnotations: {}
+serviceAnnotations: {}
+
+podSecurityContext:
+  {}
+  # fsGroup: 2000
+
+securityContext:
+  {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 5000
+  ports:
+    - port: 5000
+      targetPort: http
+      protocol: TCP
+      name: http
+
+container_ports:
+  - name: http
+    containerPort: 5000
+    protocol: TCP
+
+ingress:
+  enabled: false
+  className: ""
+  annotations:
+    {}
+    # nginx.ingress.kubernetes.io/use-regex: "true"
+    # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    # nginx.ingress.kubernetes.io/proxy-buffering: "on"
+    # nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+    # nginx.ingress.kubernetes.io/proxy-buffer-size: "1m"
+    # nginx.ingress.kubernetes.io/proxy-buffers-number: "12"
+    # nginx.ingress.kubernetes.io/client-body-buffer-size: 1m
+    # nginx.ingress.kubernetes.io/affinity: "cookie"
+  hosts:
+    []
+    # - host: chart-example.local
+    #   paths:
+    #     - path: /
+    #       pathType: Prefix
+    #       backendServicePort: 5000
+  tls:
+    []
+    # - secretName: tls-secret
+    #   hosts:
+    #     - chart-example.local
+
+  # For api gateway
+  # enabled: false
+  # className: ""
+  # annotations:
+  #   nginx.ingress.kubernetes.io/use-regex: "true"
+  #   nginx.ingress.kubernetes.io/client-body-buffer-size: 4m
+  #   nginx.ingress.kubernetes.io/proxy-body-size: 8m
+  #   nginx.ingress.kubernetes.io/rewrite-target: "/prefix/$2"
+  #   nginx.ingress.kubernetes.io/app-root: "/prefix"
+  # hosts:
+  #   - host: chart-example.local
+  #     paths:
+  #       - path: /prefix(/|$)(.*)
+  #         pathType: Prefix
+  #         backendServicePort: 5000
+  # tls: []
+  # - secretName: tls-secret
+  #   hosts:
+  #     - chart-example.local
+
+secretData:
+  "Field": "Field"
+
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
