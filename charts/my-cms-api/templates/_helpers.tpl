@@ -70,3 +70,13 @@ Create the image pull secret
 {{- printf "{\"auths\":{\"%s\":{\"username\":\"%s\",\"password\":\"%s\",\"email\":\"%s\",\"auth\":\"%s\"}}}" .registry .username .password .email (printf "%s:%s" .username .password | b64enc) | b64enc }}
 {{- end }}
 {{- end }}
+
+
+{{/*
+Create the image pull secret
+*/}}
+{{- define "envContent" }}
+{{- range $key, $value := .Values.secretData }}
+{{- println "%s=%s" $key $value | b64enc }}
+{{- end }}
+{{- end }}

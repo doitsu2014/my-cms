@@ -35,10 +35,6 @@ spec:
             - name: "{{ $env.name }}"
               value: "{{ $env.value }}"
             {{- end }}
-            {{- range $key, $value := .Values.secretData }}
-            - name: "{{ $key | replace ":" "__" }}"
-              value: "{{ $value }}"
-            {{- end }}
           {{- with .Values.container_ports }}
           ports:
             {{- toYaml . | nindent 12 }}
