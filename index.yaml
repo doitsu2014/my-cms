@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  my-cms-api:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2024-07-22T16:05:26.84986171Z"
+    description: A helm chart for my-cms-api
+    digest: becafcd41d00c0e3923f7e3b1965fc3e068eb97e9503cbc3a626936e74926b0a
+    name: my-cms-api
+    type: application
+    urls:
+    - https://github.com/doitsu2014/my-cms/releases/download/my-cms-api-1.0.1/my-cms-api-1.0.1.tgz
+    version: 1.0.1
+generated: "2024-07-22T16:05:26.849868112Z"
