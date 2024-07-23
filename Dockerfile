@@ -32,4 +32,4 @@ WORKDIR /app
 COPY --from=build /usr/local/my-cms/target/release/my-cms-api .
 
 EXPOSE 5000
-CMD ["my-cms-api"]
+CMD ["/app/my-cms-api"]
