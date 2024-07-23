@@ -40,9 +40,9 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
-            - name: appsettings-secrets
-              mountPath: /
-              readOnly: true
+            - name: configmap-env-volume
+              mountPath: /.env
+              subPath: .env
           readinessProbe:
             httpGet:
               path: /healthz
@@ -66,6 +66,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
-      - name: appsettings-secrets
-        secret:
-          secretName: {{ .Chart.Name }}-appsettings-secrets
+      - name: configmap-env-volume
+        configMap:
+          name: {{ .Chart.Name }}-configmap-env
+          items:
+            - key: .env
+              path: .env
