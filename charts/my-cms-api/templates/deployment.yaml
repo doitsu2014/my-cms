@@ -43,14 +43,14 @@ spec:
             - name: configmap-env-volume
               mountPath: .env
               subPath: .env
-          readinessProbe:
-            httpGet:
-              path: /healthz
-              port: http
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: http
+          # livenessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
