@@ -41,7 +41,7 @@ spec:
           {{- end }}
           volumeMounts:
             - name: configmap-env-volume
-              mountPath: .env
+              mountPath: app/.env
               subPath: .env
           # readinessProbe:
           #   httpGet:

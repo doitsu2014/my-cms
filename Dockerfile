@@ -28,6 +28,8 @@ RUN cargo build --release
 
 
 FROM rust:1.79-slim
+WORKDIR /app
 COPY --from=build /usr/local/my-cms/target/release/my-cms-api .
 
-CMD ["./my-cms-api"]
+EXPOSE 5000
+CMD ["my-cms-api"]
