@@ -72,3 +72,8 @@ Create the image pull secret
 {{- end }}
 
 
+{{- define "envConfig" -}}
+  {{- range $key, $value := .Values.secretData }}
+  {{ $key }}={{ $value }}
+  {{- end }}
+{{- end -}}
