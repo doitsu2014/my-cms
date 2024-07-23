@@ -72,11 +72,3 @@ Create the image pull secret
 {{- end }}
 
 
-{{/*
-Create the image pull secret
-*/}}
-{{- define "envContent" }}
-{{- range $key, $value := .Values.secretData }}
-{{- println "%s=%s" $key $value | b64enc }}
-{{- end }}
-{{- end }}

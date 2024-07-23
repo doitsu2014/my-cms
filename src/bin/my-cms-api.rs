@@ -11,17 +11,22 @@ use axum_keycloak_auth::{
 };
 use cms::{commands, public, AppState};
 use dotenv::dotenv;
+use init_tracing_opentelemetry::{
+    tracing_subscriber_ext::{build_logger_text, build_loglevel_filter_layer, build_otel_layer},
+    Error,
+};
 use reqwest::Url;
 use sea_orm::Database;
 use tower_cookies::CookieManagerLayer;
 use tracing::info;
 
 use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer};
+use tracing_subscriber::layer::SubscriberExt;
 
 #[tokio::main]
 async fn main() {
     dotenv().ok();
-    init_tracing_opentelemetry::tracing_subscriber_ext::init_subscribers().unwrap();
+    init_my_subscribers().unwrap();
 
     let app = public_router()
         .merge(protected_router().await)
@@ -31,12 +36,41 @@ async fn main() {
     let host = env::var("HOST").unwrap_or("127.0.0.1".to_string());
     let port = env::var("PORT").unwrap_or("8989".to_string());
     let host_port = format!("{}:{}", host, port);
-
-    tracing::info!("try to call `curl -i http://{}/`", host_port); //Devskim: ignore DS137138
-    tracing::info!("try to call `curl -i http://{}/healthz`", host_port); //Devskim: ignore DS137138
+    tracing::info!("App will host on `http://{}`", host_port);
 
     let listener = tokio::net::TcpListener::bind(&host_port).await.unwrap();
     axum::serve(listener, app).await.unwrap();
+    tracing::info!(
+        "App is ready, please try to run `curl -i http://{}/healthz`",
+        host_port
+    );
+}
+
+pub fn init_my_subscribers() -> Result<(), Error> {
+    let enabled_otlp_exporter_str =
+        env::var("ENABLED_OTLP_EXPORTER").unwrap_or("false".to_string());
+    let enabled_otlp_exporter = enabled_otlp_exporter_str.parse::<bool>().unwrap();
+
+    //setup a temporary subscriber to log output during setup
+    let subscriber = tracing_subscriber::registry()
+        .with(build_loglevel_filter_layer())
+        .with(build_logger_text());
+    let _guard = tracing::subscriber::set_default(subscriber);
+    info!("init logging & tracing");
+
+    if enabled_otlp_exporter {
+        let subscriber = tracing_subscriber::registry()
+            .with(build_otel_layer()?)
+            .with(build_loglevel_filter_layer())
+            .with(build_logger_text());
+        tracing::subscriber::set_global_default(subscriber)?;
+    } else {
+        let subscriber = tracing_subscriber::registry()
+            .with(build_loglevel_filter_layer())
+            .with(build_logger_text());
+        tracing::subscriber::set_global_default(subscriber)?;
+    }
+    Ok(())
 }
 
 pub fn public_router() -> Router {

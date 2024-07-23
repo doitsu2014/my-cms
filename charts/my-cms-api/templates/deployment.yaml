@@ -41,7 +41,7 @@ spec:
           {{- end }}
           volumeMounts:
             - name: appsettings-secrets
-              mountPath: /app/secrets
+              mountPath: /
               readOnly: true
           readinessProbe:
             httpGet:
