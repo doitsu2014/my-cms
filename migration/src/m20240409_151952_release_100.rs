@@ -1,4 +1,7 @@
+use extension::postgres::TypeDropStatement;
+use sea_orm::{EnumIter, Iterable};
 use sea_orm_migration::prelude::*;
+use sea_query::extension::postgres::Type;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -6,6 +9,16 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .create_type(
+                Type::create()
+                    .as_enum(Categories::CategoryType)
+                    .values(CategoryTypes::iter())
+                    .to_owned(),
+            )
+            .await?;
+
+        // Migration for Categories
         manager
             .create_table(
                 Table::create()
@@ -18,7 +31,11 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Categories::DisplayName).string().not_null())
-                    .col(ColumnDef::new(Categories::CategoryType).string().not_null())
+                    .col(
+                        ColumnDef::new(Categories::CategoryType)
+                            .custom(Categories::CategoryType)
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(Categories::CreatedBy).string().not_null())
                     .col(
                         ColumnDef::new(Categories::CreatedAt)
@@ -45,6 +62,7 @@ impl MigrationTrait for Migration {
             )
             .await?;
 
+        // Migration for Posts
         manager
             .create_table(
                 Table::create()
@@ -77,29 +95,100 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Posts::CategoryId).uuid().not_null())
                     .foreign_key(
                         ForeignKey::create()
-                            .name("fk-posts-category_id")
+                            .name("fk_posts_category_id")
                             .from(Posts::Table, Posts::CategoryId)
                             .to(Categories::Table, Categories::Id)
                             .on_delete(ForeignKeyAction::Cascade),
                     )
                     .to_owned(),
             )
-            .await
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Tags::Table)
+                    .if_not_exists()
+                    .col(ColumnDef::new(Tags::Id).uuid().not_null().primary_key())
+                    .col(ColumnDef::new(Tags::Name).string().not_null())
+                    .col(ColumnDef::new(Tags::Description).string().not_null())
+                    .col(ColumnDef::new(Tags::Slug).string().not_null())
+                    .col(ColumnDef::new(Tags::CreatedBy).string().not_null())
+                    .col(
+                        ColumnDef::new(Tags::CreatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null()
+                            .default(Expr::current_timestamp()),
+                    )
+                    .col(ColumnDef::new(Tags::LastModifiedBy).string().null())
+                    .col(
+                        ColumnDef::new(Tags::LastModifiedAt)
+                            .timestamp_with_time_zone()
+                            .null()
+                            .default(Expr::current_timestamp()),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(PostTags::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(PostTags::PostId)
+                            .uuid()
+                            .not_null()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(PostTags::TagId).string().not_null())
+                    .to_owned(),
+            )
+            .await?;
+
+        return Ok(());
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Drop the posts table first to remove the foreign key constraint
+        // Then Drop PostTags
+        manager
+            .drop_table(Table::drop().table(PostTags::Table).to_owned())
+            .await?;
+
+        // Then Drop Tags
+        manager
+            .drop_table(Table::drop().table(Tags::Table).to_owned())
+            .await?;
+
+        // Drop Posts
         manager
             .drop_table(Table::drop().table(Posts::Table).to_owned())
             .await?;
-        // Then drop the categories table
+
+        // Drop Categories
         manager
             .drop_table(Table::drop().table(Categories::Table).to_owned())
-            .await
+            .await?;
+
+        // Drop a type
+        manager
+            .drop_type(Type::drop().name(Categories::CategoryType).to_owned())
+            .await?;
+
+        return Ok(());
     }
 }
 
-#[derive(Iden)]
+#[derive(EnumIter, Iden)]
+pub enum CategoryTypes {
+    #[iden = "Blog"]
+    Blog,
+    #[iden = "Other"]
+    Other,
+}
+
+#[derive(DeriveIden)]
 pub enum Categories {
     Table,
     Id,
@@ -113,7 +202,7 @@ pub enum Categories {
     ParentId,
 }
 
-#[derive(Iden)]
+#[derive(DeriveIden)]
 pub enum Posts {
     Table,
     Id,
@@ -126,4 +215,36 @@ pub enum Posts {
     CreatedBy,
     LastModifiedAt,
     LastModifiedBy,
+}
+
+#[derive(DeriveIden)]
+pub enum PostTags {
+    Table,
+    PostId,
+    TagId,
+}
+
+#[derive(DeriveIden)]
+pub enum Tags {
+    Table,
+    Id,
+    Name,
+    Description,
+    Slug,
+    CreatedAt,
+    CreatedBy,
+    LastModifiedAt,
+    LastModifiedBy,
+}
+
+#[cfg(test)]
+mod tests {
+    use sea_orm::Iden;
+
+    use crate::m20240409_151952_release_100::{CategoryTypes, Posts};
+
+    #[async_std::test]
+    async fn handle_create_post_testcase_01() {
+        assert_eq!(Posts::Table.to_string(), "posts");
+    }
 }

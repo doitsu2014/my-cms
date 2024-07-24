@@ -1,14 +1,12 @@
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse, ErrorCode};
+use application_core::{entities::categories::Model, Categories};
 use axum::{extract::State, response::IntoResponse};
-use entity::prelude::*;
 use sea_orm::{DatabaseConnection, DbErr, EntityTrait};
 use tracing::instrument;
 
 #[instrument]
-pub async fn handle_get_all_categories(
-    conn: &DatabaseConnection,
-) -> Result<Vec<CategoryModel>, DbErr> {
-    let db_result = Category::find().all(conn).await?;
+pub async fn handle_get_all_categories(conn: &DatabaseConnection) -> Result<Vec<Model>, DbErr> {
+    let db_result = Categories::find().all(conn).await?;
     Result::Ok(db_result)
 }
 
@@ -27,7 +25,7 @@ pub async fn handle_api_get_all_categories(state: State<AppState>) -> impl IntoR
 
 #[cfg(test)]
 mod tests {
-    use entity::category::CategoryTypeEnum;
+    use application_core::entities::sea_orm_active_enums::CategoryType;
     use migration::Migrator;
     use sea_orm::Database;
     use sea_orm_migration::prelude::*;
@@ -57,7 +55,7 @@ mod tests {
                 &conn,
                 CreateCategoryRequest {
                     display_name: format!("Category {}", i),
-                    category_type: CategoryTypeEnum::Blog,
+                    category_type: CategoryType::Blog,
                     parent_id: None,
                 },
             )

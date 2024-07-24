@@ -1,6 +1,5 @@
+use application_core::{entities::posts, Posts};
 use axum::{extract::State, response::IntoResponse, Json};
-use entity::post::{self};
-use entity::prelude::*;
 use sea_orm::{prelude::Uuid, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel};
 use tower_cookies::Cookies;
 use tracing::instrument;
@@ -15,10 +14,10 @@ pub async fn handle_create_post(
     body: CreatePostRequest,
 ) -> Result<Uuid, DbErr> {
     let model = body.into_model();
-    let active_model = post::ActiveModel {
+    let active_model = posts::ActiveModel {
         ..model.into_active_model()
     };
-    let result = Post::insert(active_model).exec(conn).await?;
+    let result = Posts::insert(active_model).exec(conn).await?;
     Result::Ok(result.last_insert_id)
 }
 
@@ -40,7 +39,7 @@ pub async fn handle_api_create_post(
 
 #[cfg(test)]
 mod tests {
-    use entity::category::CategoryTypeEnum;
+    use application_core::entities::sea_orm_active_enums::CategoryType;
     use migration::Migrator;
     use sea_orm::Database;
     use sea_orm_migration::prelude::*;
@@ -70,7 +69,7 @@ mod tests {
 
         let create_category_request = CreateCategoryRequest {
             display_name: "Blog Category".to_string(),
-            category_type: CategoryTypeEnum::Blog,
+            category_type: CategoryType::Blog,
             parent_id: None,
         };
 

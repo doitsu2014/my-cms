@@ -36,14 +36,14 @@ docker run --rm -d --name jaeger \
 Use .env file to configure the system.
 
 ```text
-# App Host and Port
+DATABASE_SCHEMA=public
+DATABASE_URL=postgresql://postgres:1234567890@localhost:5432/my-cms
 HOST=127.0.0.1
 PORT=8989
 
-# App Infrastructure
-DATABASE_URL=postgresql://postgres:1234567890@localhost:5432/my-cms
-
+ENABLED_OTLP_EXPORTER=false
 OTEL_SERVICE_NAME=my-cms-headless-api
+SERVICE_NAME=my-cms-headless-api
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://localhost:4317
 OTEL_TRACES_SAMPLER=always_on
 ```
@@ -53,6 +53,9 @@ OTEL_TRACES_SAMPLER=always_on
 ### 1. ORM
 
 The project using SeaORM to interact with the database. SeaORM is a modern and easy-to-use ORM for Rust.
+We use Schema First approach to design the database schema and generate the code from the schema. It helps us to keep the schema and the code in sync.
+
+The `entities` will be generated from the schema, and we can use them to interact with the database.
 
 ### 2. Unit Tests and Integration Tests
 

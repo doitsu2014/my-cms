@@ -1,8 +1,7 @@
 use super::create_request::CreateCategoryRequest;
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse, ErrorCode};
+use application_core::{entities::categories, Categories};
 use axum::{extract::State, response::IntoResponse, Json};
-use entity::category;
-use entity::prelude::Category;
 use sea_orm::{prelude::Uuid, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel};
 use tower_cookies::Cookies;
 use tracing::instrument;
@@ -13,10 +12,10 @@ pub async fn handle_create_category(
     body: CreateCategoryRequest,
 ) -> Result<Uuid, DbErr> {
     let model = body.into_model();
-    let active_model = category::ActiveModel {
+    let active_model = categories::ActiveModel {
         ..model.into_active_model()
     };
-    let result = Category::insert(active_model).exec(conn).await?;
+    let result = Categories::insert(active_model).exec(conn).await?;
 
     Result::Ok(result.last_insert_id)
 }
@@ -40,8 +39,7 @@ pub async fn handle_api_create_category(
 
 #[cfg(test)]
 mod tests {
-    use entity::category::CategoryTypeEnum;
-    use entity::prelude::*;
+    use application_core::entities::{categories::Model, sea_orm_active_enums::CategoryType};
     use migration::Migrator;
     use sea_orm::Database;
     use sea_orm_migration::prelude::*;
@@ -66,7 +64,7 @@ mod tests {
 
         let request = CreateCategoryRequest {
             display_name: "Category 1".to_string(),
-            category_type: CategoryTypeEnum::Blog,
+            category_type: CategoryType::Blog,
             parent_id: None,
         };
         let result = handle_create_category(&conn, request).await.unwrap();
@@ -92,18 +90,18 @@ mod tests {
 
         let parent_request = CreateCategoryRequest {
             display_name: "Category 1".to_string(),
-            category_type: CategoryTypeEnum::Blog,
+            category_type: CategoryType::Blog,
             parent_id: None,
         };
         let parent = handle_create_category(&conn, parent_request).await.unwrap();
 
         let child_request = CreateCategoryRequest {
             display_name: "Child of Category 1".to_string(),
-            category_type: CategoryTypeEnum::Blog,
+            category_type: CategoryType::Blog,
             parent_id: Some(parent),
         };
         let child = handle_create_category(&conn, child_request).await.unwrap();
-        let categories_in_db: Vec<CategoryModel> = handle_get_all_categories(&conn).await.unwrap();
+        let categories_in_db: Vec<Model> = handle_get_all_categories(&conn).await.unwrap();
 
         let first = categories_in_db
             .iter()

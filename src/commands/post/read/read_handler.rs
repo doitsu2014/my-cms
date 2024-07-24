@@ -1,5 +1,5 @@
+use application_core::{entities::posts::Model, Posts};
 use axum::{extract::State, response::IntoResponse};
-use entity::prelude::*;
 use sea_orm::DatabaseConnection;
 use sea_orm::DbErr;
 use sea_orm::EntityTrait;
@@ -11,8 +11,8 @@ use crate::ErrorCode;
 use crate::{ApiResponseWith, AppState};
 
 #[instrument]
-pub async fn handle_get_all_posts(conn: &DatabaseConnection) -> Result<Vec<PostModel>, DbErr> {
-    let db_result = Post::find().all(conn).await?;
+pub async fn handle_get_all_posts(conn: &DatabaseConnection) -> Result<Vec<Model>, DbErr> {
+    let db_result = Posts::find().all(conn).await?;
     Result::Ok(db_result)
 }
 
@@ -30,7 +30,7 @@ pub async fn handle_api_get_all_posts(state: State<AppState>) -> impl IntoRespon
 
 #[cfg(test)]
 mod tests {
-    use entity::category::CategoryTypeEnum;
+    use application_core::entities::sea_orm_active_enums::CategoryType;
     use migration::Migrator;
     use sea_orm::Database;
     use sea_orm_migration::prelude::*;
@@ -60,7 +60,7 @@ mod tests {
 
         let create_category_request = CreateCategoryRequest {
             display_name: "Blog Category".to_string(),
-            category_type: CategoryTypeEnum::Blog,
+            category_type: CategoryType::Blog,
             parent_id: None,
         };
 
