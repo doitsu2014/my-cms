@@ -1,6 +1,6 @@
-use extension::postgres::Type;
 use sea_orm::{EnumIter, Iterable};
 use sea_orm_migration::prelude::*;
+use sea_query::extension::postgres::Type;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -8,12 +8,11 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Migration for Category Types
         manager
             .create_type(
                 Type::create()
                     .as_enum(CategoryTypes::Enum)
-                    .values([CategoryTypes::Blog, CategoryTypes::Other])
+                    .values(CategoryTypes::iter())
                     .to_owned(),
             )
             .await?;
@@ -33,7 +32,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Categories::DisplayName).string().not_null())
                     .col(
                         ColumnDef::new(Categories::CategoryType)
-                            .enumeration(CategoryTypes::iter())
+                            .custom(CategoryTypes::Enum)
                             .not_null(),
                     )
                     .col(ColumnDef::new(Categories::CreatedBy).string().not_null())
@@ -146,12 +145,12 @@ impl MigrationTrait for Migration {
     }
 }
 
-#[derive(DeriveIden, EnumIter)]
+#[derive(EnumIter, Iden)]
 pub enum CategoryTypes {
     Enum,
-    #[sea_orm(string_value = "Blog")]
+    #[iden = "Blog"]
     Blog,
-    #[sea_orm(string_value = "Other")]
+    #[iden = "Other"]
     Other,
 }
 
@@ -201,7 +200,7 @@ pub enum Tags {
 mod tests {
     use sea_orm::Iden;
 
-    use crate::m20240409_151952_release_100::Posts;
+    use crate::m20240409_151952_release_100::{CategoryTypes, Posts};
 
     #[async_std::test]
     async fn handle_create_post_testcase_01() {
