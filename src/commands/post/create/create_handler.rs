@@ -69,6 +69,7 @@ mod tests {
 
         let create_category_request = CreateCategoryRequest {
             display_name: "Blog Category".to_string(),
+            slug: "blog-category".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
         };
@@ -94,5 +95,6 @@ mod tests {
         assert_eq!(result, first.id);
         assert!(first.created_by == "System");
         assert!(first.created_at >= beginning_test_timestamp);
+        assert!(first.row_version == 1);
     }
 }

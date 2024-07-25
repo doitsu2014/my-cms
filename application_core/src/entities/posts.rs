@@ -17,6 +17,7 @@ pub struct Model {
     pub last_modified_by: Option<String>,
     pub last_modified_at: Option<DateTimeWithTimeZone>,
     pub category_id: Uuid,
+    pub row_version: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

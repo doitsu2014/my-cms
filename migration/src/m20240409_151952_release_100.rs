@@ -31,6 +31,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Categories::DisplayName).string().not_null())
+                    .col(ColumnDef::new(Posts::Slug).string().not_null())
                     .col(
                         ColumnDef::new(Categories::CategoryType)
                             .custom(Categories::CategoryType)
@@ -51,6 +52,12 @@ impl MigrationTrait for Migration {
                             .default(Expr::current_timestamp()),
                     )
                     .col(ColumnDef::new(Categories::ParentId).uuid().null())
+                    .col(
+                        ColumnDef::new(Categories::RowVersion)
+                            .integer()
+                            .not_null()
+                            .default(1),
+                    )
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_categories_parent_id")
@@ -93,6 +100,12 @@ impl MigrationTrait for Migration {
                             .default(Expr::current_timestamp()),
                     )
                     .col(ColumnDef::new(Posts::CategoryId).uuid().not_null())
+                    .col(
+                        ColumnDef::new(Posts::RowVersion)
+                            .integer()
+                            .not_null()
+                            .default(1),
+                    )
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_posts_category_id")
@@ -117,15 +130,13 @@ impl MigrationTrait for Migration {
                     .col(
                         ColumnDef::new(Tags::CreatedAt)
                             .timestamp_with_time_zone()
-                            .not_null()
-                            .default(Expr::current_timestamp()),
+                            .not_null(),
                     )
                     .col(ColumnDef::new(Tags::LastModifiedBy).string().null())
                     .col(
                         ColumnDef::new(Tags::LastModifiedAt)
                             .timestamp_with_time_zone()
-                            .null()
-                            .default(Expr::current_timestamp()),
+                            .null(),
                     )
                     .to_owned(),
             )
@@ -193,11 +204,13 @@ pub enum Categories {
     Table,
     Id,
     DisplayName,
+    Slug,
     CategoryType,
     CreatedAt,
     CreatedBy,
     LastModifiedAt,
     LastModifiedBy,
+    RowVersion,
 
     ParentId,
 }
@@ -215,6 +228,8 @@ pub enum Posts {
     CreatedBy,
     LastModifiedAt,
     LastModifiedBy,
+    #[sea_orm(updated_at)]
+    RowVersion,
 }
 
 #[derive(DeriveIden)]
@@ -241,7 +256,7 @@ pub enum Tags {
 mod tests {
     use sea_orm::Iden;
 
-    use crate::m20240409_151952_release_100::{CategoryTypes, Posts};
+    use crate::m20240409_151952_release_100::Posts;
 
     #[async_std::test]
     async fn handle_create_post_testcase_01() {

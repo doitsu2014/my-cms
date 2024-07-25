@@ -19,11 +19,13 @@ impl CreatePostRequest {
             content: self.content.to_owned(),
             slug: self.slug.to_owned(),
             published: self.published.to_owned(),
+
             created_at: generate_vietname_now(),
             created_by: "System".to_string(),
             last_modified_at: None,
             last_modified_by: None,
 
+            row_version: 1,
             category_id: self.category_id.to_owned(),
         }
     }

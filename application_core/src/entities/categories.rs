@@ -10,12 +10,14 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
     pub display_name: String,
+    pub slug: String,
     pub category_type: CategoryType,
     pub created_by: String,
     pub created_at: DateTimeWithTimeZone,
     pub last_modified_by: Option<String>,
     pub last_modified_at: Option<DateTimeWithTimeZone>,
     pub parent_id: Option<Uuid>,
+    pub row_version: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

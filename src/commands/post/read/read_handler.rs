@@ -60,6 +60,7 @@ mod tests {
 
         let create_category_request = CreateCategoryRequest {
             display_name: "Blog Category".to_string(),
+            slug: "blog-category".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
         };
