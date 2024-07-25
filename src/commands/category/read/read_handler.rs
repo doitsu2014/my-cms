@@ -55,6 +55,7 @@ mod tests {
                 &conn,
                 CreateCategoryRequest {
                     display_name: format!("Category {}", i),
+                    slug: format!("category-{}", i).to_string(),
                     category_type: CategoryType::Blog,
                     parent_id: None,
                 },

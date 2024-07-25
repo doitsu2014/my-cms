@@ -64,6 +64,7 @@ mod tests {
 
         let request = CreateCategoryRequest {
             display_name: "Category 1".to_string(),
+            slug: "category-1".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
         };
@@ -75,6 +76,7 @@ mod tests {
         assert_eq!(result, first.id);
         assert!(first.created_by == "System");
         assert!(first.created_at >= beginning_test_timestamp);
+        assert!(first.row_version == 1);
     }
 
     #[async_std::test]
@@ -90,6 +92,7 @@ mod tests {
 
         let parent_request = CreateCategoryRequest {
             display_name: "Category 1".to_string(),
+            slug: "category-1".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
         };
@@ -97,6 +100,7 @@ mod tests {
 
         let child_request = CreateCategoryRequest {
             display_name: "Child of Category 1".to_string(),
+            slug: "child-of-category-1".to_string(),
             category_type: CategoryType::Blog,
             parent_id: Some(parent),
         };
