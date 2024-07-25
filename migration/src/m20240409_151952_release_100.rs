@@ -1,4 +1,3 @@
-use extension::postgres::TypeDropStatement;
 use sea_orm::{EnumIter, Iterable};
 use sea_orm_migration::prelude::*;
 use sea_query::extension::postgres::Type;
@@ -31,7 +30,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Categories::DisplayName).string().not_null())
-                    .col(ColumnDef::new(Posts::Slug).string().not_null())
+                    .col(ColumnDef::new(Categories::Slug).string().not_null())
                     .col(
                         ColumnDef::new(Categories::CategoryType)
                             .custom(Categories::CategoryType)
