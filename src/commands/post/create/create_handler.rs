@@ -1,10 +1,14 @@
-use application_core::{entities::posts, Posts};
-use axum::{extract::State, response::IntoResponse, Json};
-use sea_orm::{prelude::Uuid, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel};
+use application_core::{common::datetime_generator::generate_vietname_now, entities::posts, Posts};
+use axum::{extract::State, response::IntoResponse, Extension, Json};
+use axum_keycloak_auth::decode::KeycloakToken;
+use sea_orm::{prelude::Uuid, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, Set};
 use tower_cookies::Cookies;
 use tracing::instrument;
 
-use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse, ErrorCode};
+use crate::{
+    keycloak_extension::ExtractKeyCloakToken, ApiResponseError, ApiResponseWith, AppState,
+    AxumResponse, ErrorCode,
+};
 
 use super::create_request::CreatePostRequest;
 
@@ -12,22 +16,27 @@ use super::create_request::CreatePostRequest;
 pub async fn handle_create_post(
     conn: &DatabaseConnection,
     body: CreatePostRequest,
+    actor_email: Option<String>,
 ) -> Result<Uuid, DbErr> {
     let model = body.into_model();
-    let active_model = posts::ActiveModel {
+    let mut active_model = posts::ActiveModel {
         ..model.into_active_model()
     };
+    active_model.created_by = Set(actor_email.unwrap_or("System".to_string()));
+    active_model.created_at = Set(generate_vietname_now());
+
     let result = Posts::insert(active_model).exec(conn).await?;
     Result::Ok(result.last_insert_id)
 }
 
 #[instrument]
-pub async fn handle_api_create_post(
+pub async fn api_create_post(
     state: State<AppState>,
     cookies: Cookies,
+    Extension(token): Extension<KeycloakToken<String>>,
     Json(body): Json<CreatePostRequest>,
 ) -> impl IntoResponse {
-    let result = handle_create_post(&state.conn, body).await;
+    let result = handle_create_post(&state.conn, body, Some(token.extract_email().email)).await;
     match result {
         Ok(inserted_id) => ApiResponseWith::new(inserted_id.to_string()).to_axum_response(),
         Err(e) => ApiResponseError::new()
@@ -74,7 +83,7 @@ mod tests {
             parent_id: None,
         };
 
-        let created_category_id = handle_create_category(&conn, create_category_request)
+        let created_category_id = handle_create_category(&conn, create_category_request, None)
             .await
             .unwrap();
 
@@ -86,7 +95,7 @@ mod tests {
             slug: "post-title".to_string(),
         };
 
-        let result = super::handle_create_post(&conn, create_post_request)
+        let result = super::handle_create_post(&conn, create_post_request, None)
             .await
             .unwrap();
 

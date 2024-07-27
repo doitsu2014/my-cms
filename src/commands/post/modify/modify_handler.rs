@@ -1,9 +1,16 @@
 use super::modify_request::ModifyPostRequest;
-use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse, ErrorCode};
-use application_core::entities::posts::{self, Column};
-use axum::{extract::State, response::IntoResponse, Json};
+use crate::{
+    keycloak_extension::ExtractKeyCloakToken, ApiResponseError, ApiResponseWith, AppState,
+    AxumResponse, ErrorCode,
+};
+use application_core::{
+    common::datetime_generator::generate_vietname_now,
+    entities::posts::{self, Column},
+};
+use axum::{extract::State, response::IntoResponse, Extension, Json};
+use axum_keycloak_auth::decode::KeycloakToken;
 use migration::Expr;
-use sea_orm::{prelude::Uuid, DatabaseConnection, DbErr, EntityTrait, QueryFilter};
+use sea_orm::{prelude::Uuid, DatabaseConnection, DbErr, EntityTrait, QueryFilter, Set};
 use tower_cookies::Cookies;
 use tracing::instrument;
 
@@ -11,6 +18,7 @@ use tracing::instrument;
 pub async fn handle_modify_post(
     conn: &DatabaseConnection,
     body: ModifyPostRequest,
+    actor_email: Option<String>,
 ) -> Result<Uuid, DbErr> {
     // check id does exist
     let post = posts::Entity::find_by_id(body.id).one(conn).await?;
@@ -19,7 +27,9 @@ pub async fn handle_modify_post(
     }
 
     let current_row_version = body.row_version;
-    let model = body.into_active_model();
+    let mut model = body.into_active_model();
+    model.last_modified_by = Set(actor_email);
+    model.last_modified_at = Set(Some(generate_vietname_now()));
 
     // Update  the category with current row version, if row version is not matched, return error
     let result = posts::Entity::update_many()
@@ -36,12 +46,13 @@ pub async fn handle_modify_post(
 }
 
 #[instrument]
-pub async fn handle_api_modify_post(
+pub async fn api_modify_post(
     state: State<AppState>,
     cookies: Cookies,
+    Extension(token): Extension<KeycloakToken<String>>,
     Json(body): Json<ModifyPostRequest>,
 ) -> impl IntoResponse {
-    let result = handle_modify_post(&state.conn, body).await;
+    let result = handle_modify_post(&state.conn, body, Some(token.extract_email().email)).await;
 
     match result {
         Ok(inserted_id) => ApiResponseWith::new(inserted_id.to_string()).to_axum_response(),
@@ -90,7 +101,7 @@ mod tests {
             parent_id: None,
         };
 
-        let created_category_id = handle_create_category(&conn, create_category_request)
+        let created_category_id = handle_create_category(&conn, create_category_request, None)
             .await
             .unwrap();
 
@@ -102,7 +113,7 @@ mod tests {
             slug: "post-title".to_string(),
         };
 
-        let result = handle_create_post(&conn, create_post_request)
+        let result = handle_create_post(&conn, create_post_request, None)
             .await
             .unwrap();
 
@@ -116,7 +127,9 @@ mod tests {
             row_version: 1,
         };
 
-        let result = handle_modify_post(&conn, request).await.unwrap();
+        let result = handle_modify_post(&conn, request, Some("Last Modifier".to_string()))
+            .await
+            .unwrap();
 
         let posts_in_db = handle_get_all_posts(&conn).await.unwrap();
         let first = posts_in_db.first().unwrap();
@@ -128,6 +141,7 @@ mod tests {
         assert!(first.title == "Post Title - Updated");
         assert!(first.content == "Post Content - Updated");
         assert!(first.slug == "post-title-updated");
+        assert!(first.last_modified_by == Some("Last Modifier".to_string()));
     }
 
     #[async_std::test]
@@ -147,7 +161,7 @@ mod tests {
             parent_id: None,
         };
 
-        let created_category_id = handle_create_category(&conn, create_category_request)
+        let created_category_id = handle_create_category(&conn, create_category_request, None)
             .await
             .unwrap();
 
@@ -159,7 +173,7 @@ mod tests {
             slug: "post-title".to_string(),
         };
 
-        let result = handle_create_post(&conn, create_post_request)
+        let result = handle_create_post(&conn, create_post_request, None)
             .await
             .unwrap();
 
@@ -173,7 +187,7 @@ mod tests {
             row_version: 0,
         };
 
-        let result = handle_modify_post(&conn, request).await;
+        let result = handle_modify_post(&conn, request, Some("System".to_string())).await;
         assert!(result.is_err());
     }
 }

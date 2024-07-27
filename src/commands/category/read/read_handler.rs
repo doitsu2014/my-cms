@@ -11,7 +11,7 @@ pub async fn handle_get_all_categories(conn: &DatabaseConnection) -> Result<Vec<
 }
 
 #[instrument]
-pub async fn handle_api_get_all_categories(state: State<AppState>) -> impl IntoResponse {
+pub async fn api_get_all_categories(state: State<AppState>) -> impl IntoResponse {
     let result = handle_get_all_categories(&state.conn).await;
 
     match result {
@@ -59,6 +59,7 @@ mod tests {
                     category_type: CategoryType::Blog,
                     parent_id: None,
                 },
+                None,
             )
             .await;
         }

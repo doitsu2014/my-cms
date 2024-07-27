@@ -17,7 +17,7 @@ pub async fn handle_get_all_posts(conn: &DatabaseConnection) -> Result<Vec<Model
 }
 
 #[instrument]
-pub async fn handle_api_get_all_posts(state: State<AppState>) -> impl IntoResponse {
+pub async fn api_get_all_posts(state: State<AppState>) -> impl IntoResponse {
     let result = handle_get_all_posts(&state.conn).await;
     match result {
         Ok(posts) => ApiResponseWith::new(posts).to_axum_response(),
@@ -65,7 +65,7 @@ mod tests {
             parent_id: None,
         };
 
-        let created_category_id = handle_create_category(&conn, create_category_request)
+        let created_category_id = handle_create_category(&conn, create_category_request, None)
             .await
             .unwrap();
 
@@ -80,6 +80,7 @@ mod tests {
                     published: false,
                     category_id: created_category_id,
                 },
+                None,
             )
             .await;
         }
