@@ -1,7 +1,13 @@
 use super::create_request::CreateCategoryRequest;
-use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse, ErrorCode};
-use application_core::{entities::categories, Categories};
-use axum::{extract::State, response::IntoResponse, Json};
+use crate::{
+    keycloak_extension::ExtractKeyCloakToken, ApiResponseError, ApiResponseWith, AppState,
+    AxumResponse, ErrorCode,
+};
+use application_core::{
+    common::datetime_generator::generate_vietname_now, entities::categories, Categories,
+};
+use axum::{extract::State, response::IntoResponse, Extension, Json};
+use axum_keycloak_auth::decode::KeycloakToken;
 use sea_orm::{prelude::Uuid, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel};
 use tower_cookies::Cookies;
 use tracing::instrument;
@@ -10,23 +16,29 @@ use tracing::instrument;
 pub async fn handle_create_category(
     conn: &DatabaseConnection,
     body: CreateCategoryRequest,
+    actor_email: Option<String>,
 ) -> Result<Uuid, DbErr> {
-    let model = body.into_model();
+    let model: categories::Model = body.into_model();
+    let model = categories::Model {
+        created_by: actor_email.unwrap_or("System".to_string()),
+        created_at: generate_vietname_now(),
+        ..model
+    };
     let active_model = categories::ActiveModel {
         ..model.into_active_model()
     };
     let result = Categories::insert(active_model).exec(conn).await?;
-
     Result::Ok(result.last_insert_id)
 }
 
 #[instrument]
-pub async fn handle_api_create_category(
+pub async fn api_create_category(
     state: State<AppState>,
     cookies: Cookies,
+    Extension(token): Extension<KeycloakToken<String>>,
     Json(body): Json<CreateCategoryRequest>,
 ) -> impl IntoResponse {
-    let result = handle_create_category(&state.conn, body).await;
+    let result = handle_create_category(&state.conn, body, Some(token.extract_email().email)).await;
 
     match result {
         Ok(inserted_id) => ApiResponseWith::new(inserted_id.to_string()).to_axum_response(),
@@ -68,7 +80,7 @@ mod tests {
             category_type: CategoryType::Blog,
             parent_id: None,
         };
-        let result = handle_create_category(&conn, request).await.unwrap();
+        let result = handle_create_category(&conn, request, None).await.unwrap();
         assert!(!result.is_nil());
 
         let category_in_db = handle_get_all_categories(&conn).await.unwrap();
@@ -96,7 +108,9 @@ mod tests {
             category_type: CategoryType::Blog,
             parent_id: None,
         };
-        let parent = handle_create_category(&conn, parent_request).await.unwrap();
+        let parent = handle_create_category(&conn, parent_request, None)
+            .await
+            .unwrap();
 
         let child_request = CreateCategoryRequest {
             display_name: "Child of Category 1".to_string(),
@@ -104,7 +118,9 @@ mod tests {
             category_type: CategoryType::Blog,
             parent_id: Some(parent),
         };
-        let child = handle_create_category(&conn, child_request).await.unwrap();
+        let child = handle_create_category(&conn, child_request, None)
+            .await
+            .unwrap();
         let categories_in_db: Vec<Model> = handle_get_all_categories(&conn).await.unwrap();
 
         let first = categories_in_db

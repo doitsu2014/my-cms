@@ -1,9 +1,10 @@
 use super::modify_request::ModifyCategoryRequest;
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse, ErrorCode};
 use application_core::entities::categories::{self, Column};
-use axum::{extract::State, response::IntoResponse, Json};
+use axum::{extract::State, response::IntoResponse, Extension, Json};
+use axum_keycloak_auth::decode::KeycloakToken;
 use migration::Expr;
-use sea_orm::{prelude::Uuid, DatabaseConnection, DbErr, EntityTrait, QueryFilter};
+use sea_orm::{prelude::Uuid, DatabaseConnection, DbErr, EntityTrait, QueryFilter, Set};
 use tower_cookies::Cookies;
 use tracing::instrument;
 
@@ -11,6 +12,7 @@ use tracing::instrument;
 pub async fn handle_modify_category(
     conn: &DatabaseConnection,
     body: ModifyCategoryRequest,
+    actor_email: Option<String>,
 ) -> Result<Uuid, DbErr> {
     // check id does exist
     let category = categories::Entity::find_by_id(body.id).one(conn).await?;
@@ -19,7 +21,8 @@ pub async fn handle_modify_category(
     }
 
     let current_row_version = body.row_version;
-    let model = body.into_active_model();
+    let mut model = body.into_active_model();
+    model.last_modified_by = Set(actor_email);
 
     // Update  the category with current row version, if row version is not matched, return error
     let result = categories::Entity::update_many()
@@ -36,12 +39,13 @@ pub async fn handle_modify_category(
 }
 
 #[instrument]
-pub async fn handle_api_modify_category(
+pub async fn api_modify_category(
     state: State<AppState>,
     cookies: Cookies,
+    Extension(token): Extension<KeycloakToken<String>>,
     Json(body): Json<ModifyCategoryRequest>,
 ) -> impl IntoResponse {
-    let result = handle_modify_category(&state.conn, body).await;
+    let result = handle_modify_category(&state.conn, body, Some("System".to_string())).await;
 
     match result {
         Ok(inserted_id) => ApiResponseWith::new(inserted_id.to_string()).to_axum_response(),
@@ -91,7 +95,10 @@ mod tests {
             parent_id: None,
         };
 
-        let create_result = handle_create_category(&conn, create_request).await.unwrap();
+        let create_result =
+            handle_create_category(&conn, create_request, Some("System".to_string()))
+                .await
+                .unwrap();
         assert!(!create_result.is_nil());
 
         let request = ModifyCategoryRequest {
@@ -103,7 +110,9 @@ mod tests {
             row_version: 1,
         };
 
-        let result = handle_modify_category(&conn, request).await.unwrap();
+        let result = handle_modify_category(&conn, request, Some("System".to_string()))
+            .await
+            .unwrap();
         assert!(!result.is_nil());
 
         let category_in_db = handle_get_all_categories(&conn).await.unwrap();
@@ -134,7 +143,10 @@ mod tests {
             parent_id: None,
         };
 
-        let create_result = handle_create_category(&conn, create_request).await.unwrap();
+        let create_result =
+            handle_create_category(&conn, create_request, Some("System".to_string()))
+                .await
+                .unwrap();
         assert!(!create_result.is_nil());
 
         let request = ModifyCategoryRequest {
@@ -146,7 +158,7 @@ mod tests {
             row_version: 0,
         };
 
-        let result = handle_modify_category(&conn, request).await;
+        let result = handle_modify_category(&conn, request, Some("System".to_string())).await;
         assert!(result.is_err());
     }
 }
