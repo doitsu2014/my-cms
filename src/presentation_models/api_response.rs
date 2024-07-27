@@ -1,6 +1,5 @@
 use axum::{http::StatusCode, response::Response};
 use hyper::header::CONTENT_TYPE;
-use sea_orm::DbErr;
 use serde::Serialize;
 
 pub trait AxumResponse {

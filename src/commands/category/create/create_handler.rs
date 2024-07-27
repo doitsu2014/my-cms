@@ -125,15 +125,9 @@ mod tests {
 
         let first = categories_in_db
             .iter()
-            .filter(|x| x.parent_id.is_none())
-            .next()
+            .find(|x| x.parent_id.is_none())
             .unwrap();
-
-        let child_instance = categories_in_db
-            .iter()
-            .filter(|x| x.id == child)
-            .next()
-            .unwrap();
+        let child_instance = categories_in_db.iter().find(|x| x.id == child).unwrap();
 
         assert_eq!(child_instance.parent_id.unwrap(), first.id);
     }
