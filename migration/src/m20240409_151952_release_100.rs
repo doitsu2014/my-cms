@@ -64,6 +64,12 @@ impl MigrationTrait for Migration {
                             .to(Categories::Table, Categories::Id)
                             .on_delete(ForeignKeyAction::Cascade),
                     )
+                    .index(
+                        Index::create()
+                            .name("index_unique_category_slug")
+                            .col(Categories::Slug)
+                            .unique(),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -76,7 +82,9 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(ColumnDef::new(Posts::Id).uuid().not_null().primary_key())
                     .col(ColumnDef::new(Posts::Title).string().not_null())
-                    .col(ColumnDef::new(Posts::Content).string().not_null())
+                    .col(ColumnDef::new(Posts::PreviewContent).text())
+                    .col(ColumnDef::new(Posts::Content).text().not_null())
+                    // .col(ColumnDef::new(Posts::TsVector))
                     .col(ColumnDef::new(Posts::Slug).string().not_null())
                     .col(
                         ColumnDef::new(Posts::Published)
@@ -112,6 +120,12 @@ impl MigrationTrait for Migration {
                             .to(Categories::Table, Categories::Id)
                             .on_delete(ForeignKeyAction::Cascade),
                     )
+                    .index(
+                        Index::create()
+                            .name("index_unique_post_slug")
+                            .col(Posts::Slug)
+                            .unique(),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -137,6 +151,12 @@ impl MigrationTrait for Migration {
                             .timestamp_with_time_zone()
                             .null(),
                     )
+                    .index(
+                        Index::create()
+                            .name("index_unique_tag_slug")
+                            .col(Tags::Slug)
+                            .unique(),
+                    )
                     .to_owned(),
             )
             .await?;
@@ -146,13 +166,113 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(PostTags::Table)
                     .if_not_exists()
+                    .col(ColumnDef::new(PostTags::Id).uuid().not_null().primary_key())
+                    .col(ColumnDef::new(PostTags::PostId).uuid().not_null())
+                    .col(ColumnDef::new(PostTags::TagId).uuid().not_null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_post_tags_post_id")
+                            .from(PostTags::Table, PostTags::PostId)
+                            .to(Posts::Table, Posts::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_post_tags_tag_id")
+                            .from(PostTags::Table, PostTags::TagId)
+                            .to(Tags::Table, Tags::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .index(
+                        Index::create()
+                            .name("index_unique_post_tags")
+                            .col(PostTags::PostId)
+                            .col(PostTags::TagId)
+                            .unique(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(PostTags::Table)
+                    .if_not_exists()
+                    .col(ColumnDef::new(PostTags::Id).uuid().not_null().primary_key())
+                    .col(ColumnDef::new(PostTags::PostId).uuid().not_null())
+                    .col(ColumnDef::new(PostTags::TagId).uuid().not_null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_post_tags_post_id")
+                            .from(PostTags::Table, PostTags::PostId)
+                            .to(Posts::Table, Posts::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_post_tags_tag_id")
+                            .from(PostTags::Table, PostTags::TagId)
+                            .to(Tags::Table, Tags::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .index(
+                        Index::create()
+                            .name("index_unique_post_tags")
+                            .col(PostTags::PostId)
+                            .col(PostTags::TagId)
+                            .unique(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(CategoryTags::Table)
+                    .if_not_exists()
                     .col(
-                        ColumnDef::new(PostTags::PostId)
+                        ColumnDef::new(CategoryTags::Id)
                             .uuid()
                             .not_null()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(PostTags::TagId).string().not_null())
+                    .col(ColumnDef::new(CategoryTags::CategoryId).uuid().not_null())
+                    .col(ColumnDef::new(CategoryTags::TagId).uuid().not_null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_category_tags_category_id")
+                            .from(CategoryTags::Table, CategoryTags::CategoryId)
+                            .to(Categories::Table, Categories::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .name("fk_category_tags_tag_id")
+                            .from(CategoryTags::Table, CategoryTags::TagId)
+                            .to(Tags::Table, Tags::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .index(
+                        Index::create()
+                            .name("index_unique_category_tags")
+                            .col(CategoryTags::CategoryId)
+                            .col(CategoryTags::TagId)
+                            .unique(),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        // Special Indices
+        manager
+            .create_index(
+                Index::create()
+                    .name("index_fulltext_post_content")
+                    .table(Posts::Table)
+                    .col(Posts::Content)
+                    .full_text()
                     .to_owned(),
             )
             .await?;
@@ -161,6 +281,15 @@ impl MigrationTrait for Migration {
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .drop_index(Index::drop().name("index_fulltext_post_content").to_owned())
+            .await?;
+
+        // Then Drop CategoryTags
+        manager
+            .drop_table(Table::drop().table(CategoryTags::Table).to_owned())
+            .await?;
+
         // Then Drop PostTags
         manager
             .drop_table(Table::drop().table(PostTags::Table).to_owned())
@@ -219,7 +348,9 @@ pub enum Posts {
     Table,
     Id,
     Title,
+    PreviewContent,
     Content,
+    TsVector,
     Slug,
     Published,
     CategoryId,
@@ -229,13 +360,6 @@ pub enum Posts {
     LastModifiedBy,
     #[sea_orm(updated_at)]
     RowVersion,
-}
-
-#[derive(DeriveIden)]
-pub enum PostTags {
-    Table,
-    PostId,
-    TagId,
 }
 
 #[derive(DeriveIden)]
@@ -249,6 +373,22 @@ pub enum Tags {
     CreatedBy,
     LastModifiedAt,
     LastModifiedBy,
+}
+
+#[derive(DeriveIden)]
+pub enum PostTags {
+    Table,
+    Id,
+    PostId,
+    TagId,
+}
+
+#[derive(DeriveIden)]
+pub enum CategoryTags {
+    Table,
+    Id,
+    CategoryId,
+    TagId,
 }
 
 #[cfg(test)]
