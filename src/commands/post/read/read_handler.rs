@@ -76,6 +76,7 @@ mod tests {
                 CreatePostRequest {
                     title: format!("Post Title {}", i),
                     slug: format!("post-title-{}", i),
+                    preview_content: None,
                     content: "Please help to fill some lorem content".to_string(),
                     published: false,
                     category_id: created_category_id,

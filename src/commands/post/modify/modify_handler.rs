@@ -107,6 +107,7 @@ mod tests {
 
         let create_post_request = CreatePostRequest {
             title: "Post Title".to_string(),
+            preview_content: None,
             content: "Post Content".to_string(),
             published: false,
             category_id: created_category_id,
@@ -120,6 +121,7 @@ mod tests {
         let request = ModifyPostRequest {
             id: result,
             title: "Post Title - Updated".to_string(),
+            preview_content: None,
             content: "Post Content - Updated".to_string(),
             published: true,
             category_id: created_category_id,
@@ -167,6 +169,7 @@ mod tests {
 
         let create_post_request = CreatePostRequest {
             title: "Post Title".to_string(),
+            preview_content: None,
             content: "Post Content".to_string(),
             published: false,
             category_id: created_category_id,
@@ -180,6 +183,7 @@ mod tests {
         let request = ModifyPostRequest {
             id: result,
             title: "Post Title - Updated".to_string(),
+            preview_content: None,
             content: "Post Content - Updated".to_string(),
             published: true,
             category_id: created_category_id,

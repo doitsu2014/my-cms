@@ -2,6 +2,8 @@ use sea_orm::{EnumIter, Iterable};
 use sea_orm_migration::prelude::*;
 use sea_query::extension::postgres::Type;
 
+use crate::{NAME_LENGTH, TITLE_LENGTH, USER_EMAIL_LENGTH};
+
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
@@ -29,21 +31,37 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .primary_key(),
                     )
-                    .col(ColumnDef::new(Categories::DisplayName).string().not_null())
-                    .col(ColumnDef::new(Categories::Slug).string().not_null())
+                    .col(
+                        ColumnDef::new(Categories::DisplayName)
+                            .string_len(NAME_LENGTH)
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Categories::Slug)
+                            .string_len(NAME_LENGTH)
+                            .not_null(),
+                    )
                     .col(
                         ColumnDef::new(Categories::CategoryType)
                             .custom(Categories::CategoryType)
                             .not_null(),
                     )
-                    .col(ColumnDef::new(Categories::CreatedBy).string().not_null())
+                    .col(
+                        ColumnDef::new(Categories::CreatedBy)
+                            .string_len(USER_EMAIL_LENGTH)
+                            .not_null(),
+                    )
                     .col(
                         ColumnDef::new(Categories::CreatedAt)
                             .timestamp_with_time_zone()
                             .not_null()
                             .default(Expr::current_timestamp()),
                     )
-                    .col(ColumnDef::new(Categories::LastModifiedBy).string().null())
+                    .col(
+                        ColumnDef::new(Categories::LastModifiedBy)
+                            .string_len(USER_EMAIL_LENGTH)
+                            .null(),
+                    )
                     .col(
                         ColumnDef::new(Categories::LastModifiedAt)
                             .timestamp_with_time_zone()
@@ -81,25 +99,40 @@ impl MigrationTrait for Migration {
                     .table(Posts::Table)
                     .if_not_exists()
                     .col(ColumnDef::new(Posts::Id).uuid().not_null().primary_key())
-                    .col(ColumnDef::new(Posts::Title).string().not_null())
+                    .col(
+                        ColumnDef::new(Posts::Title)
+                            .string_len(TITLE_LENGTH)
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(Posts::PreviewContent).text())
                     .col(ColumnDef::new(Posts::Content).text().not_null())
-                    // .col(ColumnDef::new(Posts::TsVector))
-                    .col(ColumnDef::new(Posts::Slug).string().not_null())
+                    .col(
+                        ColumnDef::new(Posts::Slug)
+                            .string_len(TITLE_LENGTH)
+                            .not_null(),
+                    )
                     .col(
                         ColumnDef::new(Posts::Published)
                             .boolean()
                             .not_null()
                             .default(false),
                     )
-                    .col(ColumnDef::new(Posts::CreatedBy).string().not_null())
+                    .col(
+                        ColumnDef::new(Posts::CreatedBy)
+                            .string_len(USER_EMAIL_LENGTH)
+                            .not_null(),
+                    )
                     .col(
                         ColumnDef::new(Posts::CreatedAt)
                             .timestamp_with_time_zone()
                             .not_null()
                             .default(Expr::current_timestamp()),
                     )
-                    .col(ColumnDef::new(Posts::LastModifiedBy).string().null())
+                    .col(
+                        ColumnDef::new(Posts::LastModifiedBy)
+                            .string_len(USER_EMAIL_LENGTH)
+                            .null(),
+                    )
                     .col(
                         ColumnDef::new(Posts::LastModifiedAt)
                             .timestamp_with_time_zone()
@@ -130,22 +163,38 @@ impl MigrationTrait for Migration {
             )
             .await?;
 
+        // Tags
         manager
             .create_table(
                 Table::create()
                     .table(Tags::Table)
                     .if_not_exists()
                     .col(ColumnDef::new(Tags::Id).uuid().not_null().primary_key())
-                    .col(ColumnDef::new(Tags::Name).string().not_null())
-                    .col(ColumnDef::new(Tags::Description).string().not_null())
-                    .col(ColumnDef::new(Tags::Slug).string().not_null())
-                    .col(ColumnDef::new(Tags::CreatedBy).string().not_null())
+                    .col(
+                        ColumnDef::new(Tags::Name)
+                            .string_len(NAME_LENGTH)
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Tags::Slug)
+                            .string_len(NAME_LENGTH)
+                            .not_null(),
+                    )
+                    .col(
+                        ColumnDef::new(Tags::CreatedBy)
+                            .string_len(USER_EMAIL_LENGTH)
+                            .not_null(),
+                    )
                     .col(
                         ColumnDef::new(Tags::CreatedAt)
                             .timestamp_with_time_zone()
                             .not_null(),
                     )
-                    .col(ColumnDef::new(Tags::LastModifiedBy).string().null())
+                    .col(
+                        ColumnDef::new(Tags::LastModifiedBy)
+                            .string_len(USER_EMAIL_LENGTH)
+                            .null(),
+                    )
                     .col(
                         ColumnDef::new(Tags::LastModifiedAt)
                             .timestamp_with_time_zone()
@@ -265,26 +314,10 @@ impl MigrationTrait for Migration {
             )
             .await?;
 
-        // Special Indices
-        manager
-            .create_index(
-                Index::create()
-                    .name("index_fulltext_post_content")
-                    .table(Posts::Table)
-                    .col(Posts::Content)
-                    .full_text()
-                    .to_owned(),
-            )
-            .await?;
-
         return Ok(());
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        manager
-            .drop_index(Index::drop().name("index_fulltext_post_content").to_owned())
-            .await?;
-
         // Then Drop CategoryTags
         manager
             .drop_table(Table::drop().table(CategoryTags::Table).to_owned())
@@ -350,7 +383,6 @@ pub enum Posts {
     Title,
     PreviewContent,
     Content,
-    TsVector,
     Slug,
     Published,
     CategoryId,
@@ -367,7 +399,6 @@ pub enum Tags {
     Table,
     Id,
     Name,
-    Description,
     Slug,
     CreatedAt,
     CreatedBy,

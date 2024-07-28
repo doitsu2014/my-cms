@@ -5,3 +5,4 @@ pub use super::category_tags::Entity as CategoryTags;
 pub use super::post_tags::Entity as PostTags;
 pub use super::posts::Entity as Posts;
 pub use super::tags::Entity as Tags;
+pub use super::test_fulltext::Entity as TestFulltext;

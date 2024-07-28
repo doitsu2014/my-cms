@@ -90,6 +90,7 @@ mod tests {
         let create_post_request = CreatePostRequest {
             title: "Post Title".to_string(),
             content: "Post Content".to_string(),
+            preview_content: None,
             published: false,
             category_id: created_category_id,
             slug: "post-title".to_string(),

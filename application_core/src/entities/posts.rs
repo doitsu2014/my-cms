@@ -9,6 +9,9 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
     pub title: String,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub preview_content: Option<String>,
+    #[sea_orm(column_type = "Text")]
     pub content: String,
     #[sea_orm(unique)]
     pub slug: String,
