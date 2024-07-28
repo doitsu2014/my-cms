@@ -37,13 +37,14 @@ mod tests {
     use testcontainers::runners::AsyncRunner;
     use testcontainers_modules::postgres::Postgres;
 
-    use crate::commands::{
-        category::create::{
-            create_handler::handle_create_category, create_request::CreateCategoryRequest,
-        },
-        post::{
-            create::{create_handler::handle_create_post, create_request::CreatePostRequest},
-            read::read_handler::handle_get_all_posts,
+    use crate::{
+        category::create::create_handler::handle_create_category_with_tags,
+        commands::{
+            category::create::create_request::CreateCategoryRequest,
+            post::{
+                create::{create_handler::handle_create_post, create_request::CreatePostRequest},
+                read::read_handler::handle_get_all_posts,
+            },
         },
     };
 
@@ -63,11 +64,13 @@ mod tests {
             slug: "blog-category".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
+            tags: None,
         };
 
-        let created_category_id = handle_create_category(&conn, create_category_request, None)
-            .await
-            .unwrap();
+        let created_category_id =
+            handle_create_category_with_tags(conn.clone(), create_category_request, None)
+                .await
+                .unwrap();
 
         // Create vec with 3 element integer
         for i in 0..3 {
@@ -76,6 +79,7 @@ mod tests {
                 CreatePostRequest {
                     title: format!("Post Title {}", i),
                     slug: format!("post-title-{}", i),
+                    preview_content: None,
                     content: "Please help to fill some lorem content".to_string(),
                     published: false,
                     category_id: created_category_id,

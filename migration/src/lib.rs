@@ -10,3 +10,6 @@ impl MigratorTrait for Migrator {
         vec![Box::new(m20240409_151952_release_100::Migration)]
     }
 }
+
+pub mod constants;
+pub use constants::*;

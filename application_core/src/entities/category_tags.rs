@@ -4,24 +4,12 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "posts")]
+#[sea_orm(table_name = "category_tags")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
-    pub title: String,
-    #[sea_orm(column_type = "Text", nullable)]
-    pub preview_content: Option<String>,
-    #[sea_orm(column_type = "Text")]
-    pub content: String,
-    #[sea_orm(unique)]
-    pub slug: String,
-    pub published: bool,
-    pub created_by: String,
-    pub created_at: DateTimeWithTimeZone,
-    pub last_modified_by: Option<String>,
-    pub last_modified_at: Option<DateTimeWithTimeZone>,
     pub category_id: Uuid,
-    pub row_version: i32,
+    pub tag_id: Uuid,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -34,8 +22,14 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     Categories,
-    #[sea_orm(has_many = "super::post_tags::Entity")]
-    PostTags,
+    #[sea_orm(
+        belongs_to = "super::tags::Entity",
+        from = "Column::TagId",
+        to = "super::tags::Column::Id",
+        on_update = "NoAction",
+        on_delete = "Cascade"
+    )]
+    Tags,
 }
 
 impl Related<super::categories::Entity> for Entity {
@@ -44,9 +38,9 @@ impl Related<super::categories::Entity> for Entity {
     }
 }
 
-impl Related<super::post_tags::Entity> for Entity {
+impl Related<super::tags::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::PostTags.def()
+        Relation::Tags.def()
     }
 }
 

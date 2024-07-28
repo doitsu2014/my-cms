@@ -17,7 +17,6 @@ axum-keycloak-auth = { version = "0.5.0" }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
 dotenv = "0.15.0"
-
 sea-orm = "0.12.15"
 sea-orm-migration = "0.12.15"
 chrono = "0.4.37"
@@ -28,9 +27,6 @@ tower = "0.4.13"
 tower-http = { version = "0.5.2", features = ["fs", "tracing"] }
 tower-cookies = "0.10.0"
 
-# Auth
-migration = { path = "migration" }
-application_core = { path = "application_core" }
 
 tracing = { version = "0.1.40", default-features = false, features = [
   "std",
@@ -56,6 +52,8 @@ jsonwebtoken = { version = "9.3.0" }
 oauth2 = { version = "4.4.2" }
 reqwest = { version = "0.12.5" }
 
+application_core = { path = "application_core" }
+migration = { path = "migration" }
 
 [dev-dependencies]
 testcontainers = "0.20.0"

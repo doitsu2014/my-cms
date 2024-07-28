@@ -7,11 +7,41 @@ use serde::{Deserialize, Serialize};
 #[sea_orm(table_name = "post_tags")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
+    pub id: Uuid,
     pub post_id: Uuid,
-    pub tag_id: String,
+    pub tag_id: Uuid,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::posts::Entity",
+        from = "Column::PostId",
+        to = "super::posts::Column::Id",
+        on_update = "NoAction",
+        on_delete = "Cascade"
+    )]
+    Posts,
+    #[sea_orm(
+        belongs_to = "super::tags::Entity",
+        from = "Column::TagId",
+        to = "super::tags::Column::Id",
+        on_update = "NoAction",
+        on_delete = "Cascade"
+    )]
+    Tags,
+}
+
+impl Related<super::posts::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Posts.def()
+    }
+}
+
+impl Related<super::tags::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Tags.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}

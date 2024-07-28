@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize, Debug)]
 pub struct CreatePostRequest {
     pub title: String,
+    pub preview_content: Option<String>,
     pub content: String,
     pub slug: String,
     pub published: bool,
@@ -16,6 +17,7 @@ impl CreatePostRequest {
         posts::Model {
             id: Uuid::new_v4(),
             title: self.title.to_owned(),
+            preview_content: self.preview_content.to_owned(),
             content: self.content.to_owned(),
             slug: self.slug.to_owned(),
             published: self.published.to_owned(),

@@ -10,6 +10,7 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
     pub display_name: String,
+    #[sea_orm(unique)]
     pub slug: String,
     pub category_type: CategoryType,
     pub created_by: String,
@@ -30,8 +31,16 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     SelfRef,
+    #[sea_orm(has_many = "super::category_tags::Entity")]
+    CategoryTags,
     #[sea_orm(has_many = "super::posts::Entity")]
     Posts,
+}
+
+impl Related<super::category_tags::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::CategoryTags.def()
+    }
 }
 
 impl Related<super::posts::Entity> for Entity {

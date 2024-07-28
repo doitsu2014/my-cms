@@ -1,44 +1,127 @@
 use super::create_request::CreateCategoryRequest;
 use crate::{
-    keycloak_extension::ExtractKeyCloakToken, ApiResponseError, ApiResponseWith, AppState,
-    AxumResponse, ErrorCode,
+    keycloak_extension::ExtractKeyCloakToken,
+    tag::read::read_handler::handle_get_and_classify_tags_by_names, ApiResponseError,
+    ApiResponseWith, AppState, AxumResponse, ErrorCode,
 };
 use application_core::{
-    common::datetime_generator::generate_vietname_now, entities::categories, Categories,
+    common::datetime_generator::generate_vietname_now,
+    entities::{categories, category_tags, tags},
+    Categories, Tags,
 };
 use axum::{extract::State, response::IntoResponse, Extension, Json};
 use axum_keycloak_auth::decode::KeycloakToken;
-use sea_orm::{prelude::Uuid, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel};
+use sea_orm::{
+    prelude::Uuid, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, Set, TransactionError,
+    TransactionTrait,
+};
 use tower_cookies::Cookies;
 use tracing::instrument;
 
 #[instrument]
-pub async fn handle_create_category(
-    conn: &DatabaseConnection,
+pub async fn handle_create_category_with_tags(
+    conn: DatabaseConnection,
     body: CreateCategoryRequest,
     actor_email: Option<String>,
-) -> Result<Uuid, DbErr> {
+) -> Result<Uuid, TransactionError<DbErr>> {
+    // Prepare Category
     let model: categories::Model = body.into_model();
     let model = categories::Model {
-        created_by: actor_email.unwrap_or("System".to_string()),
+        created_by: actor_email.clone().unwrap_or("System".to_string()),
         created_at: generate_vietname_now(),
         ..model
     };
-    let active_model = categories::ActiveModel {
+    let create_category = categories::ActiveModel {
         ..model.into_active_model()
     };
-    let result = Categories::insert(active_model).exec(conn).await?;
-    Result::Ok(result.last_insert_id)
+    // Prepare Tags
+    let tags: Vec<String> = body.tags.unwrap_or_default();
+    let classifed_tags = handle_get_and_classify_tags_by_names(conn.clone(), tags).await?;
+    let existing_tag_ids = classifed_tags
+        .existing_tags
+        .iter()
+        .map(|tag| tag.id)
+        .collect::<Vec<Uuid>>();
+
+    let result: Result<Uuid, TransactionError<DbErr>> = conn
+        .transaction::<_, Uuid, DbErr>(|tx| {
+            Box::pin(async move {
+                // Insert Category
+                let inserted_category = Categories::insert(create_category).exec(tx).await?;
+
+                // Insert New Tags
+                let mut new_tag_ids: Vec<Uuid> = vec![];
+                if !classifed_tags.new_tags.is_empty() {
+                    let new_tags = classifed_tags
+                        .new_tags
+                        .iter()
+                        .map(|tag| {
+                            let id = Uuid::new_v4();
+                            new_tag_ids.push(id);
+                            tags::ActiveModel {
+                                id: Set(id),
+                                name: tag.name.clone(),
+                                slug: tag.slug.clone(),
+                                created_by: Set(actor_email
+                                    .clone()
+                                    .unwrap_or("System".to_string())),
+                                created_at: Set(generate_vietname_now()),
+                                ..Default::default()
+                            }
+                        })
+                        .collect::<Vec<tags::ActiveModel>>();
+                    Tags::insert_many(new_tags).exec(tx).await?;
+                }
+
+                // Combine New Tag Ids and Existing Tag Ids
+                let all_tags = existing_tag_ids
+                    .into_iter()
+                    .chain(new_tag_ids.into_iter())
+                    .collect::<Vec<Uuid>>();
+
+                // Insert Category Tags
+                if !all_tags.is_empty() {
+                    let category_tags = all_tags
+                        .iter()
+                        .map(|tag_id| {
+                            category_tags::Model {
+                                id: Uuid::new_v4(),
+                                category_id: inserted_category.last_insert_id,
+                                tag_id: tag_id.to_owned(),
+                            }
+                            .into_active_model()
+                        })
+                        .collect::<Vec<category_tags::ActiveModel>>();
+
+                    category_tags::Entity::insert_many(category_tags)
+                        .exec(tx)
+                        .await?;
+                }
+
+                Ok(inserted_category.last_insert_id)
+            })
+        })
+        .await;
+
+    match result {
+        Ok(inserted_id) => Ok(inserted_id),
+        Err(e) => Err(e),
+    }
 }
 
 #[instrument]
-pub async fn api_create_category(
+pub async fn api_create_category_with_tags(
     state: State<AppState>,
     cookies: Cookies,
     Extension(token): Extension<KeycloakToken<String>>,
     Json(body): Json<CreateCategoryRequest>,
 ) -> impl IntoResponse {
-    let result = handle_create_category(&state.conn, body, Some(token.extract_email().email)).await;
+    let result = handle_create_category_with_tags(
+        state.conn.clone(),
+        body,
+        Some(token.extract_email().email),
+    )
+    .await;
 
     match result {
         Ok(inserted_id) => ApiResponseWith::new(inserted_id.to_string()).to_axum_response(),
@@ -58,9 +141,12 @@ mod tests {
     use testcontainers::runners::AsyncRunner;
     use testcontainers_modules::postgres::Postgres;
 
-    use crate::commands::category::{
-        create::{create_handler::handle_create_category, create_request::CreateCategoryRequest},
-        read::read_handler::handle_get_all_categories,
+    use crate::{
+        category::create::create_handler::handle_create_category_with_tags,
+        commands::category::{
+            create::create_request::CreateCategoryRequest,
+            read::read_handler::handle_get_all_categories,
+        },
     };
 
     #[async_std::test]
@@ -78,9 +164,12 @@ mod tests {
             display_name: "Category 1".to_string(),
             slug: "category-1".to_string(),
             category_type: CategoryType::Blog,
+            tags: Some(vec!["Tag 1".to_string()]),
             parent_id: None,
         };
-        let result = handle_create_category(&conn, request, None).await.unwrap();
+        let result = handle_create_category_with_tags(conn.clone(), request, None)
+            .await
+            .unwrap();
         assert!(!result.is_nil());
 
         let category_in_db = handle_get_all_categories(&conn).await.unwrap();
@@ -107,8 +196,9 @@ mod tests {
             slug: "category-1".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
+            tags: None,
         };
-        let parent = handle_create_category(&conn, parent_request, None)
+        let parent = handle_create_category_with_tags(conn.clone(), parent_request, None)
             .await
             .unwrap();
 
@@ -117,18 +207,17 @@ mod tests {
             slug: "child-of-category-1".to_string(),
             category_type: CategoryType::Blog,
             parent_id: Some(parent),
+            tags: None,
         };
-        let child = handle_create_category(&conn, child_request, None)
+        let child = handle_create_category_with_tags(conn.clone(), child_request, None)
             .await
             .unwrap();
         let categories_in_db: Vec<Model> = handle_get_all_categories(&conn).await.unwrap();
-
         let first = categories_in_db
             .iter()
             .find(|x| x.parent_id.is_none())
             .unwrap();
         let child_instance = categories_in_db.iter().find(|x| x.id == child).unwrap();
-
         assert_eq!(child_instance.parent_id.unwrap(), first.id);
     }
 }

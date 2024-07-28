@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct ModifyPostRequest {
     pub id: Uuid,
     pub title: String,
+    pub preview_content: Option<String>,
     pub content: String,
     pub slug: String,
     pub published: bool,
@@ -19,6 +20,7 @@ impl ModifyPostRequest {
     pub fn into_active_model(&self) -> ActiveModel {
         ActiveModel {
             title: Set(self.title.to_owned()),
+            preview_content: Set(self.preview_content.to_owned()),
             content: Set(self.content.to_owned()),
             slug: Set(self.slug.to_owned()),
             last_modified_by: Set(Some("System".to_owned())),
