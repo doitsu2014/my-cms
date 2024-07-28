@@ -89,7 +89,7 @@ pub async fn protected_router() -> Router {
         .route(
             "/categories",
             get(commands::category::read::read_handler::api_get_all_categories)
-                .post(commands::category::create::create_handler::api_create_category)
+                .post(commands::category::create::create_handler::api_create_category_with_tags)
                 .put(commands::category::modify::modify_handler::api_modify_category),
         )
         .route(

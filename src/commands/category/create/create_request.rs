@@ -11,6 +11,7 @@ pub struct CreateCategoryRequest {
     pub slug: String,
     pub category_type: CategoryType,
     pub parent_id: Option<Uuid>,
+    pub tags: Option<Vec<String>>,
 }
 
 impl CreateCategoryRequest {

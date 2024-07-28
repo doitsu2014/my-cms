@@ -32,9 +32,12 @@ mod tests {
     use testcontainers::runners::AsyncRunner;
     use testcontainers_modules::postgres::Postgres;
 
-    use crate::commands::category::{
-        create::{create_handler::handle_create_category, create_request::CreateCategoryRequest},
-        read::read_handler::handle_get_all_categories,
+    use crate::{
+        category::create::create_handler::handle_create_category_with_tags,
+        commands::category::{
+            create::create_request::CreateCategoryRequest,
+            read::read_handler::handle_get_all_categories,
+        },
     };
 
     #[async_std::test]
@@ -51,13 +54,14 @@ mod tests {
         // Create vec with 3 element integer
 
         for i in 0..3 {
-            let _ = handle_create_category(
-                &conn,
+            let _ = handle_create_category_with_tags(
+                conn.clone(),
                 CreateCategoryRequest {
                     display_name: format!("Category {}", i),
                     slug: format!("category-{}", i).to_string(),
                     category_type: CategoryType::Blog,
                     parent_id: None,
+                    tags: None,
                 },
                 None,
             )

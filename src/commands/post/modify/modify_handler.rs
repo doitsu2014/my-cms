@@ -74,7 +74,7 @@ mod tests {
 
     use crate::{
         category::create::{
-            create_handler::handle_create_category, create_request::CreateCategoryRequest,
+            create_handler::handle_create_category_with_tags, create_request::CreateCategoryRequest,
         },
         post::{
             create::{create_handler::handle_create_post, create_request::CreatePostRequest},
@@ -99,11 +99,13 @@ mod tests {
             slug: "blog-category".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
+            tags: None,
         };
 
-        let created_category_id = handle_create_category(&conn, create_category_request, None)
-            .await
-            .unwrap();
+        let created_category_id =
+            handle_create_category_with_tags(conn.clone(), create_category_request, None)
+                .await
+                .unwrap();
 
         let create_post_request = CreatePostRequest {
             title: "Post Title".to_string(),
@@ -161,11 +163,13 @@ mod tests {
             slug: "blog-category".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
+            tags: None,
         };
 
-        let created_category_id = handle_create_category(&conn, create_category_request, None)
-            .await
-            .unwrap();
+        let created_category_id =
+            handle_create_category_with_tags(conn.clone(), create_category_request, None)
+                .await
+                .unwrap();
 
         let create_post_request = CreatePostRequest {
             title: "Post Title".to_string(),

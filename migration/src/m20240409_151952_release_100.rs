@@ -206,6 +206,12 @@ impl MigrationTrait for Migration {
                             .col(Tags::Slug)
                             .unique(),
                     )
+                    .index(
+                        Index::create()
+                            .name("index_unique_tag_name")
+                            .col(Tags::Name)
+                            .unique(),
+                    )
                     .to_owned(),
             )
             .await?;

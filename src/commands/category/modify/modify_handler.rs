@@ -67,7 +67,7 @@ mod tests {
 
     use crate::{
         category::create::{
-            create_handler::handle_create_category, create_request::CreateCategoryRequest,
+            create_handler::handle_create_category_with_tags, create_request::CreateCategoryRequest,
         },
         commands::category::{
             modify::{
@@ -93,12 +93,16 @@ mod tests {
             slug: "category-1".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
+            tags: None,
         };
 
-        let create_result =
-            handle_create_category(&conn, create_request, Some("System".to_string()))
-                .await
-                .unwrap();
+        let create_result = handle_create_category_with_tags(
+            conn.clone(),
+            create_request,
+            Some("System".to_string()),
+        )
+        .await
+        .unwrap();
         assert!(!create_result.is_nil());
 
         let request = ModifyCategoryRequest {
@@ -141,12 +145,16 @@ mod tests {
             slug: "category-1".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
+            tags: None,
         };
 
-        let create_result =
-            handle_create_category(&conn, create_request, Some("System".to_string()))
-                .await
-                .unwrap();
+        let create_result = handle_create_category_with_tags(
+            conn.clone(),
+            create_request,
+            Some("System".to_string()),
+        )
+        .await
+        .unwrap();
         assert!(!create_result.is_nil());
 
         let request = ModifyCategoryRequest {
