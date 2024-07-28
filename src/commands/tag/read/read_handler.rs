@@ -1,5 +1,5 @@
 use application_core::{
-    entities::tags::{self, ActiveModel, Column, Model},
+    entities::tags::{self, ActiveModel, Column},
     StringExtension, Tags,
 };
 use migration::Expr;
