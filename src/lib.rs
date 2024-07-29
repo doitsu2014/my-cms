@@ -1,8 +1,8 @@
-pub mod commands;
+pub mod api;
 pub mod common;
 pub mod presentation_models;
 
-pub use commands::*;
+pub use api::*;
 pub use common::*;
 pub use presentation_models::*;
 

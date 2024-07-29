@@ -9,7 +9,7 @@ use axum_keycloak_auth::{
     layer::KeycloakAuthLayer,
     PassthroughMode,
 };
-use cms::{commands, public, AppState};
+use cms::{api, public, AppState};
 use dotenv::dotenv;
 use init_tracing_opentelemetry::{
     tracing_subscriber_ext::{build_logger_text, build_loglevel_filter_layer, build_otel_layer},
@@ -88,15 +88,15 @@ pub async fn protected_router() -> Router {
     Router::new()
         .route(
             "/categories",
-            get(commands::category::read::read_handler::api_get_all_categories)
-                .post(commands::category::create::create_handler::api_create_category_with_tags)
-                .put(commands::category::modify::modify_handler::api_modify_category),
+            get(api::category::read::read_handler::api_get_all_categories)
+                .post(api::category::create::create_handler::api_create_category_with_tags)
+                .put(api::category::modify::modify_handler::api_modify_category),
         )
         .route(
             "/posts",
-            get(commands::post::read::read_handler::api_get_all_posts)
-                .post(commands::post::create::create_handler::api_create_post)
-                .put(commands::post::modify::modify_handler::api_modify_post),
+            get(api::post::read::read_handler::api_get_all_posts)
+                .post(api::post::create::create_handler::api_create_post)
+                .put(api::post::modify::modify_handler::api_modify_post),
         )
         .layer(
             KeycloakAuthLayer::<String>::builder()
@@ -119,7 +119,7 @@ pub async fn protected_administrator_router() -> Router {
     Router::new()
         .route(
             "/administrator/database/migration",
-            post(commands::administrator::migration::migration_handler::handle_api_database_migration),
+            post(api::administrator::migration::migration_handler::handle_api_database_migration),
         )
         .layer(
             KeycloakAuthLayer::<String>::builder()
