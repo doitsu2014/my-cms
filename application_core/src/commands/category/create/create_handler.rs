@@ -104,7 +104,6 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
                             .iter()
                             .map(|tag_id| {
                                 category_tags::Model {
-                                    id: Uuid::new_v4(),
                                     category_id: inserted_category.last_insert_id,
                                     tag_id: tag_id.to_owned(),
                                 }
@@ -144,7 +143,7 @@ mod tests {
             },
             read::category_read_handler::{CategoryReadHandler, CategoryReadHandlerTrait},
         },
-        entities::{categories::Model, sea_orm_active_enums::CategoryType},
+        entities::sea_orm_active_enums::CategoryType,
     };
 
     #[async_std::test]
@@ -179,7 +178,7 @@ mod tests {
         assert!(!result.is_nil());
 
         let category_in_db = read_handler.handle_get_all_categories().await.unwrap();
-        let first = category_in_db.first().unwrap();
+        let first = &category_in_db.first().unwrap().category;
         assert_eq!(result, first.id);
         assert!(first.created_by == "System");
         assert!(first.created_at >= beginning_test_timestamp);
@@ -225,12 +224,18 @@ mod tests {
             .handle_create_category_with_tags(child_request, None)
             .await
             .unwrap();
-        let categories_in_db: Vec<Model> = read_handler.handle_get_all_categories().await.unwrap();
+        let categories_in_db = read_handler.handle_get_all_categories().await.unwrap();
         let first = categories_in_db
             .iter()
-            .find(|x| x.parent_id.is_none())
+            .find(|x| x.category.parent_id.is_none())
             .unwrap();
-        let child_instance = categories_in_db.iter().find(|x| x.id == child).unwrap();
-        assert_eq!(child_instance.parent_id.unwrap(), first.id);
+        let child_instance = categories_in_db
+            .iter()
+            .find(|x| x.category.id == child)
+            .unwrap();
+        assert_eq!(
+            child_instance.category.parent_id.unwrap(),
+            first.category.id
+        );
     }
 }

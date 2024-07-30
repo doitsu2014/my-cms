@@ -1,13 +1,23 @@
 use std::sync::Arc;
 
 use sea_orm::{DatabaseConnection, DbErr, EntityTrait};
+use serde::{Deserialize, Serialize};
 
-use crate::{entities::categories::Model, Categories};
+use crate::{
+    entities::{categories, tags},
+    Categories, Tags,
+};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CategoryReadResponse {
+    pub category: categories::Model,
+    pub tags: Vec<tags::Model>,
+}
 
 pub trait CategoryReadHandlerTrait {
     fn handle_get_all_categories(
         &self,
-    ) -> impl std::future::Future<Output = Result<Vec<Model>, DbErr>> + Send;
+    ) -> impl std::future::Future<Output = Result<Vec<CategoryReadResponse>, DbErr>> + Send;
 }
 
 pub struct CategoryReadHandler {
@@ -15,9 +25,22 @@ pub struct CategoryReadHandler {
 }
 
 impl CategoryReadHandlerTrait for CategoryReadHandler {
-    async fn handle_get_all_categories(&self) -> Result<Vec<Model>, DbErr> {
-        let db_result = Categories::find().all(self.db.as_ref()).await?;
-        Result::Ok(db_result)
+    async fn handle_get_all_categories(&self) -> Result<Vec<CategoryReadResponse>, DbErr> {
+        let db_result = Categories::find()
+            .find_with_related(Tags)
+            .all(self.db.as_ref())
+            .await?;
+
+        let response = db_result
+            .iter()
+            .map(|c_and_tags| CategoryReadResponse {
+                category: c_and_tags.0.to_owned(),
+                tags: c_and_tags.1.to_owned(),
+            })
+            .collect::<Vec<CategoryReadResponse>>();
+
+        // let category and tags
+        Result::Ok(response)
     }
 }
 

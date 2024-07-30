@@ -127,7 +127,7 @@ mod tests {
         assert!(!result.is_nil());
 
         let category_in_db = read_handler.handle_get_all_categories().await.unwrap();
-        let first = category_in_db.first().unwrap();
+        let first = &category_in_db.first().unwrap().category;
 
         assert_eq!(result, first.id);
         assert!(first.created_by == "System");
