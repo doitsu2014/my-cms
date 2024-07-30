@@ -38,4 +38,22 @@ impl Related<super::post_tags::Entity> for Entity {
     }
 }
 
+impl Related<super::categories::Entity> for Entity {
+    fn to() -> RelationDef {
+        super::category_tags::Relation::Categories.def()
+    }
+    fn via() -> Option<RelationDef> {
+        Some(super::category_tags::Relation::Tags.def().rev())
+    }
+}
+
+impl Related<super::posts::Entity> for Entity {
+    fn to() -> RelationDef {
+        super::post_tags::Relation::Posts.def()
+    }
+    fn via() -> Option<RelationDef> {
+        Some(super::post_tags::Relation::Tags.def().rev())
+    }
+}
+
 impl ActiveModelBehavior for ActiveModel {}

@@ -12,3 +12,21 @@ sea-orm-macros = "0.12.15"
 serde = { version = "1.0.204", features = ["derive"] }
 uuid = { version = "1.10.0", features = ["v4"] }
 chrono = { version = "0.4.38", features = ["serde"] }
+
+tracing = { version = "0.1.40", default-features = false, features = [
+  "std",
+  "attributes",
+] }
+tracing-error = "0.2.0"
+tracing-subscriber = { version = "0.3.18", default-features = false, features = [
+  "registry",
+  "std",
+  "fmt",
+] }
+
+
+[dev-dependencies]
+testcontainers = "0.20.1"
+testcontainers-modules = { version = "0.8.0", features = ["postgres"] }
+sea-orm-migration = "0.12.15"
+migration = { path = "../migration" }

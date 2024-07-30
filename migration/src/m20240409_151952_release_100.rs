@@ -216,12 +216,12 @@ impl MigrationTrait for Migration {
             )
             .await?;
 
+        // Post Tags
         manager
             .create_table(
                 Table::create()
                     .table(PostTags::Table)
                     .if_not_exists()
-                    .col(ColumnDef::new(PostTags::Id).uuid().not_null().primary_key())
                     .col(ColumnDef::new(PostTags::PostId).uuid().not_null())
                     .col(ColumnDef::new(PostTags::TagId).uuid().not_null())
                     .foreign_key(
@@ -238,61 +238,22 @@ impl MigrationTrait for Migration {
                             .to(Tags::Table, Tags::Id)
                             .on_delete(ForeignKeyAction::Cascade),
                     )
-                    .index(
+                    .primary_key(
                         Index::create()
-                            .name("index_unique_post_tags")
+                            .table(PostTags::Table)
                             .col(PostTags::PostId)
-                            .col(PostTags::TagId)
-                            .unique(),
+                            .col(PostTags::TagId),
                     )
                     .to_owned(),
             )
             .await?;
 
-        manager
-            .create_table(
-                Table::create()
-                    .table(PostTags::Table)
-                    .if_not_exists()
-                    .col(ColumnDef::new(PostTags::Id).uuid().not_null().primary_key())
-                    .col(ColumnDef::new(PostTags::PostId).uuid().not_null())
-                    .col(ColumnDef::new(PostTags::TagId).uuid().not_null())
-                    .foreign_key(
-                        ForeignKey::create()
-                            .name("fk_post_tags_post_id")
-                            .from(PostTags::Table, PostTags::PostId)
-                            .to(Posts::Table, Posts::Id)
-                            .on_delete(ForeignKeyAction::Cascade),
-                    )
-                    .foreign_key(
-                        ForeignKey::create()
-                            .name("fk_post_tags_tag_id")
-                            .from(PostTags::Table, PostTags::TagId)
-                            .to(Tags::Table, Tags::Id)
-                            .on_delete(ForeignKeyAction::Cascade),
-                    )
-                    .index(
-                        Index::create()
-                            .name("index_unique_post_tags")
-                            .col(PostTags::PostId)
-                            .col(PostTags::TagId)
-                            .unique(),
-                    )
-                    .to_owned(),
-            )
-            .await?;
-
+        // Category Tags
         manager
             .create_table(
                 Table::create()
                     .table(CategoryTags::Table)
                     .if_not_exists()
-                    .col(
-                        ColumnDef::new(CategoryTags::Id)
-                            .uuid()
-                            .not_null()
-                            .primary_key(),
-                    )
                     .col(ColumnDef::new(CategoryTags::CategoryId).uuid().not_null())
                     .col(ColumnDef::new(CategoryTags::TagId).uuid().not_null())
                     .foreign_key(
@@ -309,12 +270,11 @@ impl MigrationTrait for Migration {
                             .to(Tags::Table, Tags::Id)
                             .on_delete(ForeignKeyAction::Cascade),
                     )
-                    .index(
+                    .primary_key(
                         Index::create()
-                            .name("index_unique_category_tags")
+                            .table(CategoryTags::Table)
                             .col(CategoryTags::CategoryId)
-                            .col(CategoryTags::TagId)
-                            .unique(),
+                            .col(CategoryTags::TagId),
                     )
                     .to_owned(),
             )
@@ -415,7 +375,6 @@ pub enum Tags {
 #[derive(DeriveIden)]
 pub enum PostTags {
     Table,
-    Id,
     PostId,
     TagId,
 }
@@ -423,7 +382,6 @@ pub enum PostTags {
 #[derive(DeriveIden)]
 pub enum CategoryTags {
     Table,
-    Id,
     CategoryId,
     TagId,
 }
