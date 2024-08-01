@@ -13,6 +13,7 @@ pub struct ModifyCategoryRequest {
     pub category_type: CategoryType,
     pub parent_id: Option<Uuid>,
     pub row_version: i32,
+    pub tags: Option<Vec<String>>,
 }
 
 impl ModifyCategoryRequest {

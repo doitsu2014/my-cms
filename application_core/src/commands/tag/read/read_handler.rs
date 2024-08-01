@@ -15,14 +15,14 @@ pub trait TagReadHandlerTrait {
         &self,
         names: Vec<String>,
     ) -> impl Future<Output = Result<Vec<Model>, DbErr>> + Send;
-    fn handle_get_and_classify_tags_by_names(
-        &self,
-        names: Vec<String>,
-    ) -> impl Future<Output = Result<GetAndClassifyTagCommandResponse, DbErr>> + Send;
     fn handle_get_tags_by_slugs(
         &self,
         slugs: Vec<String>,
     ) -> impl Future<Output = Result<Vec<Model>, DbErr>> + Send;
+    fn handle_get_and_classify_tags_by_names(
+        &self,
+        names: Vec<String>,
+    ) -> impl Future<Output = Result<GetAndClassifyTagCommandResponse, DbErr>> + Send;
 }
 
 #[derive(Debug)]
@@ -36,6 +36,16 @@ impl TagReadHandlerTrait for TagReadHandler {
         // Get all tags with names
         let tags = Tags::find()
             .filter(Expr::col(Column::Name).is_in(names))
+            .all(self.db.as_ref())
+            .await?;
+        Ok(tags)
+    }
+
+    #[instrument]
+    async fn handle_get_tags_by_slugs(&self, slugs: Vec<String>) -> Result<Vec<Model>, DbErr> {
+        // Get all tags with names
+        let tags = Tags::find()
+            .filter(Expr::col(Column::Slug).is_in(slugs))
             .all(self.db.as_ref())
             .await?;
         Ok(tags)
@@ -71,15 +81,5 @@ impl TagReadHandlerTrait for TagReadHandler {
             new_tags,
             existing_tags: tags,
         })
-    }
-
-    #[instrument]
-    async fn handle_get_tags_by_slugs(&self, slugs: Vec<String>) -> Result<Vec<Model>, DbErr> {
-        // Get all tags with names
-        let tags = Tags::find()
-            .filter(Expr::col(Column::Slug).is_in(slugs))
-            .all(self.db.as_ref())
-            .await?;
-        Ok(tags)
     }
 }
