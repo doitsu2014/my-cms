@@ -56,28 +56,13 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
             .as_ref()
             .transaction::<_, Uuid, DbErr>(|tx| {
                 Box::pin(async move {
-                    // Prepare Active Category
+                    // 1. Prepare Active Category
                     let modified_id = body.id;
                     let current_row_version = body.row_version;
                     let mut model = body.into_active_model();
                     model.last_modified_by = Set(actor_email.clone());
 
-                    // get existing category
-                    let category: CategoryReadResponse = category_read_handler
-                        .handle_get_category(modified_id)
-                        .await?;
-
-                    // Prepare Tags
-                    let tags: Vec<String> = body.tags.unwrap_or_default();
-                    let classifed_tags = tag_read_handler
-                        .handle_get_and_classify_tags_by_names(tags)
-                        .await?;
-                    let existing_tag_ids = classifed_tags
-                        .existing_tags
-                        .iter()
-                        .map(|tag| tag.id)
-                        .collect::<Vec<Uuid>>();
-
+                    // 2. Update Category
                     let modified_result = categories::Entity::update_many()
                         .set(model)
                         .filter(Expr::col(Column::Id).eq(modified_id))
@@ -91,6 +76,14 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         }
                         false => (),
                     }
+
+                    // 3. Update Category Tags
+                    // 3.1. Insert new tags
+                    // Prepare Tags to insert
+                    let tags: Vec<String> = body.tags.unwrap_or_default();
+                    let classifed_tags = tag_read_handler
+                        .handle_get_and_classify_tags_by_names(tags.clone())
+                        .await?;
 
                     // Insert New Tags
                     let mut new_tag_ids: Vec<Uuid> = vec![];
@@ -116,14 +109,23 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         Tags::insert_many(new_tags).exec(tx).await?;
                     }
 
-                    // Combine New Tag Ids and Existing Tag Ids
-                    let all_tags = existing_tag_ids
-                        .into_iter()
-                        .chain(new_tag_ids.into_iter())
-                        .collect::<Vec<Uuid>>();
+                    // 3.2. Insert new tags to category tags, and then delete tags that are not in the list
+                    // Get existing category
+                    let category: CategoryReadResponse = category_read_handler
+                        .handle_get_category(modified_id)
+                        .await?;
+
+                    // Figure out tags to delete
+                    let tags_to_delete: Vec<Uuid> = category
+                        .tags
+                        .iter()
+                        .filter(|t| tags.contains(&t.name))
+                        .map(|t| t.id)
+                        .collect();
+
                     // Insert Category Tags
-                    if !all_tags.is_empty() {
-                        let category_tags = all_tags
+                    if !new_tag_ids.is_empty() {
+                        let category_tags_to_insert = new_tag_ids
                             .iter()
                             .map(|tag_id| {
                                 category_tags::Model {
@@ -134,10 +136,19 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                             })
                             .collect::<Vec<category_tags::ActiveModel>>();
 
-                        category_tags::Entity::insert_many(category_tags)
+                        category_tags::Entity::insert_many(category_tags_to_insert)
                             .exec(tx)
                             .await?;
                     }
+
+                    if !tags_to_delete.is_empty() {
+                        category_tags::Entity::delete_many()
+                            .filter(Expr::col(category_tags::Column::CategoryId).eq(modified_id))
+                            .filter(Expr::col(category_tags::Column::TagId).is_in(tags_to_delete))
+                            .exec(tx)
+                            .await?;
+                    }
+
                     Ok(modified_id)
                 })
             })
@@ -145,7 +156,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
 
         match result {
             Ok(modified_id) => Ok(modified_id),
-            Err(e) => Err(e.into()),
+            Err(e) => Err(e),
         }
     }
 }

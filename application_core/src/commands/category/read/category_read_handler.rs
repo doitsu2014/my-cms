@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use sea_orm::{ColumnTrait, DatabaseConnection, DbErr, EntityTrait, QueryFilter};
+use sea_orm::{DatabaseConnection, DbErr, EntityTrait};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
