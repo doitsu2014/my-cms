@@ -1,18 +1,52 @@
 use std::sync::Arc;
 
-use sea_orm::{DatabaseConnection, DbErr, EntityTrait};
+use sea_orm::{prelude::DateTimeWithTimeZone, DatabaseConnection, DbErr, EntityTrait};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    entities::{categories, tags},
+    entities::{categories::Model, sea_orm_active_enums::CategoryType, tags},
     Categories, Tags,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CategoryReadResponse {
-    pub category: categories::Model,
+    pub id: Uuid,
+    pub display_name: String,
+    pub slug: String,
+    pub category_type: CategoryType,
+    pub created_by: String,
+    pub created_at: DateTimeWithTimeZone,
+    pub last_modified_by: Option<String>,
+    pub last_modified_at: Option<DateTimeWithTimeZone>,
+    pub parent_id: Option<Uuid>,
+    pub row_version: i32,
     pub tags: Vec<tags::Model>,
+    pub tag_names: Vec<String>,
+}
+
+impl CategoryReadResponse {
+    fn new(category: Model, tags: Vec<tags::Model>) -> Self {
+        let tag_names = tags
+            .iter()
+            .map(|tag| tag.name.to_owned())
+            .collect::<Vec<String>>();
+
+        CategoryReadResponse {
+            id: category.id,
+            display_name: category.display_name,
+            slug: category.slug,
+            category_type: category.category_type,
+            created_by: category.created_by,
+            created_at: category.created_at,
+            last_modified_by: category.last_modified_by,
+            last_modified_at: category.last_modified_at,
+            parent_id: category.parent_id,
+            row_version: category.row_version,
+            tags,
+            tag_names,
+        }
+    }
 }
 
 pub trait CategoryReadHandlerTrait {
@@ -39,9 +73,8 @@ impl CategoryReadHandlerTrait for CategoryReadHandler {
 
         let response = db_result
             .iter()
-            .map(|c_and_tags| CategoryReadResponse {
-                category: c_and_tags.0.to_owned(),
-                tags: c_and_tags.1.to_owned(),
+            .map(|c_and_tags| {
+                CategoryReadResponse::new(c_and_tags.0.to_owned(), c_and_tags.1.to_owned())
             })
             .collect::<Vec<CategoryReadResponse>>();
 
@@ -61,9 +94,8 @@ impl CategoryReadHandlerTrait for CategoryReadHandler {
 
         let response = db_result
             .iter()
-            .map(|c_and_tags| CategoryReadResponse {
-                category: c_and_tags.0.to_owned(),
-                tags: c_and_tags.1.to_owned(),
+            .map(|c_and_tags| {
+                CategoryReadResponse::new(c_and_tags.0.to_owned(), c_and_tags.1.to_owned())
             })
             .collect::<Vec<CategoryReadResponse>>()
             .first()
@@ -119,7 +151,7 @@ mod tests {
                         slug: format!("category-{}", i).to_string(),
                         category_type: CategoryType::Blog,
                         parent_id: None,
-                        tags: None,
+                        tag_names: None,
                     },
                     None,
                 )

@@ -49,7 +49,7 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
             ..model.into_active_model()
         };
         // Prepare Tags
-        let tags: Vec<String> = body.tags.unwrap_or_default();
+        let tags: Vec<String> = body.tag_names.unwrap_or_default();
         let classifed_tags = tag_read_handler
             .handle_get_and_classify_tags_by_names(tags)
             .await?;
@@ -161,7 +161,7 @@ mod tests {
             display_name: "Category 1".to_string(),
             slug: "category-1".to_string(),
             category_type: CategoryType::Blog,
-            tags: Some(vec!["Tag 1".to_string()]),
+            tag_names: Some(vec!["Tag 1".to_string()]),
             parent_id: None,
         };
 
@@ -178,7 +178,7 @@ mod tests {
         assert!(!result.is_nil());
 
         let category_in_db = read_handler.handle_get_all_categories().await.unwrap();
-        let first = &category_in_db.first().unwrap().category;
+        let first = &category_in_db.first().unwrap();
         assert_eq!(result, first.id);
         assert!(first.created_by == "System");
         assert!(first.created_at >= beginning_test_timestamp);
@@ -206,7 +206,7 @@ mod tests {
             slug: "category-1".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
-            tags: None,
+            tag_names: None,
         };
         let parent = create_handler
             .handle_create_category_with_tags(parent_request, None)
@@ -218,7 +218,7 @@ mod tests {
             slug: "child-of-category-1".to_string(),
             category_type: CategoryType::Blog,
             parent_id: Some(parent),
-            tags: None,
+            tag_names: None,
         };
         let child = create_handler
             .handle_create_category_with_tags(child_request, None)
@@ -227,15 +227,9 @@ mod tests {
         let categories_in_db = read_handler.handle_get_all_categories().await.unwrap();
         let first = categories_in_db
             .iter()
-            .find(|x| x.category.parent_id.is_none())
+            .find(|x| x.parent_id.is_none())
             .unwrap();
-        let child_instance = categories_in_db
-            .iter()
-            .find(|x| x.category.id == child)
-            .unwrap();
-        assert_eq!(
-            child_instance.category.parent_id.unwrap(),
-            first.category.id
-        );
+        let child_instance = categories_in_db.iter().find(|x| x.id == child).unwrap();
+        assert_eq!(child_instance.parent_id.unwrap(), first.id);
     }
 }

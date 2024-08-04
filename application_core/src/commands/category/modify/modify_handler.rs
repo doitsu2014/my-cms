@@ -80,7 +80,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                     // 3. Update Category Tags
                     // 3.1. Insert new tags
                     // Prepare Tags to insert
-                    let tags: Vec<String> = body.tags.unwrap_or_default();
+                    let tags: Vec<String> = body.tag_names.unwrap_or_default();
                     let classifed_tags = tag_read_handler
                         .handle_get_and_classify_tags_by_names(tags.clone())
                         .await?;
@@ -109,7 +109,22 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         Tags::insert_many(new_tags).exec(tx).await?;
                     }
 
+                    // TODO: The tags does not delete correctly.
                     // 3.2. Insert new tags to category tags, and then delete tags that are not in the list
+                    // Insert Category Tags
+                    if !new_tag_ids.is_empty() {
+                        let category_tags_to_insert = new_tag_ids
+                            .iter()
+                            .map(|tag_id| category_tags::ActiveModel {
+                                category_id: Set(body.id),
+                                tag_id: Set(tag_id.to_owned()),
+                            })
+                            .collect::<Vec<category_tags::ActiveModel>>();
+
+                        category_tags::Entity::insert_many(category_tags_to_insert)
+                            .exec(tx)
+                            .await?;
+                    }
                     // Get existing category
                     let category: CategoryReadResponse = category_read_handler
                         .handle_get_category(modified_id)
@@ -122,24 +137,6 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         .filter(|t| tags.contains(&t.name))
                         .map(|t| t.id)
                         .collect();
-
-                    // Insert Category Tags
-                    if !new_tag_ids.is_empty() {
-                        let category_tags_to_insert = new_tag_ids
-                            .iter()
-                            .map(|tag_id| {
-                                category_tags::Model {
-                                    category_id: body.id,
-                                    tag_id: tag_id.to_owned(),
-                                }
-                                .into_active_model()
-                            })
-                            .collect::<Vec<category_tags::ActiveModel>>();
-
-                        category_tags::Entity::insert_many(category_tags_to_insert)
-                            .exec(tx)
-                            .await?;
-                    }
 
                     if !tags_to_delete.is_empty() {
                         category_tags::Entity::delete_many()
@@ -200,7 +197,7 @@ mod tests {
             slug: "category-1".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
-            tags: None,
+            tag_names: None,
         };
 
         let create_handler = CategoryCreateHandler {
@@ -224,7 +221,7 @@ mod tests {
             category_type: CategoryType::Blog,
             parent_id: None,
             row_version: 1,
-            tags: None,
+            tag_names: None,
         };
 
         let result = modify_handler
@@ -234,7 +231,7 @@ mod tests {
         assert!(!result.is_nil());
 
         let category_in_db = read_handler.handle_get_all_categories().await.unwrap();
-        let first = &category_in_db.first().unwrap().category;
+        let first = &category_in_db.first().unwrap();
 
         assert_eq!(result, first.id);
         assert!(first.created_by == "System");
@@ -259,7 +256,7 @@ mod tests {
             slug: "category-1".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
-            tags: None,
+            tag_names: None,
         };
 
         let create_handler = CategoryCreateHandler {
@@ -282,7 +279,7 @@ mod tests {
             category_type: CategoryType::Blog,
             parent_id: None,
             row_version: 0,
-            tags: None,
+            tag_names: None,
         };
 
         let result = modify_handler
