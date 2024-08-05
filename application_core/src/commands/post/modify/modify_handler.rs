@@ -115,7 +115,7 @@ mod tests {
             slug: "blog-category".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
-            tags: None,
+            tag_names: None,
         };
 
         let created_category_id = category_create_handler
@@ -192,7 +192,7 @@ mod tests {
             slug: "blog-category".to_string(),
             category_type: CategoryType::Blog,
             parent_id: None,
-            tags: None,
+            tag_names: None,
         };
 
         let created_category_id = category_create_handler
