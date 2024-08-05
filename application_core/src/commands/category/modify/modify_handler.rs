@@ -15,8 +15,8 @@ use crate::{
     Tags,
 };
 use sea_orm::{
-    prelude::Uuid, sea_query::Expr, DatabaseConnection, DbErr, EntityTrait, IntoActiveModel,
-    QueryFilter, Set, TransactionError, TransactionTrait,
+    prelude::Uuid, sea_query::Expr, DatabaseConnection, DbErr, EntityTrait, QueryFilter, Set,
+    TransactionError, TransactionTrait,
 };
 use tracing::instrument;
 
@@ -109,7 +109,6 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         Tags::insert_many(new_tags).exec(tx).await?;
                     }
 
-                    // TODO: The tags does not delete correctly.
                     // 3.2. Insert new tags to category tags, and then delete tags that are not in the list
                     // Insert Category Tags
                     if !new_tag_ids.is_empty() {
@@ -134,7 +133,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                     let tags_to_delete: Vec<Uuid> = category
                         .tags
                         .iter()
-                        .filter(|t| tags.contains(&t.name))
+                        .filter(|t| !tags.contains(&t.name))
                         .map(|t| t.id)
                         .collect();
 
