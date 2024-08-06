@@ -44,7 +44,7 @@ impl PostCreateHandlerTrait for PostCreateHandler {
 #[cfg(test)]
 mod tests {
     use migration::{Migrator, MigratorTrait};
-    use sea_orm::Database;
+    use sea_orm::{Database, DatabaseConnection};
     use std::sync::Arc;
     use testcontainers::runners::AsyncRunner;
     use testcontainers_modules::postgres::Postgres;
@@ -69,17 +69,7 @@ mod tests {
     #[async_std::test]
     async fn handle_create_post_testcase_01() {
         let beginning_test_timestamp = chrono::Utc::now();
-        let postgres = Postgres::default().start().await.unwrap();
-
-        let connection_string: String = format!(
-            "postgres://postgres:postgres@127.0.0.1:{}/postgres",
-            postgres.get_host_port_ipv4(5432).await.unwrap()
-        );
-        let conn = Database::connect(&connection_string).await.unwrap();
-        Migrator::refresh(&conn).await.unwrap();
-
-        let arc_conn = Arc::new(conn.clone());
-
+        let arc_conn = setup_test_space().await;
         let category_create_handler = CategoryCreateHandler {
             db: arc_conn.clone(),
         };
