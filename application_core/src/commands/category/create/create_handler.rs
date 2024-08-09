@@ -159,7 +159,7 @@ mod tests {
 
         let request = CreateCategoryRequest {
             display_name: "Category 1".to_string(),
-            slug: "category-1".to_string(),
+            slug: "test!!!category-1".to_string(),
             category_type: CategoryType::Blog,
             tag_names: Some(vec!["Tag 1".to_string()]),
             parent_id: None,
