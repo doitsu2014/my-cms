@@ -3,7 +3,10 @@ use std::sync::Arc;
 use super::create_request::CreateCategoryRequest;
 use crate::{
     commands::tag::read::read_handler::{TagReadHandler, TagReadHandlerTrait},
-    common::datetime_generator::generate_vietname_now,
+    common::{
+        app_error::{AppError, DbErrExt, TransactionDbErrExt},
+        datetime_generator::generate_vietname_now,
+    },
     entities::{categories, category_tags, tags},
     Categories, Tags,
 };
@@ -19,7 +22,7 @@ pub trait CategoryCreateHandlerTrait {
         &self,
         body: CreateCategoryRequest,
         actor_email: Option<String>,
-    ) -> impl std::future::Future<Output = Result<Uuid, TransactionError<DbErr>>>;
+    ) -> impl std::future::Future<Output = Result<Uuid, AppError>>;
 }
 
 #[derive(Debug)]
@@ -33,7 +36,7 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
         &self,
         body: CreateCategoryRequest,
         actor_email: Option<String>,
-    ) -> Result<Uuid, TransactionError<DbErr>> {
+    ) -> Result<Uuid, AppError> {
         let tag_read_handler = TagReadHandler {
             db: self.db.clone(),
         };
@@ -52,7 +55,8 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
         let tags: Vec<String> = body.tag_names.unwrap_or_default();
         let classifed_tags = tag_read_handler
             .handle_get_and_classify_tags_by_names(tags)
-            .await?;
+            .await
+            .map_err(|e| e.to_app_error())?;
 
         let existing_tag_ids = classifed_tags
             .existing_tags
@@ -123,7 +127,7 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
 
         match result {
             Ok(inserted_id) => Ok(inserted_id),
-            Err(e) => Err(e),
+            Err(e) => Err(e.to_app_error()),
         }
     }
 }
