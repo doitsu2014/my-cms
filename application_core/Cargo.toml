@@ -28,7 +28,7 @@ tracing-subscriber = { version = "0.3.18", default-features = false, features = 
 
 [dev-dependencies]
 sea-orm-migration = "1.0.0"
-testcontainers = "0.21.0"
-testcontainers-modules = { version = "0.9.0", features = ["postgres"] }
+fake = { version = "2.9.2", features = ["derive"] }
 migration = { path = "../migration" }
 test_helpers = { path = "../test_helpers" }
+rand = "0.8.5"

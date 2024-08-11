@@ -9,7 +9,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize, Debug)]
 pub struct CreateCategoryRequest {
     pub display_name: String,
-    pub slug: String,
     pub category_type: CategoryType,
     pub parent_id: Option<Uuid>,
     pub tag_names: Option<Vec<String>>,

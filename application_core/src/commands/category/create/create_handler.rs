@@ -129,46 +129,30 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
 }
 
 #[cfg(test)]
-mod tests {
-    use migration::{Migrator, MigratorTrait};
-    use sea_orm::Database;
+pub mod tests {
     use std::sync::Arc;
-    use testcontainers::runners::AsyncRunner;
-    use testcontainers_modules::postgres::Postgres;
+    use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
 
-    use crate::{
-        commands::category::{
-            create::{
-                create_handler::CategoryCreateHandlerTrait, create_request::CreateCategoryRequest,
-            },
-            read::category_read_handler::{CategoryReadHandler, CategoryReadHandlerTrait},
-        },
-        entities::sea_orm_active_enums::CategoryType,
+    use crate::commands::category::{
+        create::create_handler::CategoryCreateHandlerTrait,
+        read::category_read_handler::{CategoryReadHandler, CategoryReadHandlerTrait},
+        test::{fake_create_category_request, fake_create_category_request_as_child},
     };
 
     #[async_std::test]
     async fn handle_create_cartegory_testcase_01() {
         let beginning_test_timestamp = chrono::Utc::now();
-        let postgres = Postgres::default().start().await.unwrap();
-        let connection_string: String = format!(
-            "postgres://postgres:postgres@127.0.0.1:{}/postgres",
-            postgres.get_host_port_ipv4(5432).await.unwrap()
-        );
-        let conn = Database::connect(&connection_string).await.unwrap();
-        Migrator::refresh(&conn).await.unwrap();
-
-        let request = CreateCategoryRequest {
-            display_name: "Category 1".to_string(),
-            slug: "test!!!category-1".to_string(),
-            category_type: CategoryType::Blog,
-            tag_names: Some(vec!["Tag 1".to_string()]),
-            parent_id: None,
-        };
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        let number_of_tags = 5;
+        let request = fake_create_category_request(number_of_tags);
 
         let create_handler = super::CategoryCreateHandler {
-            db: Arc::new(conn.clone()),
+            db: Arc::new(database.clone()),
         };
-        let read_handler = CategoryReadHandler { db: Arc::new(conn) };
+        let read_handler = CategoryReadHandler {
+            db: Arc::new(database),
+        };
 
         let result = create_handler
             .handle_create_category_with_tags(request, None)
@@ -183,43 +167,25 @@ mod tests {
         assert!(first.created_by == "System");
         assert!(first.created_at >= beginning_test_timestamp);
         assert!(first.row_version == 1);
+        assert!(first.tags.len() == number_of_tags);
     }
 
     #[async_std::test]
     async fn handle_create_cartegory_testcase_parent() {
-        // TODO: Make those steps to common_tests
-        let postgres = Postgres::default().start().await.unwrap();
-        let connection_string: String = format!(
-            "postgres://postgres:postgres@127.0.0.1:{}/postgres",
-            postgres.get_host_port_ipv4(5432).await.unwrap()
-        );
-        let conn = Database::connect(&connection_string).await.unwrap();
-        Migrator::refresh(&conn).await.unwrap();
+        let test_space = setup_test_space().await;
+        let conn = test_space.postgres.get_database_connection().await;
+        let number_of_tags = 5;
 
         let create_handler = super::CategoryCreateHandler {
             db: Arc::new(conn.clone()),
         };
         let read_handler = CategoryReadHandler { db: Arc::new(conn) };
-
-        let parent_request = CreateCategoryRequest {
-            display_name: "Category 1".to_string(),
-            slug: "category-1".to_string(),
-            category_type: CategoryType::Blog,
-            parent_id: None,
-            tag_names: None,
-        };
-        let parent = create_handler
+        let parent_request = fake_create_category_request(number_of_tags);
+        let parent_id = create_handler
             .handle_create_category_with_tags(parent_request, None)
             .await
             .unwrap();
-
-        let child_request = CreateCategoryRequest {
-            display_name: "Child of Category 1".to_string(),
-            slug: "child-of-category-1".to_string(),
-            category_type: CategoryType::Blog,
-            parent_id: Some(parent),
-            tag_names: None,
-        };
+        let child_request = fake_create_category_request_as_child(parent_id, number_of_tags);
         let child = create_handler
             .handle_create_category_with_tags(child_request, None)
             .await

@@ -46,21 +46,18 @@ mod tests {
     use std::sync::Arc;
     use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
 
-    use crate::{
-        commands::{
-            category::create::{
-                create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
-                create_request::CreateCategoryRequest,
-            },
-            post::{
-                create::{
-                    create_handler::{PostCreateHandler, PostCreateHandlerTrait},
-                    create_request::CreatePostRequest,
-                },
-                read::read_handler::{PostReadHandler, PostReadHandlerTrait},
-            },
+    use crate::commands::{
+        category::{
+            create::create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
+            test::fake_create_category_request,
         },
-        entities::sea_orm_active_enums::CategoryType,
+        post::{
+            create::{
+                create_handler::{PostCreateHandler, PostCreateHandlerTrait},
+                create_request::CreatePostRequest,
+            },
+            read::read_handler::{PostReadHandler, PostReadHandlerTrait},
+        },
     };
 
     #[async_std::test]
@@ -79,15 +76,7 @@ mod tests {
         let post_read_handler = PostReadHandler {
             db: arc_conn.clone(),
         };
-
-        let create_category_request = CreateCategoryRequest {
-            display_name: "Blog Category".to_string(),
-            slug: "blog-category".to_string(),
-            category_type: CategoryType::Blog,
-            parent_id: None,
-            tag_names: None,
-        };
-
+        let create_category_request = fake_create_category_request(5);
         let created_category_id = category_create_handler
             .handle_create_category_with_tags(create_category_request, None)
             .await

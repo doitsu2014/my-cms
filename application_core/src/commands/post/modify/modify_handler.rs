@@ -57,45 +57,34 @@ impl PostModifyHandlerTrait for PostModifyHandler {
 
 #[cfg(test)]
 mod tests {
-    use migration::{Migrator, MigratorTrait};
-    use sea_orm::Database;
     use std::sync::Arc;
-    use testcontainers::runners::AsyncRunner;
-    use testcontainers_modules::postgres::Postgres;
+    use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
 
-    use crate::{
-        commands::{
-            category::create::{
-                create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
-                create_request::CreateCategoryRequest,
-            },
-            post::{
-                create::{
-                    create_handler::{PostCreateHandler, PostCreateHandlerTrait},
-                    create_request::CreatePostRequest,
-                },
-                modify::{
-                    modify_handler::{PostModifyHandler, PostModifyHandlerTrait},
-                    modify_request::ModifyPostRequest,
-                },
-                read::read_handler::{PostReadHandler, PostReadHandlerTrait},
-            },
+    use crate::commands::{
+        category::{
+            create::create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
+            test::fake_create_category_request,
         },
-        entities::sea_orm_active_enums::CategoryType,
+        post::{
+            create::{
+                create_handler::{PostCreateHandler, PostCreateHandlerTrait},
+                create_request::CreatePostRequest,
+            },
+            modify::{
+                modify_handler::{PostModifyHandler, PostModifyHandlerTrait},
+                modify_request::ModifyPostRequest,
+            },
+            read::read_handler::{PostReadHandler, PostReadHandlerTrait},
+        },
     };
 
     #[async_std::test]
     async fn handle_modify_post_testcase_successfully() {
         let beginning_test_timestamp = chrono::Utc::now();
-        let postgres = Postgres::default().start().await.unwrap();
-        let connection_string: String = format!(
-            "postgres://postgres:postgres@127.0.0.1:{}/postgres",
-            postgres.get_host_port_ipv4(5432).await.unwrap()
-        );
-        let conn = Database::connect(&connection_string).await.unwrap();
-        Migrator::refresh(&conn).await.unwrap();
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
 
-        let arc_conn = Arc::new(conn.clone());
+        let arc_conn = Arc::new(database.clone());
 
         let category_create_handler = CategoryCreateHandler {
             db: arc_conn.clone(),
@@ -110,14 +99,7 @@ mod tests {
             db: arc_conn.clone(),
         };
 
-        let create_category_request = CreateCategoryRequest {
-            display_name: "Blog Category".to_string(),
-            slug: "blog-category".to_string(),
-            category_type: CategoryType::Blog,
-            parent_id: None,
-            tag_names: None,
-        };
-
+        let create_category_request = fake_create_category_request(3);
         let created_category_id = category_create_handler
             .handle_create_category_with_tags(create_category_request, None)
             .await
@@ -168,13 +150,8 @@ mod tests {
 
     #[async_std::test]
     async fn handle_modify_post_testcase_failed() {
-        let postgres = Postgres::default().start().await.unwrap();
-        let connection_string: String = format!(
-            "postgres://postgres:postgres@127.0.0.1:{}/postgres",
-            postgres.get_host_port_ipv4(5432).await.unwrap()
-        );
-        let conn = Database::connect(&connection_string).await.unwrap();
-        Migrator::refresh(&conn).await.unwrap();
+        let test_space = setup_test_space().await;
+        let conn = test_space.postgres.get_database_connection().await;
 
         let arc_conn = Arc::new(conn.clone());
         let category_create_handler = CategoryCreateHandler {
@@ -187,14 +164,7 @@ mod tests {
             db: arc_conn.clone(),
         };
 
-        let create_category_request = CreateCategoryRequest {
-            display_name: "Blog Category".to_string(),
-            slug: "blog-category".to_string(),
-            category_type: CategoryType::Blog,
-            parent_id: None,
-            tag_names: None,
-        };
-
+        let create_category_request = fake_create_category_request(3);
         let created_category_id = category_create_handler
             .handle_create_category_with_tags(create_category_request, None)
             .await

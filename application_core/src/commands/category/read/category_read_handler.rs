@@ -109,33 +109,20 @@ impl CategoryReadHandlerTrait for CategoryReadHandler {
 
 #[cfg(test)]
 mod tests {
-    use migration::{Migrator, MigratorTrait};
-    use sea_orm::Database;
     use std::sync::Arc;
-    use testcontainers::runners::AsyncRunner;
-    use testcontainers_modules::postgres::Postgres;
+    use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
 
-    use crate::{
-        commands::category::{
-            create::{
-                create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
-                create_request::CreateCategoryRequest,
-            },
-            read::category_read_handler::{CategoryReadHandler, CategoryReadHandlerTrait},
-        },
-        entities::sea_orm_active_enums::CategoryType,
+    use crate::commands::category::{
+        create::create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
+        read::category_read_handler::{CategoryReadHandler, CategoryReadHandlerTrait},
+        test::fake_create_category_request,
     };
 
     #[async_std::test]
     async fn handle_get_all_cartegory_testcase_01() {
-        let postgres = Postgres::default().start().await.unwrap();
-
-        let connection_string: String = format!(
-            "postgres://postgres:postgres@127.0.0.1:{}/postgres",
-            postgres.get_host_port_ipv4(5432).await.unwrap()
-        );
-        let conn = Database::connect(&connection_string).await.unwrap();
-        Migrator::refresh(&conn).await.unwrap();
+        let test_space = setup_test_space().await;
+        let conn = test_space.postgres.get_database_connection().await;
+        let number_of_blogs = 5;
 
         let create_handler = CategoryCreateHandler {
             db: Arc::new(conn.clone()),
@@ -143,25 +130,15 @@ mod tests {
         let read_handler = CategoryReadHandler { db: Arc::new(conn) };
 
         // Create vec with 3 element integer
-        for i in 0..3 {
+        for i in 0..number_of_blogs {
             let _ = create_handler
-                .handle_create_category_with_tags(
-                    CreateCategoryRequest {
-                        display_name: format!("Category {}", i),
-                        slug: format!("category-{}", i).to_string(),
-                        category_type: CategoryType::Blog,
-                        parent_id: None,
-                        tag_names: None,
-                    },
-                    None,
-                )
+                .handle_create_category_with_tags(fake_create_category_request(i), None)
                 .await;
         }
 
         let result = read_handler.handle_get_all_categories().await;
-
         match result {
-            Ok(categories) => assert_eq!(categories.len(), 3),
+            Ok(categories) => assert_eq!(categories.len(), number_of_blogs),
             _ => panic!("Test failed"),
         }
     }
