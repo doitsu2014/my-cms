@@ -52,11 +52,9 @@ mod tests {
             test::fake_create_category_request,
         },
         post::{
-            create::{
-                create_handler::{PostCreateHandler, PostCreateHandlerTrait},
-                create_request::CreatePostRequest,
-            },
+            create::create_handler::{PostCreateHandler, PostCreateHandlerTrait},
             read::read_handler::{PostReadHandler, PostReadHandlerTrait},
+            test::fake_create_post_request,
         },
     };
 
@@ -81,16 +79,7 @@ mod tests {
             .handle_create_category_with_tags(create_category_request, None)
             .await
             .unwrap();
-
-        let create_post_request = CreatePostRequest {
-            title: "Post Title".to_string(),
-            content: "Post Content".to_string(),
-            preview_content: None,
-            published: false,
-            category_id: created_category_id,
-            slug: "post-title".to_string(),
-        };
-
+        let create_post_request = fake_create_post_request(created_category_id, 5);
         let result = post_create_handler
             .handle_create_post(create_post_request, None)
             .await

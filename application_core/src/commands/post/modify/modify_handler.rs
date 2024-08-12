@@ -60,22 +60,23 @@ mod tests {
     use std::sync::Arc;
     use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
 
-    use crate::commands::{
-        category::{
-            create::create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
-            test::fake_create_category_request,
-        },
-        post::{
-            create::{
-                create_handler::{PostCreateHandler, PostCreateHandlerTrait},
-                create_request::CreatePostRequest,
+    use crate::{
+        commands::{
+            category::{
+                create::create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
+                test::fake_create_category_request,
             },
-            modify::{
-                modify_handler::{PostModifyHandler, PostModifyHandlerTrait},
-                modify_request::ModifyPostRequest,
+            post::{
+                create::create_handler::{PostCreateHandler, PostCreateHandlerTrait},
+                modify::{
+                    modify_handler::{PostModifyHandler, PostModifyHandlerTrait},
+                    modify_request::ModifyPostRequest,
+                },
+                read::read_handler::{PostReadHandler, PostReadHandlerTrait},
+                test::fake_create_post_request,
             },
-            read::read_handler::{PostReadHandler, PostReadHandlerTrait},
         },
+        StringExtension,
     };
 
     #[async_std::test]
@@ -104,47 +105,37 @@ mod tests {
             .handle_create_category_with_tags(create_category_request, None)
             .await
             .unwrap();
-
-        let create_post_request = CreatePostRequest {
-            title: "Post Title".to_string(),
-            preview_content: None,
-            content: "Post Content".to_string(),
-            published: false,
-            category_id: created_category_id,
-            slug: "post-title".to_string(),
-        };
-
+        let create_post_request = fake_create_post_request(created_category_id, 5);
         let result = post_create_handler
-            .handle_create_post(create_post_request, None)
+            .handle_create_post(create_post_request.clone(), None)
             .await
             .unwrap();
 
+        let updated_title = format!("{} Updated", create_post_request.title);
+        let updated_content = format!("{} Updated", create_post_request.content);
         let request = ModifyPostRequest {
             id: result,
-            title: "Post Title - Updated".to_string(),
+            title: updated_title.to_owned(),
+            content: updated_content.to_owned(),
             preview_content: None,
-            content: "Post Content - Updated".to_string(),
             published: true,
             category_id: created_category_id,
-            slug: "post-title-updated".to_string(),
             row_version: 1,
         };
-
         let result = post_modify_handler
-            .handle_modify_post(request, Some("Last Modifier".to_string()))
+            .handle_modify_post(request.clone(), Some("Last Modifier".to_string()))
             .await
             .unwrap();
-
         let posts_in_db = post_read_handler.handle_get_all_posts().await.unwrap();
         let first = posts_in_db.first().unwrap();
 
         assert_eq!(result, first.id);
-        assert!(first.created_by == "System");
         assert!(first.created_at >= beginning_test_timestamp);
         assert!(first.row_version == 2);
-        assert!(first.title == "Post Title - Updated");
-        assert!(first.content == "Post Content - Updated");
-        assert!(first.slug == "post-title-updated");
+        assert!(first.title == request.title);
+        assert!(first.slug == request.title.to_slug());
+        assert!(first.content == request.content);
+        assert!(first.created_by == "System");
         assert!(first.last_modified_by == Some("Last Modifier".to_string()));
     }
 
@@ -169,29 +160,19 @@ mod tests {
             .handle_create_category_with_tags(create_category_request, None)
             .await
             .unwrap();
-
-        let create_post_request = CreatePostRequest {
-            title: "Post Title".to_string(),
-            preview_content: None,
-            content: "Post Content".to_string(),
-            published: false,
-            category_id: created_category_id,
-            slug: "post-title".to_string(),
-        };
-
+        let create_post_request = fake_create_post_request(created_category_id, 5);
         let result = post_create_handler
-            .handle_create_post(create_post_request, None)
+            .handle_create_post(create_post_request.clone(), None)
             .await
             .unwrap();
-
+        let updated_title = format!("{} Updated", create_post_request.title);
         let request = ModifyPostRequest {
             id: result,
-            title: "Post Title - Updated".to_string(),
+            title: format!("{} Updated", updated_title),
+            content: format!("{} Updated", create_post_request.content),
             preview_content: None,
-            content: "Post Content - Updated".to_string(),
             published: true,
             category_id: created_category_id,
-            slug: "post-title-updated".to_string(),
             row_version: 0,
         };
 
