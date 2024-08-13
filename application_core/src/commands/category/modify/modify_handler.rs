@@ -43,11 +43,11 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
         actor_email: Option<String>,
     ) -> Result<Uuid, TransactionError<DbErr>> {
         let category_read_handler = category_read_handler::CategoryReadHandler {
-            db: self.db.clone(),
+            db: Arc::clone(&self.db),
         };
 
         let tag_read_handler = TagReadHandler {
-            db: self.db.clone(),
+            db: Arc::clone(&self.db),
         };
 
         // Update  the category with current row version, if row version is not matched, return error

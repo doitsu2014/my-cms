@@ -38,7 +38,7 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
         actor_email: Option<String>,
     ) -> Result<Uuid, AppError> {
         let tag_read_handler = TagReadHandler {
-            db: self.db.clone(),
+            db: Arc::clone(&self.db),
         };
 
         // Prepare Category
@@ -72,6 +72,7 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
                     // Insert Category
                     let inserted_category = Categories::insert(create_category).exec(tx).await?;
 
+                    // TODO: Move logic new tags to tag commands
                     // Insert New Tags
                     let mut new_tag_ids: Vec<Uuid> = vec![];
                     if !classifed_tags.new_tags.is_empty() {
