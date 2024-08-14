@@ -66,7 +66,6 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
                         .map_err(|e| e.to_app_error())?;
 
                     // Insert New Tags
-                    let mut new_tag_ids: Vec<Uuid> = vec![];
                     let create_tags_response = tag_create_handler
                         .handle_create_tags_in_transaction(tags, actor_email, tx)
                         .await?;

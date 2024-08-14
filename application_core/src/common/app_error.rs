@@ -60,6 +60,9 @@ impl TransactionDbErrExt for TransactionError<DbErr> {
 
 impl TransactionDbErrExt for TransactionError<AppError> {
     fn to_app_error(self) -> AppError {
-        // match self.
+        match self {
+            TransactionError::<AppError>::Connection(err) => AppError::Db(err),
+            TransactionError::<AppError>::Transaction(err) => err,
+        }
     }
 }
