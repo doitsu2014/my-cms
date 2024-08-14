@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use super::create_request::CreateCategoryRequest;
 use crate::{
-    commands::tag::read::read_handler::{TagReadHandler, TagReadHandlerTrait},
+    commands::tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
     common::{
         app_error::{AppError, DbErrExt, TransactionDbErrExt},
         datetime_generator::generate_vietname_now,
@@ -37,10 +37,9 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
         body: CreateCategoryRequest,
         actor_email: Option<String>,
     ) -> Result<Uuid, AppError> {
-        let tag_read_handler = TagReadHandler {
+        let tag_create_handler = TagCreateHandler {
             db: Arc::clone(&self.db),
         };
-
         // Prepare Category
         let model: categories::Model = body.into_model();
         let model = categories::Model {
@@ -51,56 +50,32 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
         let create_category = categories::ActiveModel {
             ..model.into_active_model()
         };
+
         // Prepare Tags
         let tags: Vec<String> = body.tag_names.unwrap_or_default();
-        let classifed_tags = tag_read_handler
-            .handle_get_and_classify_tags_by_names(tags)
-            .await
-            .map_err(|e| e.to_app_error())?;
 
-        let existing_tag_ids = classifed_tags
-            .existing_tags
-            .iter()
-            .map(|tag| tag.id)
-            .collect::<Vec<Uuid>>();
-
-        let result: Result<Uuid, TransactionError<DbErr>> = self
+        let result: Result<Uuid, TransactionError<AppError>> = self
             .db
             .as_ref()
-            .transaction::<_, Uuid, DbErr>(|tx| {
+            .transaction::<_, Uuid, AppError>(|tx| {
                 Box::pin(async move {
                     // Insert Category
-                    let inserted_category = Categories::insert(create_category).exec(tx).await?;
+                    let inserted_category = Categories::insert(create_category)
+                        .exec(tx)
+                        .await
+                        .map_err(|e| e.to_app_error())?;
 
-                    // TODO: Move logic new tags to tag commands
                     // Insert New Tags
                     let mut new_tag_ids: Vec<Uuid> = vec![];
-                    if !classifed_tags.new_tags.is_empty() {
-                        let new_tags = classifed_tags
-                            .new_tags
-                            .iter()
-                            .map(|tag| {
-                                let id = Uuid::new_v4();
-                                new_tag_ids.push(id);
-                                tags::ActiveModel {
-                                    id: Set(id),
-                                    name: tag.name.clone(),
-                                    slug: tag.slug.clone(),
-                                    created_by: Set(actor_email
-                                        .clone()
-                                        .unwrap_or("System".to_string())),
-                                    created_at: Set(generate_vietname_now()),
-                                    ..Default::default()
-                                }
-                            })
-                            .collect::<Vec<tags::ActiveModel>>();
-                        Tags::insert_many(new_tags).exec(tx).await?;
-                    }
+                    let create_tags_response = tag_create_handler
+                        .handle_create_tags_in_transaction(tags, actor_email, tx)
+                        .await?;
 
                     // Combine New Tag Ids and Existing Tag Ids
-                    let all_tags = existing_tag_ids
+                    let all_tags = create_tags_response
+                        .existing_tag_ids
                         .into_iter()
-                        .chain(new_tag_ids.into_iter())
+                        .chain(create_tags_response.new_tag_ids)
                         .collect::<Vec<Uuid>>();
 
                     // Insert Category Tags
@@ -118,7 +93,8 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
 
                         category_tags::Entity::insert_many(category_tags)
                             .exec(tx)
-                            .await?;
+                            .await
+                            .map_err(|e| e.to_app_error())?;
                     }
 
                     Ok(inserted_category.last_insert_id)
