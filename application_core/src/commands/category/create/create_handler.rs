@@ -7,8 +7,8 @@ use crate::{
         app_error::{AppError, DbErrExt, TransactionDbErrExt},
         datetime_generator::generate_vietname_now,
     },
-    entities::{categories, category_tags, tags},
-    Categories, Tags,
+    entities::{categories, category_tags},
+    Categories,
 };
 use sea_orm::{
     DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, Set, TransactionError,
