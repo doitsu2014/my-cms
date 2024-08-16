@@ -4,7 +4,7 @@ use super::create_request::CreateCategoryRequest;
 use crate::{
     commands::tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
     common::{
-        app_error::{AppError, DbErrExt, TransactionDbErrExt},
+        app_error::{AppError, AppErrorExt},
         datetime_generator::generate_vietname_now,
     },
     entities::{categories, category_tags},

@@ -9,6 +9,7 @@ pub enum AppError {
     DbTx(TransactionError<DbErr>),
     Validation(String, String),
     Logical(String),
+    NotFound,
     Unknown,
 }
 
@@ -21,6 +22,7 @@ impl Display for AppError {
                 write!(f, "Validation error: {}: {}", field, message)
             }
             AppError::Logical(message) => write!(f, "Logical error: {}", message),
+            AppError::NotFound => write!(f, "Not found"),
             AppError::Unknown => write!(f, "Unknown error"),
         }
     }
@@ -33,32 +35,29 @@ impl Error for AppError {
             AppError::DbTx(err) => Some(err),
             AppError::Validation(_, _) => None,
             AppError::Logical(_) => None,
+            AppError::NotFound => None,
             AppError::Unknown => None,
         }
     }
 }
 
-pub trait DbErrExt {
+pub trait AppErrorExt {
     fn to_app_error(self) -> AppError;
 }
 
-impl DbErrExt for DbErr {
+impl AppErrorExt for DbErr {
     fn to_app_error(self) -> AppError {
         AppError::Db(self)
     }
 }
 
-pub trait TransactionDbErrExt {
-    fn to_app_error(self) -> AppError;
-}
-
-impl TransactionDbErrExt for TransactionError<DbErr> {
+impl AppErrorExt for TransactionError<DbErr> {
     fn to_app_error(self) -> AppError {
         AppError::DbTx(self)
     }
 }
 
-impl TransactionDbErrExt for TransactionError<AppError> {
+impl AppErrorExt for TransactionError<AppError> {
     fn to_app_error(self) -> AppError {
         match self {
             TransactionError::<AppError>::Connection(err) => AppError::Db(err),

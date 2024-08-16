@@ -11,6 +11,7 @@ pub struct ModifyPostRequest {
     pub published: bool,
     pub category_id: Uuid,
     pub row_version: i32,
+    pub tag_names: Option<Vec<String>>,
 }
 
 impl ModifyPostRequest {

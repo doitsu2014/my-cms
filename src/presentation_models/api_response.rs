@@ -128,6 +128,7 @@ impl ApiResponseError {
                 .add_error(format!("{}: {}", field, message)),
             AppError::Logical(m) => Self::new().with_error_code(ErrorCode::Logical).add_error(m),
             AppError::Unknown => Self::new().with_error_code(ErrorCode::UnknownError),
+            AppError::NotFound => Self::new().with_error_code(ErrorCode::NotFound),
         }
     }
 }

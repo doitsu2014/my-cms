@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::{
     commands::tag::read::read_handler::{TagReadHandler, TagReadHandlerTrait},
     common::{
-        app_error::{AppError, DbErrExt},
+        app_error::{AppError, AppErrorExt},
         datetime_generator::generate_vietname_now,
     },
     entities::tags,

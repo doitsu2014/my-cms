@@ -7,7 +7,7 @@ use crate::{
         },
         tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
     },
-    common::app_error::{AppError, DbErrExt, TransactionDbErrExt},
+    common::app_error::{AppError, AppErrorExt},
     entities::{
         categories::{self, Column},
         category_tags,
@@ -72,8 +72,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                     // 2.1. Get existing category
                     let db_category: CategoryReadResponse = category_read_handler
                         .handle_get_category(modified_id)
-                        .await
-                        .map_err(|err| err.to_app_error())?;
+                        .await?;
 
                     // 2.2 Figure out tags to delete
                     let tags_to_delete: Vec<Uuid> = db_category

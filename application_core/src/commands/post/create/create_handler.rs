@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::{
     commands::tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
     common::{
-        app_error::{AppError, DbErrExt, TransactionDbErrExt},
+        app_error::{AppError, AppErrorExt},
         datetime_generator::generate_vietname_now,
     },
     entities::{post_tags, posts},
@@ -125,7 +125,7 @@ mod tests {
     };
 
     #[async_std::test]
-    async fn handle_create_post_testcase_01() {
+    async fn handle_create_post_testcase_successfully() {
         let beginning_test_timestamp = chrono::Utc::now();
         let test_space = setup_test_space().await;
         let database = test_space.postgres.get_database_connection().await;
@@ -158,5 +158,6 @@ mod tests {
         assert!(first.created_by == "System");
         assert!(first.created_at >= beginning_test_timestamp);
         assert!(first.row_version == 1);
+        assert!(first.tags.len() == 5);
     }
 }

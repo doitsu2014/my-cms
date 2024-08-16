@@ -93,10 +93,18 @@ pub async fn protected_router() -> Router {
                 .put(api::category::modify::modify_handler::api_modify_category),
         )
         .route(
+            "/categories/:category_id",
+            get(api::category::read::read_handler::api_get_category),
+        )
+        .route(
             "/posts",
             get(api::post::read::read_handler::api_get_all_posts)
                 .post(api::post::create::create_handler::api_create_post)
                 .put(api::post::modify::modify_handler::api_modify_post),
+        )
+        .route(
+            "/posts/:post_id",
+            get(api::category::read::read_handler::api_get_category),
         )
         .layer(
             KeycloakAuthLayer::<String>::builder()

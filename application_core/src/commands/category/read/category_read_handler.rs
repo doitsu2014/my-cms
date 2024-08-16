@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
-use sea_orm::{prelude::DateTimeWithTimeZone, DatabaseConnection, DbErr, EntityTrait};
+use sea_orm::{prelude::DateTimeWithTimeZone, DatabaseConnection, EntityTrait};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
+    common::app_error::{AppError, AppErrorExt},
     entities::{categories::Model, sea_orm_active_enums::CategoryType, tags},
     Categories, Tags,
 };
@@ -52,12 +53,12 @@ impl CategoryReadResponse {
 pub trait CategoryReadHandlerTrait {
     fn handle_get_all_categories(
         &self,
-    ) -> impl std::future::Future<Output = Result<Vec<CategoryReadResponse>, DbErr>> + Send;
+    ) -> impl std::future::Future<Output = Result<Vec<CategoryReadResponse>, AppError>> + Send;
 
     fn handle_get_category(
         &self,
         id: Uuid,
-    ) -> impl std::future::Future<Output = Result<CategoryReadResponse, DbErr>> + Send;
+    ) -> impl std::future::Future<Output = Result<CategoryReadResponse, AppError>> + Send;
 }
 
 pub struct CategoryReadHandler {
@@ -65,11 +66,12 @@ pub struct CategoryReadHandler {
 }
 
 impl CategoryReadHandlerTrait for CategoryReadHandler {
-    async fn handle_get_all_categories(&self) -> Result<Vec<CategoryReadResponse>, DbErr> {
+    async fn handle_get_all_categories(&self) -> Result<Vec<CategoryReadResponse>, AppError> {
         let db_result = Categories::find()
             .find_with_related(Tags)
             .all(self.db.as_ref())
-            .await?;
+            .await
+            .map_err(|e| e.to_app_error())?;
 
         let response = db_result
             .iter()
@@ -82,14 +84,15 @@ impl CategoryReadHandlerTrait for CategoryReadHandler {
         Result::Ok(response)
     }
 
-    async fn handle_get_category(&self, id: Uuid) -> Result<CategoryReadResponse, DbErr> {
+    async fn handle_get_category(&self, id: Uuid) -> Result<CategoryReadResponse, AppError> {
         let db_result = Categories::find_by_id(id)
             .find_with_related(Tags)
             .all(self.db.as_ref())
-            .await?;
+            .await
+            .map_err(|e| e.to_app_error())?;
 
         if db_result.is_empty() {
-            return Result::Err(DbErr::RecordNotFound("Category not found".to_string()));
+            return Result::Err(AppError::NotFound);
         }
 
         let response = db_result
