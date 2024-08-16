@@ -11,8 +11,7 @@ use crate::{
     Categories,
 };
 use sea_orm::{
-    DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, Set, TransactionError,
-    TransactionTrait,
+    DatabaseConnection, EntityTrait, IntoActiveModel, TransactionError, TransactionTrait,
 };
 use tracing::instrument;
 use uuid::Uuid;
@@ -38,7 +37,7 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
         actor_email: Option<String>,
     ) -> Result<Uuid, AppError> {
         let tag_create_handler = TagCreateHandler {
-            db: Arc::clone(&self.db),
+            db: self.db.clone(),
         };
         // Prepare Category
         let model: categories::Model = body.into_model();
@@ -59,27 +58,27 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
             .as_ref()
             .transaction::<_, Uuid, AppError>(|tx| {
                 Box::pin(async move {
-                    // Insert Category
-                    let inserted_category = Categories::insert(create_category)
-                        .exec(tx)
-                        .await
-                        .map_err(|e| e.to_app_error())?;
-
                     // Insert New Tags
                     let create_tags_response = tag_create_handler
                         .handle_create_tags_in_transaction(tags, actor_email, tx)
                         .await?;
 
                     // Combine New Tag Ids and Existing Tag Ids
-                    let all_tags = create_tags_response
+                    let all_tag_ids = create_tags_response
                         .existing_tag_ids
                         .into_iter()
                         .chain(create_tags_response.new_tag_ids)
                         .collect::<Vec<Uuid>>();
 
+                    // Insert Category
+                    let inserted_category = Categories::insert(create_category)
+                        .exec(tx)
+                        .await
+                        .map_err(|e| e.to_app_error())?;
+
                     // Insert Category Tags
-                    if !all_tags.is_empty() {
-                        let category_tags = all_tags
+                    if !all_tag_ids.is_empty() {
+                        let category_tags = all_tag_ids
                             .iter()
                             .map(|tag_id| {
                                 category_tags::Model {

@@ -5,17 +5,24 @@ use crate::{
         category::read::category_read_handler::{
             self, CategoryReadHandlerTrait, CategoryReadResponse,
         },
-        tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
+        tag::{
+            create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
+            read::read_handler::{TagReadHandler, TagReadHandlerTrait},
+        },
     },
-    common::app_error::{AppError, DbErrExt, TransactionDbErrExt},
+    common::{
+        app_error::{AppError, DbErrExt},
+        datetime_generator::generate_vietname_now,
+    },
     entities::{
         categories::{self, Column},
-        category_tags,
+        category_tags, tags,
     },
+    Tags,
 };
 use sea_orm::{
-    prelude::Uuid, sea_query::Expr, DatabaseConnection, EntityTrait, QueryFilter, Set,
-    TransactionTrait,
+    prelude::Uuid, sea_query::Expr, DatabaseConnection, DbErr, EntityTrait, QueryFilter, Set,
+    TransactionError, TransactionTrait,
 };
 use tracing::instrument;
 
@@ -26,7 +33,7 @@ pub trait CategoryModifyHandlerTrait {
         &self,
         body: ModifyCategoryRequest,
         actor_email: Option<String>,
-    ) -> impl std::future::Future<Output = Result<Uuid, AppError>>;
+    ) -> impl std::future::Future<Output = Result<Uuid, TransactionError<DbErr>>>;
 }
 
 #[derive(Debug)]
@@ -40,7 +47,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
         &self,
         body: ModifyCategoryRequest,
         actor_email: Option<String>,
-    ) -> Result<Uuid, AppError> {
+    ) -> Result<Uuid, TransactionError<DbErr>> {
         let category_read_handler = category_read_handler::CategoryReadHandler {
             db: self.db.clone(),
         };
@@ -49,89 +56,97 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
             db: self.db.clone(),
         };
 
-        // Update the category with current row version, if row version is not matched, return error
-        let result: Result<Uuid, AppError> = self
+        // Update  the category with current row version, if row version is not matched, return error
+        let result: Result<Uuid, TransactionError<AppError>> = self
             .db
             .as_ref()
             .transaction::<_, Uuid, AppError>(|tx| {
                 Box::pin(async move {
+                    // 1. Insert new tags
+                    let tags: Vec<String> = body.tag_names.unwrap_or_default();
+                    let create_tags_response = tag_create_handler
+                        .handle_create_tags_in_transaction(tags, actor_email, tx)
+                        .await?;
+
+                    // Combine New Tag Ids and Existing Tag Ids
+                    let all_tag_ids = create_tags_response
+                        .existing_tag_ids
+                        .into_iter()
+                        .chain(create_tags_response.new_tag_ids)
+                        .collect::<Vec<Uuid>>();
+
+                    let new_tag_ids = create_tags_response.new_tag_ids;
+
                     // 1. Prepare Active Category
                     let modified_id = body.id;
                     let current_row_version = body.row_version;
                     let mut model = body.into_active_model();
                     model.last_modified_by = Set(actor_email.clone());
 
-                    // 2. Insert new tags
-                    let tags: Vec<String> = body.tag_names.unwrap_or_default().clone();
-                    let create_tags_response = tag_create_handler
-                        .handle_create_tags_in_transaction(tags.clone(), actor_email, tx)
-                        .await?;
-                    // Combine New Tag Ids and Existing Tag Ids
-                    let new_tag_ids = create_tags_response.new_tag_ids;
-
-                    // 2.1. Get existing category
-                    let db_category: CategoryReadResponse = category_read_handler
-                        .handle_get_category(modified_id)
-                        .await
-                        .map_err(|err| err.to_app_error())?;
-
-                    // 2.2 Figure out tags to delete
-                    let tags_to_delete: Vec<Uuid> = db_category
-                        .tags
-                        .iter()
-                        .filter(|t| !tags.contains(&t.name))
-                        .map(|t| t.id)
-                        .collect();
-
-                    // 3. Update Category and Tags
-                    // 3.1. Delete and Insert Tags
-                    if !tags_to_delete.is_empty() {
-                        category_tags::Entity::delete_many()
-                            .filter(Expr::col(category_tags::Column::CategoryId).eq(modified_id))
-                            .filter(Expr::col(category_tags::Column::TagId).is_in(tags_to_delete))
-                            .exec(tx)
-                            .await
-                            .map_err(|err| err.to_app_error())?;
-                    }
-                    // 3.2. Insert Category Tags
-                    if !new_tag_ids.is_empty() {
-                        let category_tags_to_insert = new_tag_ids
-                            .iter()
-                            .map(|tag_id| category_tags::ActiveModel {
-                                category_id: Set(body.id),
-                                tag_id: Set(tag_id.to_owned()),
-                            })
-                            .collect::<Vec<category_tags::ActiveModel>>();
-
-                        category_tags::Entity::insert_many(category_tags_to_insert)
-                            .exec(tx)
-                            .await
-                            .map_err(|err| err.to_app_error())?;
-                    }
-
-                    // 3.3. Modify Category information
-                    let modified_result = categories::Entity::update_many()
-                        .set(model)
-                        .filter(Expr::col(Column::Id).eq(modified_id))
-                        .filter(Expr::col(Column::RowVersion).eq(current_row_version))
-                        .exec(tx)
-                        .await
-                        .map_err(|err| err.to_app_error())?;
-
-                    match modified_result.rows_affected == 0 {
-                        true => {
-                            return Err(AppError::Logical("Row version is not matched".to_string()))
-                        }
-                        false => (),
-                    }
-
-                    Ok(modified_id)
+                    Ok(Uuid::new_v4())
+                    //
+                    // // 2. Update Category
+                    // let modified_result = categories::Entity::update_many()
+                    //     .set(model)
+                    //     .filter(Expr::col(Column::Id).eq(modified_id))
+                    //     .filter(Expr::col(Column::RowVersion).eq(current_row_version))
+                    //     .exec(tx)
+                    //     .await
+                    //     .map_err(|err| err.to_app_error())
+                    //     .unwrap();
+                    //
+                    // match modified_result.rows_affected == 0 {
+                    //     true => {
+                    //         return AppError::Logical("Row version is not matched".to_string());
+                    //     }
+                    //     false => (),
+                    // }
+                    //
+                    // // 3.2. Insert new tags to category tags, and then delete tags that are not in the list
+                    // // Insert Category Tags
+                    // if !new_tag_ids.is_empty() {
+                    //     let category_tags_to_insert = new_tag_ids
+                    //         .iter()
+                    //         .map(|tag_id| category_tags::ActiveModel {
+                    //             category_id: Set(body.id),
+                    //             tag_id: Set(tag_id.to_owned()),
+                    //         })
+                    //         .collect::<Vec<category_tags::ActiveModel>>();
+                    //
+                    //     category_tags::Entity::insert_many(category_tags_to_insert)
+                    //         .exec(tx)
+                    //         .await?;
+                    // }
+                    // // Get existing category
+                    // let category: CategoryReadResponse = category_read_handler
+                    //     .handle_get_category(modified_id)
+                    //     .await?;
+                    //
+                    // // Figure out tags to delete
+                    // let tags_to_delete: Vec<Uuid> = category
+                    //     .tags
+                    //     .iter()
+                    //     .filter(|t| !tags.contains(&t.name))
+                    //     .map(|t| t.id)
+                    //     .collect();
+                    //
+                    // if !tags_to_delete.is_empty() {
+                    //     category_tags::Entity::delete_many()
+                    //         .filter(Expr::col(category_tags::Column::CategoryId).eq(modified_id))
+                    //         .filter(Expr::col(category_tags::Column::TagId).is_in(tags_to_delete))
+                    //         .exec(tx)
+                    //         .await?;
+                    // }
+                    //
+                    // Ok(modified_id)
                 })
             })
-            .await
-            .map_err(|e| e.to_app_error());
+            .await;
 
-        result
+        match result {
+            Ok(modified_id) => Ok(modified_id),
+            Err(e) => Err(e),
+        }
     }
 }
 

@@ -1,10 +1,18 @@
-use sea_orm::{DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, Set};
+use sea_orm::{
+    DatabaseConnection, EntityTrait, IntoActiveModel, TransactionError, TransactionTrait,
+};
 use std::sync::Arc;
 use tracing::instrument;
 use uuid::Uuid;
 
 use crate::{
-    common::datetime_generator::generate_vietname_now, entities::posts::ActiveModel, Posts,
+    commands::tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
+    common::{
+        app_error::{AppError, DbErrExt, TransactionDbErrExt},
+        datetime_generator::generate_vietname_now,
+    },
+    entities::{post_tags, posts},
+    Posts,
 };
 
 use super::create_request::CreatePostRequest;
@@ -14,7 +22,7 @@ pub trait PostCreateHandlerTrait {
         &self,
         body: CreatePostRequest,
         actor_email: Option<String>,
-    ) -> impl std::future::Future<Output = Result<Uuid, DbErr>>;
+    ) -> impl std::future::Future<Output = Result<Uuid, AppError>>;
 }
 
 #[derive(Debug)]
@@ -28,16 +36,74 @@ impl PostCreateHandlerTrait for PostCreateHandler {
         &self,
         body: CreatePostRequest,
         actor_email: Option<String>,
-    ) -> Result<Uuid, DbErr> {
-        let model = body.into_model();
-        let mut active_model = ActiveModel {
+    ) -> Result<Uuid, AppError> {
+        let tag_create_handler = TagCreateHandler {
+            db: self.db.clone(),
+        };
+        // Prepare Category
+        let model: posts::Model = body.into_model();
+        let model = posts::Model {
+            created_by: actor_email.clone().unwrap_or("System".to_string()),
+            created_at: generate_vietname_now(),
+            ..model
+        };
+        let create_model = posts::ActiveModel {
             ..model.into_active_model()
         };
-        active_model.created_by = Set(actor_email.unwrap_or("System".to_string()));
-        active_model.created_at = Set(generate_vietname_now());
+        // Prepare Tags
+        let tags: Vec<String> = body.tag_names.unwrap_or_default();
 
-        let result = Posts::insert(active_model).exec(self.db.as_ref()).await?;
-        Result::Ok(result.last_insert_id)
+        let result: Result<Uuid, TransactionError<AppError>> = self
+            .db
+            .as_ref()
+            .transaction::<_, Uuid, AppError>(|tx| {
+                Box::pin(async move {
+                    // Insert New Tags
+                    let create_tags_response_task =
+                        tag_create_handler.handle_create_tags_in_transaction(tags, actor_email, tx);
+
+                    // Insert Category
+                    let inserted_category = Posts::insert(create_model)
+                        .exec(tx)
+                        .await
+                        .map_err(|e| e.to_app_error())?;
+
+                    // Combine New Tag Ids and Existing Tag Ids
+                    let create_tags_response = create_tags_response_task.await?;
+                    let all_tag_ids = create_tags_response
+                        .existing_tag_ids
+                        .into_iter()
+                        .chain(create_tags_response.new_tag_ids)
+                        .collect::<Vec<Uuid>>();
+
+                    // Insert Category Tags
+                    if !all_tag_ids.is_empty() {
+                        let post_tags = all_tag_ids
+                            .iter()
+                            .map(|tag_id| {
+                                post_tags::Model {
+                                    post_id: inserted_category.last_insert_id,
+                                    tag_id: tag_id.to_owned(),
+                                }
+                                .into_active_model()
+                            })
+                            .collect::<Vec<post_tags::ActiveModel>>();
+
+                        post_tags::Entity::insert_many(post_tags)
+                            .exec(tx)
+                            .await
+                            .map_err(|e| e.to_app_error())?;
+                    }
+
+                    Ok(inserted_category.last_insert_id)
+                })
+            })
+            .await;
+
+        match result {
+            Ok(inserted_id) => Ok(inserted_id),
+            Err(e) => Err(e.to_app_error()),
+        }
     }
 }
 
