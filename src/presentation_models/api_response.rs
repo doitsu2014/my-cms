@@ -68,6 +68,8 @@ pub enum ErrorCode {
     ConnectionError,
     #[serde(rename = "10002")]
     Logical,
+    #[serde(rename = "99999")]
+    ConcurrencyOptimistic,
 }
 
 impl AxumResponse for ApiResponseError {
@@ -80,6 +82,7 @@ impl AxumResponse for ApiResponseError {
             ErrorCode::NotFound => StatusCode::NOT_FOUND,
             ErrorCode::ValidationError => StatusCode::BAD_REQUEST,
             ErrorCode::Logical => StatusCode::BAD_REQUEST,
+            ErrorCode::ConcurrencyOptimistic => StatusCode::BAD_REQUEST,
         };
 
         let json_body = serde_json::to_string(&self).unwrap();
@@ -127,6 +130,9 @@ impl ApiResponseError {
                 .with_error_code(ErrorCode::ValidationError)
                 .add_error(format!("{}: {}", field, message)),
             AppError::Logical(m) => Self::new().with_error_code(ErrorCode::Logical).add_error(m),
+            AppError::ConcurrencyOptimistic(m) => Self::new()
+                .with_error_code(ErrorCode::ConcurrencyOptimistic)
+                .add_error(m),
             AppError::Unknown => Self::new().with_error_code(ErrorCode::UnknownError),
             AppError::NotFound => Self::new().with_error_code(ErrorCode::NotFound),
         }

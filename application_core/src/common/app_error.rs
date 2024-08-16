@@ -9,6 +9,7 @@ pub enum AppError {
     DbTx(TransactionError<DbErr>),
     Validation(String, String),
     Logical(String),
+    ConcurrencyOptimistic(String),
     NotFound,
     Unknown,
 }
@@ -22,6 +23,9 @@ impl Display for AppError {
                 write!(f, "Validation error: {}: {}", field, message)
             }
             AppError::Logical(message) => write!(f, "Logical error: {}", message),
+            AppError::ConcurrencyOptimistic(message) => {
+                write!(f, "ConcurrencyOptimistic error: {}", message)
+            }
             AppError::NotFound => write!(f, "Not found"),
             AppError::Unknown => write!(f, "Unknown error"),
         }
@@ -35,6 +39,7 @@ impl Error for AppError {
             AppError::DbTx(err) => Some(err),
             AppError::Validation(_, _) => None,
             AppError::Logical(_) => None,
+            AppError::ConcurrencyOptimistic(_) => None,
             AppError::NotFound => None,
             AppError::Unknown => None,
         }

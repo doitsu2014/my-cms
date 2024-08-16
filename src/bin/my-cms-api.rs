@@ -1,4 +1,5 @@
 use std::env;
+use std::sync::Arc;
 
 use axum::{
     routing::{get, post},
@@ -104,7 +105,7 @@ pub async fn protected_router() -> Router {
         )
         .route(
             "/posts/:post_id",
-            get(api::category::read::read_handler::api_get_category),
+            get(api::post::read::read_handler::api_get_post),
         )
         .layer(
             KeycloakAuthLayer::<String>::builder()
@@ -147,7 +148,9 @@ pub async fn protected_administrator_router() -> Router {
 async fn construct_app_state() -> AppState {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let conn = Database::connect(&database_url).await.unwrap();
-    AppState { conn }
+    AppState {
+        conn: Arc::new(conn),
+    }
 }
 
 fn construct_keycloak_auth_instance() -> KeycloakAuthInstance {

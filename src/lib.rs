@@ -7,8 +7,9 @@ pub use common::*;
 pub use presentation_models::*;
 
 use sea_orm::DatabaseConnection;
+use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct AppState {
-    pub conn: DatabaseConnection,
+    pub conn: Arc<DatabaseConnection>,
 }

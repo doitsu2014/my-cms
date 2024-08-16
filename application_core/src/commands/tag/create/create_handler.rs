@@ -42,7 +42,7 @@ impl TagCreateHandlerTrait for TagCreateHandler {
         transaction: &DatabaseTransaction,
     ) -> Result<CreateTagsResponse, AppError> {
         let tag_read_handler = TagReadHandler {
-            db: Arc::clone(&self.db),
+            db: self.db.clone(),
         };
 
         let classifed_tags = tag_read_handler

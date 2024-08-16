@@ -10,6 +10,6 @@ pub async fn handle_api_database_migration(
     Extension(token): Extension<KeycloakToken<String>>,
     state: State<AppState>,
 ) -> impl IntoResponse {
-    Migrator::up(&state.conn, None).await.unwrap();
+    Migrator::up(state.conn.as_ref(), None).await.unwrap();
     ApiResponseWith::new("Migrated database to latest version").to_axum_response()
 }

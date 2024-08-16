@@ -1,6 +1,6 @@
 use crate::{
     keycloak_extension::ExtractKeyCloakToken, ApiResponseError, ApiResponseWith, AppState,
-    AxumResponse, ErrorCode,
+    AxumResponse,
 };
 use application_core::commands::category::modify::{
     modify_handler::{CategoryModifyHandler, CategoryModifyHandlerTrait},
@@ -8,7 +8,6 @@ use application_core::commands::category::modify::{
 };
 use axum::{extract::State, response::IntoResponse, Extension, Json};
 use axum_keycloak_auth::decode::KeycloakToken;
-use std::sync::Arc;
 use tower_cookies::Cookies;
 use tracing::instrument;
 
@@ -20,7 +19,7 @@ pub async fn api_modify_category(
     Json(body): Json<ModifyCategoryRequest>,
 ) -> impl IntoResponse {
     let handler = CategoryModifyHandler {
-        db: Arc::new(state.conn.clone()),
+        db: state.conn.clone(),
     };
 
     let result = handler
@@ -29,9 +28,6 @@ pub async fn api_modify_category(
 
     match result {
         Ok(inserted_id) => ApiResponseWith::new(inserted_id.to_string()).to_axum_response(),
-        Err(e) => ApiResponseError::new()
-            .with_error_code(ErrorCode::UnknownError)
-            .add_error(e.to_string())
-            .to_axum_response(),
+        Err(e) => ApiResponseError::from_app_error(e).to_axum_response(),
     }
 }
