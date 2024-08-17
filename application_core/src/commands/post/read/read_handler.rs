@@ -5,7 +5,7 @@ use tracing::instrument;
 use uuid::Uuid;
 
 use crate::{
-    common::app_error::{AppError, AppErrorExt},
+    common::app_error::{AppError},
     entities::{posts::Model, tags},
     Posts, Tags,
 };
@@ -77,7 +77,7 @@ impl PostReadHandlerTrait for PostReadHandler {
             .find_with_related(Tags)
             .all(self.db.as_ref())
             .await
-            .map_err(|e| e.to_app_error())?;
+            .map_err(|e| e.into())?;
 
         let response = db_result
             .iter()
@@ -95,7 +95,7 @@ impl PostReadHandlerTrait for PostReadHandler {
             .find_with_related(Tags)
             .all(self.db.as_ref())
             .await
-            .map_err(|e| e.to_app_error())?;
+            .map_err(|e| e.into())?;
 
         if db_result.is_empty() {
             return Result::Err(AppError::NotFound);

@@ -1,5 +1,7 @@
 use s3::{creds::Credentials, Bucket, Region};
 
+use crate::common::app_error::AppError;
+
 pub mod create;
 pub mod delete;
 pub mod read;
@@ -11,8 +13,12 @@ pub struct S3MediaStorage {
 }
 
 impl S3MediaStorage {
-    fn spawn_bucket() -> Bucket {
-        let bucket = Bucket::new(self.s3_bucket_name, self.s3_region, self.s3_credentials).unwrap();
-        bucket
+    pub fn spawn_bucket(&self) -> Result<Bucket, AppError> {
+        Bucket::new(
+            &self.s3_bucket_name,
+            self.s3_region.to_owned(),
+            self.s3_credentials.to_owned(),
+        )
+        .map_err(|e| e.into())
     }
 }

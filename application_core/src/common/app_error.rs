@@ -1,12 +1,14 @@
 use core::fmt;
 use std::{error::Error, fmt::Display};
 
+use s3::error::S3Error;
 use sea_orm::{DbErr, TransactionError};
 
 #[derive(Debug)]
 pub enum AppError {
     Db(DbErr),
     DbTx(TransactionError<DbErr>),
+    S3Error(S3Error),
     Validation(String, String),
     Logical(String),
     ConcurrencyOptimistic(String),
@@ -28,6 +30,7 @@ impl Display for AppError {
             }
             AppError::NotFound => write!(f, "Not found"),
             AppError::Unknown => write!(f, "Unknown error"),
+            AppError::S3Error(err) => write!(f, "S3 error: {}", err),
         }
     }
 }
@@ -37,6 +40,7 @@ impl Error for AppError {
         match self {
             AppError::Db(err) => Some(err),
             AppError::DbTx(err) => Some(err),
+            AppError::S3Error(err) => Some(err),
             AppError::Validation(_, _) => None,
             AppError::Logical(_) => None,
             AppError::ConcurrencyOptimistic(_) => None,
@@ -46,24 +50,26 @@ impl Error for AppError {
     }
 }
 
-pub trait AppErrorExt {
-    fn to_app_error(self) -> AppError;
+impl Into<AppError> for s3::error::S3Error {
+    fn into(self) -> AppError {
+        AppError::S3Error(self)
+    }
 }
 
-impl AppErrorExt for DbErr {
-    fn to_app_error(self) -> AppError {
+impl Into<AppError> for DbErr {
+    fn into(self) -> AppError {
         AppError::Db(self)
     }
 }
 
-impl AppErrorExt for TransactionError<DbErr> {
-    fn to_app_error(self) -> AppError {
+impl Into<AppError> for TransactionError<DbErr> {
+    fn into(self) -> AppError {
         AppError::DbTx(self)
     }
 }
 
-impl AppErrorExt for TransactionError<AppError> {
-    fn to_app_error(self) -> AppError {
+impl Into<AppError> for TransactionError<AppError> {
+    fn into(self) -> AppError {
         match self {
             TransactionError::<AppError>::Connection(err) => AppError::Db(err),
             TransactionError::<AppError>::Transaction(err) => err,

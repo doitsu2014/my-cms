@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::{
     commands::tag::read::read_handler::{TagReadHandler, TagReadHandlerTrait},
     common::{
-        app_error::{AppError, AppErrorExt},
+        app_error::{AppError},
         datetime_generator::generate_vietname_now,
     },
     entities::tags,
@@ -48,7 +48,7 @@ impl TagCreateHandlerTrait for TagCreateHandler {
         let classifed_tags = tag_read_handler
             .handle_get_and_classify_tags_by_names(tags)
             .await
-            .map_err(|e| e.to_app_error())?;
+            .map_err(|e| e.into())?;
 
         let mut new_tag_ids: Vec<Uuid> = vec![];
         if !classifed_tags.new_tags.is_empty() {
@@ -72,7 +72,7 @@ impl TagCreateHandlerTrait for TagCreateHandler {
             Tags::insert_many(new_tags)
                 .exec(transaction)
                 .await
-                .map_err(|e| e.to_app_error())?;
+                .map_err(|e| e.into())?;
         }
 
         let existing_tag_ids = classifed_tags

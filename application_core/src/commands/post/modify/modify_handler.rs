@@ -11,7 +11,7 @@ use crate::{
         tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
     },
     common::{
-        app_error::{AppError, AppErrorExt},
+        app_error::{AppError},
         datetime_generator::generate_vietname_now,
     },
     entities::{
@@ -91,7 +91,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                             .filter(Expr::col(post_tags::Column::TagId).is_in(tags_to_delete))
                             .exec(tx)
                             .await
-                            .map_err(|err| err.to_app_error())?;
+                            .map_err(|err| err.into())?;
                     }
                     // 3.2. Insert post Tags
                     if !new_tag_ids.is_empty() {
@@ -106,7 +106,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                         post_tags::Entity::insert_many(post_tags_to_insert)
                             .exec(tx)
                             .await
-                            .map_err(|err| err.to_app_error())?;
+                            .map_err(|err| err.into())?;
                     }
 
                     // 3.3. Modify Category information
@@ -116,7 +116,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                         .filter(Expr::col(Column::RowVersion).eq(current_row_version))
                         .exec(tx)
                         .await
-                        .map_err(|err| err.to_app_error())?;
+                        .map_err(|err| err.into())?;
 
                     match modified_result.rows_affected == 0 {
                         true => {
@@ -129,7 +129,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                 })
             })
             .await
-            .map_err(|e| e.to_app_error());
+            .map_err(|e| e.into());
 
         result
     }
