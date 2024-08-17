@@ -18,7 +18,7 @@ pub async fn api_get_all_categories(state: State<AppState>) -> impl IntoResponse
 
     match result {
         Ok(categories) => ApiResponseWith::new(categories).to_axum_response(),
-        Err(e) => ApiResponseError::from_app_error(e).to_axum_response(),
+        Err(e) => ApiResponseError::from(e).to_axum_response(),
     }
 }
 
@@ -34,6 +34,6 @@ pub async fn api_get_category(
 
     match result {
         Ok(categories) => ApiResponseWith::new(categories).to_axum_response(),
-        Err(e) => ApiResponseError::from_app_error(e).to_axum_response(),
+        Err(e) => ApiResponseError::from(e).to_axum_response(),
     }
 }

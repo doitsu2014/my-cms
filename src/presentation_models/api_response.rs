@@ -117,8 +117,10 @@ impl ApiResponseError {
             errors: vec![],
         }
     }
+}
 
-    pub fn from_app_error(app_error: AppError) -> Self {
+impl From<AppError> for ApiResponseError {
+    fn from(app_error: AppError) -> Self {
         match app_error {
             AppError::Db(err) => Self::new()
                 .with_error_code(ErrorCode::ConnectionError)
