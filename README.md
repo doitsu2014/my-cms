@@ -65,3 +65,9 @@ For integration tests, we use testcontainers to setup whole infrastructure to ma
 ### 3. CI/CD
 
 I use Docker to build the image and Github Actions to run the CI/CD pipeline.
+
+## Play around
+
+You can play around the project using Postman Collection in folder `postman_collection`.
+
+Construct your Environment Variable before you start playing.

@@ -1,0 +1,1119 @@
+{
+	"info": {
+		"_postman_id": "9ccf9cff-4b01-4c76-b73c-b8b8658ed3ac",
+		"name": "D Tech - My Cms",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2189547",
+		"_collection_link": "https://doitsu-technology.postman.co/workspace/The-Whole-Worlds~d2192e98-66c2-4cf4-ab13-2ea2daa7af3a/collection/2189547-9ccf9cff-4b01-4c76-b73c-b8b8658ed3ac?action=share&source=collection_link&creator=2189547"
+	},
+	"item": [
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "POST Category",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Extract Ids\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"recently_created_category_id\", jsonData.data);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{client-secret-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{client-id-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "My Cms Api Writer",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "profile email my-image-processing-all my-headless-cms-api-all",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "authUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/auth",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "client_authentication",
+									"value": "body",
+									"type": "string"
+								},
+								{
+									"key": "useBrowser",
+									"value": true,
+									"type": "boolean"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"display_name\": \"{{$randomCatchPhraseNoun}} {{$randomDomainWord}} {{$randomDomainWord}} {{$randomDomainWord}}\",\r\n    \"category_type\": \"Blog\",\r\n    \"tag_names\": [\r\n        \"{{$randomDomainWord}}\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{hostname-my-headless-cms-api}}/categories",
+							"host": [
+								"{{hostname-my-headless-cms-api}}"
+							],
+							"path": [
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Category as Child",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Extract Ids\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"recently_created_category_id\", jsonData.data);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{client-secret-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{client-id-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "My Cms Api Writer",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "profile email my-image-processing-all my-headless-cms-api-all",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "authUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/auth",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "client_authentication",
+									"value": "body",
+									"type": "string"
+								},
+								{
+									"key": "useBrowser",
+									"value": true,
+									"type": "boolean"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"display_name\": \"{{$randomCatchPhraseNoun}} {{$randomDomainWord}} {{$randomDomainWord}} {{$randomDomainWord}}\",\r\n    \"category_type\": \"Blog\",\r\n    \"parent_id\": \"{{recently_created_category_id}}\",\r\n    \"tag_names\": [\r\n        \"{{$randomDomainWord}}\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{hostname-my-headless-cms-api}}/categories",
+							"host": [
+								"{{hostname-my-headless-cms-api}}"
+							],
+							"path": [
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Category",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{client-secret-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{client-id-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "My Cms Api Writer",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "profile email my-image-processing-all my-headless-cms-api-all",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "authUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/auth",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "client_authentication",
+									"value": "body",
+									"type": "string"
+								},
+								{
+									"key": "useBrowser",
+									"value": true,
+									"type": "boolean"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n        \"id\": \"85ee2b2d-3937-4391-ae8d-66b63ef2cb65\",\r\n        \"display_name\": \"hardware maud cullen nettie\",\r\n        \"slug\": \"hardware-maud-cullen-nettie\",\r\n        \"category_type\": \"Blog\",\r\n        \"created_by\": \"service-account-my-headless-cms-api@doitsu.tech\",\r\n        \"created_at\": \"2024-08-16T10:00:05.085581Z\",\r\n        \"last_modified_by\": null,\r\n        \"last_modified_at\": null,\r\n        \"parent_id\": null,\r\n        \"row_version\": 6,\r\n        \"tag_names\": [\r\n            \"{{$randomDomainWord}}\",\r\n            \"{{$randomNamePrefix}} {{$randomDomainWord}}\",\r\n            \"roderick3\"\r\n        ]\r\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{hostname-my-headless-cms-api}}/categories",
+							"host": [
+								"{{hostname-my-headless-cms-api}}"
+							],
+							"path": [
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET All Categories",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Extract Ids\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var ids = jsonData.data.map(e => e.id);",
+									"",
+									"    pm.environment.set(\"all_category_ids\", JSON.stringify(ids));",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{client-secret-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{client-id-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "My Cms Api Writer",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "profile email my-image-processing-all my-headless-cms-api-all",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "authUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/auth",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "client_authentication",
+									"value": "body",
+									"type": "string"
+								},
+								{
+									"key": "useBrowser",
+									"value": true,
+									"type": "boolean"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{hostname-my-headless-cms-api}}/categories",
+							"host": [
+								"{{hostname-my-headless-cms-api}}"
+							],
+							"path": [
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Category",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{client-secret-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{client-id-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "My Cms Api Writer",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "profile email my-image-processing-all my-headless-cms-api-all",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "authUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/auth",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "client_authentication",
+									"value": "body",
+									"type": "string"
+								},
+								{
+									"key": "useBrowser",
+									"value": true,
+									"type": "boolean"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{hostname-my-headless-cms-api}}/categories/85ee2b2d-3937-4391-ae8d-66b63ef2cb65",
+							"host": [
+								"{{hostname-my-headless-cms-api}}"
+							],
+							"path": [
+								"categories",
+								"85ee2b2d-3937-4391-ae8d-66b63ef2cb65"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Categories",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{client-secret-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{client-id-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "My Cms Api Writer",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "profile email my-image-processing-all my-headless-cms-api-all",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "authUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/auth",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "client_authentication",
+									"value": "body",
+									"type": "string"
+								},
+								{
+									"key": "useBrowser",
+									"value": true,
+									"type": "boolean"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{{all_category_ids}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{hostname-my-headless-cms-api}}/categories",
+							"host": [
+								"{{hostname-my-headless-cms-api}}"
+							],
+							"path": [
+								"categories"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Posts",
+			"item": [
+				{
+					"name": "POST Post",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{client-secret-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{client-id-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "My Cms Api Writer",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "profile email my-image-processing-all my-headless-cms-api-all",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "authUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/auth",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "client_authentication",
+									"value": "body",
+									"type": "string"
+								},
+								{
+									"key": "useBrowser",
+									"value": true,
+									"type": "boolean"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"{{$randomProductName}}\",\r\n    \"preview_content\": \"{{$randomLoremParagraph}}\",\r\n    \"content\": \"{{$randomLoremParagraph}}\\n{{$randomLoremParagraph}}\",\r\n    \"category_id\": \"{{recently_created_category_id}}\",\r\n    \"published\": false,\r\n    \"tag_names\": [\r\n        \"{{$randomFullName}}\",\r\n        \"{{$randomFullName}}\"\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{hostname-my-headless-cms-api}}/posts",
+							"host": [
+								"{{hostname-my-headless-cms-api}}"
+							],
+							"path": [
+								"posts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT post",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{client-secret-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{client-id-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "My Cms Api Writer",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "profile email my-image-processing-all my-headless-cms-api-all",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "authUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/auth",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "client_authentication",
+									"value": "body",
+									"type": "string"
+								},
+								{
+									"key": "useBrowser",
+									"value": true,
+									"type": "boolean"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"82b3ba17-5530-4f93-960e-ab4f95010aca\",\r\n    \"title\": \"Blog Title 453-311-7003 -  Updated\",\r\n    \"content\": \"Good content!\",\r\n    \"slug\": \"blog-title-782-518-0515\",\r\n    \"published\": false,\r\n    \"category_id\": \"69dbb3a4-91a9-4b18-9d4f-c8ae12d7c64e\",\r\n    \"row_version\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{hostname-my-headless-cms-api}}/posts",
+							"host": [
+								"{{hostname-my-headless-cms-api}}"
+							],
+							"path": [
+								"posts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET All Posts",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{client-secret-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{client-id-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "My Cms Api Writer",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "profile email my-image-processing-all my-headless-cms-api-all",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "authUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/auth",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "client_authentication",
+									"value": "body",
+									"type": "string"
+								},
+								{
+									"key": "useBrowser",
+									"value": true,
+									"type": "boolean"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{hostname-my-headless-cms-api}}/posts",
+							"host": [
+								"{{hostname-my-headless-cms-api}}"
+							],
+							"path": [
+								"posts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Post By Id",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{client-secret-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{client-id-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "My Cms Api Writer",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "profile email my-image-processing-all my-headless-cms-api-all",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "authUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/auth",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "client_authentication",
+									"value": "body",
+									"type": "string"
+								},
+								{
+									"key": "useBrowser",
+									"value": true,
+									"type": "boolean"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{hostname-my-headless-cms-api}}/posts/4db6430a-0a98-4f62-9f4f-61ab09774492",
+							"host": [
+								"{{hostname-my-headless-cms-api}}"
+							],
+							"path": [
+								"posts",
+								"4db6430a-0a98-4f62-9f4f-61ab09774492"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Posts",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{client-secret-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{client-id-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "My Cms Api Writer",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "profile email my-image-processing-all my-headless-cms-api-all",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "authUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/auth",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "client_authentication",
+									"value": "body",
+									"type": "string"
+								},
+								{
+									"key": "useBrowser",
+									"value": true,
+									"type": "boolean"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{hostname-my-headless-cms-api}}/posts",
+							"host": [
+								"{{hostname-my-headless-cms-api}}"
+							],
+							"path": [
+								"posts"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tags",
+			"item": [
+				{
+					"name": "DELETE Tags",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "clientSecret",
+									"value": "{{client-secret-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{client-id-cms-api-writer}}",
+									"type": "string"
+								},
+								{
+									"key": "tokenName",
+									"value": "My Cms Api Writer",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "profile email my-image-processing-all my-headless-cms-api-all",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "authUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/auth",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "client_authentication",
+									"value": "body",
+									"type": "string"
+								},
+								{
+									"key": "useBrowser",
+									"value": true,
+									"type": "boolean"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[\r\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{hostname-my-headless-cms-api}}/tags",
+							"host": [
+								"{{hostname-my-headless-cms-api}}"
+							],
+							"path": [
+								"tags"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Administrator",
+			"item": [
+				{
+					"name": "POST /admin/database/migration",
+					"request": {
+						"auth": {
+							"type": "oauth2",
+							"oauth2": [
+								{
+									"key": "tokenName",
+									"value": "My Cms Api Admin",
+									"type": "string"
+								},
+								{
+									"key": "clientSecret",
+									"value": "{{client-secret-cms-api}}",
+									"type": "string"
+								},
+								{
+									"key": "clientId",
+									"value": "{{client-id-cms-api}}",
+									"type": "string"
+								},
+								{
+									"key": "scope",
+									"value": "my-headless-cms-api-all email",
+									"type": "string"
+								},
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "string"
+								},
+								{
+									"key": "authUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/auth",
+									"type": "string"
+								},
+								{
+									"key": "accessTokenUrl",
+									"value": "https://keycloak-admin.doitsu.tech/realms/master/protocol/openid-connect/token",
+									"type": "string"
+								},
+								{
+									"key": "client_authentication",
+									"value": "body",
+									"type": "string"
+								},
+								{
+									"key": "useBrowser",
+									"value": true,
+									"type": "boolean"
+								},
+								{
+									"key": "addTokenTo",
+									"value": "header",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{hostname-my-headless-cms-api}}/administrator/database/migration",
+							"host": [
+								"{{hostname-my-headless-cms-api}}"
+							],
+							"path": [
+								"administrator",
+								"database",
+								"migration"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "GET /healthz",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\": \"Tiel {{$randomPhoneNumber}}\",\r\n    \"content\": \"Good content!\",\r\n    \"slug\": \"tiel-{{$randomPhoneNumber}}\",\r\n    \"published\": false\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{hostname-my-headless-cms-api}}/healthz",
+					"host": [
+						"{{hostname-my-headless-cms-api}}"
+					],
+					"path": [
+						"healthz"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
