@@ -2,14 +2,16 @@ use std::sync::Arc;
 
 use super::create_request::CreateCategoryRequest;
 use crate::{
-    commands::tag::read::read_handler::{TagReadHandler, TagReadHandlerTrait},
-    common::datetime_generator::generate_vietname_now,
-    entities::{categories, category_tags, tags},
-    Categories, Tags,
+    commands::tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
+    common::{
+        app_error::{AppError, AppErrorExt},
+        datetime_generator::generate_vietname_now,
+    },
+    entities::{categories, category_tags},
+    Categories,
 };
 use sea_orm::{
-    DatabaseConnection, DbErr, EntityTrait, IntoActiveModel, Set, TransactionError,
-    TransactionTrait,
+    DatabaseConnection, EntityTrait, IntoActiveModel, TransactionError, TransactionTrait,
 };
 use tracing::instrument;
 use uuid::Uuid;
@@ -19,7 +21,7 @@ pub trait CategoryCreateHandlerTrait {
         &self,
         body: CreateCategoryRequest,
         actor_email: Option<String>,
-    ) -> impl std::future::Future<Output = Result<Uuid, TransactionError<DbErr>>>;
+    ) -> impl std::future::Future<Output = Result<Uuid, AppError>>;
 }
 
 #[derive(Debug)]
@@ -33,11 +35,10 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
         &self,
         body: CreateCategoryRequest,
         actor_email: Option<String>,
-    ) -> Result<Uuid, TransactionError<DbErr>> {
-        let tag_read_handler = TagReadHandler {
+    ) -> Result<Uuid, AppError> {
+        let tag_create_handler = TagCreateHandler {
             db: self.db.clone(),
         };
-
         // Prepare Category
         let model: categories::Model = body.into_model();
         let model = categories::Model {
@@ -48,59 +49,36 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
         let create_category = categories::ActiveModel {
             ..model.into_active_model()
         };
+
         // Prepare Tags
         let tags: Vec<String> = body.tag_names.unwrap_or_default();
-        let classifed_tags = tag_read_handler
-            .handle_get_and_classify_tags_by_names(tags)
-            .await?;
 
-        let existing_tag_ids = classifed_tags
-            .existing_tags
-            .iter()
-            .map(|tag| tag.id)
-            .collect::<Vec<Uuid>>();
-
-        let result: Result<Uuid, TransactionError<DbErr>> = self
+        let result: Result<Uuid, TransactionError<AppError>> = self
             .db
             .as_ref()
-            .transaction::<_, Uuid, DbErr>(|tx| {
+            .transaction::<_, Uuid, AppError>(|tx| {
                 Box::pin(async move {
-                    // Insert Category
-                    let inserted_category = Categories::insert(create_category).exec(tx).await?;
-
                     // Insert New Tags
-                    let mut new_tag_ids: Vec<Uuid> = vec![];
-                    if !classifed_tags.new_tags.is_empty() {
-                        let new_tags = classifed_tags
-                            .new_tags
-                            .iter()
-                            .map(|tag| {
-                                let id = Uuid::new_v4();
-                                new_tag_ids.push(id);
-                                tags::ActiveModel {
-                                    id: Set(id),
-                                    name: tag.name.clone(),
-                                    slug: tag.slug.clone(),
-                                    created_by: Set(actor_email
-                                        .clone()
-                                        .unwrap_or("System".to_string())),
-                                    created_at: Set(generate_vietname_now()),
-                                    ..Default::default()
-                                }
-                            })
-                            .collect::<Vec<tags::ActiveModel>>();
-                        Tags::insert_many(new_tags).exec(tx).await?;
-                    }
+                    let create_tags_response = tag_create_handler
+                        .handle_create_tags_in_transaction(tags, actor_email, tx)
+                        .await?;
 
                     // Combine New Tag Ids and Existing Tag Ids
-                    let all_tags = existing_tag_ids
+                    let all_tag_ids = create_tags_response
+                        .existing_tag_ids
                         .into_iter()
-                        .chain(new_tag_ids.into_iter())
+                        .chain(create_tags_response.new_tag_ids)
                         .collect::<Vec<Uuid>>();
 
+                    // Insert Category
+                    let inserted_category = Categories::insert(create_category)
+                        .exec(tx)
+                        .await
+                        .map_err(|e| e.to_app_error())?;
+
                     // Insert Category Tags
-                    if !all_tags.is_empty() {
-                        let category_tags = all_tags
+                    if !all_tag_ids.is_empty() {
+                        let category_tags = all_tag_ids
                             .iter()
                             .map(|tag_id| {
                                 category_tags::Model {
@@ -113,7 +91,8 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
 
                         category_tags::Entity::insert_many(category_tags)
                             .exec(tx)
-                            .await?;
+                            .await
+                            .map_err(|e| e.to_app_error())?;
                     }
 
                     Ok(inserted_category.last_insert_id)
@@ -123,52 +102,36 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
 
         match result {
             Ok(inserted_id) => Ok(inserted_id),
-            Err(e) => Err(e),
+            Err(e) => Err(e.to_app_error()),
         }
     }
 }
 
 #[cfg(test)]
-mod tests {
-    use migration::{Migrator, MigratorTrait};
-    use sea_orm::Database;
+pub mod tests {
     use std::sync::Arc;
-    use testcontainers::runners::AsyncRunner;
-    use testcontainers_modules::postgres::Postgres;
+    use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
 
-    use crate::{
-        commands::category::{
-            create::{
-                create_handler::CategoryCreateHandlerTrait, create_request::CreateCategoryRequest,
-            },
-            read::category_read_handler::{CategoryReadHandler, CategoryReadHandlerTrait},
-        },
-        entities::sea_orm_active_enums::CategoryType,
+    use crate::commands::category::{
+        create::create_handler::CategoryCreateHandlerTrait,
+        read::category_read_handler::{CategoryReadHandler, CategoryReadHandlerTrait},
+        test::{fake_create_category_request, fake_create_category_request_as_child},
     };
 
     #[async_std::test]
     async fn handle_create_cartegory_testcase_01() {
         let beginning_test_timestamp = chrono::Utc::now();
-        let postgres = Postgres::default().start().await.unwrap();
-        let connection_string: String = format!(
-            "postgres://postgres:postgres@127.0.0.1:{}/postgres",
-            postgres.get_host_port_ipv4(5432).await.unwrap()
-        );
-        let conn = Database::connect(&connection_string).await.unwrap();
-        Migrator::refresh(&conn).await.unwrap();
-
-        let request = CreateCategoryRequest {
-            display_name: "Category 1".to_string(),
-            slug: "category-1".to_string(),
-            category_type: CategoryType::Blog,
-            tag_names: Some(vec!["Tag 1".to_string()]),
-            parent_id: None,
-        };
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        let number_of_tags = 5;
+        let request = fake_create_category_request(number_of_tags);
 
         let create_handler = super::CategoryCreateHandler {
-            db: Arc::new(conn.clone()),
+            db: Arc::new(database.clone()),
         };
-        let read_handler = CategoryReadHandler { db: Arc::new(conn) };
+        let read_handler = CategoryReadHandler {
+            db: Arc::new(database),
+        };
 
         let result = create_handler
             .handle_create_category_with_tags(request, None)
@@ -183,43 +146,25 @@ mod tests {
         assert!(first.created_by == "System");
         assert!(first.created_at >= beginning_test_timestamp);
         assert!(first.row_version == 1);
+        assert!(first.tags.len() == number_of_tags);
     }
 
     #[async_std::test]
     async fn handle_create_cartegory_testcase_parent() {
-        // TODO: Make those steps to common_tests
-        let postgres = Postgres::default().start().await.unwrap();
-        let connection_string: String = format!(
-            "postgres://postgres:postgres@127.0.0.1:{}/postgres",
-            postgres.get_host_port_ipv4(5432).await.unwrap()
-        );
-        let conn = Database::connect(&connection_string).await.unwrap();
-        Migrator::refresh(&conn).await.unwrap();
+        let test_space = setup_test_space().await;
+        let conn = test_space.postgres.get_database_connection().await;
+        let number_of_tags = 5;
 
         let create_handler = super::CategoryCreateHandler {
             db: Arc::new(conn.clone()),
         };
         let read_handler = CategoryReadHandler { db: Arc::new(conn) };
-
-        let parent_request = CreateCategoryRequest {
-            display_name: "Category 1".to_string(),
-            slug: "category-1".to_string(),
-            category_type: CategoryType::Blog,
-            parent_id: None,
-            tag_names: None,
-        };
-        let parent = create_handler
+        let parent_request = fake_create_category_request(number_of_tags);
+        let parent_id = create_handler
             .handle_create_category_with_tags(parent_request, None)
             .await
             .unwrap();
-
-        let child_request = CreateCategoryRequest {
-            display_name: "Child of Category 1".to_string(),
-            slug: "child-of-category-1".to_string(),
-            category_type: CategoryType::Blog,
-            parent_id: Some(parent),
-            tag_names: None,
-        };
+        let child_request = fake_create_category_request_as_child(parent_id, number_of_tags);
         let child = create_handler
             .handle_create_category_with_tags(child_request, None)
             .await

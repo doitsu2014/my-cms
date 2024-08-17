@@ -1,5 +1,5 @@
 [workspace]
-members = ["application_core", "migration"]
+members = ["application_core", "migration", "test_helpers"]
 
 [package]
 name = "cms"

@@ -1,7 +1,8 @@
 use std::env;
+use std::sync::Arc;
 
 use axum::{
-    routing::{get, post},
+    routing::{delete, get, post},
     Router,
 };
 use axum_keycloak_auth::{
@@ -9,7 +10,11 @@ use axum_keycloak_auth::{
     layer::KeycloakAuthLayer,
     PassthroughMode,
 };
-use cms::{api, public, AppState};
+use cms::{
+    api, category::delete::delete_handler::api_delete_categories,
+    post::delete::delete_handler::api_delete_posts, public,
+    tag::delete::delete_handler::api_delete_tags, AppState,
+};
 use dotenv::dotenv;
 use init_tracing_opentelemetry::{
     tracing_subscriber_ext::{build_logger_text, build_loglevel_filter_layer, build_otel_layer},
@@ -90,14 +95,25 @@ pub async fn protected_router() -> Router {
             "/categories",
             get(api::category::read::read_handler::api_get_all_categories)
                 .post(api::category::create::create_handler::api_create_category_with_tags)
-                .put(api::category::modify::modify_handler::api_modify_category),
+                .put(api::category::modify::modify_handler::api_modify_category)
+                .delete(api_delete_categories),
+        )
+        .route(
+            "/categories/:category_id",
+            get(api::category::read::read_handler::api_get_category),
         )
         .route(
             "/posts",
             get(api::post::read::read_handler::api_get_all_posts)
                 .post(api::post::create::create_handler::api_create_post)
-                .put(api::post::modify::modify_handler::api_modify_post),
+                .put(api::post::modify::modify_handler::api_modify_post)
+                .delete(api_delete_posts),
         )
+        .route(
+            "/posts/:post_id",
+            get(api::post::read::read_handler::api_get_post),
+        )
+        .route("/tags", delete(api_delete_tags))
         .layer(
             KeycloakAuthLayer::<String>::builder()
                 .instance(construct_keycloak_auth_instance())
@@ -139,7 +155,9 @@ pub async fn protected_administrator_router() -> Router {
 async fn construct_app_state() -> AppState {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let conn = Database::connect(&database_url).await.unwrap();
-    AppState { conn }
+    AppState {
+        conn: Arc::new(conn),
+    }
 }
 
 fn construct_keycloak_auth_instance() -> KeycloakAuthInstance {

@@ -1,3 +1,4 @@
+use application_core::common::app_error::AppError;
 use axum::{http::StatusCode, response::Response};
 use hyper::header::CONTENT_TYPE;
 use serde::Serialize;
@@ -65,17 +66,23 @@ pub enum ErrorCode {
     ValidationError,
     #[serde(rename = "10001")]
     ConnectionError,
+    #[serde(rename = "10002")]
+    Logical,
+    #[serde(rename = "99999")]
+    ConcurrencyOptimistic,
 }
 
 impl AxumResponse for ApiResponseError {
     fn to_axum_response(self) -> Response<String> {
         let status_code = match self.error_code {
             ErrorCode::UnknownError => StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorCode::ConnectionError => StatusCode::INTERNAL_SERVER_ERROR,
             ErrorCode::UnAuthorized => StatusCode::UNAUTHORIZED,
             ErrorCode::ForBidden => StatusCode::FORBIDDEN,
             ErrorCode::NotFound => StatusCode::NOT_FOUND,
             ErrorCode::ValidationError => StatusCode::BAD_REQUEST,
-            ErrorCode::ConnectionError => StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorCode::Logical => StatusCode::BAD_REQUEST,
+            ErrorCode::ConcurrencyOptimistic => StatusCode::BAD_REQUEST,
         };
 
         let json_body = serde_json::to_string(&self).unwrap();
@@ -108,6 +115,26 @@ impl ApiResponseError {
         Self {
             error_code: ErrorCode::UnknownError,
             errors: vec![],
+        }
+    }
+
+    pub fn from_app_error(app_error: AppError) -> Self {
+        match app_error {
+            AppError::Db(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err.to_string()),
+            AppError::DbTx(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err.to_string()),
+            AppError::Validation(field, message) => Self::new()
+                .with_error_code(ErrorCode::ValidationError)
+                .add_error(format!("{}: {}", field, message)),
+            AppError::Logical(m) => Self::new().with_error_code(ErrorCode::Logical).add_error(m),
+            AppError::ConcurrencyOptimistic(m) => Self::new()
+                .with_error_code(ErrorCode::ConcurrencyOptimistic)
+                .add_error(m),
+            AppError::Unknown => Self::new().with_error_code(ErrorCode::UnknownError),
+            AppError::NotFound => Self::new().with_error_code(ErrorCode::NotFound),
         }
     }
 }

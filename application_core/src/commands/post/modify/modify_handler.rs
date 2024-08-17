@@ -1,11 +1,23 @@
-use sea_orm::{sea_query::Expr, DatabaseConnection, DbErr, EntityTrait, QueryFilter, Set};
+use sea_orm::{
+    sea_query::Expr, DatabaseConnection, EntityTrait, QueryFilter, Set, TransactionTrait,
+};
 use std::sync::Arc;
 use tracing::instrument;
 use uuid::Uuid;
 
 use crate::{
-    common::datetime_generator::generate_vietname_now,
-    entities::posts::{Column, Entity},
+    commands::{
+        post::read::read_handler::{PostReadHandler, PostReadHandlerTrait, PostReadResponse},
+        tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
+    },
+    common::{
+        app_error::{AppError, AppErrorExt},
+        datetime_generator::generate_vietname_now,
+    },
+    entities::{
+        post_tags,
+        posts::{self, Column},
+    },
 };
 
 use super::modify_request::ModifyPostRequest;
@@ -15,7 +27,7 @@ pub trait PostModifyHandlerTrait {
         &self,
         body: ModifyPostRequest,
         actor_email: Option<String>,
-    ) -> impl std::future::Future<Output = Result<Uuid, DbErr>>;
+    ) -> impl std::future::Future<Output = Result<Uuid, AppError>>;
 }
 
 #[derive(Debug)]
@@ -29,73 +41,131 @@ impl PostModifyHandlerTrait for PostModifyHandler {
         &self,
         body: ModifyPostRequest,
         actor_email: Option<String>,
-    ) -> Result<Uuid, DbErr> {
-        // check id does exist
-        let post = Entity::find_by_id(body.id).one(self.db.as_ref()).await?;
-        if post.is_none() {
-            return Err(DbErr::RecordNotFound("Post not found".to_string()));
-        }
-        let current_row_version = body.row_version;
-        let mut model = body.into_active_model();
-        model.last_modified_by = Set(actor_email);
-        model.last_modified_at = Set(Some(generate_vietname_now()));
+    ) -> Result<Uuid, AppError> {
+        let post_read_handler = PostReadHandler {
+            db: self.db.clone(),
+        };
 
-        // Update  the category with current row version, if row version is not matched, return error
-        let result = Entity::update_many()
-            .set(model)
-            .filter(Expr::col(Column::Id).eq(body.id))
-            .filter(Expr::col(Column::RowVersion).eq(current_row_version))
-            .exec(self.db.as_ref())
-            .await?;
+        let tag_create_handler = TagCreateHandler {
+            db: self.db.clone(),
+        };
 
-        match result.rows_affected > 0 {
-            true => Ok(body.id),
-            false => Err(DbErr::Custom("Row version is not matched".to_string())),
-        }
+        // Update the category with current row version, if row version is not matched, return error
+        let result: Result<Uuid, AppError> = self
+            .db
+            .as_ref()
+            .transaction::<_, Uuid, AppError>(|tx| {
+                Box::pin(async move {
+                    // 1. Prepare Active Category
+                    let modified_id = body.id;
+                    let current_row_version = body.row_version;
+                    let mut model = body.into_active_model();
+                    model.last_modified_by = Set(actor_email.clone());
+                    model.last_modified_at = Set(Some(generate_vietname_now()));
+
+                    // 2. Insert new tags
+                    let tags: Vec<String> = body.tag_names.unwrap_or_default().clone();
+                    let create_tags_response = tag_create_handler
+                        .handle_create_tags_in_transaction(tags.clone(), actor_email, tx)
+                        .await?;
+                    // Combine New Tag Ids and Existing Tag Ids
+                    let new_tag_ids = create_tags_response.new_tag_ids;
+
+                    // 2.1. Get existing category
+                    let db_post: PostReadResponse =
+                        post_read_handler.handle_get_post(modified_id).await?;
+
+                    // 2.2 Figure out tags to delete
+                    let tags_to_delete: Vec<Uuid> = db_post
+                        .tags
+                        .iter()
+                        .filter(|t| !tags.contains(&t.name))
+                        .map(|t| t.id)
+                        .collect();
+
+                    // 3. Update Category and Tags
+                    // 3.1. Delete and Insert Tags
+                    if !tags_to_delete.is_empty() {
+                        post_tags::Entity::delete_many()
+                            .filter(Expr::col(post_tags::Column::PostId).eq(modified_id))
+                            .filter(Expr::col(post_tags::Column::TagId).is_in(tags_to_delete))
+                            .exec(tx)
+                            .await
+                            .map_err(|err| err.to_app_error())?;
+                    }
+                    // 3.2. Insert post Tags
+                    if !new_tag_ids.is_empty() {
+                        let post_tags_to_insert = new_tag_ids
+                            .iter()
+                            .map(|tag_id| post_tags::ActiveModel {
+                                post_id: Set(body.id),
+                                tag_id: Set(tag_id.to_owned()),
+                            })
+                            .collect::<Vec<post_tags::ActiveModel>>();
+
+                        post_tags::Entity::insert_many(post_tags_to_insert)
+                            .exec(tx)
+                            .await
+                            .map_err(|err| err.to_app_error())?;
+                    }
+
+                    // 3.3. Modify Category information
+                    let modified_result = posts::Entity::update_many()
+                        .set(model)
+                        .filter(Expr::col(Column::Id).eq(modified_id))
+                        .filter(Expr::col(Column::RowVersion).eq(current_row_version))
+                        .exec(tx)
+                        .await
+                        .map_err(|err| err.to_app_error())?;
+
+                    match modified_result.rows_affected == 0 {
+                        true => {
+                            return Err(AppError::Logical("Row version is not matched".to_string()))
+                        }
+                        false => (),
+                    }
+
+                    Ok(modified_id)
+                })
+            })
+            .await
+            .map_err(|e| e.to_app_error());
+
+        result
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use migration::{Migrator, MigratorTrait};
-    use sea_orm::Database;
     use std::sync::Arc;
-    use testcontainers::runners::AsyncRunner;
-    use testcontainers_modules::postgres::Postgres;
+    use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
 
     use crate::{
         commands::{
-            category::create::{
-                create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
-                create_request::CreateCategoryRequest,
+            category::{
+                create::create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
+                test::fake_create_category_request,
             },
             post::{
-                create::{
-                    create_handler::{PostCreateHandler, PostCreateHandlerTrait},
-                    create_request::CreatePostRequest,
-                },
+                create::create_handler::{PostCreateHandler, PostCreateHandlerTrait},
                 modify::{
                     modify_handler::{PostModifyHandler, PostModifyHandlerTrait},
                     modify_request::ModifyPostRequest,
                 },
                 read::read_handler::{PostReadHandler, PostReadHandlerTrait},
+                test::fake_create_post_request,
             },
         },
-        entities::sea_orm_active_enums::CategoryType,
+        StringExtension,
     };
 
     #[async_std::test]
     async fn handle_modify_post_testcase_successfully() {
         let beginning_test_timestamp = chrono::Utc::now();
-        let postgres = Postgres::default().start().await.unwrap();
-        let connection_string: String = format!(
-            "postgres://postgres:postgres@127.0.0.1:{}/postgres",
-            postgres.get_host_port_ipv4(5432).await.unwrap()
-        );
-        let conn = Database::connect(&connection_string).await.unwrap();
-        Migrator::refresh(&conn).await.unwrap();
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
 
-        let arc_conn = Arc::new(conn.clone());
+        let arc_conn = Arc::new(database.clone());
 
         let category_create_handler = CategoryCreateHandler {
             db: arc_conn.clone(),
@@ -110,71 +180,50 @@ mod tests {
             db: arc_conn.clone(),
         };
 
-        let create_category_request = CreateCategoryRequest {
-            display_name: "Blog Category".to_string(),
-            slug: "blog-category".to_string(),
-            category_type: CategoryType::Blog,
-            parent_id: None,
-            tag_names: None,
-        };
-
+        let create_category_request = fake_create_category_request(3);
         let created_category_id = category_create_handler
             .handle_create_category_with_tags(create_category_request, None)
             .await
             .unwrap();
-
-        let create_post_request = CreatePostRequest {
-            title: "Post Title".to_string(),
-            preview_content: None,
-            content: "Post Content".to_string(),
-            published: false,
-            category_id: created_category_id,
-            slug: "post-title".to_string(),
-        };
-
+        let create_post_request = fake_create_post_request(created_category_id, 5);
         let result = post_create_handler
-            .handle_create_post(create_post_request, None)
+            .handle_create_post(create_post_request.clone(), None)
             .await
             .unwrap();
 
+        let updated_title = format!("{} Updated", create_post_request.title);
+        let updated_content = format!("{} Updated", create_post_request.content);
         let request = ModifyPostRequest {
             id: result,
-            title: "Post Title - Updated".to_string(),
+            title: updated_title.to_owned(),
+            content: updated_content.to_owned(),
             preview_content: None,
-            content: "Post Content - Updated".to_string(),
             published: true,
             category_id: created_category_id,
-            slug: "post-title-updated".to_string(),
             row_version: 1,
+            tag_names: None,
         };
-
         let result = post_modify_handler
-            .handle_modify_post(request, Some("Last Modifier".to_string()))
+            .handle_modify_post(request.clone(), Some("Last Modifier".to_string()))
             .await
             .unwrap();
-
         let posts_in_db = post_read_handler.handle_get_all_posts().await.unwrap();
         let first = posts_in_db.first().unwrap();
 
         assert_eq!(result, first.id);
-        assert!(first.created_by == "System");
         assert!(first.created_at >= beginning_test_timestamp);
         assert!(first.row_version == 2);
-        assert!(first.title == "Post Title - Updated");
-        assert!(first.content == "Post Content - Updated");
-        assert!(first.slug == "post-title-updated");
+        assert!(first.title == request.title);
+        assert!(first.slug == request.title.to_slug());
+        assert!(first.content == request.content);
+        assert!(first.created_by == "System");
         assert!(first.last_modified_by == Some("Last Modifier".to_string()));
     }
 
     #[async_std::test]
     async fn handle_modify_post_testcase_failed() {
-        let postgres = Postgres::default().start().await.unwrap();
-        let connection_string: String = format!(
-            "postgres://postgres:postgres@127.0.0.1:{}/postgres",
-            postgres.get_host_port_ipv4(5432).await.unwrap()
-        );
-        let conn = Database::connect(&connection_string).await.unwrap();
-        Migrator::refresh(&conn).await.unwrap();
+        let test_space = setup_test_space().await;
+        let conn = test_space.postgres.get_database_connection().await;
 
         let arc_conn = Arc::new(conn.clone());
         let category_create_handler = CategoryCreateHandler {
@@ -187,42 +236,26 @@ mod tests {
             db: arc_conn.clone(),
         };
 
-        let create_category_request = CreateCategoryRequest {
-            display_name: "Blog Category".to_string(),
-            slug: "blog-category".to_string(),
-            category_type: CategoryType::Blog,
-            parent_id: None,
-            tag_names: None,
-        };
-
+        let create_category_request = fake_create_category_request(3);
         let created_category_id = category_create_handler
             .handle_create_category_with_tags(create_category_request, None)
             .await
             .unwrap();
-
-        let create_post_request = CreatePostRequest {
-            title: "Post Title".to_string(),
-            preview_content: None,
-            content: "Post Content".to_string(),
-            published: false,
-            category_id: created_category_id,
-            slug: "post-title".to_string(),
-        };
-
+        let create_post_request = fake_create_post_request(created_category_id, 5);
         let result = post_create_handler
-            .handle_create_post(create_post_request, None)
+            .handle_create_post(create_post_request.clone(), None)
             .await
             .unwrap();
-
+        let updated_title = format!("{} Updated", create_post_request.title);
         let request = ModifyPostRequest {
             id: result,
-            title: "Post Title - Updated".to_string(),
+            title: format!("{} Updated", updated_title),
+            content: format!("{} Updated", create_post_request.content),
             preview_content: None,
-            content: "Post Content - Updated".to_string(),
             published: true,
             category_id: created_category_id,
-            slug: "post-title-updated".to_string(),
             row_version: 0,
+            tag_names: None,
         };
 
         let result = post_modify_handler
