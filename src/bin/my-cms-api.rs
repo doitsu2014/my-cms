@@ -32,8 +32,9 @@ use tracing_subscriber::layer::SubscriberExt;
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
     from_filename("secret.env").ok();
+    dotenv().ok();
+
     init_my_subscribers().unwrap();
 
     let app = public_router()
