@@ -117,6 +117,10 @@ pub async fn protected_router() -> Router {
             get(api::post::read::read_handler::api_get_post),
         )
         .route("/tags", delete(api_delete_tags))
+        .route(
+            "/media/images",
+            post(api::media::create::create_handler::api_create_media_image),
+        )
         .layer(
             KeycloakAuthLayer::<String>::builder()
                 .instance(construct_keycloak_auth_instance())
@@ -158,7 +162,6 @@ pub async fn protected_administrator_router() -> Router {
 async fn construct_app_state() -> AppState {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let conn = Database::connect(&database_url).await.unwrap();
-
     let s3_region_str: String = env::var("S3_REGION").unwrap_or_default();
     let s3_region: Region = s3_region_str.parse().unwrap_or(Region::ApSoutheast1);
     let s3_bucket_name = env::var("S3_BUCKET_NAME").unwrap_or_default();
