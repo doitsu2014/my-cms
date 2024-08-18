@@ -11,14 +11,20 @@ pub trait CreateMediaHandlerTrait {
         &self,
         media_name: String,
         media: &[u8],
+        content_type: String,
     ) -> impl std::future::Future<Output = Result<(), AppError>>;
 }
 
 impl CreateMediaHandlerTrait for CreateMediaHandler {
-    async fn create_image_media(&self, media_name: String, media: &[u8]) -> Result<(), AppError> {
+    async fn create_image_media(
+        &self,
+        media_name: String,
+        media: &[u8],
+        content_type: String,
+    ) -> Result<(), AppError> {
         let bucket = self.s3_media_storage.spawn_bucket()?;
         let response = bucket
-            .put_object(media_name, media)
+            .put_object_with_content_type(media_name, media, content_type.as_str())
             .await
             .map_err(|e| e.into())?;
         info!("{:?}", response);
