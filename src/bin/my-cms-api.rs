@@ -16,7 +16,7 @@ use cms::{
     post::delete::delete_handler::api_delete_posts, public,
     tag::delete::delete_handler::api_delete_tags, AppState,
 };
-use dotenv::dotenv;
+use dotenv::{dotenv, from_filename};
 use init_tracing_opentelemetry::{
     tracing_subscriber_ext::{build_logger_text, build_loglevel_filter_layer, build_otel_layer},
     Error,
@@ -33,6 +33,7 @@ use tracing_subscriber::layer::SubscriberExt;
 #[tokio::main]
 async fn main() {
     dotenv().ok();
+    from_filename("secret.env").ok();
     init_my_subscribers().unwrap();
 
     let app = public_router()
