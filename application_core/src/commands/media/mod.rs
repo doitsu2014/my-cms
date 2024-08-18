@@ -6,6 +6,7 @@ pub mod create;
 pub mod delete;
 pub mod read;
 
+#[derive(Clone, Debug)]
 pub struct S3MediaStorage {
     pub s3_region: Region,
     pub s3_credentials: Credentials,

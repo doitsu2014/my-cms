@@ -1,6 +1,7 @@
 use std::env;
 use std::sync::Arc;
 
+use application_core::commands::media::S3MediaStorage;
 use axum::{
     routing::{delete, get, post},
     Router,
@@ -21,6 +22,7 @@ use init_tracing_opentelemetry::{
     Error,
 };
 use reqwest::Url;
+use s3::{creds::Credentials, Region};
 use sea_orm::Database;
 use tower_cookies::CookieManagerLayer;
 use tracing::info;
@@ -155,8 +157,20 @@ pub async fn protected_administrator_router() -> Router {
 async fn construct_app_state() -> AppState {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let conn = Database::connect(&database_url).await.unwrap();
+
+    let s3_region_str: String = env::var("S3_REGION").unwrap_or_default();
+    let s3_region: Region = s3_region_str.parse().unwrap_or(Region::ApSoutheast1);
+    let s3_bucket_name = env::var("S3_BUCKET_NAME").unwrap_or_default();
+    let s3_credentials: Credentials =
+        Credentials::from_env().unwrap_or(Credentials::default().unwrap());
+
     AppState {
         conn: Arc::new(conn),
+        s3_media_storage: Arc::new(S3MediaStorage {
+            s3_region,
+            s3_credentials,
+            s3_bucket_name,
+        }),
     }
 }
 
