@@ -5,7 +5,7 @@ use tracing::instrument;
 use uuid::Uuid;
 
 use crate::{
-    common::app_error::{AppError, AppErrorExt},
+    common::app_error::AppError,
     entities::{posts::Model, tags},
     Posts, Tags,
 };
@@ -26,28 +26,30 @@ pub struct PostReadResponse {
     pub row_version: i32,
     pub tags: Vec<tags::Model>,
     pub tag_names: Vec<String>,
+    pub thumbnail_paths: Vec<String>,
 }
 
 impl PostReadResponse {
-    fn new(category: Model, tags: Vec<tags::Model>) -> Self {
+    fn new(post: Model, tags: Vec<tags::Model>) -> Self {
         let tag_names = tags
             .iter()
             .map(|tag| tag.name.to_owned())
             .collect::<Vec<String>>();
 
         PostReadResponse {
-            id: category.id,
-            title: category.title,
-            preview_content: category.preview_content,
-            content: category.content,
-            slug: category.slug,
-            published: category.published,
-            created_by: category.created_by,
-            created_at: category.created_at,
-            last_modified_by: category.last_modified_by,
-            last_modified_at: category.last_modified_at,
-            category_id: category.category_id,
-            row_version: category.row_version,
+            id: post.id,
+            title: post.title,
+            preview_content: post.preview_content,
+            content: post.content,
+            slug: post.slug,
+            published: post.published,
+            created_by: post.created_by,
+            created_at: post.created_at,
+            last_modified_by: post.last_modified_by,
+            last_modified_at: post.last_modified_at,
+            category_id: post.category_id,
+            row_version: post.row_version,
+            thumbnail_paths: post.thumbnail_paths,
             tags,
             tag_names,
         }
@@ -77,7 +79,7 @@ impl PostReadHandlerTrait for PostReadHandler {
             .find_with_related(Tags)
             .all(self.db.as_ref())
             .await
-            .map_err(|e| e.to_app_error())?;
+            .map_err(|e| e.into())?;
 
         let response = db_result
             .iter()
@@ -95,7 +97,7 @@ impl PostReadHandlerTrait for PostReadHandler {
             .find_with_related(Tags)
             .all(self.db.as_ref())
             .await
-            .map_err(|e| e.to_app_error())?;
+            .map_err(|e| e.into())?;
 
         if db_result.is_empty() {
             return Result::Err(AppError::NotFound);
@@ -111,7 +113,6 @@ impl PostReadHandlerTrait for PostReadHandler {
             .unwrap()
             .to_owned();
 
-        // let category and tags
         Result::Ok(response)
     }
 }

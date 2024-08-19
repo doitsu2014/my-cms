@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    common::app_error::{AppError, AppErrorExt},
+    common::app_error::{AppError},
     entities::{categories::Model, sea_orm_active_enums::CategoryType, tags},
     Categories, Tags,
 };
@@ -71,7 +71,7 @@ impl CategoryReadHandlerTrait for CategoryReadHandler {
             .find_with_related(Tags)
             .all(self.db.as_ref())
             .await
-            .map_err(|e| e.to_app_error())?;
+            .map_err(|e| e.into())?;
 
         let response = db_result
             .iter()
@@ -89,7 +89,7 @@ impl CategoryReadHandlerTrait for CategoryReadHandler {
             .find_with_related(Tags)
             .all(self.db.as_ref())
             .await
-            .map_err(|e| e.to_app_error())?;
+            .map_err(|e| e.into())?;
 
         if db_result.is_empty() {
             return Result::Err(AppError::NotFound);

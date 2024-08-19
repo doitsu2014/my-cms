@@ -1,7 +1,9 @@
 use std::env;
 use std::sync::Arc;
 
+use application_core::commands::media::{MediaConfig, S3MediaStorage};
 use axum::{
+    extract::DefaultBodyLimit,
     routing::{delete, get, post},
     Router,
 };
@@ -15,12 +17,13 @@ use cms::{
     post::delete::delete_handler::api_delete_posts, public,
     tag::delete::delete_handler::api_delete_tags, AppState,
 };
-use dotenv::dotenv;
+use dotenv::{dotenv, from_filename};
 use init_tracing_opentelemetry::{
     tracing_subscriber_ext::{build_logger_text, build_loglevel_filter_layer, build_otel_layer},
     Error,
 };
 use reqwest::Url;
+use s3::{creds::Credentials, Region};
 use sea_orm::Database;
 use tower_cookies::CookieManagerLayer;
 use tracing::info;
@@ -30,7 +33,9 @@ use tracing_subscriber::layer::SubscriberExt;
 
 #[tokio::main]
 async fn main() {
+    from_filename("secret.env").ok();
     dotenv().ok();
+
     init_my_subscribers().unwrap();
 
     let app = public_router()
@@ -114,6 +119,10 @@ pub async fn protected_router() -> Router {
             get(api::post::read::read_handler::api_get_post),
         )
         .route("/tags", delete(api_delete_tags))
+        .route(
+            "/media/images",
+            post(api::media::create::create_handler::api_create_media_image),
+        )
         .layer(
             KeycloakAuthLayer::<String>::builder()
                 .instance(construct_keycloak_auth_instance())
@@ -126,6 +135,12 @@ pub async fn protected_router() -> Router {
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
         .layer(CookieManagerLayer::new())
+        .layer(DefaultBodyLimit::max(
+            env::var("MAX_BODY_LENGTH")
+                .unwrap_or((10 * 1024 * 1024).to_string())
+                .parse()
+                .unwrap(),
+        ))
         .with_state(app_state)
 }
 
@@ -155,8 +170,24 @@ pub async fn protected_administrator_router() -> Router {
 async fn construct_app_state() -> AppState {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let conn = Database::connect(&database_url).await.unwrap();
+    let s3_region_str: String = env::var("S3_REGION").unwrap_or_default();
+    let s3_region: Region = s3_region_str.parse().unwrap_or(Region::ApSoutheast1);
+    let s3_bucket_name = env::var("S3_BUCKET_NAME").unwrap_or_default();
+    let s3_credentials: Credentials =
+        Credentials::from_env().unwrap_or(Credentials::default().unwrap());
+
+    let media_imgproxy_server = env::var("MEDIA_IMG_PROXY_SERVER").unwrap_or_default();
+
     AppState {
         conn: Arc::new(conn),
+        media_config: Arc::new(MediaConfig {
+            s3_media_storage: S3MediaStorage {
+                s3_region,
+                s3_credentials,
+                s3_bucket_name,
+            },
+            media_imgproxy_server,
+        }),
     }
 }
 

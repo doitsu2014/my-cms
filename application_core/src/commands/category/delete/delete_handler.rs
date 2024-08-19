@@ -1,10 +1,6 @@
 use std::sync::Arc;
 
-use crate::{
-    common::app_error::{AppError, AppErrorExt},
-    entities::categories,
-    Categories,
-};
+use crate::{common::app_error::AppError, entities::categories, Categories};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use tracing::{info, instrument};
 use uuid::Uuid;
@@ -33,7 +29,7 @@ impl CategoryDeleteHandlerTrait for CategoryDeleteHandler {
             .filter(categories::Column::Id.is_in(ids))
             .exec(self.db.as_ref())
             .await
-            .map_err(|e| e.to_app_error())?;
+            .map_err(|e| e.into())?;
 
         info!(
             "{} categories deleted by {}",

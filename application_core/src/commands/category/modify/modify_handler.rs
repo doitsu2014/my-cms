@@ -7,7 +7,7 @@ use crate::{
         },
         tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
     },
-    common::app_error::{AppError, AppErrorExt},
+    common::app_error::{AppError},
     entities::{
         categories::{self, Column},
         category_tags,
@@ -90,7 +90,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                             .filter(Expr::col(category_tags::Column::TagId).is_in(tags_to_delete))
                             .exec(tx)
                             .await
-                            .map_err(|err| err.to_app_error())?;
+                            .map_err(|err| err.into())?;
                     }
                     // 3.2. Insert Category Tags
                     if !new_tag_ids.is_empty() {
@@ -105,7 +105,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         category_tags::Entity::insert_many(category_tags_to_insert)
                             .exec(tx)
                             .await
-                            .map_err(|err| err.to_app_error())?;
+                            .map_err(|err| err.into())?;
                     }
 
                     // 3.3. Modify Category information
@@ -115,7 +115,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         .filter(Expr::col(Column::RowVersion).eq(current_row_version))
                         .exec(tx)
                         .await
-                        .map_err(|err| err.to_app_error())?;
+                        .map_err(|err| err.into())?;
 
                     match modified_result.rows_affected == 0 {
                         true => {
@@ -128,7 +128,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                 })
             })
             .await
-            .map_err(|e| e.to_app_error());
+            .map_err(|e| e.into());
 
         result
     }

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    common::app_error::{AppError, AppErrorExt},
+    common::app_error::{AppError},
     entities::posts,
     Posts,
 };
@@ -33,7 +33,7 @@ impl PostDeleteHandlerTrait for PostDeleteHandler {
             .filter(posts::Column::Id.is_in(ids))
             .exec(self.db.as_ref())
             .await
-            .map_err(|e| e.to_app_error())?;
+            .map_err(|e| e.into())?;
 
         info!(
             "{} posts deleted by {}",

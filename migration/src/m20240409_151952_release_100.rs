@@ -107,6 +107,11 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Posts::PreviewContent).text())
                     .col(ColumnDef::new(Posts::Content).text().not_null())
                     .col(
+                        ColumnDef::new(Posts::ThumbnailPaths)
+                            .array(ColumnType::Text)
+                            .not_null(),
+                    )
+                    .col(
                         ColumnDef::new(Posts::Slug)
                             .string_len(TITLE_LENGTH)
                             .not_null(),
@@ -350,6 +355,7 @@ pub enum Posts {
     PreviewContent,
     Content,
     Slug,
+    ThumbnailPaths,
     Published,
     CategoryId,
     CreatedAt,

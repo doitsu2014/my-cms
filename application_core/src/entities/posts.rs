@@ -13,6 +13,7 @@ pub struct Model {
     pub preview_content: Option<String>,
     #[sea_orm(column_type = "Text")]
     pub content: String,
+    pub thumbnail_paths: Vec<String>,
     #[sea_orm(unique)]
     pub slug: String,
     pub published: bool,

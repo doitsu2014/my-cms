@@ -3,10 +3,7 @@ use std::sync::Arc;
 use super::create_request::CreateCategoryRequest;
 use crate::{
     commands::tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
-    common::{
-        app_error::{AppError, AppErrorExt},
-        datetime_generator::generate_vietname_now,
-    },
+    common::{app_error::AppError, datetime_generator::generate_vietname_now},
     entities::{categories, category_tags},
     Categories,
 };
@@ -74,7 +71,7 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
                     let inserted_category = Categories::insert(create_category)
                         .exec(tx)
                         .await
-                        .map_err(|e| e.to_app_error())?;
+                        .map_err(|e| e.into())?;
 
                     // Insert Category Tags
                     if !all_tag_ids.is_empty() {
@@ -92,7 +89,7 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
                         category_tags::Entity::insert_many(category_tags)
                             .exec(tx)
                             .await
-                            .map_err(|e| e.to_app_error())?;
+                            .map_err(|e| e.into())?;
                     }
 
                     Ok(inserted_category.last_insert_id)
@@ -102,7 +99,7 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
 
         match result {
             Ok(inserted_id) => Ok(inserted_id),
-            Err(e) => Err(e.to_app_error()),
+            Err(e) => Err(e.into()),
         }
     }
 }

@@ -17,7 +17,7 @@ pub async fn api_get_all_posts(state: State<AppState>) -> impl IntoResponse {
     let result = handler.handle_get_all_posts().await;
     match result {
         Ok(posts) => ApiResponseWith::new(posts).to_axum_response(),
-        Err(e) => ApiResponseError::from_app_error(e).to_axum_response(),
+        Err(e) => ApiResponseError::from(e).to_axum_response(),
     }
 }
 
@@ -30,6 +30,6 @@ pub async fn api_get_post(state: State<AppState>, Path(post_id): Path<Uuid>) -> 
 
     match result {
         Ok(categories) => ApiResponseWith::new(categories).to_axum_response(),
-        Err(e) => ApiResponseError::from_app_error(e).to_axum_response(),
+        Err(e) => ApiResponseError::from(e).to_axum_response(),
     }
 }

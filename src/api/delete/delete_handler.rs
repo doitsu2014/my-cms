@@ -28,6 +28,6 @@ pub async fn api_delete_post(
 
     match result {
         Ok(inserted_id) => ApiResponseWith::new(inserted_id.to_string()).to_axum_response(),
-        Err(e) => ApiResponseError::from_app_error(e).to_axum_response(),
+        Err(e) => ApiResponseError::from(e).to_axum_response(),
     }
 }

@@ -10,10 +10,7 @@ use crate::{
         post::read::read_handler::{PostReadHandler, PostReadHandlerTrait, PostReadResponse},
         tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
     },
-    common::{
-        app_error::{AppError, AppErrorExt},
-        datetime_generator::generate_vietname_now,
-    },
+    common::{app_error::AppError, datetime_generator::generate_vietname_now},
     entities::{
         post_tags,
         posts::{self, Column},
@@ -91,7 +88,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                             .filter(Expr::col(post_tags::Column::TagId).is_in(tags_to_delete))
                             .exec(tx)
                             .await
-                            .map_err(|err| err.to_app_error())?;
+                            .map_err(|err| err.into())?;
                     }
                     // 3.2. Insert post Tags
                     if !new_tag_ids.is_empty() {
@@ -106,7 +103,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                         post_tags::Entity::insert_many(post_tags_to_insert)
                             .exec(tx)
                             .await
-                            .map_err(|err| err.to_app_error())?;
+                            .map_err(|err| err.into())?;
                     }
 
                     // 3.3. Modify Category information
@@ -116,7 +113,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                         .filter(Expr::col(Column::RowVersion).eq(current_row_version))
                         .exec(tx)
                         .await
-                        .map_err(|err| err.to_app_error())?;
+                        .map_err(|err| err.into())?;
 
                     match modified_result.rows_affected == 0 {
                         true => {
@@ -129,7 +126,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                 })
             })
             .await
-            .map_err(|e| e.to_app_error());
+            .map_err(|e| e.into());
 
         result
     }
@@ -202,6 +199,7 @@ mod tests {
             category_id: created_category_id,
             row_version: 1,
             tag_names: None,
+            thumbnail_paths: vec![],
         };
         let result = post_modify_handler
             .handle_modify_post(request.clone(), Some("Last Modifier".to_string()))
@@ -256,6 +254,7 @@ mod tests {
             category_id: created_category_id,
             row_version: 0,
             tag_names: None,
+            thumbnail_paths: vec![],
         };
 
         let result = post_modify_handler

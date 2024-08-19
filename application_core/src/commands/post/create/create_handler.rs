@@ -7,10 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     commands::tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
-    common::{
-        app_error::{AppError, AppErrorExt},
-        datetime_generator::generate_vietname_now,
-    },
+    common::{app_error::AppError, datetime_generator::generate_vietname_now},
     entities::{post_tags, posts},
     Posts,
 };
@@ -66,7 +63,7 @@ impl PostCreateHandlerTrait for PostCreateHandler {
                     let inserted_category = Posts::insert(create_model)
                         .exec(tx)
                         .await
-                        .map_err(|e| e.to_app_error())?;
+                        .map_err(|e| e.into())?;
 
                     // Combine New Tag Ids and Existing Tag Ids
                     let create_tags_response = create_tags_response_task.await?;
@@ -92,7 +89,7 @@ impl PostCreateHandlerTrait for PostCreateHandler {
                         post_tags::Entity::insert_many(post_tags)
                             .exec(tx)
                             .await
-                            .map_err(|e| e.to_app_error())?;
+                            .map_err(|e| e.into())?;
                     }
 
                     Ok(inserted_category.last_insert_id)
@@ -102,7 +99,7 @@ impl PostCreateHandlerTrait for PostCreateHandler {
 
         match result {
             Ok(inserted_id) => Ok(inserted_id),
-            Err(e) => Err(e.to_app_error()),
+            Err(e) => Err(e.into()),
         }
     }
 }
