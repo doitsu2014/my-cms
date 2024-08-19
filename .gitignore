@@ -21,3 +21,5 @@ secret.env
 development.env
 uat.env
 production.env
+
+.idea/
