@@ -1,8 +1,9 @@
 use std::env;
 use std::sync::Arc;
 
-use application_core::commands::media::S3MediaStorage;
+use application_core::commands::media::{MediaConfig, S3MediaStorage};
 use axum::{
+    extract::DefaultBodyLimit,
     routing::{delete, get, post},
     Router,
 };
@@ -134,6 +135,12 @@ pub async fn protected_router() -> Router {
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
         .layer(CookieManagerLayer::new())
+        .layer(DefaultBodyLimit::max(
+            env::var("MAX_BODY_LENGTH")
+                .unwrap_or((10 * 1024 * 1024).to_string())
+                .parse()
+                .unwrap(),
+        ))
         .with_state(app_state)
 }
 
@@ -169,12 +176,17 @@ async fn construct_app_state() -> AppState {
     let s3_credentials: Credentials =
         Credentials::from_env().unwrap_or(Credentials::default().unwrap());
 
+    let media_imgproxy_server = env::var("MEDIA_IMG_PROXY_SERVER").unwrap_or_default();
+
     AppState {
         conn: Arc::new(conn),
-        s3_media_storage: Arc::new(S3MediaStorage {
-            s3_region,
-            s3_credentials,
-            s3_bucket_name,
+        media_config: Arc::new(MediaConfig {
+            s3_media_storage: S3MediaStorage {
+                s3_region,
+                s3_credentials,
+                s3_bucket_name,
+            },
+            media_imgproxy_server,
         }),
     }
 }

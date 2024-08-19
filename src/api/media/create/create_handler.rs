@@ -20,7 +20,7 @@ pub async fn api_create_media_image(
     mut multipart: Multipart,
 ) -> impl IntoResponse {
     let handler = CreateMediaHandler {
-        s3_media_storage: state.s3_media_storage.clone(),
+        media_config: state.media_config.clone(),
     };
 
     while let Some(field) = multipart.next_field().await.unwrap() {
@@ -35,7 +35,7 @@ pub async fn api_create_media_image(
                     .await;
 
                 return match result {
-                    Ok(()) => ApiResponseWith::new("Done").to_axum_response(),
+                    Ok(m) => ApiResponseWith::new(m).to_axum_response(),
                     Err(e) => ApiResponseError::from(e).to_axum_response(),
                 };
             }

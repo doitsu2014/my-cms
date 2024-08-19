@@ -3,7 +3,7 @@ pub mod common;
 pub mod presentation_models;
 
 pub use api::*;
-use application_core::commands::media::S3MediaStorage;
+use application_core::commands::media::MediaConfig;
 pub use common::*;
 pub use presentation_models::*;
 
@@ -13,5 +13,5 @@ use std::sync::Arc;
 #[derive(Clone, Debug)]
 pub struct AppState {
     pub conn: Arc<DatabaseConnection>,
-    pub s3_media_storage: Arc<S3MediaStorage>,
+    pub media_config: Arc<MediaConfig>,
 }
