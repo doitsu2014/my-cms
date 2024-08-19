@@ -12,6 +12,7 @@ pub struct ModifyPostRequest {
     pub category_id: Uuid,
     pub row_version: i32,
     pub tag_names: Option<Vec<String>>,
+    pub thumbnail_paths: Vec<String>,
 }
 
 impl ModifyPostRequest {
@@ -23,6 +24,7 @@ impl ModifyPostRequest {
             content: Set(self.content.to_owned()),
             category_id: Set(self.category_id.to_owned()),
             row_version: Set(self.row_version + 1),
+            thumbnail_paths: Set(self.thumbnail_paths.to_owned()),
             ..Default::default()
         }
     }

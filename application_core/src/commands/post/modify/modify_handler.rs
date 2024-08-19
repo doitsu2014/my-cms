@@ -10,10 +10,7 @@ use crate::{
         post::read::read_handler::{PostReadHandler, PostReadHandlerTrait, PostReadResponse},
         tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
     },
-    common::{
-        app_error::{AppError},
-        datetime_generator::generate_vietname_now,
-    },
+    common::{app_error::AppError, datetime_generator::generate_vietname_now},
     entities::{
         post_tags,
         posts::{self, Column},
@@ -202,6 +199,7 @@ mod tests {
             category_id: created_category_id,
             row_version: 1,
             tag_names: None,
+            thumbnail_paths: vec![],
         };
         let result = post_modify_handler
             .handle_modify_post(request.clone(), Some("Last Modifier".to_string()))
@@ -256,6 +254,7 @@ mod tests {
             category_id: created_category_id,
             row_version: 0,
             tag_names: None,
+            thumbnail_paths: vec![],
         };
 
         let result = post_modify_handler

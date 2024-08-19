@@ -7,10 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     commands::tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
-    common::{
-        app_error::{AppError},
-        datetime_generator::generate_vietname_now,
-    },
+    common::{app_error::AppError, datetime_generator::generate_vietname_now},
     entities::{post_tags, posts},
     Posts,
 };
