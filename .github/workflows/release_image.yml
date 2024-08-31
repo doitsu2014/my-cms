@@ -1,4 +1,4 @@
-name: release my-cms as docker image
+name: Release image of my-cms-api
 
 on:
   workflow_dispatch:

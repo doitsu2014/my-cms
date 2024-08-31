@@ -1,5 +1,4 @@
-name: build and test my-cms for each pull request
-
+name: CI Workflow
 on:
   pull_request:
     branches: ["main"]
