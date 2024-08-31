@@ -5,5 +5,5 @@ metadata:
 data:
   .env: |-
     {{- range $key, $value := .Values.secretData }}
-{{- end }}
     {{ $key }}={{ $value }}
+{{- end }}

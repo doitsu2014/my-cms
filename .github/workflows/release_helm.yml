@@ -37,4 +37,4 @@ jobs:
           charts_dir: charts
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          charts_dir: "./charts/my-cms-api/"
+          charts_dir: "./deployments/charts/my-cms-api/"

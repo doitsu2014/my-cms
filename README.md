@@ -14,7 +14,7 @@ Let's see how far I can go with this project.
 - Jaeger
 
 ```bash
-docker image pull jaegertracing/all-in-one:1.49
+docker image pull jaegertracing/all-in-one:1.53
 docker run --rm -d --name jaeger \
   -e COLLECTOR_OTLP_ENABLED:true \
   -e LOG_LEVEL:debug \
@@ -22,13 +22,13 @@ docker run --rm -d --name jaeger \
   -p 6832:6832/udp \
   -p 5778:5778 \
   -p 16686:16686 \
-  -p 4317:4317 \
+  -p 4317:4317\
   -p 4318:4318 \
   -p 14250:14250 \
   -p 14268:14268 \
   -p 14269:14269 \
   -p 9411:9411 \
-  jaegertracing/all-in-one:1.49
+  jaegertracing/all-in-one:1.53
 ```
 
 ### 2. Environment Setup
@@ -41,11 +41,26 @@ DATABASE_URL=postgresql://postgres:1234567890@localhost:5432/my-cms
 HOST=127.0.0.1
 PORT=8989
 
+# Api Configuration
+# Trace
 ENABLED_OTLP_EXPORTER=false
 OTEL_SERVICE_NAME=my-cms-headless-api
 SERVICE_NAME=my-cms-headless-api
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://localhost:4317
 OTEL_TRACES_SAMPLER=always_on
+
+# Request Limit
+# Default: 10MB
+MAX_BODY_LENGTH=10485760
+
+# Media Config
+# S3 Configuration
+S3_REGION=ap-southeast-1
+S3_BUCKET_NAME=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+
+MEDIA_IMG_PROXY_SERVER=https://imgproxy.doitsu.tech
 ```
 
 ## Keys to take-away

@@ -93,8 +93,8 @@ ingress:
   #   hosts:
   #     - chart-example.local
 
-secretData:
-  "Field": "Field"
+secretData: {}
+# "Field": "Field"
 
 resources:
   {}
