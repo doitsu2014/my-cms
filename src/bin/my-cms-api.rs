@@ -18,6 +18,7 @@ use cms::{
     tag::delete::delete_handler::api_delete_tags, AppState,
 };
 use dotenv::{dotenv, from_filename};
+use hyper::Method;
 use init_tracing_opentelemetry::{
     tracing_subscriber_ext::{build_logger_text, build_loglevel_filter_layer, build_otel_layer},
     Error,
@@ -26,6 +27,7 @@ use reqwest::Url;
 use s3::{creds::Credentials, Region};
 use sea_orm::Database;
 use tower_cookies::CookieManagerLayer;
+use tower_http::cors::{Any, CorsLayer};
 use tracing::info;
 
 use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer};
@@ -90,6 +92,7 @@ pub fn public_router() -> Router {
         .route("/healthz", get(public::root::handler::check_health))
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
+        .layer(construct_cors_layer())
 }
 
 pub async fn protected_router() -> Router {
@@ -141,6 +144,7 @@ pub async fn protected_router() -> Router {
                 .parse()
                 .unwrap(),
         ))
+        .layer(construct_cors_layer())
         .with_state(app_state)
 }
 
@@ -164,6 +168,7 @@ pub async fn protected_administrator_router() -> Router {
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
         .layer(CookieManagerLayer::new())
+        .layer(construct_cors_layer())
         .with_state(app_state)
 }
 
@@ -175,7 +180,6 @@ async fn construct_app_state() -> AppState {
     let s3_bucket_name = env::var("S3_BUCKET_NAME").unwrap_or_default();
     let s3_credentials: Credentials =
         Credentials::from_env().unwrap_or(Credentials::default().unwrap());
-
     let media_imgproxy_server = env::var("MEDIA_IMG_PROXY_SERVER").unwrap_or_default();
 
     AppState {
@@ -202,4 +206,17 @@ fn construct_keycloak_auth_instance() -> KeycloakAuthInstance {
             .realm(realm)
             .build(),
     )
+}
+
+fn construct_cors_layer() -> CorsLayer {
+    CorsLayer::new()
+        .allow_methods(vec![
+            Method::GET,
+            Method::POST,
+            Method::OPTIONS,
+            Method::PUT,
+            Method::DELETE,
+        ])
+        .allow_origin(Any)
+        .allow_headers(Any)
 }

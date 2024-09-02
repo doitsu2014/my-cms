@@ -21,7 +21,7 @@ pub struct S3MediaStorage {
 }
 
 impl S3MediaStorage {
-    pub fn spawn_bucket(&self) -> Result<Bucket, AppError> {
+    pub fn spawn_bucket(&self) -> Result<Box<Bucket>, AppError> {
         Bucket::new(
             &self.s3_bucket_name,
             self.s3_region.to_owned(),

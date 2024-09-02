@@ -20,12 +20,12 @@ dotenv = "0.15.0"
 sea-orm = "1.0.0"
 sea-orm-migration = "1.0.0"
 chrono = "0.4.37"
-rust-s3 = { version = "0.34" }
+rust-s3 = { version = "0.35.1" }
 
 hyper = { version = "1.3.1" }
 hyper-util = { version = "0.1.4" }
 tower = "0.4.13"
-tower-http = { version = "0.5.2", features = ["fs", "tracing"] }
+tower-http = { version = "0.5.2", features = ["fs", "tracing", "cors"] }
 tower-cookies = "0.10.0"
 
 tracing = { version = "0.1.40", default-features = false, features = [
