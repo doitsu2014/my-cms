@@ -12,6 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Configure Caching CI
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            target
+          key: test-${{ runner.os }}-cargo-nightly-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
@@ -22,12 +30,6 @@ jobs:
           # rustup toolchain add nightly --component llvm-tools-preview
           # rustup override set nightly
           cargo install grcov
-      - name: Configure cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-          key: test-${{ runner.os }}-cargo-nightly-${{ hashFiles('**/Cargo.lock') }}
       - name: Build
         env:
           RUSTFLAGS: -Cinstrument-coverage
