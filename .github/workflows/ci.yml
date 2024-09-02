@@ -16,10 +16,11 @@ jobs:
         with:
           toolchain: nightly
           override: true
+          components: llvm-tools-preview
       - name: Setup Rust
         run: |
-          rustup toolchain add nightly --component llvm-tools-preview
-          rustup override set nightly
+          # rustup toolchain add nightly --component llvm-tools-preview
+          # rustup override set nightly
           cargo install grcov
       - name: Configure cache
         uses: actions/cache@v3
