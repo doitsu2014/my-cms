@@ -23,13 +23,16 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-          override: true
+          override: false
           components: llvm-tools-preview
       - name: Setup Rust
         run: |
-          # rustup toolchain add nightly --component llvm-tools-preview
-          # rustup override set nightly
           cargo install grcov
+      - uses: actions-rs/cargo@v1
+        with:
+          command: install
+          toolchain: nightly
+          args: grcov --keep-going
       - name: Build
         env:
           RUSTFLAGS: -Cinstrument-coverage
