@@ -25,9 +25,9 @@ jobs:
           toolchain: nightly
           override: false
           components: llvm-tools-preview
-      - name: Setup Rust
-        run: |
-          cargo install grcov
+      # - name: Setup Rust
+      #   run: |
+      #     cargo install grcov
       - uses: actions-rs/cargo@v1
         with:
           command: install
