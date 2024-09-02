@@ -43,14 +43,19 @@ spec:
             - name: configmap-env-volume
               mountPath: app/.env
               subPath: .env
-          # readinessProbe:
-          #   httpGet:
-          #     path: /healthz
-          #     port: http
-          # livenessProbe:
-          #   httpGet:
-          #     path: /healthz
-          #     port: http
+          {{- if .Values.container_readinessProbe }}
+          {{- if not (empty .Values.container_readinessProbe) }}
+          readinessProbe:
+            {{- toYaml .Values.container_readinessProbe | nindent 12 }}
+          {{- end }}
+          {{- end }}
+
+          {{- if .Values.container_livenessProbe }}
+          {{- if not (empty .Values.container_livenessProbe) }}
+          livenessProbe:
+            {{- toYaml .Values.container_livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

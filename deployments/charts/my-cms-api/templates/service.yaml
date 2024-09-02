@@ -16,10 +16,3 @@ spec:
   {{- end }}
   selector:
     {{- include "k8s-instance.selectorLabels" . | nindent 4 }}
-  metadata:
-    {{- with .Values.serviceAnnotations }}
-    annotations:
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
-    labels:
-    {{- include "k8s-instance.labels" . | nindent 4 }}

@@ -4,6 +4,6 @@ metadata:
   name: {{ .Chart.Name }}-configmap-env
 data:
   .env: |-
-    {{- range $key, $value := .Values.secretData }}
+  {{- range $key, $value := .Values.secretData }}
     {{ $key }}={{ $value }}
-{{- end }}
+  {{- end }}

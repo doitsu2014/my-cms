@@ -18,4 +18,6 @@ development.env
 uat.env
 production.env
 
+deployments/charts/**/secret.values.yaml
+
 .idea/

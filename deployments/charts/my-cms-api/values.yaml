@@ -47,6 +47,19 @@ container_ports:
     containerPort: 5000
     protocol: TCP
 
+container_readinessProbe: {}
+#   httpGet:
+#     path: /healthz
+#     port: http
+
+container_livenessProbe:
+  {}
+  # httpGet:
+  #   path: /healthz
+  #   port: http
+  # initialDelaySeconds: 15
+  # periodSeconds: 20
+
 ingress:
   enabled: false
   className: ""
