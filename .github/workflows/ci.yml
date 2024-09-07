@@ -23,24 +23,43 @@ jobs:
         with:
           toolchain: nightly
           override: false
-          components: llvm-tools-preview
+          # components: llvm-tools-preview
       - uses: actions-rs/install@v0.1
         with:
           crate: grcov
           version: latest
           use-tool-cache: true
-      - name: Build
+      # - name: Build
+      #   env:
+      #     RUSTFLAGS: -Cinstrument-coverage
+      #   run: cargo build
+      # - name: Test
+      #   env:
+      #     LLVM_PROFILE_FILE: grcov-%p-%m.profraw
+      #     RUSTFLAGS: -Cinstrument-coverage
+      #   run: cargo test --all
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features --no-fail-fast # Customize args for your own needs
         env:
-          RUSTFLAGS: -Cinstrument-coverage
-        run: cargo build
-      - name: Test
-        env:
-          LLVM_PROFILE_FILE: grcov-%p-%m.profraw
-          RUSTFLAGS: -Cinstrument-coverage
-        run: cargo test --all
-      - name: Generate coverage
-        run: |
-          grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" -o lcov.info
+          CARGO_INCREMENTAL: "0"
+          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+          RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+
+      # Take Coverage Reports
+      - id: coverage
+        uses: actions-rs/grcov@v0.1
+      # - name: Generate coverage
+      #   run: |
+      #     grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" -o lcov.info
+
+      # Upload Coverage Reports to Third Party
+      - name: Upload coverage reports to Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ${{ steps.coverage.outputs.report }}
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
