@@ -25,11 +25,11 @@ jobs:
           toolchain: nightly
           override: false
           components: llvm-tools-preview
-      - uses: actions-rs/cargo@v1
+      - uses: actions-rs/install@v0.1
         with:
-          command: install
-          toolchain: nightly
-          args: grcov --force
+          crate: grcov
+          version: latest
+          use-tool-cache: true
       - name: Build
         env:
           RUSTFLAGS: -Cinstrument-coverage

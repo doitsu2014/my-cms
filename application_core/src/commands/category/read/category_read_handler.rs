@@ -10,7 +10,7 @@ use uuid::Uuid;
 use crate::{
     common::app_error::AppError,
     entities::{
-        categories::{self, Column, Model},
+        categories::{Column, Model},
         sea_orm_active_enums::CategoryType,
         tags,
     },
