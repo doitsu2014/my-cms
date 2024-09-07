@@ -12,23 +12,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Configure Caching CI
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            target
-          key: test-${{ runner.os }}-cargo-nightly-${{ hashFiles('**/Cargo.lock') }}
+      # - name: Configure Caching CI
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: |
+      #       ~/.cargo/registry
+      #       target
+      #     key: test-${{ runner.os }}-cargo-nightly-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-          override: false
+          override: true
           # components: llvm-tools-preview
-      - uses: actions-rs/install@v0.1
-        with:
-          crate: grcov
-          version: latest
-          use-tool-cache: true
+      # - uses: actions-rs/install@v0.1
+      #   with:
+      #     crate: grcov
+      #     version: latest
+      #     use-tool-cache: true
       # - name: Build
       #   env:
       #     RUSTFLAGS: -Cinstrument-coverage
