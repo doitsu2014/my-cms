@@ -1,4 +1,6 @@
-[![CI Workflow](https://github.com/doitsu2014/my-cms/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/doitsu2014/my-cms/actions/workflows/ci.yml)
+[![CI Workflow Codecov](https://github.com/doitsu2014/my-cms/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/doitsu2014/my-cms/actions/workflows/ci.yml)
+[![CI Workflow Coverall](https://coveralls.io/repos/github/doitsu2014/my-cms/badge.svg)](https://coveralls.io/github/doitsu2014/my-cms)
+
 <br/>
 [![codecov](https://codecov.io/gh/doitsu2014/my-cms/graph/badge.svg?token=7V6BYO0TJO)](https://codecov.io/gh/doitsu2014/my-cms)
 

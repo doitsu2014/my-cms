@@ -12,36 +12,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Configure Caching CI
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/registry
-            target
-          key: test-${{ runner.os }}-cargo-nightly-${{ hashFiles('**/Cargo.lock') }}
+      # - name: Configure Caching CI
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: |
+      #       ~/.cargo/bin
+      #       target
+      #     key: test-${{ runner.os }}-cargo-nightly-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
-          override: false
-          components: llvm-tools-preview
-      - uses: actions-rs/install@v0.1
+          override: true
+
+      - uses: actions-rs/cargo@v1
         with:
-          crate: grcov
-          version: latest
-          use-tool-cache: true
-      - name: Build
+          command: test
+          args: --all --all-features --no-fail-fast # Customize args for your own needs
         env:
-          RUSTFLAGS: -Cinstrument-coverage
-        run: cargo build
-      - name: Test
-        env:
-          LLVM_PROFILE_FILE: grcov-%p-%m.profraw
-          RUSTFLAGS: -Cinstrument-coverage
-        run: cargo test --all
-      - name: Generate coverage
-        run: |
-          grcov . --binary-path ./target/debug/ -s . -t lcov --branch --ignore-not-existing --ignore "/*" -o lcov.info
+          CARGO_INCREMENTAL: "0"
+          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cllvm-args=--inline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+          RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cllvm-args=--inline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
+
+      # Take Coverage Reports
+      - id: coverage
+        uses: actions-rs/grcov@v0.1
+
+      # Upload Coverage Reports to Third Party
+      - name: Upload coverage reports to Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: ${{ steps.coverage.outputs.report }}
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ steps.coverage.outputs.report }}
