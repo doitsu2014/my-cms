@@ -1,12 +1,19 @@
 use std::sync::Arc;
 
-use sea_orm::{prelude::DateTimeWithTimeZone, DatabaseConnection, EntityTrait};
+use sea_orm::{
+    prelude::DateTimeWithTimeZone, sea_query::Expr, ActiveEnum, DatabaseConnection, EntityTrait,
+    QueryFilter, QueryOrder,
+};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    common::app_error::{AppError},
-    entities::{categories::Model, sea_orm_active_enums::CategoryType, tags},
+    common::app_error::AppError,
+    entities::{
+        categories::{self, Column, Model},
+        sea_orm_active_enums::CategoryType,
+        tags,
+    },
     Categories, Tags,
 };
 
@@ -53,6 +60,11 @@ impl CategoryReadResponse {
 pub trait CategoryReadHandlerTrait {
     fn handle_get_all_categories(
         &self,
+    ) -> impl std::future::Future<Output = Result<Vec<CategoryReadResponse>, AppError>> + Send;
+
+    fn handle_get_with_filtering(
+        &self,
+        category_type: Option<CategoryType>,
     ) -> impl std::future::Future<Output = Result<Vec<CategoryReadResponse>, AppError>> + Send;
 
     fn handle_get_category(
@@ -108,6 +120,35 @@ impl CategoryReadHandlerTrait for CategoryReadHandler {
         // let category and tags
         Result::Ok(response)
     }
+
+    async fn handle_get_with_filtering(
+        &self,
+        category_type: Option<CategoryType>,
+    ) -> Result<Vec<CategoryReadResponse>, AppError> {
+        let mut query = Categories::find();
+
+        if category_type.is_some() {
+            query =
+                query.filter(Expr::col(Column::CategoryType).eq(category_type.unwrap().as_enum()));
+        }
+
+        let db_result = query
+            .find_with_related(Tags)
+            .order_by_asc(Column::DisplayName)
+            .all(self.db.as_ref())
+            .await
+            .map_err(|e| e.into())?;
+
+        let response = db_result
+            .iter()
+            .map(|c_and_tags| {
+                CategoryReadResponse::new(c_and_tags.0.to_owned(), c_and_tags.1.to_owned())
+            })
+            .collect::<Vec<CategoryReadResponse>>();
+
+        // let category and tags
+        Result::Ok(response)
+    }
 }
 
 #[cfg(test)]
@@ -115,10 +156,13 @@ mod tests {
     use std::sync::Arc;
     use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
 
-    use crate::commands::category::{
-        create::create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
-        read::category_read_handler::{CategoryReadHandler, CategoryReadHandlerTrait},
-        test::fake_create_category_request,
+    use crate::{
+        commands::category::{
+            create::create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
+            read::category_read_handler::{CategoryReadHandler, CategoryReadHandlerTrait},
+            test::fake_create_category_request_with_category_type,
+        },
+        entities::sea_orm_active_enums::CategoryType,
     };
 
     #[async_std::test]
@@ -126,23 +170,48 @@ mod tests {
         let test_space = setup_test_space().await;
         let conn = test_space.postgres.get_database_connection().await;
         let number_of_blogs = 5;
+        let number_of_others = 5;
 
         let create_handler = CategoryCreateHandler {
             db: Arc::new(conn.clone()),
         };
         let read_handler = CategoryReadHandler { db: Arc::new(conn) };
 
-        // Create vec with 3 element integer
         for i in 0..number_of_blogs {
             let _ = create_handler
-                .handle_create_category_with_tags(fake_create_category_request(i), None)
+                .handle_create_category_with_tags(
+                    fake_create_category_request_with_category_type(i, CategoryType::Blog),
+                    None,
+                )
+                .await;
+        }
+
+        for i in 0..number_of_others {
+            let _ = create_handler
+                .handle_create_category_with_tags(
+                    fake_create_category_request_with_category_type(i, CategoryType::Other),
+                    None,
+                )
                 .await;
         }
 
         let result = read_handler.handle_get_all_categories().await;
         match result {
-            Ok(categories) => assert_eq!(categories.len(), number_of_blogs),
-            _ => panic!("Test failed"),
+            Ok(categories) => assert_eq!(categories.len(), number_of_blogs + number_of_others),
+            _ => panic!("Failed to test"),
         }
+
+        let blogs = read_handler
+            .handle_get_with_filtering(Some(CategoryType::Blog))
+            .await
+            .unwrap();
+        assert!(blogs.len() == number_of_blogs);
+
+        let others = read_handler
+            .handle_get_with_filtering(Some(CategoryType::Other))
+            .await
+            .unwrap();
+        assert!(others.len() == number_of_others);
+        // Clean up
     }
 }
