@@ -112,7 +112,7 @@ pub async fn protected_router() -> Router {
         )
         .route(
             "/posts",
-            get(api::post::read::read_handler::api_get_all_posts)
+            get(api::post::read::read_handler::api_get_posts_with_filtering)
                 .post(api::post::create::create_handler::api_create_post)
                 .put(api::post::modify::modify_handler::api_modify_post)
                 .delete(api_delete_posts),
