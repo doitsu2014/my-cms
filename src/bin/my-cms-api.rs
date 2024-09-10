@@ -1,7 +1,12 @@
 use std::env;
 use std::sync::Arc;
 
-use application_core::commands::media::{MediaConfig, S3MediaStorage};
+use application_core::{
+    commands::media::{MediaConfig, S3MediaStorage},
+    graphql::query_root::schema,
+};
+use async_graphql::dynamic::*;
+use async_graphql_axum::GraphQL;
 use axum::{
     extract::DefaultBodyLimit,
     routing::{delete, get, post},
@@ -41,6 +46,7 @@ async fn main() {
     init_my_subscribers().unwrap();
 
     let app = public_router()
+        .await
         .merge(protected_router().await)
         .merge(protected_administrator_router().await);
     info!("Starting server...");
@@ -85,11 +91,17 @@ pub fn init_my_subscribers() -> Result<(), Error> {
     Ok(())
 }
 
-pub fn public_router() -> Router {
+pub async fn public_router() -> Router {
+    let schema = construct_graphql_schema().await.unwrap();
+
     Router::new()
         .route("/", get(public::root::handler::handle))
         .route("/health", get(public::root::handler::check_health))
         .route("/healthz", get(public::root::handler::check_health))
+        .route(
+            "/graphql",
+            get(api::graphql::graphiql).post_service(GraphQL::new(schema)),
+        )
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
         .layer(construct_cors_layer())
@@ -193,6 +205,13 @@ async fn construct_app_state() -> AppState {
             media_imgproxy_server,
         }),
     }
+}
+
+async fn construct_graphql_schema() -> Result<Schema, SchemaError> {
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let conn = Database::connect(&database_url).await.unwrap();
+    // schema(conn, Some(10), Some(10))
+    schema(conn, None, None)
 }
 
 fn construct_keycloak_auth_instance() -> KeycloakAuthInstance {
