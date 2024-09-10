@@ -59,3 +59,17 @@ impl Related<super::tags::Entity> for Entity {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
+pub enum RelatedEntity {
+    #[sea_orm(entity = "Entity", def = "Relation::SelfRef.def()")]
+    SelfRef,
+    #[sea_orm(entity = "super::category_tags::Entity")]
+    CategoryTags,
+    #[sea_orm(entity = "super::posts::Entity")]
+    Posts,
+    #[sea_orm(entity = "Entity", def = "Relation::SelfRef.def().rev()")]
+    SelfRefReverse,
+    #[sea_orm(entity = "super::tags::Entity")]
+    Tags,
+}
