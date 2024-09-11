@@ -92,16 +92,10 @@ pub fn init_my_subscribers() -> Result<(), Error> {
 }
 
 pub async fn public_router() -> Router {
-    let schema = construct_graphql_schema().await.unwrap();
-
     Router::new()
         .route("/", get(public::root::handler::handle))
         .route("/health", get(public::root::handler::check_health))
         .route("/healthz", get(public::root::handler::check_health))
-        .route(
-            "/graphql",
-            get(api::graphql::graphiql).post_service(GraphQL::new(schema)),
-        )
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
         .layer(construct_cors_layer())
@@ -137,6 +131,11 @@ pub async fn protected_router() -> Router {
         .route(
             "/media/images",
             post(api::media::create::create_handler::api_create_media_image),
+        )
+        .route(
+            "/graphql",
+            get(api::graphql::graphiql)
+                .post_service(GraphQL::new(app_state.graphql_schema.as_ref().to_owned())),
         )
         .layer(
             KeycloakAuthLayer::<String>::builder()
@@ -193,6 +192,7 @@ async fn construct_app_state() -> AppState {
     let s3_credentials: Credentials =
         Credentials::from_env().unwrap_or(Credentials::default().unwrap());
     let media_imgproxy_server = env::var("MEDIA_IMG_PROXY_SERVER").unwrap_or_default();
+    let graphql_schema = schema(conn.clone(), None, None).unwrap();
 
     AppState {
         conn: Arc::new(conn),
@@ -204,14 +204,8 @@ async fn construct_app_state() -> AppState {
             },
             media_imgproxy_server,
         }),
+        graphql_schema: Arc::new(graphql_schema),
     }
-}
-
-async fn construct_graphql_schema() -> Result<Schema, SchemaError> {
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let conn = Database::connect(&database_url).await.unwrap();
-    // schema(conn, Some(10), Some(10))
-    schema(conn, None, None)
 }
 
 fn construct_keycloak_auth_instance() -> KeycloakAuthInstance {

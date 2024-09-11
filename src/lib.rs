@@ -4,6 +4,7 @@ pub mod presentation_models;
 
 pub use api::*;
 use application_core::commands::media::MediaConfig;
+use async_graphql::dynamic::*;
 pub use common::*;
 pub use presentation_models::*;
 
@@ -14,4 +15,5 @@ use std::sync::Arc;
 pub struct AppState {
     pub conn: Arc<DatabaseConnection>,
     pub media_config: Arc<MediaConfig>,
+    pub graphql_schema: Arc<Schema>,
 }
