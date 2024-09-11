@@ -15,5 +15,6 @@ use std::sync::Arc;
 pub struct AppState {
     pub conn: Arc<DatabaseConnection>,
     pub media_config: Arc<MediaConfig>,
-    pub graphql_schema: Arc<Schema>,
+    pub graphql_immutable_schema: Arc<Schema>,
+    pub graphql_mutable_schema: Arc<Schema>,
 }

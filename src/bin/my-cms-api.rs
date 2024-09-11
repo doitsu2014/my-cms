@@ -5,7 +5,6 @@ use application_core::{
     commands::media::{MediaConfig, S3MediaStorage},
     graphql::query_root::schema,
 };
-use async_graphql::dynamic::*;
 use async_graphql_axum::GraphQL;
 use axum::{
     extract::DefaultBodyLimit,
@@ -92,10 +91,18 @@ pub fn init_my_subscribers() -> Result<(), Error> {
 }
 
 pub async fn public_router() -> Router {
+    let app_state = construct_app_state().await;
+
     Router::new()
         .route("/", get(public::root::handler::handle))
         .route("/health", get(public::root::handler::check_health))
         .route("/healthz", get(public::root::handler::check_health))
+        .route(
+            "/graphql/immutable",
+            get(api::graphql::graphql_immutable).post_service(GraphQL::new(
+                app_state.graphql_immutable_schema.as_ref().to_owned(),
+            )),
+        )
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
         .layer(construct_cors_layer())
@@ -133,9 +140,10 @@ pub async fn protected_router() -> Router {
             post(api::media::create::create_handler::api_create_media_image),
         )
         .route(
-            "/graphql",
-            get(api::graphql::graphiql)
-                .post_service(GraphQL::new(app_state.graphql_schema.as_ref().to_owned())),
+            "/graphql/mutable",
+            get(api::graphql::graphql_mutable).post_service(GraphQL::new(
+                app_state.graphql_mutable_schema.as_ref().to_owned(),
+            )),
         )
         .layer(
             KeycloakAuthLayer::<String>::builder()
@@ -192,7 +200,8 @@ async fn construct_app_state() -> AppState {
     let s3_credentials: Credentials =
         Credentials::from_env().unwrap_or(Credentials::default().unwrap());
     let media_imgproxy_server = env::var("MEDIA_IMG_PROXY_SERVER").unwrap_or_default();
-    let graphql_schema = schema(conn.clone(), None, None).unwrap();
+    let graphql_immutable_schema = schema(conn.clone(), None, None, false).unwrap();
+    let graphql_mutable_schema = schema(conn.clone(), None, None, true).unwrap();
 
     AppState {
         conn: Arc::new(conn),
@@ -204,7 +213,8 @@ async fn construct_app_state() -> AppState {
             },
             media_imgproxy_server,
         }),
-        graphql_schema: Arc::new(graphql_schema),
+        graphql_immutable_schema: Arc::new(graphql_immutable_schema),
+        graphql_mutable_schema: Arc::new(graphql_mutable_schema),
     }
 }
 
