@@ -1,7 +1,12 @@
 use std::env;
 use std::sync::Arc;
 
-use application_core::commands::media::{MediaConfig, S3MediaStorage};
+use application_core::{
+    commands::media::{MediaConfig, S3MediaStorage},
+    graphql::query_root::schema,
+};
+use async_graphql::dynamic::*;
+use async_graphql_axum::GraphQL;
 use axum::{
     extract::DefaultBodyLimit,
     routing::{delete, get, post},
@@ -41,6 +46,7 @@ async fn main() {
     init_my_subscribers().unwrap();
 
     let app = public_router()
+        .await
         .merge(protected_router().await)
         .merge(protected_administrator_router().await);
     info!("Starting server...");
@@ -85,7 +91,7 @@ pub fn init_my_subscribers() -> Result<(), Error> {
     Ok(())
 }
 
-pub fn public_router() -> Router {
+pub async fn public_router() -> Router {
     Router::new()
         .route("/", get(public::root::handler::handle))
         .route("/health", get(public::root::handler::check_health))
@@ -125,6 +131,11 @@ pub async fn protected_router() -> Router {
         .route(
             "/media/images",
             post(api::media::create::create_handler::api_create_media_image),
+        )
+        .route(
+            "/graphql",
+            get(api::graphql::graphiql)
+                .post_service(GraphQL::new(app_state.graphql_schema.as_ref().to_owned())),
         )
         .layer(
             KeycloakAuthLayer::<String>::builder()
@@ -181,6 +192,7 @@ async fn construct_app_state() -> AppState {
     let s3_credentials: Credentials =
         Credentials::from_env().unwrap_or(Credentials::default().unwrap());
     let media_imgproxy_server = env::var("MEDIA_IMG_PROXY_SERVER").unwrap_or_default();
+    let graphql_schema = schema(conn.clone(), None, None).unwrap();
 
     AppState {
         conn: Arc::new(conn),
@@ -192,6 +204,7 @@ async fn construct_app_state() -> AppState {
             },
             media_imgproxy_server,
         }),
+        graphql_schema: Arc::new(graphql_schema),
     }
 }
 

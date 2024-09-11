@@ -17,8 +17,21 @@ axum-keycloak-auth = { version = "0.5.0" }
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
 dotenv = "0.15.0"
-sea-orm = "1.0.0"
-sea-orm-migration = "1.0.0"
+sea-orm = "1.0.1"
+sea-orm-migration = "1.0.1"
+seaography = { version = "1.0.0", features = [
+  "with-decimal",
+  "with-chrono",
+  "with-postgres-array",
+] }
+async-graphql-axum = { version = "7.0.9" }
+async-graphql = { version = "7.0.9", features = [
+  "decimal",
+  "chrono",
+  "dataloader",
+  "dynamic-schema",
+] }
+lazy_static = "1.5.0"
 chrono = "0.4.37"
 rust-s3 = { version = "0.35.1" }
 

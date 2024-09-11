@@ -45,3 +45,11 @@ impl Related<super::tags::Entity> for Entity {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelatedEntity)]
+pub enum RelatedEntity {
+    #[sea_orm(entity = "super::categories::Entity")]
+    Categories,
+    #[sea_orm(entity = "super::tags::Entity")]
+    Tags,
+}
