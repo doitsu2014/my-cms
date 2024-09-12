@@ -8,6 +8,7 @@ pub trait AxumResponse {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ApiResponseWith<TData>
 where
     TData: Serialize,
@@ -47,12 +48,14 @@ where
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ApiResponseError {
     error_code: ErrorCode,
     errors: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Clone, Copy, PartialEq)]
+#[serde(rename_all = "camelCase")]
 pub enum ErrorCode {
     #[serde(rename = "0")]
     UnknownError,

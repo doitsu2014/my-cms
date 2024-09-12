@@ -19,6 +19,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PostReadResponse {
     pub id: Uuid,
     pub title: String,

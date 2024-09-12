@@ -1,10 +1,11 @@
 use std::{future::Future, sync::Arc};
 
-use sea_orm::{sea_query::Expr, DatabaseConnection, DbErr, EntityTrait, QueryFilter, Set};
+use sea_orm::{sea_query::Expr, DatabaseConnection, DbErr, EntityTrait, QueryFilter};
 use tracing::instrument;
 
 use crate::{
-    entities::tags::{ActiveModel, Column, Model},
+    common::datetime_generator::generate_vietnam_now,
+    entities::tags::{Column, Model},
     StringExtension, Tags,
 };
 
@@ -65,14 +66,18 @@ impl TagReadHandlerTrait for TagReadHandler {
 
         // Get all tags with names
         let tags = self.handle_get_tags_by_names(names.clone()).await?;
-        let mut new_tags: Vec<ActiveModel> = vec![];
+        let mut new_tags: Vec<Model> = vec![];
         for name in names {
             let slug = name.to_slug();
             if tags.iter().all(|tag| tag.name != name) {
-                let tag = ActiveModel {
-                    name: Set(name.clone()),
-                    slug: Set(slug),
-                    ..Default::default()
+                let tag = Model {
+                    id: Default::default(),
+                    name: name.to_string(),
+                    slug: slug.to_string(),
+                    created_by: "".to_string(),
+                    created_at: generate_vietnam_now(),
+                    last_modified_by: None,
+                    last_modified_at: None,
                 };
                 new_tags.push(tag);
             }

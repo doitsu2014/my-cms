@@ -11,6 +11,7 @@ use crate::AxumResponse;
 use crate::{ApiResponseWith, AppState};
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueryParams {
     pub category_type: Option<CategoryType>,
 }

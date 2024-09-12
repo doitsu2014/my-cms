@@ -11,6 +11,7 @@ use tracing::instrument;
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
 
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueryParams {
     pub category_type: Option<CategoryType>,
 }

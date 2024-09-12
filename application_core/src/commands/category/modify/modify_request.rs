@@ -1,5 +1,5 @@
 use crate::{
-    common::datetime_generator::generate_vietname_now,
+    common::datetime_generator::generate_vietnam_now,
     entities::{categories, sea_orm_active_enums::CategoryType},
     StringExtension,
 };
@@ -7,6 +7,7 @@ use sea_orm::{prelude::Uuid, Set};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct ModifyCategoryRequest {
     pub id: Uuid,
     pub display_name: String,
@@ -22,7 +23,7 @@ impl ModifyCategoryRequest {
             display_name: Set(self.display_name.to_owned()),
             category_type: Set(self.category_type.to_owned()),
             slug: Set(self.display_name.to_slug()),
-            last_modified_at: Set(Some(generate_vietname_now())),
+            last_modified_at: Set(Some(generate_vietnam_now())),
             last_modified_by: Set(Some("System".to_owned())),
             row_version: Set(self.row_version + 1),
             parent_id: Set(self.parent_id.to_owned()),

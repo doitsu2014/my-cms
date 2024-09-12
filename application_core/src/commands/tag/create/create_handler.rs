@@ -6,14 +6,13 @@ use uuid::Uuid;
 
 use crate::{
     commands::tag::read::read_handler::{TagReadHandler, TagReadHandlerTrait},
-    common::{
-        app_error::{AppError},
-        datetime_generator::generate_vietname_now,
-    },
+    common::{app_error::AppError, datetime_generator::generate_vietnam_now},
     entities::tags,
     Tags,
 };
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateTagsResponse {
     pub new_tag_ids: Vec<Uuid>,
     pub existing_tag_ids: Vec<Uuid>,
@@ -60,10 +59,10 @@ impl TagCreateHandlerTrait for TagCreateHandler {
                     new_tag_ids.push(id);
                     tags::ActiveModel {
                         id: Set(id),
-                        name: tag.name.clone(),
-                        slug: tag.slug.clone(),
+                        name: Set(tag.name.to_owned()),
+                        slug: Set(tag.slug.to_owned()),
                         created_by: Set(actor_email.clone().unwrap_or("System".to_string())),
-                        created_at: Set(generate_vietname_now()),
+                        created_at: Set(generate_vietnam_now()),
                         ..Default::default()
                     }
                 })

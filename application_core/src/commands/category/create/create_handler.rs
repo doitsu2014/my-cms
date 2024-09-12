@@ -3,7 +3,7 @@ use std::sync::Arc;
 use super::create_request::CreateCategoryRequest;
 use crate::{
     commands::tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
-    common::{app_error::AppError, datetime_generator::generate_vietname_now},
+    common::{app_error::AppError, datetime_generator::generate_vietnam_now},
     entities::{categories, category_tags},
     Categories,
 };
@@ -40,7 +40,7 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
         let model: categories::Model = body.into_model();
         let model = categories::Model {
             created_by: actor_email.clone().unwrap_or("System".to_string()),
-            created_at: generate_vietname_now(),
+            created_at: generate_vietnam_now(),
             ..model
         };
         let create_category = categories::ActiveModel {

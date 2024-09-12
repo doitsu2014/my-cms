@@ -1,10 +1,6 @@
 use std::sync::Arc;
 
-use crate::{
-    common::app_error::{AppError},
-    entities::posts,
-    Posts,
-};
+use crate::{common::app_error::AppError, entities::posts, Posts};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use tracing::{info, instrument};
 use uuid::Uuid;

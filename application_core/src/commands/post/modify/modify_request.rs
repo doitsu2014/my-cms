@@ -3,6 +3,7 @@ use sea_orm::{prelude::Uuid, Set};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ModifyPostRequest {
     pub id: Uuid,
     pub title: String,

@@ -1,8 +1,9 @@
-use crate::{common::datetime_generator::generate_vietname_now, entities::posts, StringExtension};
+use crate::{common::datetime_generator::generate_vietnam_now, entities::posts, StringExtension};
 use sea_orm::prelude::Uuid;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct CreatePostRequest {
     pub title: String,
     pub preview_content: Option<String>,
@@ -24,7 +25,7 @@ impl CreatePostRequest {
             published: self.published.to_owned(),
             category_id: self.category_id.to_owned(),
             thumbnail_paths: self.thumbnail_paths.to_owned(),
-            created_at: generate_vietname_now(),
+            created_at: generate_vietnam_now(),
             created_by: "System".to_string(),
             last_modified_at: None,
             last_modified_by: None,

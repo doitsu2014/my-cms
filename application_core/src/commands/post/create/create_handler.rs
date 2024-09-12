@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     commands::tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
-    common::{app_error::AppError, datetime_generator::generate_vietname_now},
+    common::{app_error::AppError, datetime_generator::generate_vietnam_now},
     entities::{post_tags, posts},
     Posts,
 };
@@ -41,7 +41,7 @@ impl PostCreateHandlerTrait for PostCreateHandler {
         let model: posts::Model = body.into_model();
         let model = posts::Model {
             created_by: actor_email.clone().unwrap_or("System".to_string()),
-            created_at: generate_vietname_now(),
+            created_at: generate_vietnam_now(),
             ..model
         };
         let create_model = posts::ActiveModel {
