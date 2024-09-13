@@ -86,3 +86,82 @@ impl TagCreateHandlerTrait for TagCreateHandler {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use sea_orm::TransactionTrait;
+    use std::sync::Arc;
+    use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
+    use uuid::Uuid;
+
+    use crate::{
+        commands::tag::create::create_handler::{
+            CreateTagsResponse, TagCreateHandler, TagCreateHandlerTrait,
+        },
+        common::app_error::AppError,
+    };
+
+    #[async_std::test]
+    async fn handle_create_tags_in_transaction_test01() {
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        let arc_conn = Arc::new(database);
+
+        let requests = [
+            ["a".to_string(), "b".to_string(), "c".to_string()],
+            ["b".to_string(), "c".to_string(), "d".to_string()],
+            ["d".to_string(), "e".to_string(), "f".to_string()],
+            ["g".to_string(), "h".to_string(), "i".to_string()],
+        ];
+
+        let mut results: Vec<(Vec<Uuid>, Vec<Uuid>)> = vec![];
+        for r in requests.clone() {
+            let tag_create_handler = TagCreateHandler {
+                db: arc_conn.clone(),
+            };
+            let result = arc_conn
+                .as_ref()
+                .transaction::<_, CreateTagsResponse, AppError>(|tx| {
+                    Box::pin(async move {
+                        let x = tag_create_handler
+                            .handle_create_tags_in_transaction(
+                                r.to_vec(),
+                                Some("System".to_string()),
+                                tx,
+                            )
+                            .await?;
+                        Ok(x)
+                    })
+                })
+                .await
+                .unwrap();
+
+            results.push((result.new_tag_ids, result.existing_tag_ids));
+        }
+
+        let mut count = 0;
+        for (new_tag_ids, existing_tag_ids) in results {
+            count += 1;
+            // switch case
+            match count {
+                1 => {
+                    assert_eq!(new_tag_ids.len(), 3);
+                    assert_eq!(existing_tag_ids.len(), 0);
+                }
+                2 => {
+                    assert_eq!(new_tag_ids.len(), 1);
+                    assert_eq!(existing_tag_ids.len(), 2);
+                }
+                3 => {
+                    assert_eq!(new_tag_ids.len(), 2);
+                    assert_eq!(existing_tag_ids.len(), 1);
+                }
+                4 => {
+                    assert_eq!(new_tag_ids.len(), 3);
+                    assert_eq!(existing_tag_ids.len(), 0);
+                }
+                _ => {}
+            }
+        }
+    }
+}

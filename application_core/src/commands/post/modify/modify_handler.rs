@@ -61,22 +61,25 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                     model.last_modified_at = Set(Some(generate_vietnam_now()));
 
                     // 2. Insert new tags
-                    let tags: Vec<String> = body.tag_names.unwrap_or_default().clone();
+                    let processing_tags: Vec<String> = body.tag_names.unwrap_or_default().clone();
                     let create_tags_response = tag_create_handler
-                        .handle_create_tags_in_transaction(tags.clone(), actor_email, tx)
+                        .handle_create_tags_in_transaction(processing_tags.clone(), actor_email, tx)
                         .await?;
-                    // Combine New Tag Ids and Existing Tag Ids
-                    let new_tag_ids = create_tags_response.new_tag_ids;
 
                     // 2.1. Get existing category
                     let db_post: PostReadResponse =
                         post_read_handler.handle_get_post(modified_id).await?;
 
                     // 2.2 Figure out tags to delete
+                    let lower_case_tags: Vec<String> = processing_tags
+                        .clone()
+                        .into_iter()
+                        .map(|tag| tag.to_lowercase())
+                        .collect();
                     let tags_to_delete: Vec<Uuid> = db_post
                         .tags
                         .iter()
-                        .filter(|t| !tags.contains(&t.name))
+                        .filter(|t| !lower_case_tags.contains(&t.name.to_lowercase()))
                         .map(|t| t.id)
                         .collect();
 
@@ -91,8 +94,13 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                             .map_err(|err| err.into())?;
                     }
                     // 3.2. Insert post Tags
-                    if !new_tag_ids.is_empty() {
-                        let post_tags_to_insert = new_tag_ids
+                    let all_tag_ids = create_tags_response
+                        .existing_tag_ids
+                        .into_iter()
+                        .chain(create_tags_response.new_tag_ids)
+                        .collect::<Vec<Uuid>>();
+                    if !all_tag_ids.is_empty() {
+                        let post_tags_to_insert = all_tag_ids
                             .iter()
                             .map(|tag_id| post_tags::ActiveModel {
                                 post_id: Set(body.id),
