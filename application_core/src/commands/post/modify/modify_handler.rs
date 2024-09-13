@@ -1,6 +1,7 @@
 use sea_orm::{
     sea_query::Expr, DatabaseConnection, EntityTrait, QueryFilter, Set, TransactionTrait,
 };
+use seaography::itertools::Itertools;
 use std::sync::Arc;
 use tracing::instrument;
 use uuid::Uuid;
@@ -70,7 +71,8 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                     let db_post: PostReadResponse =
                         post_read_handler.handle_get_post(modified_id).await?;
 
-                    // 2.2 Figure out tags to delete
+                    // 3. Update Category and Tags
+                    // 3.1. Delete Tags
                     let lower_case_tags: Vec<String> = processing_tags
                         .clone()
                         .into_iter()
@@ -82,9 +84,6 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                         .filter(|t| !lower_case_tags.contains(&t.name.to_lowercase()))
                         .map(|t| t.id)
                         .collect();
-
-                    // 3. Update Category and Tags
-                    // 3.1. Delete and Insert Tags
                     if !tags_to_delete.is_empty() {
                         post_tags::Entity::delete_many()
                             .filter(Expr::col(post_tags::Column::PostId).eq(modified_id))
@@ -93,14 +92,22 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                             .await
                             .map_err(|err| err.into())?;
                     }
+
                     // 3.2. Insert post Tags
-                    let all_tag_ids = create_tags_response
+                    let binded_tag_ids = db_post
+                        .tags
+                        .iter()
+                        .map(|tag| tag.id.to_owned())
+                        .collect_vec();
+                    let insert_tag_ids = create_tags_response
                         .existing_tag_ids
                         .into_iter()
                         .chain(create_tags_response.new_tag_ids)
+                        .filter(|tag_id| !binded_tag_ids.contains(tag_id))
                         .collect::<Vec<Uuid>>();
-                    if !all_tag_ids.is_empty() {
-                        let post_tags_to_insert = all_tag_ids
+
+                    if !insert_tag_ids.is_empty() {
+                        let post_tags_to_insert = insert_tag_ids
                             .iter()
                             .map(|tag_id| post_tags::ActiveModel {
                                 post_id: Set(body.id),
@@ -122,7 +129,6 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                         .exec(tx)
                         .await
                         .map_err(|err| err.into())?;
-
                     match modified_result.rows_affected == 0 {
                         true => {
                             return Err(AppError::Logical("Row version is not matched".to_string()))

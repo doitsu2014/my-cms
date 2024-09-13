@@ -73,7 +73,8 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         .handle_get_category(modified_id)
                         .await?;
 
-                    // 2.2 Figure out tags to delete
+                    // 3. Update Category and Tags
+                    // 3.1. Delete
                     let lower_case_tags: Vec<String> = processing_tags
                         .clone()
                         .iter()
@@ -85,9 +86,6 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         .filter(|t| !lower_case_tags.contains(&t.name.to_lowercase()))
                         .map(|t| t.id)
                         .collect();
-
-                    // 3. Update Category and Tags
-                    // 3.1. Delete and Insert Tags
                     if !tags_to_delete.is_empty() {
                         category_tags::Entity::delete_many()
                             .filter(Expr::col(category_tags::Column::CategoryId).eq(modified_id))
@@ -98,11 +96,17 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                     }
 
                     // 3.2. Insert Category Tags
+                    let binded_tag_ids = db_category
+                        .tags
+                        .iter()
+                        .map(|tag| tag.id.to_owned())
+                        .collect_vec();
                     let combined_ids = create_tags_response
                         .new_tag_ids
                         .iter()
                         .chain(create_tags_response.existing_tag_ids.iter())
                         .map(|id| id.to_owned())
+                        .filter(|id| !binded_tag_ids.contains(id))
                         .collect_vec();
 
                     if !combined_ids.is_empty() {
