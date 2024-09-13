@@ -7,7 +7,7 @@ use crate::{
         },
         tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
     },
-    common::app_error::{AppError},
+    common::app_error::AppError,
     entities::{
         categories::{self, Column},
         category_tags,
@@ -17,6 +17,7 @@ use sea_orm::{
     prelude::Uuid, sea_query::Expr, DatabaseConnection, EntityTrait, QueryFilter, Set,
     TransactionTrait,
 };
+use seaography::itertools::Itertools;
 use tracing::instrument;
 
 use super::modify_request::ModifyCategoryRequest;
@@ -62,12 +63,10 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                     model.last_modified_by = Set(actor_email.clone());
 
                     // 2. Insert new tags
-                    let tags: Vec<String> = body.tag_names.unwrap_or_default().clone();
+                    let processing_tags: Vec<String> = body.tag_names.unwrap_or_default().clone();
                     let create_tags_response = tag_create_handler
-                        .handle_create_tags_in_transaction(tags.clone(), actor_email, tx)
+                        .handle_create_tags_in_transaction(processing_tags.clone(), actor_email, tx)
                         .await?;
-                    // Combine New Tag Ids and Existing Tag Ids
-                    let new_tag_ids = create_tags_response.new_tag_ids;
 
                     // 2.1. Get existing category
                     let db_category: CategoryReadResponse = category_read_handler
@@ -75,10 +74,15 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         .await?;
 
                     // 2.2 Figure out tags to delete
+                    let lower_case_tags: Vec<String> = processing_tags
+                        .clone()
+                        .iter()
+                        .map(|t| t.to_lowercase())
+                        .collect();
                     let tags_to_delete: Vec<Uuid> = db_category
                         .tags
                         .iter()
-                        .filter(|t| !tags.contains(&t.name))
+                        .filter(|t| !lower_case_tags.contains(&t.name.to_lowercase()))
                         .map(|t| t.id)
                         .collect();
 
@@ -92,9 +96,17 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                             .await
                             .map_err(|err| err.into())?;
                     }
+
                     // 3.2. Insert Category Tags
-                    if !new_tag_ids.is_empty() {
-                        let category_tags_to_insert = new_tag_ids
+                    let combined_ids = create_tags_response
+                        .new_tag_ids
+                        .iter()
+                        .chain(create_tags_response.existing_tag_ids.iter())
+                        .map(|id| id.to_owned())
+                        .collect_vec();
+
+                    if !combined_ids.is_empty() {
+                        let category_tags_to_insert = combined_ids
                             .iter()
                             .map(|tag_id| category_tags::ActiveModel {
                                 category_id: Set(body.id),
