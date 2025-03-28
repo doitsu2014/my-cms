@@ -23,9 +23,8 @@ use cms::{
 };
 use dotenv::{dotenv, from_filename};
 use hyper::Method;
-use init_tracing_opentelemetry::{
-    tracing_subscriber_ext::{build_logger_text, build_loglevel_filter_layer, build_otel_layer},
-    Error,
+use init_tracing_opentelemetry::tracing_subscriber_ext::{
+    build_level_filter_layer, build_logger_text, TracingGuard,
 };
 use reqwest::Url;
 use s3::{creds::Credentials, Region};
@@ -42,7 +41,10 @@ async fn main() {
     from_filename("secret.env").ok();
     dotenv().ok();
 
-    init_my_subscribers().unwrap();
+    let _guard = setup_otel_tracing_and_logging();
+    if _guard.is_none() {
+        setup_logging();
+    }
 
     let app = public_router()
         .await
@@ -63,31 +65,25 @@ async fn main() {
     );
 }
 
-pub fn init_my_subscribers() -> Result<(), Error> {
+pub fn setup_otel_tracing_and_logging() -> Option<TracingGuard> {
     let enabled_otlp_exporter_str =
         env::var("ENABLED_OTLP_EXPORTER").unwrap_or("false".to_string());
     let enabled_otlp_exporter = enabled_otlp_exporter_str.parse::<bool>().unwrap();
 
-    //setup a temporary subscriber to log output during setup
-    let subscriber = tracing_subscriber::registry()
-        .with(build_loglevel_filter_layer())
-        .with(build_logger_text());
-    let _guard = tracing::subscriber::set_default(subscriber);
-    info!("init logging & tracing");
-
     if enabled_otlp_exporter {
-        let subscriber = tracing_subscriber::registry()
-            .with(build_otel_layer()?)
-            .with(build_loglevel_filter_layer())
-            .with(build_logger_text());
-        tracing::subscriber::set_global_default(subscriber)?;
+        // very opinionated init of tracing, look as is source to compose your own
+        let _guard = init_tracing_opentelemetry::tracing_subscriber_ext::init_subscribers();
+        _guard.ok().or(None)
     } else {
-        let subscriber = tracing_subscriber::registry()
-            .with(build_loglevel_filter_layer())
-            .with(build_logger_text());
-        tracing::subscriber::set_global_default(subscriber)?;
+        None
     }
-    Ok(())
+}
+
+pub fn setup_logging() {
+    let subscriber = tracing_subscriber::registry()
+        .with(build_level_filter_layer("").unwrap_or_default())
+        .with(build_logger_text());
+    tracing::subscriber::set_global_default(subscriber).unwrap();
 }
 
 pub async fn public_router() -> Router {
