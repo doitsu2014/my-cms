@@ -1,0 +1,15 @@
+{
+    "recommendations": [
+        "vscodevim.vim",
+        "dustypomerleau.rust-syntax",
+        "jinxdash.prettier-rust",
+        "jscearcy.rust-doc-viewer",
+        "polymeilex.rust-targets",
+        "rust-lang.rust-analyzer",
+        "swellaby.rust-pack",
+        "vadimcn.vscode-lldb",
+        "zhangyue.rust-mod-generator",
+        "github.copilot-chat",
+        "github.copilot"
+    ]
+}

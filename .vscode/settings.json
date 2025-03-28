@@ -1,0 +1,9 @@
+{
+    "terminal.integrated.fontFamily": "'ComicShannsMono Nerd Font', 'EnvyCodeR Nerd Font', monospace",
+    "editor.fontFamily": "'ComicShannsMono Nerd Font', 'EnvyCodeR Nerd Font', monospace",
+    "github.copilot.chat.codeGeneration.instructions": [
+        {
+          "file": "README.md"
+        }
+      ]
+}
