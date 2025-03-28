@@ -10,6 +10,7 @@
         "vadimcn.vscode-lldb",
         "zhangyue.rust-mod-generator",
         "github.copilot-chat",
-        "github.copilot"
+        "github.copilot",
+        "yzhang.markdown-all-in-one"
     ]
 }
