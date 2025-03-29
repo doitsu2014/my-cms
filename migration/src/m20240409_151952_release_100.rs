@@ -1,6 +1,6 @@
-use sea_orm::{EnumIter, Iterable};
+use sea_orm::{sea_query::extension::postgres::Type, EnumIter, Iterable};
 use sea_orm_migration::prelude::*;
-use sea_query::extension::postgres::Type;
+// use sea_query::extension::postgres::Type;
 
 use crate::{NAME_LENGTH, TITLE_LENGTH, USER_EMAIL_LENGTH};
 

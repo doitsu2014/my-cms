@@ -14,6 +14,7 @@ dist
 .DS_Store
 
 secret.env
+.env.local
 development.env
 uat.env
 production.env

@@ -10,65 +10,68 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokio = { version = "1.39.1", features = ["full"] }
+tokio = { version = "1.44.1", features = ["full"] }
 async-std = "1.12.0"
-axum = { version = "0.7.5", features = ["http2", "tracing", "multipart"] }
-axum-keycloak-auth = { version = "0.5.0" }
+axum = { version = "0.8.3", features = ["http2", "tracing", "multipart"] }
+axum-keycloak-auth = { version = "0.8.2" }
+axum-tracing-opentelemetry = { version = "0.26.1" }
+
 serde = { version = "1.0.204", features = ["derive"] }
 serde_json = "1.0.120"
 dotenv = "0.15.0"
-sea-orm = "1.0.1"
-sea-orm-migration = "1.0.1"
-seaography = { version = "1.0.0", features = [
+sea-orm = { version = "1.1.7", features = ["debug-print"] }
+sea-orm-migration = "1.1.7"
+seaography = { version = "1.1.4", features = [
   "with-decimal",
   "with-chrono",
   "with-postgres-array",
 ] }
-async-graphql-axum = { version = "7.0.9" }
-async-graphql = { version = "7.0.9", features = [
+async-graphql-axum = { version = "7.0.16" }
+async-graphql = { version = "7.0.16", features = [
   "decimal",
   "chrono",
   "dataloader",
   "dynamic-schema",
 ] }
 lazy_static = "1.5.0"
-chrono = "0.4.37"
+chrono = "0.4.40"
 rust-s3 = { version = "0.35.1" }
 
-hyper = { version = "1.3.1" }
-hyper-util = { version = "0.1.4" }
-tower = "0.5.0"
-tower-http = { version = "0.5.2", features = ["fs", "tracing", "cors"] }
-tower-cookies = "0.10.0"
+hyper = { version = "1.6.0" }
+hyper-util = { version = "0.1.10" }
+tower = "0.5.2"
+tower-http = { version = "0.6.2", features = ["fs", "tracing", "cors"] }
+tower-cookies = "0.11.0"
 
-tracing = { version = "0.1.40", default-features = false, features = [
+tracing = { version = "0.1.41", default-features = false, features = [
   "std",
   "attributes",
 ] }
-tracing-error = "0.2.0"
-tracing-subscriber = { version = "0.3.18", default-features = false, features = [
+tracing-error = "0.2.1"
+tracing-subscriber = { version = "0.3.19", default-features = false, features = [
   "registry",
   "std",
   "fmt",
 ] }
-tracing-opentelemetry = { version = "0.25" }
-tracing-opentelemetry-instrumentation-sdk = { version = "0.19.0" }
-axum-tracing-opentelemetry = { version = "0.19.0" }
-init-tracing-opentelemetry = { version = "0.19.0", features = [
+tracing-opentelemetry = { version = "0.30.0" }
+tracing-opentelemetry-instrumentation-sdk = { version = "0.26.0" }
+init-tracing-opentelemetry = { version = "0.27.1", features = [
   "otlp",
   "tracing_subscriber_ext",
 ] }
-opentelemetry = { version = "0.24.0" }
-opentelemetry-otlp = { version = "0.17.0" }
+opentelemetry = { version = "0.29.0" }
+opentelemetry-otlp = { version = "0.29.0" }
 
-jsonwebtoken = { version = "9.3.0" }
-oauth2 = { version = "4.4.2" }
-reqwest = { version = "0.12.5" }
-
+jsonwebtoken = { version = "9.3.1" }
+oauth2 = { version = "5.0.0" }
+reqwest = { version = "0.12.15" }
 
 application_core = { path = "application_core" }
 migration = { path = "migration" }
 
 [dev-dependencies]
-testcontainers = "0.21.0"
-testcontainers-modules = { version = "0.9.0", features = ["postgres", "redis"] }
+testcontainers = "0.21.1"
+testcontainers-modules = { version = "0.11.6", features = [
+  "postgres",
+  "redis",
+] }

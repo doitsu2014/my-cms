@@ -26,6 +26,7 @@ impl ModifyPostRequest {
             category_id: Set(self.category_id.to_owned()),
             row_version: Set(self.row_version + 1),
             thumbnail_paths: Set(self.thumbnail_paths.to_owned()),
+            published: Set(self.published),
             ..Default::default()
         }
     }
