@@ -38,7 +38,7 @@ use tracing_subscriber::layer::SubscriberExt;
 
 #[tokio::main]
 async fn main() {
-    from_filename("secret.env").ok();
+    from_filename(".env.local").ok();
     dotenv().ok();
 
     let _guard = setup_otel_tracing_and_logging();
@@ -116,7 +116,7 @@ pub async fn protected_router() -> Router {
                 .delete(api_delete_categories),
         )
         .route(
-            "/categories/:category_id",
+            "/categories/{category_id}",
             get(api::category::read::read_handler::api_get_category),
         )
         .route(
@@ -127,7 +127,7 @@ pub async fn protected_router() -> Router {
                 .delete(api_delete_posts),
         )
         .route(
-            "/posts/:post_id",
+            "/posts/{post_id}",
             get(api::post::read::read_handler::api_get_post),
         )
         .route("/tags", delete(api_delete_tags))
@@ -216,7 +216,7 @@ async fn construct_app_state() -> AppState {
 
 fn construct_keycloak_auth_instance() -> KeycloakAuthInstance {
     let issuer =
-        env::var("KEYCLOAK_ISSUER").unwrap_or("https://keycloak-admin.doitsu.tech".to_string());
+        env::var("KEYCLOAK_ISSUER").unwrap_or("https://my-ids-admin.ducth.dev".to_string());
     let realm = env::var("KEYCLOAK_REALM").unwrap_or("master".to_string());
 
     KeycloakAuthInstance::new(

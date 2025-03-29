@@ -12,6 +12,8 @@
         "github.copilot-chat",
         "github.copilot",
         "yzhang.markdown-all-in-one",
-        "fill-labs.dependi"
+        "fill-labs.dependi",
+        "ms-ossdata.vscode-postgresql",
+        "ckolkman.vscode-postgres"
     ]
 }
