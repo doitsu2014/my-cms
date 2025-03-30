@@ -4,7 +4,9 @@ pub mod prelude;
 
 pub mod categories;
 pub mod category_tags;
+pub mod category_translations;
 pub mod post_tags;
+pub mod post_translations;
 pub mod posts;
 pub mod sea_orm_active_enums;
 pub mod tags;
