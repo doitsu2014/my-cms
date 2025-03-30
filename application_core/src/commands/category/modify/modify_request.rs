@@ -8,6 +8,14 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct ModifyCategoryTranslationRequest {
+    pub display_name: String,
+    pub language_code: String,
+    pub slug: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct ModifyCategoryRequest {
     pub id: Uuid,
     pub display_name: String,
@@ -15,6 +23,7 @@ pub struct ModifyCategoryRequest {
     pub parent_id: Option<Uuid>,
     pub row_version: i32,
     pub tag_names: Option<Vec<String>>,
+    pub translations: Option<Vec<ModifyCategoryTranslationRequest>>,
 }
 
 impl ModifyCategoryRequest {

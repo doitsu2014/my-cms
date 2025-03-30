@@ -11,6 +11,7 @@ use crate::{
     entities::{
         categories::{self, Column},
         category_tags,
+        category_translations,
     },
 };
 use sea_orm::{
@@ -50,6 +51,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
             db: self.db.clone(),
         };
 
+        // Exec Transaction to Update Category, Tags, and Translations
         // Update the category with current row version, if row version is not matched, return error
         let result: Result<Uuid, AppError> = self
             .db
@@ -65,7 +67,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                     // 2. Insert new tags
                     let processing_tags: Vec<String> = body.tag_names.unwrap_or_default().clone();
                     let create_tags_response = tag_create_handler
-                        .handle_create_tags_in_transaction(processing_tags.clone(), actor_email, tx)
+                        .handle_create_tags_in_transaction(processing_tags.clone(), actor_email.clone(), tx)
                         .await?;
 
                     // 2.1. Get existing category
@@ -80,12 +82,14 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         .iter()
                         .map(|t| t.to_lowercase())
                         .collect();
+
                     let tags_to_delete: Vec<Uuid> = db_category
                         .tags
                         .iter()
                         .filter(|t| !lower_case_tags.contains(&t.name.to_lowercase()))
                         .map(|t| t.id)
                         .collect();
+
                     if !tags_to_delete.is_empty() {
                         category_tags::Entity::delete_many()
                             .filter(Expr::col(category_tags::Column::CategoryId).eq(modified_id))
@@ -101,6 +105,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         .iter()
                         .map(|tag| tag.id.to_owned())
                         .collect_vec();
+
                     let combined_ids = create_tags_response
                         .new_tag_ids
                         .iter()
@@ -138,6 +143,34 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                             return Err(AppError::Logical("Row version is not matched".to_string()))
                         }
                         false => (),
+                    }
+
+                    // TODO: the logic of update translation is not correct, should not remove first.
+                    // 4. Update Translations
+                    if let Some(translations) = body.translations {
+                        // Delete existing translations
+                        category_translations::Entity::delete_many()
+                            .filter(Expr::col(category_translations::Column::CategoryId).eq(modified_id))
+                            .exec(tx)
+                            .await
+                            .map_err(|err| err.into())?;
+
+                        // Insert new translations
+                        let translation_models = translations
+                            .into_iter()
+                            .map(|translation| category_translations::ActiveModel {
+                                id: Set(Uuid::new_v4()),
+                                category_id: Set(modified_id),
+                                language_code: Set(translation.language_code),
+                                display_name: Set(translation.display_name),
+                                slug: Set(translation.slug),
+                            })
+                            .collect::<Vec<category_translations::ActiveModel>>();
+
+                        category_translations::Entity::insert_many(translation_models)
+                            .exec(tx)
+                            .await
+                            .map_err(|err| err.into())?;
                     }
 
                     Ok(modified_id)
@@ -201,6 +234,7 @@ mod tests {
             parent_id: None,
             row_version: 1,
             tag_names: None,
+            translations: None,
         };
 
         let result = modify_handler
@@ -249,6 +283,7 @@ mod tests {
             parent_id: None,
             row_version: wrong_row_version,
             tag_names: None,
+            translations: None,
         };
 
         let result = modify_handler

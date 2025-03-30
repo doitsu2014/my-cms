@@ -13,6 +13,15 @@ pub struct CreateCategoryRequest {
     pub category_type: CategoryType,
     pub parent_id: Option<Uuid>,
     pub tag_names: Option<Vec<String>>,
+    pub translations: Option<Vec<CreateCategoryTranslationRequest>>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateCategoryTranslationRequest {
+    pub display_name: String,
+    pub language_code: String,
+    pub slug: String,
 }
 
 impl CreateCategoryRequest {
