@@ -11,10 +11,9 @@ use crate::{
     entities::{
         categories::{self, Column},
         category_tags,
-        category_translations::{self, ActiveModel},
+        category_translations::{self},
     },
 };
-use s3::request;
 use sea_orm::{
     prelude::Uuid, sea_query::Expr, DatabaseConnection, EntityTrait, QueryFilter, Set,
     TransactionTrait,
@@ -194,14 +193,16 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         for request_translation in request_translations {
                             if request_translation.id.is_some() {
                                 // If the translation ID is present, it means we are updating an existing translation
-                                let existing_translation = request_translation.into_active_model();
+                                let mut existing_translation = request_translation.into_active_model();
+                                existing_translation.category_id = Set(modified_id);
                                 category_translations::Entity::update(existing_translation)
                                     .exec(tx)
                                     .await
                                     .map_err(|err| err.into())?;
                             } else {
                                 // If the translation ID is not present, it means we are creating a new translation
-                                let new_translation = request_translation.into_active_model();
+                                let mut new_translation = request_translation.into_active_model();
+                                new_translation.category_id = Set(modified_id);
                                 category_translations::Entity::insert(new_translation)
                                     .exec(tx)
                                     .await

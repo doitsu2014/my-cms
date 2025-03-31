@@ -12,7 +12,6 @@ pub struct ModifyCategoryTranslationRequest {
     pub id: Option<Uuid>,
     pub display_name: String,
     pub language_code: String,
-    pub slug: String,
 }
 
 impl ModifyCategoryTranslationRequest {

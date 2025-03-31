@@ -1,10 +1,11 @@
-use std::{collections::HashMap, string, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use sea_orm::{
     prelude::DateTimeWithTimeZone, sea_query::Expr, ActiveEnum, DatabaseConnection, EntityTrait,
-    QueryFilter, QueryOrder, QuerySelect, QueryTrait, RelationTrait,
+    QueryFilter, QueryOrder,
 };
 use serde::{Deserialize, Serialize};
+use tracing::instrument;
 use uuid::Uuid;
 
 use crate::{
@@ -77,11 +78,13 @@ pub trait CategoryReadHandlerTrait {
     ) -> impl std::future::Future<Output = Result<CategoryReadResponse, AppError>> + Send;
 }
 
+#[derive(Debug)]
 pub struct CategoryReadHandler {
     pub db: Arc<DatabaseConnection>,
 }
 
 impl CategoryReadHandlerTrait for CategoryReadHandler {
+    #[instrument]
     async fn handle_get_all_categories(&self) -> Result<Vec<CategoryReadResponse>, AppError> {
         let db_result = Categories::find()
             .find_with_related(Tags)
@@ -126,6 +129,7 @@ impl CategoryReadHandlerTrait for CategoryReadHandler {
         Result::Ok(response)
     }
 
+    #[instrument]
     async fn handle_get_category(&self, id: Uuid) -> Result<CategoryReadResponse, AppError> {
         let db_result = Categories::find_by_id(id)
             .find_with_related(Tags)
@@ -173,6 +177,7 @@ impl CategoryReadHandlerTrait for CategoryReadHandler {
         Result::Ok(response.first().unwrap().to_owned())
     }
 
+    #[instrument]
     async fn handle_get_with_filtering(
         &self,
         category_type: Option<CategoryType>,
@@ -185,18 +190,45 @@ impl CategoryReadHandlerTrait for CategoryReadHandler {
         }
 
         let db_result = query
+            .to_owned()
             .find_with_related(Tags)
             .order_by_asc(Column::DisplayName)
             .all(self.db.as_ref())
             .await
             .map_err(|e| e.into())?;
 
-        let response = db_result
+        let mut response = db_result
             .iter()
             .map(|c_and_tags| {
                 CategoryReadResponse::new(c_and_tags.0.to_owned(), c_and_tags.1.to_owned())
             })
             .collect::<Vec<CategoryReadResponse>>();
+
+        let db_result_with_translations: HashMap<Uuid, (Model, Vec<category_translations::Model>)> =
+            query
+                .find_with_related(CategoryTranslations)
+                .order_by_asc(Column::DisplayName)
+                .all(self.db.as_ref())
+                .await
+                .map_err(|e| e.into())?
+                .iter()
+                .map(|e| (e.0.id, e.to_owned()))
+                .collect();
+
+        response = response
+            .iter()
+            .map(|r| {
+                let translations = db_result_with_translations
+                    .get(&r.id)
+                    .map(|e| e.1.to_owned())
+                    .unwrap_or(vec![]);
+
+                CategoryReadResponse {
+                    translations: translations.clone(),
+                    ..r.to_owned()
+                }
+            })
+            .collect();
 
         // let category and tags
         Result::Ok(response)
