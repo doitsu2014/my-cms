@@ -105,11 +105,8 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
                             .into_iter()
                             .map(|translation| {
                                 category_translations::Model {
-                                    id: Uuid::new_v4(),
                                     category_id: inserted_category.last_insert_id,
-                                    language_code: translation.language_code,
-                                    slug: translation.slug,
-                                    display_name: translation.display_name,
+                                    ..translation.into_model()
                                 }
                                 .into_active_model()
                             })

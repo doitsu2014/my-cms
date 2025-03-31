@@ -11,9 +11,10 @@ use crate::{
     entities::{
         categories::{self, Column},
         category_tags,
-        category_translations,
+        category_translations::{self, ActiveModel},
     },
 };
+use s3::request;
 use sea_orm::{
     prelude::Uuid, sea_query::Expr, DatabaseConnection, EntityTrait, QueryFilter, Set,
     TransactionTrait,
@@ -67,7 +68,11 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                     // 2. Insert new tags
                     let processing_tags: Vec<String> = body.tag_names.unwrap_or_default().clone();
                     let create_tags_response = tag_create_handler
-                        .handle_create_tags_in_transaction(processing_tags.clone(), actor_email.clone(), tx)
+                        .handle_create_tags_in_transaction(
+                            processing_tags.clone(),
+                            actor_email.clone(),
+                            tx,
+                        )
                         .await?;
 
                     // 2.1. Get existing category
@@ -145,32 +150,64 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         false => (),
                     }
 
-                    // TODO: the logic of update translation is not correct, should not remove first.
                     // 4. Update Translations
-                    if let Some(translations) = body.translations {
-                        // Delete existing translations
-                        category_translations::Entity::delete_many()
-                            .filter(Expr::col(category_translations::Column::CategoryId).eq(modified_id))
-                            .exec(tx)
+                    if let Some(request_translations) = body.translations {
+                        // Collect language codes from the incoming translations
+                        let incoming_translation_ids: Vec<Uuid> = request_translations
+                            .iter()
+                            .filter(|t| t.id.is_some())
+                            .map(|translation| translation.id.to_owned().unwrap_or_default())
+                            .collect();
+
+                        // Find existing translations for the category
+                        let existing_translations = category_translations::Entity::find()
+                            .filter(
+                                Expr::col(category_translations::Column::CategoryId)
+                                    .eq(modified_id),
+                            )
+                            .all(tx)
                             .await
                             .map_err(|err| err.into())?;
 
-                        // Insert new translations
-                        let translation_models = translations
-                            .into_iter()
-                            .map(|translation| category_translations::ActiveModel {
-                                id: Set(Uuid::new_v4()),
-                                category_id: Set(modified_id),
-                                language_code: Set(translation.language_code),
-                                display_name: Set(translation.display_name),
-                                slug: Set(translation.slug),
+                        // Identify translations to delete
+                        let translations_to_delete: Vec<Uuid> = existing_translations
+                            .iter()
+                            .filter(|existing_translation| {
+                                !incoming_translation_ids.contains(&existing_translation.id)
                             })
-                            .collect::<Vec<category_translations::ActiveModel>>();
+                            .map(|existing_translation| existing_translation.id)
+                            .collect();
 
-                        category_translations::Entity::insert_many(translation_models)
-                            .exec(tx)
-                            .await
-                            .map_err(|err| err.into())?;
+                        // Delete translations that are no longer present
+                        if !translations_to_delete.is_empty() {
+                            category_translations::Entity::delete_many()
+                                .filter(
+                                    Expr::col(category_translations::Column::Id)
+                                        .is_in(translations_to_delete),
+                                )
+                                .exec(tx)
+                                .await
+                                .map_err(|err| err.into())?;
+                        }
+
+                        // Process incoming translations
+                        for request_translation in request_translations {
+                            if request_translation.id.is_some() {
+                                // If the translation ID is present, it means we are updating an existing translation
+                                let existing_translation = request_translation.into_active_model();
+                                category_translations::Entity::update(existing_translation)
+                                    .exec(tx)
+                                    .await
+                                    .map_err(|err| err.into())?;
+                            } else {
+                                // If the translation ID is not present, it means we are creating a new translation
+                                let new_translation = request_translation.into_active_model();
+                                category_translations::Entity::insert(new_translation)
+                                    .exec(tx)
+                                    .await
+                                    .map_err(|err| err.into())?;
+                            }
+                        }
                     }
 
                     Ok(modified_id)

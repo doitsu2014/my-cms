@@ -1,6 +1,6 @@
 use crate::{
     common::datetime_generator::generate_vietnam_now,
-    entities::{categories, sea_orm_active_enums::CategoryType},
+    entities::{categories, category_translations, sea_orm_active_enums::CategoryType},
     StringExtension,
 };
 use sea_orm::{prelude::Uuid, Set};
@@ -9,9 +9,25 @@ use serde::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ModifyCategoryTranslationRequest {
+    pub id: Option<Uuid>,
     pub display_name: String,
     pub language_code: String,
     pub slug: String,
+}
+
+impl ModifyCategoryTranslationRequest {
+    pub fn into_active_model(&self) -> category_translations::ActiveModel {
+        category_translations::ActiveModel {
+            id: Set(match self.id {
+                Some(id) => id,
+                None => Uuid::new_v4(),
+            }),
+            display_name: Set(self.display_name.to_owned()),
+            slug: Set(self.display_name.to_slug()),
+            language_code: Set(self.language_code.to_owned()),
+            ..Default::default()
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug)]

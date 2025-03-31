@@ -1,8 +1,8 @@
-use std::sync::Arc;
+use std::{collections::HashMap, string, sync::Arc};
 
 use sea_orm::{
     prelude::DateTimeWithTimeZone, sea_query::Expr, ActiveEnum, DatabaseConnection, EntityTrait,
-    QueryFilter, QueryOrder,
+    QueryFilter, QueryOrder, QuerySelect, QueryTrait, RelationTrait,
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -11,10 +11,11 @@ use crate::{
     common::app_error::AppError,
     entities::{
         categories::{Column, Model},
+        category_translations,
         sea_orm_active_enums::CategoryType,
         tags,
     },
-    Categories, Tags,
+    Categories, CategoryTranslations, Tags,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,6 +33,7 @@ pub struct CategoryReadResponse {
     pub row_version: i32,
     pub tags: Vec<tags::Model>,
     pub tag_names: Vec<String>,
+    pub translations: Vec<category_translations::Model>,
 }
 
 impl CategoryReadResponse {
@@ -54,6 +56,7 @@ impl CategoryReadResponse {
             row_version: category.row_version,
             tags,
             tag_names,
+            translations: vec![],
         }
     }
 }
@@ -86,12 +89,38 @@ impl CategoryReadHandlerTrait for CategoryReadHandler {
             .await
             .map_err(|e| e.into())?;
 
-        let response = db_result
+        let mut response = db_result
             .iter()
             .map(|c_and_tags| {
                 CategoryReadResponse::new(c_and_tags.0.to_owned(), c_and_tags.1.to_owned())
             })
             .collect::<Vec<CategoryReadResponse>>();
+
+        let db_result_with_translations: HashMap<Uuid, (Model, Vec<category_translations::Model>)> =
+            Categories::find()
+                .find_with_related(CategoryTranslations)
+                .all(self.db.as_ref())
+                .await
+                .map_err(|e| e.into())?
+                .iter()
+                .map(|e| (e.0.id, e.to_owned()))
+                .collect();
+
+        // Combine translation data with the existing response
+        response = response
+            .iter()
+            .map(|r| {
+                let translations = db_result_with_translations
+                    .get(&r.id)
+                    .map(|e| e.1.to_owned())
+                    .unwrap_or(vec![]);
+
+                CategoryReadResponse {
+                    translations: translations.clone(),
+                    ..r.to_owned()
+                }
+            })
+            .collect();
 
         // let category and tags
         Result::Ok(response)
@@ -108,18 +137,40 @@ impl CategoryReadHandlerTrait for CategoryReadHandler {
             return Result::Err(AppError::NotFound);
         }
 
-        let response = db_result
+        let mut response = db_result
             .iter()
             .map(|c_and_tags| {
                 CategoryReadResponse::new(c_and_tags.0.to_owned(), c_and_tags.1.to_owned())
             })
-            .collect::<Vec<CategoryReadResponse>>()
-            .first()
-            .unwrap()
-            .to_owned();
+            .collect::<Vec<CategoryReadResponse>>();
+
+        let db_result_with_translations: HashMap<Uuid, (Model, Vec<category_translations::Model>)> =
+            Categories::find_by_id(id)
+                .find_with_related(CategoryTranslations)
+                .all(self.db.as_ref())
+                .await
+                .map_err(|e| e.into())?
+                .iter()
+                .map(|e| (e.0.id, e.to_owned()))
+                .collect();
+
+        response = response
+            .iter()
+            .map(|r| {
+                let translations = db_result_with_translations
+                    .get(&r.id)
+                    .map(|e| e.1.to_owned())
+                    .unwrap_or(vec![]);
+
+                CategoryReadResponse {
+                    translations: translations.clone(),
+                    ..r.to_owned()
+                }
+            })
+            .collect();
 
         // let category and tags
-        Result::Ok(response)
+        Result::Ok(response.first().unwrap().to_owned())
     }
 
     async fn handle_get_with_filtering(
