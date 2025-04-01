@@ -24,20 +24,17 @@ jobs:
           toolchain: nightly
           override: true
           default: true
-
+          components: 'llvm-tools-preview'
       - uses: actions-rs/cargo@v1
         with:
           command: test
           args: --all --all-features --no-fail-fast # Customize args for your own needs
         env:
           CARGO_INCREMENTAL: "0"
-          RUSTFLAGS: "-Ccodegen-units=1 -Cllvm-args=--inline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-          RUSTDOCFLAGS: "-Ccodegen-units=1 -Cllvm-args=--inline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-
+          RUSTFLAGS: "-Cinstrument-coverage -Ccodegen-units=1 -Cllvm-args=--inline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
       # Take Coverage Reports
       - id: coverage
         uses: actions-rs/grcov@v0.1
-
       # Upload Coverage Reports to Third Party
       - name: Upload coverage reports to Coveralls
         uses: coverallsapp/github-action@master
