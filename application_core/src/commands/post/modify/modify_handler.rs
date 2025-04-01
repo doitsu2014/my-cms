@@ -15,6 +15,7 @@ use crate::{
     entities::{
         post_tags,
         posts::{self, Column},
+        post_translations,
     },
 };
 
@@ -60,6 +61,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                     let mut model = body.into_active_model();
                     model.last_modified_by = Set(actor_email.clone());
                     model.last_modified_at = Set(Some(generate_vietnam_now()));
+                    model.row_version = Set(current_row_version + 1);
 
                     // 2. Insert new tags
                     let processing_tags: Vec<String> = body.tag_names.unwrap_or_default().clone();
@@ -134,6 +136,59 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                             return Err(AppError::Logical("Row version is not matched".to_string()))
                         }
                         false => (),
+                    }
+
+                    // 4. Update Translations
+                    if let Some(request_translations) = body.translations {
+                        let incoming_translation_ids: Vec<Uuid> = request_translations
+                            .iter()
+                            .filter(|t| t.id.is_some())
+                            .map(|t| t.id.unwrap())
+                            .collect();
+
+                        let existing_translations = post_translations::Entity::find()
+                            .filter(Expr::col(post_translations::Column::PostId).eq(modified_id))
+                            .all(tx)
+                            .await
+                            .map_err(|err| err.into())?;
+
+                        let translations_to_delete: Vec<Uuid> = existing_translations
+                            .iter()
+                            .filter(|existing_translation| {
+                                !incoming_translation_ids.contains(&existing_translation.id)
+                            })
+                            .map(|existing_translation| existing_translation.id)
+                            .collect();
+
+                        if !translations_to_delete.is_empty() {
+                            post_translations::Entity::delete_many()
+                                .filter(
+                                    Expr::col(post_translations::Column::Id)
+                                        .is_in(translations_to_delete),
+                                )
+                                .exec(tx)
+                                .await
+                                .map_err(|err| err.into())?;
+                        }
+
+                        for request_translation in request_translations {
+                            if request_translation.id.is_some() {
+                                let mut existing_translation =
+                                    request_translation.into_active_model();
+                                existing_translation.post_id = Set(modified_id);
+                                post_translations::Entity::update(existing_translation)
+                                    .exec(tx)
+                                    .await
+                                    .map_err(|err| err.into())?;
+                            } else {
+                                let mut new_translation = request_translation.into_active_model();
+                                new_translation.post_id = Set(modified_id);
+                                post_translations::Entity::insert(new_translation)
+                                    .exec(tx)
+                                    .await
+                                    .map_err(|err| err.into())?;
+                            }
+                        }
                     }
 
                     Ok(modified_id)
@@ -214,6 +269,7 @@ mod tests {
             row_version: 1,
             tag_names: None,
             thumbnail_paths: vec![],
+            translations: None,
         };
         let result = post_modify_handler
             .handle_modify_post(request.clone(), Some("Last Modifier".to_string()))
@@ -269,6 +325,7 @@ mod tests {
             row_version: 0,
             tag_names: None,
             thumbnail_paths: vec![],
+            translations: None,
         };
 
         let result = post_modify_handler

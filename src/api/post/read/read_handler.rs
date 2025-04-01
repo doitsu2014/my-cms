@@ -26,7 +26,7 @@ pub async fn api_get_posts_with_filtering(
     };
 
     let result = handler
-        .handle_get_posts_with_filtering(query.category_type.to_owned())
+        .handle_get_posts_with_filtering(query.category_type.to_owned(), None)
         .await;
     match result {
         Ok(posts) => ApiResponseWith::new(posts).to_axum_response(),

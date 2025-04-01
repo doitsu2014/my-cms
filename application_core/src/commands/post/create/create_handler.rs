@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::{
     commands::tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
     common::{app_error::AppError, datetime_generator::generate_vietnam_now},
-    entities::{post_tags, posts},
+    entities::{post_tags, post_translations, posts},
     Posts,
 };
 
@@ -47,8 +47,12 @@ impl PostCreateHandlerTrait for PostCreateHandler {
         let create_model = posts::ActiveModel {
             ..model.into_active_model()
         };
+
         // Prepare Tags
         let tags: Vec<String> = body.tag_names.unwrap_or_default();
+
+        // Prepare Translations
+        let translations = body.translations.unwrap_or_default();
 
         let result: Result<Uuid, TransactionError<AppError>> = self
             .db
@@ -60,7 +64,7 @@ impl PostCreateHandlerTrait for PostCreateHandler {
                         tag_create_handler.handle_create_tags_in_transaction(tags, actor_email, tx);
 
                     // Insert Category
-                    let inserted_category = Posts::insert(create_model)
+                    let inserted_post = Posts::insert(create_model)
                         .exec(tx)
                         .await
                         .map_err(|e| e.into())?;
@@ -79,7 +83,7 @@ impl PostCreateHandlerTrait for PostCreateHandler {
                             .iter()
                             .map(|tag_id| {
                                 post_tags::Model {
-                                    post_id: inserted_category.last_insert_id,
+                                    post_id: inserted_post.last_insert_id,
                                     tag_id: tag_id.to_owned(),
                                 }
                                 .into_active_model()
@@ -92,7 +96,27 @@ impl PostCreateHandlerTrait for PostCreateHandler {
                             .map_err(|e| e.into())?;
                     }
 
-                    Ok(inserted_category.last_insert_id)
+                    // Insert Post Translations
+                    if !translations.is_empty() {
+                        let post_translations = translations
+                            .into_iter()
+                            .map(|translation| {
+                                post_translations::Model {
+                                    post_id: inserted_post.last_insert_id,
+                                    ..translation.into_model()
+                                }
+                                .into_active_model()
+                            })
+                            .collect::<Vec<post_translations::ActiveModel>>();
+
+                        post_translations::Entity::insert_many(post_translations)
+                            .exec(tx)
+                            .await
+                            .map_err(|e| e.into())?;
+                    }
+
+
+                    Ok(inserted_post.last_insert_id)
                 })
             })
             .await;
@@ -102,6 +126,7 @@ impl PostCreateHandlerTrait for PostCreateHandler {
             Err(e) => Err(e.into()),
         }
     }
+
 }
 
 #[cfg(test)]
