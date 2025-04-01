@@ -20,6 +20,7 @@ pub mod test {
             category_type: CategoryType::Blog,
             tag_names: Some(fake_tag_names(number_of_tags)),
             parent_id: None,
+            translations: None,
         }
     }
 
@@ -34,6 +35,7 @@ pub mod test {
             category_type: category_type.to_owned(),
             tag_names: Some(fake_tag_names(number_of_tags)),
             parent_id: None,
+            translations: None,
         }
     }
 
@@ -48,6 +50,7 @@ pub mod test {
             category_type: CategoryType::Blog,
             tag_names: Some(fake_tag_names(number_of_tags)),
             parent_id: Some(parent_id),
+            translations: None,
         }
     }
 }

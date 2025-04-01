@@ -38,6 +38,8 @@ pub enum Relation {
     Categories,
     #[sea_orm(has_many = "super::post_tags::Entity")]
     PostTags,
+    #[sea_orm(has_many = "super::post_translations::Entity")]
+    PostTranslations,
 }
 
 impl Related<super::categories::Entity> for Entity {
@@ -49,6 +51,12 @@ impl Related<super::categories::Entity> for Entity {
 impl Related<super::post_tags::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::PostTags.def()
+    }
+}
+
+impl Related<super::post_translations::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::PostTranslations.def()
     }
 }
 
@@ -69,6 +77,8 @@ pub enum RelatedEntity {
     Categories,
     #[sea_orm(entity = "super::post_tags::Entity")]
     PostTags,
+    #[sea_orm(entity = "super::post_translations::Entity")]
+    PostTranslations,
     #[sea_orm(entity = "super::tags::Entity")]
     Tags,
 }

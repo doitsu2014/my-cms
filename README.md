@@ -65,7 +65,7 @@ AWS_SECRET_ACCESS_KEY=
 MEDIA_IMG_PROXY_SERVER=https://imgproxy.doitsu.tech
 ```
 
-## Keys to take-away
+## Development Guidelines
 
 ### 1. ORM
 
@@ -73,6 +73,22 @@ The project using SeaORM to interact with the database. SeaORM is a modern and e
 We use Schema First approach to design the database schema and generate the code from the schema. It helps us to keep the schema and the code in sync.
 
 The `entities` will be generated from the schema, and we can use them to interact with the database.
+
+#### Commands
+
+Please replace `connection_string` for each commands below:
+
+- Command migrate up (up latest version of migration to database)
+
+```sh
+sea-orm-cli migrate --database-url connection_string up
+```
+
+- Command to generate entities (scaffold from latest on database to source code)
+
+```sh
+sea-orm-cli generate entity --database-url postgres://postgres:1234567890@localhost:5432/my-cms -o application_core/src/entities --with-serde both --model-extra-attributes 'serde(rename_all = "camelCase")' --seaography
+```
 
 ### 2. Unit Tests and Integration Tests
 

@@ -4,7 +4,7 @@ use super::create_request::CreateCategoryRequest;
 use crate::{
     commands::tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
     common::{app_error::AppError, datetime_generator::generate_vietnam_now},
-    entities::{categories, category_tags},
+    entities::{categories, category_tags, category_translations},
     Categories,
 };
 use sea_orm::{
@@ -36,6 +36,7 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
         let tag_create_handler = TagCreateHandler {
             db: self.db.clone(),
         };
+
         // Prepare Category
         let model: categories::Model = body.into_model();
         let model = categories::Model {
@@ -43,6 +44,8 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
             created_at: generate_vietnam_now(),
             ..model
         };
+
+        // Prepare Category Active Model
         let create_category = categories::ActiveModel {
             ..model.into_active_model()
         };
@@ -50,6 +53,10 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
         // Prepare Tags
         let tags: Vec<String> = body.tag_names.unwrap_or_default();
 
+        // Prepare Translations
+        let translations = body.translations.unwrap_or_default();
+
+        // Execute Transaction to Insert Category, Tags, and Translations
         let result: Result<Uuid, TransactionError<AppError>> = self
             .db
             .as_ref()
@@ -57,7 +64,7 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
                 Box::pin(async move {
                     // Insert New Tags
                     let create_tags_response = tag_create_handler
-                        .handle_create_tags_in_transaction(tags, actor_email, tx)
+                        .handle_create_tags_in_transaction(tags, actor_email.clone(), tx)
                         .await?;
 
                     // Combine New Tag Ids and Existing Tag Ids
@@ -87,6 +94,25 @@ impl CategoryCreateHandlerTrait for CategoryCreateHandler {
                             .collect::<Vec<category_tags::ActiveModel>>();
 
                         category_tags::Entity::insert_many(category_tags)
+                            .exec(tx)
+                            .await
+                            .map_err(|e| e.into())?;
+                    }
+
+                    // Insert Category Translations
+                    if !translations.is_empty() {
+                        let category_translations = translations
+                            .into_iter()
+                            .map(|translation| {
+                                category_translations::Model {
+                                    category_id: inserted_category.last_insert_id,
+                                    ..translation.into_model()
+                                }
+                                .into_active_model()
+                            })
+                            .collect::<Vec<category_translations::ActiveModel>>();
+
+                        category_translations::Entity::insert_many(category_translations)
                             .exec(tx)
                             .await
                             .map_err(|e| e.into())?;

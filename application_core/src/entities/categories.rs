@@ -34,6 +34,8 @@ pub enum Relation {
     SelfRef,
     #[sea_orm(has_many = "super::category_tags::Entity")]
     CategoryTags,
+    #[sea_orm(has_many = "super::category_translations::Entity")]
+    CategoryTranslations,
     #[sea_orm(has_many = "super::posts::Entity")]
     Posts,
 }
@@ -41,6 +43,12 @@ pub enum Relation {
 impl Related<super::category_tags::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::CategoryTags.def()
+    }
+}
+
+impl Related<super::category_translations::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::CategoryTranslations.def()
     }
 }
 
@@ -67,6 +75,8 @@ pub enum RelatedEntity {
     SelfRef,
     #[sea_orm(entity = "super::category_tags::Entity")]
     CategoryTags,
+    #[sea_orm(entity = "super::category_translations::Entity")]
+    CategoryTranslations,
     #[sea_orm(entity = "super::posts::Entity")]
     Posts,
     #[sea_orm(entity = "Entity", def = "Relation::SelfRef.def().rev()")]

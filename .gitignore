@@ -22,3 +22,5 @@ production.env
 deployments/charts/**/secret.values.yaml
 
 .idea/
+**/test-llvm-reports
+lcov.info

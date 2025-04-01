@@ -11,6 +11,7 @@ use crate::{
     entities::{
         categories::{self, Column},
         category_tags,
+        category_translations::{self},
     },
 };
 use sea_orm::{
@@ -50,6 +51,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
             db: self.db.clone(),
         };
 
+        // Exec Transaction to Update Category, Tags, and Translations
         // Update the category with current row version, if row version is not matched, return error
         let result: Result<Uuid, AppError> = self
             .db
@@ -65,7 +67,11 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                     // 2. Insert new tags
                     let processing_tags: Vec<String> = body.tag_names.unwrap_or_default().clone();
                     let create_tags_response = tag_create_handler
-                        .handle_create_tags_in_transaction(processing_tags.clone(), actor_email, tx)
+                        .handle_create_tags_in_transaction(
+                            processing_tags.clone(),
+                            actor_email.clone(),
+                            tx,
+                        )
                         .await?;
 
                     // 2.1. Get existing category
@@ -80,12 +86,14 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         .iter()
                         .map(|t| t.to_lowercase())
                         .collect();
+
                     let tags_to_delete: Vec<Uuid> = db_category
                         .tags
                         .iter()
                         .filter(|t| !lower_case_tags.contains(&t.name.to_lowercase()))
                         .map(|t| t.id)
                         .collect();
+
                     if !tags_to_delete.is_empty() {
                         category_tags::Entity::delete_many()
                             .filter(Expr::col(category_tags::Column::CategoryId).eq(modified_id))
@@ -101,6 +109,7 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         .iter()
                         .map(|tag| tag.id.to_owned())
                         .collect_vec();
+
                     let combined_ids = create_tags_response
                         .new_tag_ids
                         .iter()
@@ -138,6 +147,68 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                             return Err(AppError::Logical("Row version is not matched".to_string()))
                         }
                         false => (),
+                    }
+
+                    // 4. Update Translations
+                    if let Some(request_translations) = body.translations {
+                        // Collect language codes from the incoming translations
+                        let incoming_translation_ids: Vec<Uuid> = request_translations
+                            .iter()
+                            .filter(|t| t.id.is_some())
+                            .map(|translation| translation.id.to_owned().unwrap_or_default())
+                            .collect();
+
+                        // Find existing translations for the category
+                        let existing_translations = category_translations::Entity::find()
+                            .filter(
+                                Expr::col(category_translations::Column::CategoryId)
+                                    .eq(modified_id),
+                            )
+                            .all(tx)
+                            .await
+                            .map_err(|err| err.into())?;
+
+                        // Identify translations to delete
+                        let translations_to_delete: Vec<Uuid> = existing_translations
+                            .iter()
+                            .filter(|existing_translation| {
+                                !incoming_translation_ids.contains(&existing_translation.id)
+                            })
+                            .map(|existing_translation| existing_translation.id)
+                            .collect();
+
+                        // Delete translations that are no longer present
+                        if !translations_to_delete.is_empty() {
+                            category_translations::Entity::delete_many()
+                                .filter(
+                                    Expr::col(category_translations::Column::Id)
+                                        .is_in(translations_to_delete),
+                                )
+                                .exec(tx)
+                                .await
+                                .map_err(|err| err.into())?;
+                        }
+
+                        // Process incoming translations
+                        for request_translation in request_translations {
+                            if request_translation.id.is_some() {
+                                // If the translation ID is present, it means we are updating an existing translation
+                                let mut existing_translation = request_translation.into_active_model();
+                                existing_translation.category_id = Set(modified_id);
+                                category_translations::Entity::update(existing_translation)
+                                    .exec(tx)
+                                    .await
+                                    .map_err(|err| err.into())?;
+                            } else {
+                                // If the translation ID is not present, it means we are creating a new translation
+                                let mut new_translation = request_translation.into_active_model();
+                                new_translation.category_id = Set(modified_id);
+                                category_translations::Entity::insert(new_translation)
+                                    .exec(tx)
+                                    .await
+                                    .map_err(|err| err.into())?;
+                            }
+                        }
                     }
 
                     Ok(modified_id)
@@ -201,6 +272,7 @@ mod tests {
             parent_id: None,
             row_version: 1,
             tag_names: None,
+            translations: None,
         };
 
         let result = modify_handler
@@ -249,6 +321,7 @@ mod tests {
             parent_id: None,
             row_version: wrong_row_version,
             tag_names: None,
+            translations: None,
         };
 
         let result = modify_handler

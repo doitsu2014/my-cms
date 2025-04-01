@@ -31,6 +31,7 @@ pub mod test {
             tag_names: Some(fake_tag_names(number_of_tags)),
             category_id,
             thumbnail_paths: filenames.to_owned(),
+            translations: None
         }
     }
 }

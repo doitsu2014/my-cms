@@ -19,7 +19,7 @@ pub fn schema(
     is_mutation_supported: bool,
 ) -> Result<Schema, SchemaError> {
     let mut builder = Builder::new(&CONTEXT, database.clone());
-    seaography::register_entities!(builder, [categories, category_tags, posts, post_tags, tags]);
+    seaography::register_entities!(builder, [categories, category_tags, posts, post_tags, tags, category_translations, post_translations]);
     builder.register_enumeration::<crate::entities::sea_orm_active_enums::CategoryType>();
     if !is_mutation_supported {
         builder.mutations = vec![];

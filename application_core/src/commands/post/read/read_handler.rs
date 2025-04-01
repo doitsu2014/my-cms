@@ -1,9 +1,9 @@
 use sea_orm::{
-    prelude::DateTimeWithTimeZone, sea_query::Expr, ActiveEnum, DatabaseConnection, EntityTrait,
-    JoinType, QueryFilter, QuerySelect, QueryTrait, RelationTrait,
+    prelude::DateTimeWithTimeZone, sea_query::Expr, ActiveEnum, ColumnTrait, DatabaseConnection, EntityTrait, JoinType, QueryFilter, QuerySelect, QueryTrait, RelationTrait
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use std::collections::HashMap;
 use tracing::instrument;
 use uuid::Uuid;
 
@@ -14,6 +14,7 @@ use crate::{
         posts::{self, Model},
         sea_orm_active_enums::CategoryType,
         tags,
+        post_translations,
     },
     Posts, Tags,
 };
@@ -36,10 +37,15 @@ pub struct PostReadResponse {
     pub row_version: i32,
     pub tags: Vec<tags::Model>,
     pub tag_names: Vec<String>,
+    pub translations: Vec<post_translations::Model>,
 }
 
 impl PostReadResponse {
-    fn new(post: Model, tags: Vec<tags::Model>) -> Self {
+    fn new(
+        post: Model,
+        tags: Vec<tags::Model>,
+        translations: Vec<post_translations::Model>,
+    ) -> Self {
         let tag_names = tags
             .iter()
             .map(|tag| tag.name.to_owned())
@@ -61,6 +67,7 @@ impl PostReadResponse {
             thumbnail_paths: post.thumbnail_paths,
             tags,
             tag_names,
+            translations,
         }
     }
 }
@@ -73,6 +80,7 @@ pub trait PostReadHandlerTrait {
     fn handle_get_posts_with_filtering(
         &self,
         category_type: Option<CategoryType>,
+        published: Option<bool>,
     ) -> impl std::future::Future<Output = Result<Vec<PostReadResponse>, AppError>>;
 
     fn handle_get_post(
@@ -98,7 +106,7 @@ impl PostReadHandlerTrait for PostReadHandler {
         let response = db_result
             .iter()
             .map(|p_and_tags| {
-                PostReadResponse::new(p_and_tags.0.to_owned(), p_and_tags.1.to_owned())
+                PostReadResponse::new(p_and_tags.0.to_owned(), p_and_tags.1.to_owned(), vec![])
             })
             .collect::<Vec<PostReadResponse>>();
 
@@ -109,6 +117,7 @@ impl PostReadHandlerTrait for PostReadHandler {
     async fn handle_get_posts_with_filtering(
         &self,
         category_type: Option<CategoryType>,
+        published: Option<bool>,
     ) -> Result<Vec<PostReadResponse>, AppError> {
         // Get Posts with Categories and Tags
         let db_result = Posts::find()
@@ -116,15 +125,37 @@ impl PostReadHandlerTrait for PostReadHandler {
             .apply_if(category_type, |query, v| {
                 query.filter(Expr::col(categories::Column::CategoryType).eq(v.as_enum()))
             })
+            .apply_if(published, |query, v| {
+                query.filter(Expr::col(posts::Column::Published).eq(v))
+            })
             .find_with_related(Tags)
             .all(self.db.as_ref())
             .await
             .map_err(|e| e.into())?;
 
+        // Collect post IDs
+        let post_ids: Vec<Uuid> = db_result.iter().map(|(post, _)| post.id).collect();
+
+        // Fetch all translations for the collected post IDs
+        let translations_map: HashMap<Uuid, Vec<post_translations::Model>> = post_translations::Entity::find()
+            .filter(post_translations::Column::PostId.is_in(post_ids.clone()))
+            .all(self.db.as_ref())
+            .await
+            .map_err(|e| e.into())?
+            .into_iter()
+            .fold(HashMap::new(), |mut acc, translation| {
+                acc.entry(translation.post_id)
+                    .or_insert_with(Vec::new)
+                    .push(translation);
+                acc
+            });
+
+        // Build the response
         let response = db_result
-            .iter()
-            .map(|p_and_tags| {
-                PostReadResponse::new(p_and_tags.0.to_owned(), p_and_tags.1.to_owned())
+            .into_iter()
+            .map(|(post, tags)| {
+                let post_translations = translations_map.get(&post.id).cloned().unwrap_or_default();
+                PostReadResponse::new(post, tags, post_translations)
             })
             .collect::<Vec<PostReadResponse>>();
 
@@ -143,15 +174,16 @@ impl PostReadHandlerTrait for PostReadHandler {
             return Result::Err(AppError::NotFound);
         }
 
-        let response = db_result
-            .iter()
-            .map(|p_and_tags| {
-                PostReadResponse::new(p_and_tags.0.to_owned(), p_and_tags.1.to_owned())
-            })
-            .collect::<Vec<PostReadResponse>>()
-            .first()
-            .unwrap()
-            .to_owned();
+        let post = db_result.first().unwrap().0.to_owned();
+        let tags = db_result.first().unwrap().1.to_owned();
+
+        let translations = post_translations::Entity::find()
+            .filter(post_translations::Column::PostId.eq(post.id))
+            .all(self.db.as_ref())
+            .await
+            .map_err(|e| e.into())?;
+
+        let response = PostReadResponse::new(post, tags, translations);
 
         Result::Ok(response)
     }
@@ -218,16 +250,16 @@ mod tests {
             .unwrap();
 
         let db_blog_posts = post_read_handler
-            .handle_get_posts_with_filtering(Some(CategoryType::Blog))
+            .handle_get_posts_with_filtering(Some(CategoryType::Blog), None)
             .await
             .unwrap();
         let db_other_posts = post_read_handler
-            .handle_get_posts_with_filtering(Some(CategoryType::Other))
+            .handle_get_posts_with_filtering(Some(CategoryType::Other), None)
             .await
             .unwrap();
         let all_posts = post_read_handler.handle_get_all_posts().await.unwrap();
         let all_posts_from_no_filtering = post_read_handler
-            .handle_get_posts_with_filtering(None)
+            .handle_get_posts_with_filtering(None, None)
             .await
             .unwrap();
 

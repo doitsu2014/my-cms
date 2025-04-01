@@ -2,6 +2,8 @@
 
 pub use super::categories::Entity as Categories;
 pub use super::category_tags::Entity as CategoryTags;
+pub use super::category_translations::Entity as CategoryTranslations;
 pub use super::post_tags::Entity as PostTags;
+pub use super::post_translations::Entity as PostTranslations;
 pub use super::posts::Entity as Posts;
 pub use super::tags::Entity as Tags;
