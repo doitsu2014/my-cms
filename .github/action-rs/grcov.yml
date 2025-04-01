@@ -1,12 +1,13 @@
 branch: true
 ignore-not-existing: true
 llvm: true
-# filter: covered
-# output-type: cobertura
 output-path: ./lcov.info
+output-type: lcov
+# filter: covered
 # prefix-dir: /home/user/build/
-ignore: []
-#   - "/*"
+
+ignore:
+  - "/*"
 #   - "C:/*"
 #   - "../*"
 path-mapping: []
