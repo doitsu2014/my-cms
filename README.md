@@ -9,6 +9,138 @@
 There is my-cms project, it is an api system to handle biz services of a headless CMS for my website. I choose Rust as the main programming language to build the system because of its performance and safety.
 Let's see how far I can go with this project.
 
+```mermaid
+flowchart TD
+    %% Level 1: Clients
+    Clients["Clients (REST & GraphQL)"]:::ext
+
+    %% Level 2: API Layer
+    subgraph "API Layer"
+        direction TB
+        API_Module["API Modules"]:::api
+        API_Category["Category API"]:::api
+        API_Post["Post API"]:::api
+        API_Media["Media API"]:::api
+        API_Tag["Tag API"]:::api
+        API_Public["Public API"]:::api
+        API_GraphQL["GraphQL API"]:::api
+        API_Admin["Administrator API"]:::api
+    end
+
+    %% Level 3: Application Core
+    subgraph "Application Core"
+        direction TB
+        Core_Module["Core Module"]:::app
+        CMD_Category["Category Command Handler"]:::app
+        CMD_Post["Post Command Handler"]:::app
+        CMD_Media["Media Command Handler"]:::app
+        CMD_Tag["Tag Command Handler"]:::app
+        Common_Domain["Common Domain Logic"]:::app
+    end
+
+    %% Level 4: Database & ORM Layer
+    subgraph "Database & ORM Layer"
+        direction TB
+        Entities["SeaORM Entities"]:::db
+        Migrations["Migrations"]:::db
+        DB["((PostgreSQL Database))"]:::db
+    end
+
+    %% Level 5: Deployment & External/Config/Testing
+    subgraph "Infrastructure & Cross-Cutting Concerns"
+        direction TB
+        Config[".env Configuration"]:::config
+        Jaeger["Jaeger Tracing"]:::ext
+        S3["S3 Media Storage"]:::ext
+        Docker["Docker Deployment"]:::deploy
+        Helm["Helm Charts"]:::deploy
+        CICD["CI/CD Workflows"]:::deploy
+        Testing["Unit Test Helpers"]:::test
+    end
+
+    %% Connections in Main Flow
+    Clients -->|"requests"| API_Module
+    API_Module -->|"dispatch"| Core_Module
+    Core_Module -->|"DB operations"| Entities
+    Entities -->|"maps to"| DB
+    Migrations -->|"schema update"| DB
+
+    %% Internal API Layer connections
+    API_Module -->|"includes"| API_Category
+    API_Module -->|"includes"| API_Post
+    API_Module -->|"includes"| API_Media
+    API_Module -->|"includes"| API_Tag
+    API_Module -->|"includes"| API_Public
+    API_Module -->|"includes"| API_GraphQL
+    API_Module -->|"includes"| API_Admin
+
+    %% Internal Application Core connections
+    Core_Module -->|"executes"| CMD_Category
+    Core_Module -->|"executes"| CMD_Post
+    Core_Module -->|"executes"| CMD_Media
+    Core_Module -->|"executes"| CMD_Tag
+    Core_Module -->|"utilizes"| Common_Domain
+
+    %% Deployment & Config Influence
+    Docker ---|"deploys"| API_Module
+    Helm ---|"orchestrates"| API_Module
+    CICD ---|"integrates"| API_Module
+    CICD ---|"integrates"| Core_Module
+
+    Config ---|"configures"| API_Module
+    Config ---|"configures"| Core_Module
+    Config ---|"configures"| DB
+
+    %% External Services Influence
+    API_Module ---|"traced by"| Jaeger
+    API_Module ---|"media stored in"| S3
+
+    %% Testing Influence
+    Testing ---|"validates"| Core_Module
+
+    %% Click Events for API Layer
+    click API_Module "https://github.com/doitsu2014/my-cms/tree/main/src/api"
+    click API_Category "https://github.com/doitsu2014/my-cms/tree/main/src/api/category"
+    click API_Post "https://github.com/doitsu2014/my-cms/tree/main/src/api/post"
+    click API_Media "https://github.com/doitsu2014/my-cms/tree/main/src/api/media"
+    click API_Tag "https://github.com/doitsu2014/my-cms/tree/main/src/api/tag"
+    click API_Public "https://github.com/doitsu2014/my-cms/tree/main/src/api/public"
+    click API_GraphQL "https://github.com/doitsu2014/my-cms/tree/main/src/api/graphql"
+    click API_Admin "https://github.com/doitsu2014/my-cms/tree/main/src/api/administrator"
+
+    %% Click Events for Application Core
+    click Core_Module "https://github.com/doitsu2014/my-cms/tree/main/application_core"
+    click CMD_Category "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/category"
+    click CMD_Post "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/post"
+    click CMD_Media "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/media"
+    click CMD_Tag "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/tag"
+    click Common_Domain "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/common"
+
+    %% Click Events for Database & ORM Layer
+    click Entities "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/entities"
+    click Migrations "https://github.com/doitsu2014/my-cms/tree/main/migration"
+
+    %% Click Events for Deployment & Infrastructure
+    click Docker "https://github.com/doitsu2014/my-cms/tree/main/Dockerfile"
+    click Helm "https://github.com/doitsu2014/my-cms/tree/main/deployments/charts/my-cms-api"
+    click CICD "https://github.com/doitsu2014/my-cms/tree/main/.github/workflows"
+
+    %% Click Event for Configuration
+    click Config "https://github.com/doitsu2014/my-cms/blob/main/.env"
+
+    %% Click Event for Testing
+    click Testing "https://github.com/doitsu2014/my-cms/tree/main/test_helpers"
+
+    %% Styles
+    classDef api fill:#a6cee3,stroke:#1f78b4,stroke-width:2px;
+    classDef app fill:#b2df8a,stroke:#33a02c,stroke-width:2px;
+    classDef db fill:#fcae91,stroke:#fb9a99,stroke-width:2px;
+    classDef deploy fill:#ffe599,stroke:#b08d57,stroke-width:2px;
+    classDef config fill:#d9d9d9,stroke:#7f7f7f,stroke-width:2px;
+    classDef test fill:#f4cccc,stroke:#e06666,stroke-width:2px;
+    classDef ext fill:#c5b0d5,stroke:#6a3d9a,stroke-width:2px;
+```
+
 ## Configuration
 
 ### 1. Cross-cutting concerns
