@@ -7,16 +7,16 @@ edition = "2021"
 
 [dependencies]
 async-std = "1.13.1"
-tokio = { version = "1.44.1", features = ["full"] }
-sea-orm = "1.1.7"
-sea-orm-macros = "1.1.7"
+tokio = { version = "1.45.1", features = ["full"] }
+sea-orm = "1.1.12"
+sea-orm-macros = "1.1.12"
 seaography = { version = "1.1.4", features = [
   "with-decimal",
   "with-chrono",
   "with-postgres-array",
   "with-uuid",
 ] }
-async-graphql = { version = "7.0.16", features = [
+async-graphql = { version = "7.0.17", features = [
   "decimal",
   "chrono",
   "dataloader",
@@ -44,7 +44,7 @@ rust-s3 = { version = "0.35.1" }
 
 
 [dev-dependencies]
-sea-orm-migration = "1.1.7"
+sea-orm-migration = "1.1.12"
 fake = { version = "4.2.0", features = ["derive"] }
 migration = { path = "../migration" }
 test_helpers = { path = "../test_helpers" }
