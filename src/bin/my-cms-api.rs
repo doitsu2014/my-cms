@@ -23,8 +23,9 @@ use cms::{
 };
 use dotenv::{dotenv, from_filename};
 use hyper::Method;
-use init_tracing_opentelemetry::tracing_subscriber_ext::{
-    build_level_filter_layer, build_logger_text, TracingGuard,
+use init_tracing_opentelemetry::{
+    otlp::OtelGuard,
+    tracing_subscriber_ext::{build_level_filter_layer, build_logger_text},
 };
 use reqwest::Url;
 use s3::{creds::Credentials, Region};
@@ -65,7 +66,7 @@ async fn main() {
     );
 }
 
-pub fn setup_otel_tracing_and_logging() -> Option<TracingGuard> {
+pub fn setup_otel_tracing_and_logging() -> Option<OtelGuard> {
     let enabled_otlp_exporter_str =
         env::var("ENABLED_OTLP_EXPORTER").unwrap_or("false".to_string());
     let enabled_otlp_exporter = enabled_otlp_exporter_str.parse::<bool>().unwrap();
@@ -146,7 +147,7 @@ pub async fn protected_router() -> Router {
                 .instance(construct_keycloak_auth_instance())
                 .passthrough_mode(PassthroughMode::Block)
                 .persist_raw_claims(false)
-                .expected_audiences(vec![String::from("my-headless-cms-api")])
+                .expected_audiences(vec![env::var("AUTHORIZATION_AUDIENCE").unwrap_or("my-cms-headless-api".to_string())])
                 .required_roles(vec![String::from("my-headless-cms-writer")])
                 .build(),
         )
@@ -176,7 +177,7 @@ pub async fn protected_administrator_router() -> Router {
                 .instance(construct_keycloak_auth_instance())
                 .passthrough_mode(PassthroughMode::Block)
                 .persist_raw_claims(false)
-                .expected_audiences(vec![String::from("my-headless-cms-api")])
+                .expected_audiences(vec![env::var("AUTHORIZATION_AUDIENCE").unwrap_or("my-cms-headless-api".to_string())])
                 .required_roles(vec![String::from("my-headless-cms-administrator")])
                 .build(),
         )
