@@ -236,3 +236,9 @@ I use Docker to build the image and Github Actions to run the CI/CD pipeline.
 You can play around the project using Postman Collection in folder `postman_collection`.
 
 Construct your Environment Variable before you start playing.
+
+## Dependencies (Linux)
+
+- libssl-dev (for OpenSSL)
+- pkg-config (for building some dependencies)
+- build-essential (for building some dependencies)
