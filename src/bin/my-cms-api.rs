@@ -28,7 +28,7 @@ use init_tracing_opentelemetry::{
     tracing_subscriber_ext::{build_level_filter_layer, build_logger_text},
 };
 use reqwest::Url;
-use s3::{creds::Credentials, Region};
+use s3::creds::Credentials;
 use sea_orm::Database;
 use tower_cookies::CookieManagerLayer;
 use tower_http::cors::{Any, CorsLayer};
@@ -191,8 +191,7 @@ pub async fn protected_administrator_router() -> Router {
 async fn construct_app_state() -> AppState {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let conn = Database::connect(&database_url).await.unwrap();
-    let s3_region_str: String = env::var("S3_REGION").unwrap_or_default();
-    let s3_region: Region = s3_region_str.parse().unwrap_or(Region::ApSoutheast1);
+    let s3_endpoint = env::var("S3_ENDPOINT").unwrap_or_default();
     let s3_bucket_name = env::var("S3_BUCKET_NAME").unwrap_or_default();
     let s3_credentials: Credentials =
         Credentials::from_env().unwrap_or(Credentials::default().unwrap());
@@ -204,7 +203,7 @@ async fn construct_app_state() -> AppState {
         conn: Arc::new(conn),
         media_config: Arc::new(MediaConfig {
             s3_media_storage: S3MediaStorage {
-                s3_region,
+                s3_endpoint,
                 s3_credentials,
                 s3_bucket_name,
             },

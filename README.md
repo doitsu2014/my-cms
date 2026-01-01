@@ -188,8 +188,8 @@ OTEL_TRACES_SAMPLER=always_on
 MAX_BODY_LENGTH=10485760
 
 # Media Config
-# S3 Configuration
-S3_REGION=ap-southeast-1
+# S3-Compatible Storage Configuration
+S3_ENDPOINT=https://sin1.contabostorage.com
 S3_BUCKET_NAME=
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=

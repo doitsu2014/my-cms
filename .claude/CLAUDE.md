@@ -91,7 +91,7 @@ Uses Keycloak via `axum-keycloak-auth` with role-based access control. Configure
 ### External Dependencies
 
 - **PostgreSQL**: Primary database
-- **S3**: Media storage (configurable region and bucket)
+- **S3-Compatible Storage**: Media storage (Contabo or any S3-compatible service)
 - **Jaeger**: Optional OpenTelemetry tracing (enable via `ENABLED_OTLP_EXPORTER=true`)
 
 ## Environment Configuration
@@ -99,7 +99,9 @@ Uses Keycloak via `axum-keycloak-auth` with role-based access control. Configure
 Key environment variables (see `.env` for full list):
 - `DATABASE_URL`: PostgreSQL connection string
 - `HOST` / `PORT`: API server binding (default: 127.0.0.1:8989)
-- `S3_REGION`, `S3_BUCKET_NAME`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`: S3 configuration
+- `S3_ENDPOINT`: S3-compatible storage endpoint (e.g., `https://sin1.contabostorage.com`)
+- `S3_BUCKET_NAME`: Storage bucket name
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`: S3 credentials
 - `ENABLED_OTLP_EXPORTER`: Enable Jaeger tracing
 
 ## Testing

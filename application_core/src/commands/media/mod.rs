@@ -15,19 +15,20 @@ pub struct MediaConfig {
 
 #[derive(Clone, Debug)]
 pub struct S3MediaStorage {
-    pub s3_region: Region,
+    pub s3_endpoint: String,
     pub s3_credentials: Credentials,
     pub s3_bucket_name: String,
 }
 
 impl S3MediaStorage {
     pub fn spawn_bucket(&self) -> Result<Box<Bucket>, AppError> {
-        Bucket::new(
-            &self.s3_bucket_name,
-            self.s3_region.to_owned(),
-            self.s3_credentials.to_owned(),
-        )
-        .map_err(|e| e.into())
+        let region = Region::Custom {
+            region: "".to_string(),
+            endpoint: self.s3_endpoint.clone(),
+        };
+        Bucket::new(&self.s3_bucket_name, region, self.s3_credentials.to_owned())
+            .map(|b| b.with_path_style())
+            .map_err(|e| e.into())
     }
 }
 
