@@ -64,6 +64,8 @@ opentelemetry-otlp = { version = "0.30.0" }
 jsonwebtoken = { version = "9.3.1" }
 oauth2 = { version = "5.0.0" }
 reqwest = { version = "0.12.23" }
+image = "0.25"
+moka = { version = "0.12", features = ["future"] }
 
 application_core = { path = "application_core" }
 migration = { path = "migration" }

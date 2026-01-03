@@ -74,7 +74,7 @@ PostgreSQL Database
 **application_core/src/commands/**: Command handlers for each domain:
 - `category/` - Category CRUD operations
 - `post/` - Post CRUD operations
-- `media/` - S3 media upload handling
+- `media/` - S3 media upload and delivery with auto-resize
 - `tag/` - Tag operations
 
 **application_core/src/entities/**: SeaORM entities generated from database schema
@@ -87,6 +87,20 @@ Uses Keycloak via `axum-keycloak-auth` with role-based access control. Configure
 - `KEYCLOAK_ISSUER`
 - `KEYCLOAK_REALM`
 - `AUTHORIZATION_AUDIENCE`
+
+### Media API
+
+**Upload**: `POST /media/images` (protected, requires `my-headless-cms-writer` role)
+- Accepts multipart form data with `image` field
+- Returns JSON with `path` and `url`
+
+**Delivery**: `GET /media/images/{path}` (public)
+- Serves images directly from S3 with optional auto-resize
+- Query parameters:
+  - `w` - target width (maintains aspect ratio if only width specified)
+  - `h` - target height (maintains aspect ratio if only height specified)
+- Includes in-memory caching (1 hour TTL, max 500 images)
+- Example: `/media/images/example.jpg?w=800`
 
 ### External Dependencies
 
@@ -102,6 +116,7 @@ Key environment variables (see `.env` for full list):
 - `S3_ENDPOINT`: S3-compatible storage endpoint (e.g., `https://sin1.contabostorage.com`)
 - `S3_BUCKET_NAME`: Storage bucket name
 - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`: S3 credentials
+- `MEDIA_BASE_URL`: Base URL for media delivery URLs (defaults to `http://{HOST}:{PORT}`)
 - `ENABLED_OTLP_EXPORTER`: Enable Jaeger tracing
 
 ## Testing

@@ -41,7 +41,8 @@ tracing-subscriber = { version = "0.3.20", default-features = false, features = 
 ] }
 
 rust-s3 = { version = "0.37.0" }
-
+image = "0.25"
+moka = { version = "0.12", features = ["future"] }
 
 [dev-dependencies]
 sea-orm-migration = "1.1.16"

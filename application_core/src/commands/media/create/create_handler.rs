@@ -45,13 +45,11 @@ impl CreateMediaHandlerTrait for CreateMediaHandler {
             .await
             .map_err(|e| e.into())?;
         info!("{:?}", response);
-        let bucket_name = &self.media_config.s3_media_storage.s3_bucket_name;
         Ok(MediaModel {
-            server: self.media_config.media_imgproxy_server.clone(),
             path: beautiful_media_name.clone(),
-            imgproxy_url: format!(
-                "{}/insecure/rs:fit/plain/s3://{}/{}",
-                self.media_config.media_imgproxy_server, bucket_name, beautiful_media_name
+            url: format!(
+                "{}/media/images/{}",
+                self.media_config.media_base_url, beautiful_media_name
             ),
         })
     }

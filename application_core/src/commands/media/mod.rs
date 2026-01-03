@@ -10,7 +10,7 @@ pub mod read;
 #[derive(Clone, Debug)]
 pub struct MediaConfig {
     pub s3_media_storage: S3MediaStorage,
-    pub media_imgproxy_server: String,
+    pub media_base_url: String,
 }
 
 #[derive(Clone, Debug)]
@@ -33,8 +33,8 @@ impl S3MediaStorage {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MediaModel {
-    pub server: String,
     pub path: String,
-    pub imgproxy_url: String,
+    pub url: String,
 }

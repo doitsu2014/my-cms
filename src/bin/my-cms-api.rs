@@ -2,7 +2,7 @@ use std::env;
 use std::sync::Arc;
 
 use application_core::{
-    commands::media::{MediaConfig, S3MediaStorage},
+    commands::media::{read::read_handler::create_image_cache, MediaConfig, S3MediaStorage},
     graphql::query_root::schema,
 };
 use async_graphql_axum::GraphQL;
@@ -95,6 +95,10 @@ pub async fn public_router() -> Router {
         .route("/health", get(public::root::handler::check_health))
         .route("/healthz", get(public::root::handler::check_health))
         .route(
+            "/media/images/{*path}",
+            get(api::media::read::read_handler::api_get_media_image),
+        )
+        .route(
             "/graphql/immutable",
             get(api::graphql::graphql_immutable).post_service(GraphQL::new(
                 app_state.graphql_immutable_schema.as_ref().to_owned(),
@@ -103,6 +107,7 @@ pub async fn public_router() -> Router {
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
         .layer(construct_cors_layer())
+        .with_state(app_state)
 }
 
 pub async fn protected_router() -> Router {
@@ -195,7 +200,12 @@ async fn construct_app_state() -> AppState {
     let s3_bucket_name = env::var("S3_BUCKET_NAME").unwrap_or_default();
     let s3_credentials: Credentials =
         Credentials::from_env().unwrap_or(Credentials::default().unwrap());
-    let media_imgproxy_server = env::var("MEDIA_IMG_PROXY_SERVER").unwrap_or_default();
+
+    let host = env::var("HOST").unwrap_or("127.0.0.1".to_string());
+    let port = env::var("PORT").unwrap_or("8989".to_string());
+    let media_base_url =
+        env::var("MEDIA_BASE_URL").unwrap_or(format!("http://{}:{}", host, port));
+
     let graphql_immutable_schema = schema(conn.clone(), None, None, false).unwrap();
     let graphql_mutable_schema = schema(conn.clone(), None, None, true).unwrap();
 
@@ -207,8 +217,9 @@ async fn construct_app_state() -> AppState {
                 s3_credentials,
                 s3_bucket_name,
             },
-            media_imgproxy_server,
+            media_base_url,
         }),
+        image_cache: Arc::new(create_image_cache()),
         graphql_immutable_schema: Arc::new(graphql_immutable_schema),
         graphql_mutable_schema: Arc::new(graphql_mutable_schema),
     }
