@@ -1,5 +1,5 @@
 use crate::{
-    commands::media::{MediaConfig, MediaModel},
+    commands::media::{is_image_content_type, MediaConfig, MediaModel},
     common::app_error::AppError,
     StringExtension,
 };
@@ -12,7 +12,7 @@ pub struct CreateMediaHandler {
 }
 
 pub trait CreateMediaHandlerTrait {
-    fn create_image_media(
+    fn create_media(
         &self,
         media_name: String,
         media: &[u8],
@@ -21,7 +21,7 @@ pub trait CreateMediaHandlerTrait {
 }
 
 impl CreateMediaHandlerTrait for CreateMediaHandler {
-    async fn create_image_media(
+    async fn create_media(
         &self,
         media_name: String,
         media: &[u8],
@@ -45,12 +45,23 @@ impl CreateMediaHandlerTrait for CreateMediaHandler {
             .await
             .map_err(|e| e.into())?;
         info!("{:?}", response);
-        Ok(MediaModel {
-            path: beautiful_media_name.clone(),
-            url: format!(
+
+        // Use /media/images/ path for images (supports resize), /media/ for other files
+        let url_path = if is_image_content_type(&content_type) {
+            format!(
                 "{}/media/images/{}",
                 self.media_config.media_base_url, beautiful_media_name
-            ),
+            )
+        } else {
+            format!(
+                "{}/media/{}",
+                self.media_config.media_base_url, beautiful_media_name
+            )
+        };
+
+        Ok(MediaModel {
+            path: beautiful_media_name,
+            url: url_path,
         })
     }
 }

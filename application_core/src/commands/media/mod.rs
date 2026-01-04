@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use s3::{creds::Credentials, Bucket, Region};
 use serde::{Deserialize, Serialize};
 
@@ -5,6 +6,7 @@ use crate::common::app_error::AppError;
 
 pub mod create;
 pub mod delete;
+pub mod list;
 pub mod read;
 
 #[derive(Clone, Debug)]
@@ -37,4 +39,27 @@ impl S3MediaStorage {
 pub struct MediaModel {
     pub path: String,
     pub url: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MediaMetadata {
+    pub path: String,
+    pub url: String,
+    pub content_type: String,
+    pub size: u64,
+    pub last_modified: Option<DateTime<Utc>>,
+}
+
+pub fn is_supported_content_type(content_type: &str) -> bool {
+    content_type.starts_with("image/")
+        || content_type == "application/pdf"
+        || content_type == "application/msword"
+        || content_type.starts_with("application/vnd.openxmlformats-officedocument.")
+        || content_type.starts_with("application/vnd.ms-")
+        || content_type.starts_with("text/")
+}
+
+pub fn is_image_content_type(content_type: &str) -> bool {
+    content_type.starts_with("image/")
 }

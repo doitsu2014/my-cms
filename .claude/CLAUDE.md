@@ -90,17 +90,39 @@ Uses Keycloak via `axum-keycloak-auth` with role-based access control. Configure
 
 ### Media API
 
-**Upload**: `POST /media/images` (protected, requires `my-headless-cms-writer` role)
-- Accepts multipart form data with `image` field
+**Upload**: `POST /media` (protected)
+- Accepts multipart form data with `file` or `image` field
+- Supports images + documents (PDF, Office docs, text files)
 - Returns JSON with `path` and `url`
 
-**Delivery**: `GET /media/images/{path}` (public)
-- Serves images directly from S3 with optional auto-resize
-- Query parameters:
-  - `w` - target width (maintains aspect ratio if only width specified)
-  - `h` - target height (maintains aspect ratio if only height specified)
-- Includes in-memory caching (1 hour TTL, max 500 images)
-- Example: `/media/images/example.jpg?w=800`
+**List**: `GET /media` (protected)
+- Lists all media files in S3 bucket
+- Query params: `?prefix=folder/` to filter by prefix
+- Returns array of `MediaMetadata` (path, url, contentType, size, lastModified)
+
+**Get Metadata**: `GET /media/info/{path}` (protected)
+- Returns detailed metadata for a specific file
+
+**Delete Single**: `DELETE /media/delete/{path}` (protected)
+- Deletes a single file by path
+
+**Delete Batch**: `DELETE /media` (protected)
+- Body: JSON array of paths `["file1.jpg", "file2.pdf"]`
+- Returns `{ deletedCount: N }`
+
+**Image Delivery**: `GET /media/images/{path}` (public)
+- Serves images with optional auto-resize
+- Query params: `?w=800` (width), `?h=600` (height)
+- Includes in-memory caching (1 hour TTL, max 500 files)
+
+**General Media Delivery**: `GET /media/{path}` (public)
+- Serves documents and other files as-is (no resize)
+- Includes in-memory caching
+
+**Supported Content Types**:
+- Images: jpeg, png, gif, webp, bmp (with resize support)
+- Documents: PDF, Word, Excel, PowerPoint
+- Text: plain text, CSV, Markdown
 
 ### External Dependencies
 

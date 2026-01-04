@@ -4,7 +4,7 @@ pub mod presentation_models;
 
 pub use api::*;
 use application_core::commands::media::{
-    read::read_handler::{CachedImage, ImageCacheKey},
+    read::read_handler::{CachedMedia, MediaCacheKey},
     MediaConfig,
 };
 use async_graphql::dynamic::*;
@@ -19,7 +19,7 @@ use std::{fmt::Debug, sync::Arc};
 pub struct AppState {
     pub conn: Arc<DatabaseConnection>,
     pub media_config: Arc<MediaConfig>,
-    pub image_cache: Arc<Cache<ImageCacheKey, CachedImage>>,
+    pub media_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
     pub graphql_immutable_schema: Arc<Schema>,
     pub graphql_mutable_schema: Arc<Schema>,
 }
@@ -28,7 +28,7 @@ impl Debug for AppState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("AppState")
             .field("media_config", &self.media_config)
-            .field("image_cache", &"<Cache>")
+            .field("media_cache", &"<Cache>")
             .finish_non_exhaustive()
     }
 }

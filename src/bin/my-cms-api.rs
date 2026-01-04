@@ -2,7 +2,7 @@ use std::env;
 use std::sync::Arc;
 
 use application_core::{
-    commands::media::{read::read_handler::create_image_cache, MediaConfig, S3MediaStorage},
+    commands::media::{read::read_handler::create_media_cache, MediaConfig, S3MediaStorage},
     graphql::query_root::schema,
 };
 use async_graphql_axum::GraphQL;
@@ -94,9 +94,15 @@ pub async fn public_router() -> Router {
         .route("/", get(public::root::handler::handle))
         .route("/health", get(public::root::handler::check_health))
         .route("/healthz", get(public::root::handler::check_health))
+        // Image delivery with resize support
         .route(
             "/media/images/{*path}",
             get(api::media::read::read_handler::api_get_media_image),
+        )
+        // General media delivery (documents, etc.) - no resize
+        .route(
+            "/media/{*path}",
+            get(api::media::read::read_handler::api_get_media),
         )
         .route(
             "/graphql/immutable",
@@ -137,9 +143,20 @@ pub async fn protected_router() -> Router {
             get(api::post::read::read_handler::api_get_post),
         )
         .route("/tags", delete(api_delete_tags))
+        // Media management routes
         .route(
-            "/media/images",
-            post(api::media::create::create_handler::api_create_media_image),
+            "/media",
+            get(api::media::list::list_handler::api_list_media)
+                .post(api::media::create::create_handler::api_create_media)
+                .delete(api::media::delete::delete_handler::api_delete_media_batch),
+        )
+        .route(
+            "/media/info/{*path}",
+            get(api::media::read::metadata_handler::api_get_media_metadata),
+        )
+        .route(
+            "/media/delete/{*path}",
+            delete(api::media::delete::delete_handler::api_delete_media),
         )
         .route(
             "/graphql/mutable",
@@ -219,7 +236,7 @@ async fn construct_app_state() -> AppState {
             },
             media_base_url,
         }),
-        image_cache: Arc::new(create_image_cache()),
+        media_cache: Arc::new(create_media_cache()),
         graphql_immutable_schema: Arc::new(graphql_immutable_schema),
         graphql_mutable_schema: Arc::new(graphql_mutable_schema),
     }
