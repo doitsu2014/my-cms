@@ -19,6 +19,9 @@ use crate::{
 
 use super::{translate_request::TranslatePostRequest, translate_response::TranslatePostResponse};
 
+// Default OpenAI model to use for translation
+const DEFAULT_OPENAI_MODEL: &str = "gpt-4o-mini";
+
 pub trait PostTranslateHandlerTrait {
     fn handle_translate_post(
         &self,
@@ -61,6 +64,8 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             .await?;
 
         // Translate preview content
+        // Note: If original preview_content is None, we set it to empty string
+        // as the database schema requires a non-nullable String
         let translated_preview_content = if let Some(preview) = &post.preview_content {
             self.translate_text(&client, preview, &request.target_language_code, "preview")
                 .await?
@@ -137,7 +142,7 @@ impl PostTranslateHandler {
         ];
 
         let request = CreateChatCompletionRequestArgs::default()
-            .model("gpt-4o-mini")
+            .model(DEFAULT_OPENAI_MODEL)
             .messages(messages)
             .build()
             .map_err(|e| AppError::OpenAIError(e.to_string()))?;
