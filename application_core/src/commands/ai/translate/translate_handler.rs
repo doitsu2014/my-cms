@@ -204,10 +204,10 @@ mod tests {
             .unwrap();
 
         // Translate the post (requires valid OpenAI API key)
-        let translate_handler = PostTranslateHandler {
+        let _translate_handler = PostTranslateHandler {
             db: arc_conn.clone(),
         };
-        let translate_request = TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
+        let _translate_request = TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
         
         // This would need a real API key to work
         // let api_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
