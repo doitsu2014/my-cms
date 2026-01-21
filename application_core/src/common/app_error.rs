@@ -14,6 +14,7 @@ pub enum AppError {
     ConcurrencyOptimistic(String),
     NotFound,
     Unknown,
+    OpenAIError(String),
 }
 
 impl Display for AppError {
@@ -31,6 +32,7 @@ impl Display for AppError {
             AppError::NotFound => write!(f, "Not found"),
             AppError::Unknown => write!(f, "Unknown error"),
             AppError::S3Error(err) => write!(f, "S3 error: {}", err),
+            AppError::OpenAIError(err) => write!(f, "OpenAI error: {}", err),
         }
     }
 }
@@ -46,6 +48,7 @@ impl Error for AppError {
             AppError::ConcurrencyOptimistic(_) => None,
             AppError::NotFound => None,
             AppError::Unknown => None,
+            AppError::OpenAIError(_) => None,
         }
     }
 }
