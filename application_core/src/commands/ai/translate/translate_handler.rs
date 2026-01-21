@@ -8,7 +8,7 @@ use async_openai::{
 };
 use html5ever::parse_document;
 use html5ever::tendril::TendrilSink;
-use markup5ever_rcdom::{Handle, NodeData, RcDom};
+use markup5ever_rcdom::{Handle, RcDom};
 use sea_orm::{DatabaseConnection, EntityTrait};
 use slugify::slugify;
 use std::io::Cursor;
