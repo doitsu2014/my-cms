@@ -4,9 +4,20 @@ This module contains AI-powered business services for the CMS.
 
 ## Translate Service
 
-The translate service uses OpenAI's GPT-4o-mini model to automatically translate post content to any language.
+The translate service uses OpenAI's GPT-4o-mini model to automatically translate post content to any language. It supports both synchronous and background processing, with automatic content chunking for large texts.
+
+### Features
+
+- **Content Chunking**: Automatically splits large content into chunks (max 2000 characters) to handle OpenAI token limits
+- **Parallel Processing**: Translates multiple chunks concurrently for faster processing
+- **Background Processing**: Option to run translations in background without blocking the main thread
+- **Smart Chunking**: Splits at sentence boundaries to maintain context and readability
+- **Automatic Slug Generation**: Creates URL-friendly slugs for translated content
+- **Database Persistence**: Saves translations to the `post_translations` table
 
 ### Usage
+
+#### Synchronous Translation (Waits for completion)
 
 ```rust
 use application_core::commands::ai::translate::{
@@ -38,6 +49,21 @@ let result = handler
 // - translated_content: Translated post content
 ```
 
+#### Background Translation (Returns immediately)
+
+For large content or when you don't want to block the caller:
+
+```rust
+// Translate in background
+let translation_id = handler
+    .handle_translate_post_background(request, openai_api_key)
+    .await?;
+
+// Returns immediately with the translation ID
+// Translation happens in background
+// Check logs for completion status
+```
+
 ### Configuration
 
 Set the `OPENAI_API_KEY` environment variable in your `.env` file:
@@ -46,13 +72,19 @@ Set the `OPENAI_API_KEY` environment variable in your `.env` file:
 OPENAI_API_KEY=sk-...
 ```
 
-### Features
+### Content Chunking
 
-- Uses OpenAI GPT-4o-mini model for cost-effective translations
-- Translates title, preview content, and main content
-- Automatically generates slugs for translated content
-- Saves translations to the `post_translations` table
-- Maintains relationship with the original post
+For large content (> 2000 characters), the service automatically:
+1. Splits content at sentence boundaries (periods, exclamation marks, question marks)
+2. Processes chunks in parallel using tokio tasks
+3. Reassembles translated chunks in correct order
+4. Maintains context with specialized prompts for chunk translation
+
+### Performance Considerations
+
+- **Small content** (< 2000 chars): Single API call, fast response
+- **Large content** (> 2000 chars): Multiple parallel API calls, proportionally longer
+- **Background mode**: Non-blocking, ideal for batch operations or user-triggered actions
 
 ### Testing
 
@@ -68,3 +100,10 @@ The handler returns `AppError::OpenAIError` for any OpenAI API issues, including
 - Rate limiting
 - Network errors
 - Empty responses
+- Task join errors
+
+### Logging
+
+Background translations log their status:
+- Success: `info` level with post_id and language
+- Failure: `error` level with post_id, language, and error details

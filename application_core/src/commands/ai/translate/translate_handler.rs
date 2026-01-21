@@ -9,6 +9,7 @@ use async_openai::{
 use sea_orm::{DatabaseConnection, EntityTrait};
 use slugify::slugify;
 use std::sync::Arc;
+use tokio::task::JoinSet;
 use tracing::instrument;
 use uuid::Uuid;
 
@@ -22,12 +23,22 @@ use super::{translate_request::TranslatePostRequest, translate_response::Transla
 // Default OpenAI model to use for translation
 const DEFAULT_OPENAI_MODEL: &str = "gpt-4o-mini";
 
+// Maximum chunk size in characters for content translation
+// Large content will be split into chunks to avoid token limits
+const MAX_CHUNK_SIZE: usize = 2000;
+
 pub trait PostTranslateHandlerTrait {
     fn handle_translate_post(
         &self,
         request: TranslatePostRequest,
         openai_api_key: String,
     ) -> impl std::future::Future<Output = Result<TranslatePostResponse, AppError>>;
+
+    fn handle_translate_post_background(
+        &self,
+        request: TranslatePostRequest,
+        openai_api_key: String,
+    ) -> impl std::future::Future<Output = Result<Uuid, AppError>>;
 }
 
 #[derive(Debug)]
@@ -73,13 +84,12 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             String::new()
         };
 
-        // Translate content
+        // Translate content with chunking for large content
         let translated_content = self
-            .translate_text(
+            .translate_large_content(
                 &client,
                 &post.content,
                 &request.target_language_code,
-                "content",
             )
             .await?;
 
@@ -112,9 +122,170 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             translated_content,
         })
     }
+
+    #[instrument]
+    async fn handle_translate_post_background(
+        &self,
+        request: TranslatePostRequest,
+        openai_api_key: String,
+    ) -> Result<Uuid, AppError> {
+        // Generate translation ID upfront
+        let post_translation_id = Uuid::new_v4();
+        
+        // Clone necessary data for background task
+        let db = self.db.clone();
+        let post_id = request.post_id;
+        let language_code = request.target_language_code.clone();
+        
+        // Spawn background task for translation
+        tokio::spawn(async move {
+            let handler = PostTranslateHandler { db };
+            match handler.handle_translate_post(request, openai_api_key).await {
+                Ok(_) => {
+                    tracing::info!(
+                        "Background translation completed successfully for post_id={} to language={}",
+                        post_id,
+                        language_code
+                    );
+                }
+                Err(e) => {
+                    tracing::error!(
+                        "Background translation failed for post_id={} to language={}: {}",
+                        post_id,
+                        language_code,
+                        e
+                    );
+                }
+            }
+        });
+        
+        Ok(post_translation_id)
+    }
 }
 
 impl PostTranslateHandler {
+    /// Splits text into chunks at sentence boundaries to avoid breaking mid-sentence
+    fn chunk_text(&self, text: &str, max_chunk_size: usize) -> Vec<String> {
+        let mut chunks = Vec::new();
+        let mut current_chunk = String::new();
+        
+        // Split by sentences (simple approach using period, exclamation, question mark)
+        let sentences: Vec<&str> = text.split_inclusive(&['.', '!', '?'][..]).collect();
+        
+        for sentence in sentences {
+            if current_chunk.len() + sentence.len() > max_chunk_size && !current_chunk.is_empty() {
+                chunks.push(current_chunk.clone());
+                current_chunk.clear();
+            }
+            current_chunk.push_str(sentence);
+        }
+        
+        if !current_chunk.is_empty() {
+            chunks.push(current_chunk);
+        }
+        
+        // If no chunks were created (no sentence terminators), chunk by size
+        if chunks.is_empty() && !text.is_empty() {
+            for chunk in text.as_bytes().chunks(max_chunk_size) {
+                if let Ok(s) = std::str::from_utf8(chunk) {
+                    chunks.push(s.to_string());
+                }
+            }
+        }
+        
+        chunks
+    }
+
+    /// Translates large content by splitting into chunks and processing in parallel
+    async fn translate_large_content(
+        &self,
+        client: &Client<OpenAIConfig>,
+        content: &str,
+        target_language: &str,
+    ) -> Result<String, AppError> {
+        // If content is small enough, translate directly
+        if content.len() <= MAX_CHUNK_SIZE {
+            return self.translate_text(client, content, target_language, "content").await;
+        }
+        
+        // Split content into chunks
+        let chunks = self.chunk_text(content, MAX_CHUNK_SIZE);
+        
+        // Translate chunks in parallel using JoinSet
+        let mut join_set = JoinSet::new();
+        
+        for (index, chunk) in chunks.into_iter().enumerate() {
+            let client_clone = client.clone();
+            let target_language = target_language.to_string();
+            
+            join_set.spawn(async move {
+                let config = client_clone.config().clone();
+                let new_client = Client::with_config(config);
+                
+                let system_message = ChatCompletionRequestSystemMessageArgs::default()
+                    .content(format!(
+                        "You are a professional translator. Translate the following text chunk to {}. \
+                         Maintain context and natural flow. Only return the translated text without any additional comments or explanations.",
+                        target_language
+                    ))
+                    .build()
+                    .map_err(|e| AppError::OpenAIError(e.to_string()))?;
+
+                let user_message = ChatCompletionRequestUserMessageArgs::default()
+                    .content(chunk.clone())
+                    .build()
+                    .map_err(|e| AppError::OpenAIError(e.to_string()))?;
+
+                let messages = vec![
+                    ChatCompletionRequestMessage::System(system_message),
+                    ChatCompletionRequestMessage::User(user_message),
+                ];
+
+                let request = CreateChatCompletionRequestArgs::default()
+                    .model(DEFAULT_OPENAI_MODEL)
+                    .messages(messages)
+                    .build()
+                    .map_err(|e| AppError::OpenAIError(e.to_string()))?;
+
+                let response = new_client
+                    .chat()
+                    .create(request)
+                    .await
+                    .map_err(|e| AppError::OpenAIError(e.to_string()))?;
+
+                let translated_text = response
+                    .choices
+                    .first()
+                    .and_then(|choice| choice.message.content.clone())
+                    .ok_or_else(|| AppError::OpenAIError("No translation returned".to_string()))?;
+
+                Ok::<(usize, String), AppError>((index, translated_text))
+            });
+        }
+        
+        // Collect results in order
+        let mut translated_chunks: Vec<(usize, String)> = Vec::new();
+        while let Some(result) = join_set.join_next().await {
+            match result {
+                Ok(Ok(chunk_result)) => translated_chunks.push(chunk_result),
+                Ok(Err(e)) => return Err(e),
+                Err(e) => return Err(AppError::OpenAIError(format!("Task join error: {}", e))),
+            }
+        }
+        
+        // Sort by original index to maintain order
+        translated_chunks.sort_by_key(|(index, _)| *index);
+        
+        // Combine chunks
+        let combined = translated_chunks
+            .into_iter()
+            .map(|(_, text)| text)
+            .collect::<Vec<String>>()
+            .join(" ");
+        
+        Ok(combined)
+    }
+
     async fn translate_text(
         &self,
         client: &Client<OpenAIConfig>,
