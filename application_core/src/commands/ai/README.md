@@ -4,14 +4,18 @@ This module contains AI-powered business services for the CMS.
 
 ## Translate Service
 
-The translate service uses OpenAI's GPT-4o-mini model to automatically translate post content to any language. It supports both synchronous and background processing, with automatic content chunking for large texts.
+The translate service uses OpenAI's GPT-4o-mini model to automatically translate post content to any language. It supports both synchronous and background processing, with **HTML-aware content chunking** for large texts.
 
 ### Features
 
-- **Content Chunking**: Automatically splits large content into chunks (max 2000 characters) to handle OpenAI token limits
+- **HTML-Aware Chunking**: Intelligently handles HTML content by preserving structure and tags
+  - Automatically detects HTML content
+  - Splits at block-level element boundaries (e.g., `</p>`, `</div>`, `</section>`)
+  - Never breaks HTML tags or attributes
+  - Instructs translator to preserve HTML structure
+- **Plain Text Chunking**: Falls back to sentence-based chunking for non-HTML content (max 2000 characters)
 - **Parallel Processing**: Translates multiple chunks concurrently for faster processing
 - **Background Processing**: Option to run translations in background without blocking the main thread
-- **Smart Chunking**: Splits at sentence boundaries to maintain context and readability
 - **Automatic Slug Generation**: Creates URL-friendly slugs for translated content
 - **Database Persistence**: Saves translations to the `post_translations` table
 
@@ -46,7 +50,7 @@ let result = handler
 // - post_translation_id: UUID of the created translation
 // - translated_title: Translated post title
 // - translated_preview_content: Translated preview content
-// - translated_content: Translated post content
+// - translated_content: Translated post content (with HTML preserved)
 ```
 
 #### Background Translation (Returns immediately)
@@ -72,18 +76,48 @@ Set the `OPENAI_API_KEY` environment variable in your `.env` file:
 OPENAI_API_KEY=sk-...
 ```
 
-### Content Chunking
+### HTML Content Handling
 
-For large content (> 2000 characters), the service automatically:
-1. Splits content at sentence boundaries (periods, exclamation marks, question marks)
-2. Processes chunks in parallel using tokio tasks
-3. Reassembles translated chunks in correct order
-4. Maintains context with specialized prompts for chunk translation
+The service automatically detects HTML content and uses specialized chunking:
+
+1. **Detection**: Checks for common HTML tags (`<p>`, `<div>`, `<h*>`, etc.)
+2. **HTML Parsing**: Uses `html5ever` to parse and understand HTML structure
+3. **Smart Chunking**: 
+   - Attempts to split at block-level element boundaries
+   - Falls back to tag-based splitting if needed
+   - Preserves all HTML tags, attributes, and structure
+4. **Translation Prompt**: Instructs OpenAI to:
+   - Only translate text content within tags
+   - Never translate HTML tag names or attributes
+   - Preserve all HTML structure exactly
+5. **Reassembly**: Combines translated chunks without separators to maintain HTML integrity
+
+### Content Chunking Examples
+
+#### HTML Content
+```html
+<!-- Input -->
+<p>First paragraph.</p><div>Second section.</div>
+
+<!-- Chunks -->
+Chunk 1: <p>First paragraph.</p>
+Chunk 2: <div>Second section.</div>
+
+<!-- Each chunk is translated while preserving HTML -->
+```
+
+#### Plain Text Content
+```text
+First sentence. Second sentence. Third sentence.
+
+Chunks at sentence boundaries if too long.
+```
 
 ### Performance Considerations
 
 - **Small content** (< 2000 chars): Single API call, fast response
-- **Large content** (> 2000 chars): Multiple parallel API calls, proportionally longer
+- **Large HTML** (> 2000 chars): Multiple parallel API calls at element boundaries
+- **Large plain text** (> 2000 chars): Multiple parallel API calls at sentence boundaries
 - **Background mode**: Non-blocking, ideal for batch operations or user-triggered actions
 
 ### Testing

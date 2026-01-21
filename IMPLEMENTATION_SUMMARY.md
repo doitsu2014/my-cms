@@ -9,7 +9,8 @@ This PR successfully adds an AI-powered translation service to the `application_
 - **Translation Handler** (`translate_handler.rs`): Main service implementing the translation logic
   - Fetches post from database
   - Translates title, preview_content, and content
-  - **NEW**: Automatic content chunking for large texts (> 2000 characters)
+  - **HTML-Aware Chunking**: Automatically detects and handles HTML content properly
+  - **Plain Text Chunking**: Falls back to sentence-based chunking for non-HTML content
   - **NEW**: Parallel processing of chunks using tokio::spawn
   - **NEW**: Background processing mode with `handle_translate_post_background`
   - Generates slugs for translated content
@@ -19,7 +20,20 @@ This PR successfully adds an AI-powered translation service to the `application_
 
 ### 2. New Features
 
-#### Content Chunking
+#### HTML-Aware Content Chunking (NEW)
+- **Automatic HTML Detection**: Checks for common HTML tags to determine content type
+- **HTML Parsing**: Uses `html5ever` library to parse and understand HTML structure
+- **Smart Splitting**: 
+  - Splits at block-level element boundaries (`</p>`, `</div>`, `</section>`, etc.)
+  - Never breaks HTML tags or attributes
+  - Preserves complete HTML structure
+- **Specialized Translation Prompts**: Instructs OpenAI to:
+  - Only translate text content within tags
+  - Never translate HTML tag names or attributes
+  - Preserve all HTML structure exactly
+- **Fallback Strategy**: Multiple levels of chunking fallback for edge cases
+
+#### Plain Text Chunking
 - Automatically splits large content into manageable chunks (max 2000 characters)
 - Smart splitting at sentence boundaries to maintain context
 - Fallback to size-based chunking if no sentence terminators found
@@ -37,6 +51,7 @@ This PR successfully adds an AI-powered translation service to the `application_
 
 ### 3. Configuration
 - Added `async-openai = "0.27"` dependency to Cargo.toml
+- **NEW**: Added `html5ever = "0.27"` and `markup5ever_rcdom = "0.3"` for HTML parsing
 - Added `OPENAI_API_KEY` to .env configuration file
 - Made OpenAI model configurable via `DEFAULT_OPENAI_MODEL` constant
 - **NEW**: Configurable chunk size via `MAX_CHUNK_SIZE` constant (default: 2000)
@@ -127,9 +142,17 @@ let translation_id = handler
    - Includes logging for monitoring background tasks
 
 ✅ **"tokenized the content to make multiple translation processes"**
-   - Smart chunking at sentence boundaries
+   - Smart chunking at sentence boundaries for plain text
+   - **HTML-aware chunking at block-level element boundaries**
    - Parallel processing using `JoinSet`
    - Maintains order and context across chunks
+
+✅ **"Because the content is in html, so that if you just chunk the text in content, may be you translate wrong"** (NEW)
+   - Implemented HTML detection and parsing using `html5ever`
+   - Chunks at safe boundaries (block-level elements like `</p>`, `</div>`)
+   - Never breaks HTML tags or attributes
+   - Specialized translation prompts preserve HTML structure
+   - Falls back gracefully for edge cases
 
 ## Future Enhancements (Optional)
 - Add batch translation support for multiple posts

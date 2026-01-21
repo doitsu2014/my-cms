@@ -6,8 +6,12 @@ use async_openai::{
     },
     Client,
 };
+use html5ever::parse_document;
+use html5ever::tendril::TendrilSink;
+use markup5ever_rcdom::{Handle, NodeData, RcDom};
 use sea_orm::{DatabaseConnection, EntityTrait};
 use slugify::slugify;
+use std::io::Cursor;
 use std::sync::Arc;
 use tokio::task::JoinSet;
 use tracing::instrument;
@@ -164,7 +168,109 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
 }
 
 impl PostTranslateHandler {
+    /// Checks if content appears to be HTML
+    fn is_html_content(&self, text: &str) -> bool {
+        // Simple heuristic: check for common HTML tags
+        text.contains('<') && text.contains('>') && 
+        (text.contains("<p") || text.contains("<div") || text.contains("<span") || 
+         text.contains("<h") || text.contains("<br") || text.contains("<li") ||
+         text.contains("<ul") || text.contains("<ol") || text.contains("<a"))
+    }
+
+    /// Serializes HTML node to string
+    fn serialize_node(&self, handle: &Handle) -> String {
+        use html5ever::serialize::{serialize, SerializeOpts, TraversalScope};
+        use markup5ever_rcdom::SerializableHandle;
+        
+        let mut bytes = Vec::new();
+        let serializable = SerializableHandle::from(handle.clone());
+        serialize(&mut bytes, &serializable, SerializeOpts {
+            traversal_scope: TraversalScope::IncludeNode,
+            ..Default::default()
+        }).ok();
+        String::from_utf8_lossy(&bytes).to_string()
+    }
+
+    /// Chunks HTML content by block-level elements to preserve structure
+    fn chunk_html_content(&self, html: &str, max_chunk_size: usize) -> Vec<String> {
+        // Parse HTML
+        let dom = parse_document(RcDom::default(), Default::default())
+            .from_utf8()
+            .read_from(&mut Cursor::new(html.as_bytes()))
+            .unwrap();
+
+        let mut chunks = Vec::new();
+        let mut current_chunk = String::new();
+
+        // Process each top-level child node
+        for child in dom.document.children.borrow().iter() {
+            let serialized = self.serialize_node(child);
+            
+            // Skip if it's just the document type declaration or empty
+            if serialized.trim().is_empty() || serialized.starts_with("<!DOCTYPE") {
+                continue;
+            }
+
+            // If adding this node would exceed size, start new chunk
+            if current_chunk.len() + serialized.len() > max_chunk_size && !current_chunk.is_empty() {
+                chunks.push(current_chunk.clone());
+                current_chunk.clear();
+            }
+
+            current_chunk.push_str(&serialized);
+        }
+
+        if !current_chunk.is_empty() {
+            chunks.push(current_chunk);
+        }
+
+        // If no chunks were created (e.g., very large single element), fall back to simpler strategy
+        if chunks.is_empty() && !html.is_empty() {
+            // Try to split by block-level tags
+            let block_tags = ["</p>", "</div>", "</section>", "</article>", "</li>", "</h1>", "</h2>", "</h3>", "</h4>", "</h5>", "</h6>"];
+            
+            for tag in block_tags {
+                if html.contains(tag) {
+                    let parts: Vec<&str> = html.split(tag).collect();
+                    let mut temp_chunk = String::new();
+                    
+                    for (i, part) in parts.iter().enumerate() {
+                        let segment = if i < parts.len() - 1 {
+                            format!("{}{}", part, tag)
+                        } else {
+                            part.to_string()
+                        };
+
+                        if temp_chunk.len() + segment.len() > max_chunk_size && !temp_chunk.is_empty() {
+                            chunks.push(temp_chunk.clone());
+                            temp_chunk.clear();
+                        }
+                        temp_chunk.push_str(&segment);
+                    }
+
+                    if !temp_chunk.is_empty() {
+                        chunks.push(temp_chunk);
+                    }
+                    
+                    if !chunks.is_empty() {
+                        return chunks;
+                    }
+                }
+            }
+            
+            // Last resort: split into max_chunk_size pieces (may break HTML)
+            for chunk in html.as_bytes().chunks(max_chunk_size) {
+                if let Ok(s) = std::str::from_utf8(chunk) {
+                    chunks.push(s.to_string());
+                }
+            }
+        }
+
+        chunks
+    }
+
     /// Splits text into chunks at sentence boundaries to avoid breaking mid-sentence
+    /// Used for plain text content only
     fn chunk_text(&self, text: &str, max_chunk_size: usize) -> Vec<String> {
         let mut chunks = Vec::new();
         let mut current_chunk = String::new();
@@ -208,8 +314,12 @@ impl PostTranslateHandler {
             return self.translate_text(client, content, target_language, "content").await;
         }
         
-        // Split content into chunks
-        let chunks = self.chunk_text(content, MAX_CHUNK_SIZE);
+        // Determine if content is HTML and chunk accordingly
+        let chunks = if self.is_html_content(content) {
+            self.chunk_html_content(content, MAX_CHUNK_SIZE)
+        } else {
+            self.chunk_text(content, MAX_CHUNK_SIZE)
+        };
         
         // Translate chunks in parallel using JoinSet
         let mut join_set = JoinSet::new();
@@ -217,6 +327,7 @@ impl PostTranslateHandler {
         for (index, chunk) in chunks.into_iter().enumerate() {
             let client_clone = client.clone();
             let target_language = target_language.to_string();
+            let is_html = self.is_html_content(&chunk);
             
             join_set.spawn(async move {
                 let config = client_clone.config().clone();
@@ -224,9 +335,14 @@ impl PostTranslateHandler {
                 
                 let system_message = ChatCompletionRequestSystemMessageArgs::default()
                     .content(format!(
-                        "You are a professional translator. Translate the following text chunk to {}. \
-                         Maintain context and natural flow. Only return the translated text without any additional comments or explanations.",
-                        target_language
+                        "You are a professional translator. Translate the following {} to {}. {}",
+                        if is_html { "HTML content" } else { "text" },
+                        target_language,
+                        if is_html {
+                            "Preserve all HTML tags and structure exactly as they are. Only translate the text content within the tags, never translate HTML tag names, attributes, or structure. Return valid HTML."
+                        } else {
+                            "Only return the translated text without any additional comments or explanations."
+                        }
                     ))
                     .build()
                     .map_err(|e| AppError::OpenAIError(e.to_string()))?;
@@ -281,7 +397,7 @@ impl PostTranslateHandler {
             .into_iter()
             .map(|(_, text)| text)
             .collect::<Vec<String>>()
-            .join(" ");
+            .join("");  // For HTML, no separator needed
         
         Ok(combined)
     }
