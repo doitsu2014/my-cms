@@ -171,6 +171,42 @@ impl VectorStore {
         Ok(embedding)
     }
 
+    /// Creates a content preview optimized for semantic search
+    /// Tries to break at paragraph or sentence boundaries for cleaner previews
+    fn create_content_preview(content: &str, max_length: usize) -> String {
+        if content.len() <= max_length {
+            return content.to_string();
+        }
+
+        // Try to find a good breaking point near max_length
+        let truncated = &content[..max_length];
+        
+        // Try to break at paragraph boundary (double newline)
+        if let Some(pos) = truncated.rfind("\n\n") {
+            if pos > max_length / 2 {  // At least halfway through
+                return truncated[..pos].trim().to_string();
+            }
+        }
+        
+        // Try to break at sentence boundary
+        let sentence_endings = [". ", ".\n", "! ", "!\n", "? ", "?\n"];
+        for ending in &sentence_endings {
+            if let Some(pos) = truncated.rfind(ending) {
+                if pos > max_length / 2 {  // At least halfway through
+                    return truncated[..=pos].trim().to_string();
+                }
+            }
+        }
+        
+        // Fall back to word boundary
+        if let Some(pos) = truncated.rfind(' ') {
+            return truncated[..pos].trim().to_string();
+        }
+        
+        // Last resort: just truncate
+        truncated.to_string()
+    }
+
     /// Stores a translation in the vector database
     #[instrument(skip(self, content))]
     pub async fn store_translation(
@@ -203,13 +239,17 @@ impl VectorStore {
         
         tracing::debug!("Generated embedding with {} dimensions", embedding.len());
 
-        // Create metadata
+        // Create metadata with better content preview
+        // Store up to 2000 characters for better semantic search
+        // Prioritize paragraph boundaries for cleaner previews
+        let content_preview = Self::create_content_preview(content, 2000);
+        
         let metadata = TranslationMetadata {
             post_id: post_id.to_string(),
             language_code: language_code.to_string(),
             translation_id: translation_id.to_string(),
             title: title.to_string(),
-            content_preview: content.chars().take(500).collect(),
+            content_preview,
         };
 
         // Create point

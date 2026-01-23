@@ -28,16 +28,19 @@ use super::{translate_request::TranslatePostRequest, translate_response::Transla
 const DEFAULT_OPENAI_MODEL: &str = "gpt-4o-mini";
 
 // Maximum chunk size in characters for content translation
-// Large content will be split into chunks to avoid token limits
-const MAX_CHUNK_SIZE: usize = 2000;
+// Reduced from 2000 to 1500 to ensure comfortable fit within token limits
+// This allows for longer translations without hitting output token limits
+const MAX_CHUNK_SIZE: usize = 1500;
 
 // Temperature setting for translations (lower = more deterministic, less tokens)
 // Range: 0.0 to 2.0. For translations, we use low temperature for consistency
 const TRANSLATION_TEMPERATURE: f32 = 0.3;
 
-// Max tokens to limit response size and reduce costs
-// Average translation has similar length, so we cap it slightly higher than input
-const MAX_TOKENS_PER_REQUEST: u16 = 3000;
+// Max tokens for OpenAI response (not input)
+// GPT-4o-mini supports up to 16K output tokens
+// Increased from 3000 to 8000 to handle longer translations without cutoff
+// This prevents incomplete translations for large content chunks
+const MAX_TOKENS_PER_REQUEST: u16 = 8000;
 
 pub trait PostTranslateHandlerTrait {
     fn handle_translate_post(
@@ -212,12 +215,13 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                 request.target_language_code
             );
             
-            // Combine title and content preview for embedding
+            // Use more content for embedding (up to 8000 chars) for better semantic search
+            // The embedding model can handle much longer text than we were using before
             let content_for_embedding = format!(
                 "{}\n\n{}",
                 translated_title,
-                if translated_content.len() > 500 {
-                    &translated_content[..500]
+                if translated_content.len() > 8000 {
+                    &translated_content[..8000]
                 } else {
                     &translated_content
                 }
@@ -465,6 +469,15 @@ impl PostTranslateHandler {
             self.chunk_text(content, MAX_CHUNK_SIZE)
         };
         
+        let total_chunks = chunks.len();
+        
+        tracing::info!(
+            "Translating large content: {} characters split into {} chunks (max {} chars per chunk)",
+            content.len(),
+            total_chunks,
+            MAX_CHUNK_SIZE
+        );
+        
         // Translate chunks in parallel using JoinSet
         let mut join_set = JoinSet::new();
         
@@ -472,6 +485,15 @@ impl PostTranslateHandler {
             let client_clone = client.clone();
             let target_language = target_language.to_string();
             let is_html = self.is_html_content(&chunk);
+            let chunk_size = chunk.len();
+            
+            tracing::debug!(
+                "Spawning translation task for chunk {}/{} ({} characters, {})",
+                index + 1,
+                total_chunks,
+                chunk_size,
+                if is_html { "HTML" } else { "text" }
+            );
             
             join_set.spawn(async move {
                 let config = client_clone.config().clone();
@@ -483,9 +505,9 @@ impl PostTranslateHandler {
                         if is_html { "HTML content" } else { "text" },
                         target_language,
                         if is_html {
-                            "Preserve all HTML tags and structure exactly as they are. Only translate the text content within the tags, never translate HTML tag names, attributes, or structure. Return valid HTML."
+                            "Preserve all HTML tags and structure exactly as they are. Only translate the text content within the tags, never translate HTML tag names, attributes, or structure. Return valid HTML. Translate the ENTIRE content provided, do not truncate or summarize."
                         } else {
-                            "Only return the translated text without any additional comments or explanations."
+                            "Only return the translated text without any additional comments or explanations. Translate the ENTIRE content provided, do not truncate or summarize."
                         }
                     ))
                     .build()
@@ -521,6 +543,13 @@ impl PostTranslateHandler {
                     .and_then(|choice| choice.message.content.clone())
                     .ok_or_else(|| AppError::OpenAIError("No translation returned".to_string()))?;
 
+                tracing::debug!(
+                    "✓ Completed translation for chunk {} ({} chars → {} chars)",
+                    index + 1,
+                    chunk_size,
+                    translated_text.len()
+                );
+
                 Ok::<(usize, String), AppError>((index, translated_text))
             });
         }
@@ -529,7 +558,10 @@ impl PostTranslateHandler {
         let mut translated_chunks: Vec<(usize, String)> = Vec::new();
         while let Some(result) = join_set.join_next().await {
             match result {
-                Ok(Ok(chunk_result)) => translated_chunks.push(chunk_result),
+                Ok(Ok(chunk_result)) => {
+                    tracing::debug!("Collected chunk {} successfully", chunk_result.0 + 1);
+                    translated_chunks.push(chunk_result);
+                }
                 Ok(Err(e)) => return Err(e),
                 Err(e) => return Err(AppError::OpenAIError(format!("Task join error: {}", e))),
             }
@@ -538,12 +570,23 @@ impl PostTranslateHandler {
         // Sort by original index to maintain order
         translated_chunks.sort_by_key(|(index, _)| *index);
         
+        tracing::info!(
+            "✓ All {} chunks translated successfully, combining results",
+            translated_chunks.len()
+        );
+        
         // Combine chunks
         let combined = translated_chunks
             .into_iter()
             .map(|(_, text)| text)
             .collect::<Vec<String>>()
             .join("");  // For HTML, no separator needed
+        
+        tracing::info!(
+            "✓ Final translation complete: {} characters (from original {} characters)",
+            combined.len(),
+            content.len()
+        );
         
         Ok(combined)
     }
