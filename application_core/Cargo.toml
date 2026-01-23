@@ -24,6 +24,7 @@ async-graphql = { version = "7.0.17", features = [
 ] }
 lazy_static = "1.5.0"
 serde = { version = "1.0.226", features = ["derive"] }
+serde_json = "1.0"
 uuid = { version = "1.18.1", features = ["v4"] }
 chrono = { version = "0.4.42", features = ["serde"] }
 slugify = "0.1.0"
@@ -53,3 +54,5 @@ fake = { version = "4.4.0", features = ["derive"] }
 migration = { path = "../migration" }
 test_helpers = { path = "../test_helpers" }
 rand = "0.9.2"
+wiremock = "0.6"
+tokio-test = "0.4"

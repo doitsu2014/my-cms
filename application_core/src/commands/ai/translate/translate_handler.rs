@@ -492,6 +492,11 @@ mod tests {
     use super::*;
     use std::sync::Arc;
     use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
+    use wiremock::{
+        matchers::{method, path},
+        Mock, MockServer, ResponseTemplate,
+    };
+    use serde_json::json;
 
     use crate::commands::{
         category::{
@@ -504,9 +509,268 @@ mod tests {
         },
     };
 
+    /// Helper function to create a mock OpenAI server
+    async fn setup_mock_openai_server() -> MockServer {
+        MockServer::start().await
+    }
+
+    /// Helper function to create mock translation response
+    fn create_mock_translation_response(translated_text: &str) -> ResponseTemplate {
+        let response_body = json!({
+            "id": "chatcmpl-test123",
+            "object": "chat.completion",
+            "created": 1234567890,
+            "model": "gpt-4o-mini",
+            "choices": [{
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": translated_text
+                },
+                "finish_reason": "stop"
+            }],
+            "usage": {
+                "prompt_tokens": 10,
+                "completion_tokens": 20,
+                "total_tokens": 30
+            }
+        });
+        
+        ResponseTemplate::new(200).set_body_json(response_body)
+    }
+
+    #[async_std::test]
+    #[ignore] // This test demonstrates mock structure but requires DI for OpenAI client
+    async fn test_translate_post_with_mock_openai() {
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        let arc_conn = Arc::new(database);
+
+        // Setup mock OpenAI server
+        let mock_server = setup_mock_openai_server().await;
+        
+        // Mock the chat completions endpoint
+        Mock::given(method("POST"))
+            .and(path("/chat/completions"))
+            .respond_with(create_mock_translation_response("Tiêu đề đã dịch"))
+            .expect(1) // Expect one call for title
+            .mount(&mock_server)
+            .await;
+        
+        Mock::given(method("POST"))
+            .and(path("/chat/completions"))
+            .respond_with(create_mock_translation_response("Nội dung đã dịch"))
+            .expect(1) // Expect one call for content
+            .mount(&mock_server)
+            .await;
+
+        // Create a category first
+        let category_create_handler = CategoryCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_category_request = fake_create_category_request(0);
+        let created_category_id = category_create_handler
+            .handle_create_category_with_tags(create_category_request, None)
+            .await
+            .unwrap();
+
+        // Create a post
+        let post_create_handler = PostCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_post_request = fake_create_post_request(created_category_id, 0);
+        let created_post_id = post_create_handler
+            .handle_create_post(create_post_request, None)
+            .await
+            .unwrap();
+
+        // Create translate handler with mocked OpenAI endpoint
+        let _translate_handler = PostTranslateHandler {
+            db: arc_conn.clone(),
+        };
+        
+        let _translate_request = TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
+        
+        // Use mock server URL as API base (this requires modifying OpenAI client config)
+        // For now, this test demonstrates the structure
+        // In production, you'd need to use dependency injection for the OpenAI client
+        
+        // Note: The actual test would require modifying the handler to accept a custom
+        // OpenAI client or base URL for testing purposes
+    }
+
+    #[async_std::test]
+    async fn test_translation_caching() {
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        let arc_conn = Arc::new(database);
+
+        // Create category and post
+        let category_create_handler = CategoryCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_category_request = fake_create_category_request(0);
+        let created_category_id = category_create_handler
+            .handle_create_category_with_tags(create_category_request, None)
+            .await
+            .unwrap();
+
+        let post_create_handler = PostCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_post_request = fake_create_post_request(created_category_id, 0);
+        let created_post_id = post_create_handler
+            .handle_create_post(create_post_request, None)
+            .await
+            .unwrap();
+
+        // Manually insert a translation into the database
+        let post_translation_id = Uuid::new_v4();
+        let translation_model = post_translations::ActiveModel {
+            id: sea_orm::Set(post_translation_id),
+            post_id: sea_orm::Set(created_post_id),
+            language_code: sea_orm::Set("Vietnamese".to_string()),
+            title: sea_orm::Set("Cached Title".to_string()),
+            slug: sea_orm::Set("cached-title".to_string()),
+            preview_content: sea_orm::Set("Cached Preview".to_string()),
+            content: sea_orm::Set("Cached Content".to_string()),
+        };
+
+        post_translations::Entity::insert(translation_model)
+            .exec(arc_conn.as_ref())
+            .await
+            .unwrap();
+
+        // Create translate handler
+        let translate_handler = PostTranslateHandler {
+            db: arc_conn.clone(),
+        };
+        
+        let translate_request = TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
+        
+        // This should return the cached translation without calling OpenAI
+        // (we can test this by not providing an API key or using a mock that expects 0 calls)
+        let result = translate_handler
+            .handle_translate_post(translate_request, "fake-api-key".to_string())
+            .await
+            .unwrap();
+
+        // Verify we got the cached translation
+        assert_eq!(result.post_id, created_post_id);
+        assert_eq!(result.language_code, "Vietnamese");
+        assert_eq!(result.translated_title, "Cached Title");
+        assert_eq!(result.translated_content, "Cached Content");
+        assert_eq!(result.translated_preview_content, "Cached Preview");
+    }
+
+    #[async_std::test]
+    async fn test_html_content_detection() {
+        // Create a minimal test space with just the database connection
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        
+        let handler = PostTranslateHandler {
+            db: Arc::new(database),
+        };
+
+        // Test HTML detection
+        assert!(handler.is_html_content("<p>Test</p>"));
+        assert!(handler.is_html_content("<div>Content</div>"));
+        assert!(handler.is_html_content("<h1>Title</h1>"));
+        assert!(!handler.is_html_content("Plain text without tags"));
+        assert!(!handler.is_html_content("Text with < and > but not tags"));
+    }
+
+    #[async_std::test]
+    async fn test_text_chunking() {
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        
+        let handler = PostTranslateHandler {
+            db: Arc::new(database),
+        };
+
+        // Test chunking with sentence boundaries
+        let text = "First sentence. Second sentence. Third sentence.";
+        let chunks = handler.chunk_text(text, 25);
+        
+        assert!(chunks.len() > 1);
+        for chunk in &chunks {
+            assert!(chunk.len() <= 25 || !chunk.contains('.'));
+        }
+    }
+
+    #[async_std::test]
+    async fn test_html_chunking() {
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        
+        let handler = PostTranslateHandler {
+            db: Arc::new(database),
+        };
+
+        // Test HTML chunking
+        let html = "<p>First paragraph.</p><div>Second paragraph.</div>";
+        let chunks = handler.chunk_html_content(html, 30);
+        
+        // Should split at element boundaries
+        assert!(chunks.len() >= 1);
+        
+        // Each chunk should have complete tags
+        for chunk in &chunks {
+            let open_tags = chunk.matches('<').count();
+            let close_tags = chunk.matches('>').count();
+            // Basic check: number of < should match number of >
+            assert_eq!(open_tags, close_tags);
+        }
+    }
+
+    #[async_std::test]
+    async fn test_background_translation() {
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        let arc_conn = Arc::new(database);
+
+        // Create category and post
+        let category_create_handler = CategoryCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_category_request = fake_create_category_request(0);
+        let created_category_id = category_create_handler
+            .handle_create_category_with_tags(create_category_request, None)
+            .await
+            .unwrap();
+
+        let post_create_handler = PostCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_post_request = fake_create_post_request(created_category_id, 0);
+        let created_post_id = post_create_handler
+            .handle_create_post(create_post_request, None)
+            .await
+            .unwrap();
+
+        // Create translate handler
+        let translate_handler = PostTranslateHandler {
+            db: arc_conn.clone(),
+        };
+        
+        let translate_request = TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
+        
+        // Test background translation (should return immediately with translation ID)
+        let result = translate_handler
+            .handle_translate_post_background(translate_request, "fake-api-key".to_string())
+            .await;
+
+        // Should return a UUID (even though the background task will fail without real API key)
+        assert!(result.is_ok());
+        let translation_id = result.unwrap();
+        assert!(translation_id.to_string().len() > 0);
+    }
+
     #[async_std::test]
     #[ignore] // Ignore by default as it requires OpenAI API key
-    async fn handle_translate_post_testcase_successfully() {
+    async fn handle_translate_post_integration_test() {
         let test_space = setup_test_space().await;
         let database = test_space.postgres.get_database_connection().await;
 
@@ -533,21 +797,21 @@ mod tests {
             .unwrap();
 
         // Translate the post (requires valid OpenAI API key)
-        let _translate_handler = PostTranslateHandler {
+        let translate_handler = PostTranslateHandler {
             db: arc_conn.clone(),
         };
-        let _translate_request = TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
+        let translate_request = TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
         
-        // This would need a real API key to work
-        // let api_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
-        // let result = translate_handler
-        //     .handle_translate_post(translate_request, api_key)
-        //     .await
-        //     .unwrap();
+        // This requires a real API key to work
+        let api_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
+        let result = translate_handler
+            .handle_translate_post(translate_request, api_key)
+            .await
+            .unwrap();
         
-        // assert_eq!(result.post_id, created_post_id);
-        // assert_eq!(result.language_code, "Vietnamese");
-        // assert!(!result.translated_title.is_empty());
-        // assert!(!result.translated_content.is_empty());
+        assert_eq!(result.post_id, created_post_id);
+        assert_eq!(result.language_code, "Vietnamese");
+        assert!(!result.translated_title.is_empty());
+        assert!(!result.translated_content.is_empty());
     }
 }
