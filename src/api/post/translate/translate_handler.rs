@@ -19,6 +19,10 @@ use crate::{
 #[serde(rename_all = "camelCase")]
 pub struct TranslatePostRequestBody {
     pub target_language: String,
+    /// Force re-translation even if translation already exists
+    /// When true, will check Qdrant for similar translations before proceeding
+    #[serde(default)]
+    pub force_retranslate: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -86,7 +90,8 @@ pub async fn api_translate_post(
         vector_store,
     };
 
-    let request = TranslatePostRequest::new(post_id, body.target_language);
+    let request = TranslatePostRequest::new(post_id, body.target_language)
+        .with_force_retranslate(body.force_retranslate);
 
     let result = handler
         .handle_translate_post(request, openai_api_key)
@@ -132,7 +137,8 @@ pub async fn api_translate_post_background(
         vector_store,
     };
 
-    let request = TranslatePostRequest::new(post_id, body.target_language);
+    let request = TranslatePostRequest::new(post_id, body.target_language)
+        .with_force_retranslate(body.force_retranslate);
 
     let result = handler
         .handle_translate_post_background(request, openai_api_key)

@@ -73,7 +73,7 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             .map_err(|e| e.into())?
             .ok_or(AppError::NotFound)?;
 
-        // Check if translation already exists to avoid duplicate API calls
+        // Check if translation already exists
         let existing_translation = post_translations::Entity::find()
             .filter(post_translations::Column::PostId.eq(request.post_id))
             .filter(post_translations::Column::LanguageCode.eq(&request.target_language_code))
@@ -81,21 +81,73 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             .await
             .map_err(|e| e.into())?;
 
-        if let Some(existing) = existing_translation {
-            // Return existing translation to save API costs
-            tracing::info!(
-                "Reusing existing translation for post_id={} language={}",
-                request.post_id,
-                request.target_language_code
-            );
-            return Ok(TranslatePostResponse {
-                post_translation_id: existing.id,
-                post_id: existing.post_id,
-                language_code: existing.language_code,
-                translated_title: existing.title,
-                translated_preview_content: existing.preview_content,
-                translated_content: existing.content,
-            });
+        // If translation exists and force_retranslate is false, return existing translation
+        if let Some(existing) = &existing_translation {
+            if !request.force_retranslate {
+                // Return existing translation to save API costs
+                tracing::info!(
+                    "Reusing existing translation for post_id={} language={}",
+                    request.post_id,
+                    request.target_language_code
+                );
+                return Ok(TranslatePostResponse {
+                    post_translation_id: existing.id,
+                    post_id: existing.post_id,
+                    language_code: existing.language_code.clone(),
+                    translated_title: existing.title.clone(),
+                    translated_preview_content: existing.preview_content.clone(),
+                    translated_content: existing.content.clone(),
+                });
+            } else {
+                // Force retranslation requested
+                tracing::info!(
+                    "Force retranslation requested for post_id={} language={}",
+                    request.post_id,
+                    request.target_language_code
+                );
+                
+                // Check Qdrant vector store for similar translations if available
+                if let Some(vector_store) = &self.vector_store {
+                    match vector_store.search_similar_translations(
+                        &format!("{} {}", post.title, post.content.chars().take(500).collect::<String>()),
+                        5
+                    ).await {
+                        Ok(similar) => {
+                            if !similar.is_empty() {
+                                tracing::info!(
+                                    "Found {} similar translations in vector DB for post_id={}",
+                                    similar.len(),
+                                    request.post_id
+                                );
+                                for (metadata, score) in similar.iter().take(3) {
+                                    tracing::info!(
+                                        "  Similar: score={:.3} post_id={} lang={} title={}",
+                                        score,
+                                        metadata.post_id,
+                                        metadata.language_code,
+                                        metadata.title
+                                    );
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            tracing::warn!("Failed to search similar translations in vector DB: {}", e);
+                        }
+                    }
+                }
+                
+                // Delete existing translation before creating new one
+                use sea_orm::EntityTrait;
+                post_translations::Entity::delete_by_id(existing.id)
+                    .exec(self.db.as_ref())
+                    .await
+                    .map_err(|e| e.into())?;
+                
+                tracing::info!(
+                    "Deleted existing translation_id={} for retranslation",
+                    existing.id
+                );
+            }
         }
 
         // Initialize OpenAI client with API key

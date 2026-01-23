@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Translation API provides endpoints for translating Post content to different languages using OpenAI's GPT-4o-mini model. The service supports both synchronous and background translation modes.
+The Translation API provides endpoints for translating Post content to different languages using OpenAI's GPT-4o-mini model. The service supports both synchronous and background translation modes, with support for force re-translation and Qdrant vector database similarity checking.
 
 ## Authentication
 
@@ -37,12 +37,17 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "targetLanguage": "VI"
+  "targetLanguage": "VI",
+  "forceRetranslate": false
 }
 ```
 
 **Fields:**
-- `targetLanguage` (string): Target language code (e.g., "VI" for Vietnamese, "ES" for Spanish, "FR" for French)
+- `targetLanguage` (string, required): Target language code (e.g., "VI" for Vietnamese, "ES" for Spanish, "FR" for French)
+- `forceRetranslate` (boolean, optional, default: false): When true, forces re-translation even if a translation already exists. The system will:
+  1. Check Qdrant vector database for similar translations (if configured) and log results
+  2. Delete the existing translation
+  3. Create a new translation with the latest AI model
 
 **Response (200 OK):**
 ```json
@@ -93,10 +98,17 @@ Content-Type: application/json
 
 **Example cURL:**
 ```bash
+# Standard translation (uses cache if exists)
 curl -X POST "http://localhost:8989/posts/550e8400-e29b-41d4-a716-446655440000/translate" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"targetLanguage": "VI"}'
+
+# Force re-translation (checks Qdrant for similar translations)
+curl -X POST "http://localhost:8989/posts/550e8400-e29b-41d4-a716-446655440000/translate" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"targetLanguage": "VI", "forceRetranslate": true}'
 ```
 
 ---
@@ -119,12 +131,17 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
-  "targetLanguage": "VI"
+  "targetLanguage": "VI",
+  "forceRetranslate": false
 }
 ```
 
 **Fields:**
-- `targetLanguage` (string): Target language code (e.g., "VI" for Vietnamese, "ES" for Spanish, "FR" for French)
+- `targetLanguage` (string, required): Target language code (e.g., "VI" for Vietnamese, "ES" for Spanish, "FR" for French)
+- `forceRetranslate` (boolean, optional, default: false): When true, forces re-translation even if a translation already exists. The system will:
+  1. Check Qdrant vector database for similar translations (if configured) and log results
+  2. Delete the existing translation
+  3. Create a new translation with the latest AI model
 
 **Response (200 OK):**
 ```json
@@ -148,10 +165,17 @@ Same error responses as synchronous endpoint.
 
 **Example cURL:**
 ```bash
+# Standard background translation
 curl -X POST "http://localhost:8989/posts/550e8400-e29b-41d4-a716-446655440000/translate/background" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"targetLanguage": "VI"}'
+
+# Force re-translation in background
+curl -X POST "http://localhost:8989/posts/550e8400-e29b-41d4-a716-446655440000/translate/background" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"targetLanguage": "VI", "forceRetranslate": true}'
 ```
 
 ---
@@ -162,6 +186,35 @@ curl -X POST "http://localhost:8989/posts/550e8400-e29b-41d4-a716-446655440000/t
 - The service automatically checks for existing translations before making OpenAI API calls
 - If a translation already exists for the same post and language, it returns immediately (0 API cost)
 - Cache hits are logged for monitoring
+- Use `forceRetranslate: true` to bypass cache and create a new translation
+
+### Force Re-translation
+- Set `forceRetranslate: true` in the request body to re-translate existing content
+- When force re-translation is enabled:
+  1. System checks Qdrant vector database for similar translations (if configured)
+  2. Logs up to 3 most similar translations with similarity scores
+  3. Deletes the existing translation from the database
+  4. Creates a brand new translation with the latest AI model
+- Useful for:
+  - Updating translations with improved AI models
+  - Correcting translation issues
+  - A/B testing different translations
+  - Reprocessing after content changes
+
+### Qdrant Similarity Check
+- When `forceRetranslate: true` and Qdrant is configured:
+  - Searches for semantically similar translations in the vector database
+  - Logs similarity scores (0.0 to 1.0, higher is more similar)
+  - Shows up to 3 most similar translations
+  - Helps identify duplicate or related content
+  - Provides insight for cost optimization
+- Example log output:
+  ```
+  Found 5 similar translations in vector DB for post_id=...
+    Similar: score=0.892 post_id=abc123 lang=VI title=Similar Article
+    Similar: score=0.856 post_id=def456 lang=VI title=Related Content
+    Similar: score=0.821 post_id=ghi789 lang=VI title=Another Post
+  ```
 
 ### HTML-Aware Processing
 - Automatically detects HTML content
@@ -226,10 +279,11 @@ The API returns errors in the following format:
 The translation service includes several cost-saving features:
 
 1. **Database Caching**: Checks for existing translations (0 cost for cache hits)
-2. **Temperature Control**: Uses 0.3 temperature for deterministic translations
-3. **Token Limits**: Caps responses at 3000 tokens
-4. **Smart Model**: Uses GPT-4o-mini (most cost-effective)
-5. **Vector DB Similarity**: Optional Qdrant integration for reusing similar translations
+2. **Force Re-translation with Similarity Check**: Use Qdrant to identify similar content before re-translating
+3. **Temperature Control**: Uses 0.3 temperature for deterministic translations
+4. **Token Limits**: Caps responses at 3000 tokens
+5. **Smart Model**: Uses GPT-4o-mini (most cost-effective)
+6. **Vector DB Similarity**: Optional Qdrant integration for reusing similar translations
 
 ## Rate Limiting
 
@@ -243,25 +297,60 @@ Rate limiting depends on your OpenAI API tier. The service includes:
 1. **Use Background Mode for Large Posts**: Posts with >2000 characters benefit from background processing
 2. **Monitor Logs**: Check logs for cache hits and Qdrant connection status
 3. **Configure Qdrant**: Optional but recommended for cost optimization through semantic search
-4. **Language Codes**: Use clear language codes (e.g., "Vietnamese" instead of "VI" for better results)
-5. **Batch Operations**: Use background mode for translating multiple posts
+4. **Use Force Re-translate Sparingly**: Only use when truly needed to avoid unnecessary API costs
+5. **Check Similarity Scores**: Review Qdrant similarity logs to identify duplicate content
+6. **Language Codes**: Use clear language codes (e.g., "Vietnamese" instead of "VI" for better results)
+7. **Batch Operations**: Use background mode for translating multiple posts
 
 ## Examples
 
-### Translate Multiple Posts
+### Standard Translation (First Time)
+```bash
+curl -X POST "http://localhost:8989/posts/550e8400-e29b-41d4-a716-446655440000/translate" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"targetLanguage": "Vietnamese"}'
+```
+
+### Re-use Cached Translation
+```bash
+# Calling again with same post_id and language will return cached result
+curl -X POST "http://localhost:8989/posts/550e8400-e29b-41d4-a716-446655440000/translate" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"targetLanguage": "Vietnamese"}'
+```
+
+### Force Re-translation with Similarity Check
+```bash
+curl -X POST "http://localhost:8989/posts/550e8400-e29b-41d4-a716-446655440000/translate" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "targetLanguage": "Vietnamese",
+    "forceRetranslate": true
+  }'
+
+# Check logs to see similar translations found in Qdrant
+```
+
+### Translate Multiple Posts with Re-translation
 
 ```bash
 # Get posts to translate
 posts=$(curl -H "Authorization: Bearer $TOKEN" \
   "http://localhost:8989/posts" | jq -r '.data[].id')
 
-# Translate each in background
+# Translate each in background with force re-translate
 for post_id in $posts; do
   curl -X POST "http://localhost:8989/posts/$post_id/translate/background" \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
-    -d '{"targetLanguage": "Vietnamese"}'
-  echo "Started translation for post $post_id"
+    -d '{
+      "targetLanguage": "Vietnamese",
+      "forceRetranslate": true
+    }'
+  echo "Started re-translation for post $post_id"
 done
 ```
 
@@ -270,7 +359,7 @@ done
 Query the database to check if a translation exists:
 
 ```sql
-SELECT id, language_code, title 
+SELECT id, language_code, title, created_at, updated_at
 FROM post_translations 
 WHERE post_id = '550e8400-e29b-41d4-a716-446655440000' 
   AND language_code = 'Vietnamese';
@@ -306,14 +395,23 @@ OPENAI_API_KEY=sk-proj-...
 
 Note: Qdrant is optional. The service works without it.
 
-### Duplicate Translation Errors
+### Force Re-translation Not Working
 
-**Issue:** Getting logical errors about duplicate translations
+**Issue:** Setting `forceRetranslate: true` but getting cached result
 
-**Solution:** The service caches translations. To update:
-1. Delete the existing translation from `post_translations` table
-2. Run translation again
-3. Or modify the business logic to allow updates
+**Solution:** Check the logs:
+1. You should see "Force retranslation requested for post_id=..."
+2. If not, verify JSON format: `{"targetLanguage": "VI", "forceRetranslate": true}`
+3. Ensure no typos in field name (camelCase: `forceRetranslate`)
+
+### No Similarity Results When Force Re-translating
+
+**Issue:** No similar translations shown in logs when using `forceRetranslate: true`
+
+**Solution:** 
+1. Verify Qdrant is running and `QDRANT_URL` is set
+2. Check if any translations are stored in Qdrant (first translation won't have similar ones)
+3. Look for "Failed to search similar translations" warnings in logs
 
 ## Performance
 
@@ -321,6 +419,7 @@ Note: Qdrant is optional. The service works without it.
 - Small posts (<500 chars): ~2-3 seconds
 - Medium posts (500-2000 chars): ~3-5 seconds
 - Large posts (>2000 chars): ~5-15 seconds (depends on chunks)
+- With force re-translate: +100-200ms for Qdrant similarity search
 
 **Background Mode:**
 - Returns immediately (<100ms)
@@ -330,6 +429,7 @@ Note: Qdrant is optional. The service works without it.
 **With Qdrant:**
 - Additional ~100-200ms for embedding generation
 - Semantic search: <50ms per query
+- Force re-translate similarity check: ~100-150ms
 
 ## Support
 
