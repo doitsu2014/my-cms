@@ -66,6 +66,8 @@ impl VectorStore {
     /// Initializes the translation collection in Qdrant
     #[instrument(skip(self))]
     pub async fn initialize_collection(&self) -> Result<(), AppError> {
+        tracing::info!("Initializing Qdrant collection: {}", TRANSLATION_COLLECTION);
+        
         // Check if collection exists
         let collections = self
             .qdrant
@@ -79,6 +81,8 @@ impl VectorStore {
             .any(|c| c.name == TRANSLATION_COLLECTION);
 
         if !collection_exists {
+            tracing::info!("Collection '{}' does not exist, creating...", TRANSLATION_COLLECTION);
+            
             // Create collection
             self.qdrant
                 .create_collection(
@@ -96,7 +100,9 @@ impl VectorStore {
                     AppError::OpenAIError(format!("Failed to create collection: {}", e))
                 })?;
 
-            tracing::info!("Created Qdrant collection: {}", TRANSLATION_COLLECTION);
+            tracing::info!("✓ Created Qdrant collection: {} with {} dimensions", TRANSLATION_COLLECTION, EMBEDDING_DIMENSION);
+        } else {
+            tracing::info!("✓ Qdrant collection '{}' already exists", TRANSLATION_COLLECTION);
         }
 
         Ok(())
@@ -138,6 +144,13 @@ impl VectorStore {
         title: &str,
         content: &str,
     ) -> Result<(), AppError> {
+        tracing::info!(
+            "Storing translation in Qdrant: post_id={} language={} translation_id={}",
+            post_id,
+            language_code,
+            translation_id
+        );
+        
         // Combine title and content for embedding (limit to first 8000 chars to avoid token limits)
         let text_for_embedding = format!("{} {}", title, content);
         let truncated_text = if text_for_embedding.len() > 8000 {
@@ -146,8 +159,12 @@ impl VectorStore {
             &text_for_embedding
         };
 
+        tracing::debug!("Generating embedding for {} characters", truncated_text.len());
+        
         // Generate embedding
         let embedding = self.generate_embedding(truncated_text).await?;
+        
+        tracing::debug!("Generated embedding with {} dimensions", embedding.len());
 
         // Create metadata
         let metadata = TranslationMetadata {
@@ -159,7 +176,7 @@ impl VectorStore {
         };
 
         // Create point
-        let json_value = serde_json::to_value(metadata)
+        let json_value = serde_json::to_value(&metadata)
             .map_err(|e| AppError::OpenAIError(format!("Failed to serialize metadata: {}", e)))?;
         
         let payload: serde_json::Map<String, serde_json::Value> = if let serde_json::Value::Object(map) = json_value {
@@ -174,24 +191,60 @@ impl VectorStore {
             payload,
         );
 
+        tracing::debug!("Upserting point to collection '{}'", TRANSLATION_COLLECTION);
+        
         // Upsert point
         use qdrant_client::qdrant::UpsertPointsBuilder;
         
-        self.qdrant
+        let upsert_result = self.qdrant
             .upsert_points(
                 UpsertPointsBuilder::new(TRANSLATION_COLLECTION, vec![point]).build(),
             )
             .await
-            .map_err(|e| AppError::OpenAIError(format!("Failed to upsert point: {}", e)))?;
+            .map_err(|e| AppError::OpenAIError(format!("Failed to upsert point to Qdrant: {}", e)))?;
 
         tracing::info!(
-            "Stored translation in vector DB: post_id={} language={} translation_id={}",
+            "✓ Successfully stored translation in Qdrant vector DB: post_id={} language={} translation_id={} (operation_id={})",
             post_id,
             language_code,
-            translation_id
+            translation_id,
+            upsert_result.result.and_then(|r| r.operation_id).map(|id| id.to_string()).unwrap_or_else(|| "unknown".to_string())
         );
+        
+        // Verify the point was stored by trying to retrieve it
+        match self.verify_point_stored(&translation_id.to_string()).await {
+            Ok(true) => {
+                tracing::info!("✓ Verified: Point {} exists in collection '{}'", translation_id, TRANSLATION_COLLECTION);
+            }
+            Ok(false) => {
+                tracing::warn!("⚠ Warning: Point {} was not found after storage in collection '{}'", translation_id, TRANSLATION_COLLECTION);
+            }
+            Err(e) => {
+                tracing::warn!("⚠ Could not verify point storage: {}", e);
+            }
+        }
 
         Ok(())
+    }
+    
+    /// Verifies that a point exists in the collection
+    async fn verify_point_stored(&self, point_id: &str) -> Result<bool, AppError> {
+        use qdrant_client::qdrant::{GetPointsBuilder, PointId};
+        
+        let point_ids = vec![PointId {
+            point_id_options: Some(qdrant_client::qdrant::point_id::PointIdOptions::Uuid(point_id.to_string())),
+        }];
+        
+        let result = self.qdrant
+            .get_points(
+                GetPointsBuilder::new(TRANSLATION_COLLECTION, point_ids)
+                    .with_payload(false)
+                    .build()
+            )
+            .await
+            .map_err(|e| AppError::OpenAIError(format!("Failed to verify point: {}", e)))?;
+        
+        Ok(!result.result.is_empty())
     }
 
     /// Searches for similar translations

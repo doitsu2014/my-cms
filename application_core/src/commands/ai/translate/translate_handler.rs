@@ -206,6 +206,12 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
         // Store translation embedding in vector database if configured
         // This enables semantic search and similarity matching for cost optimization
         if let Some(vector_store) = &self.vector_store {
+            tracing::info!(
+                "Vector store is configured - attempting to store translation embedding for post_id={} language={}",
+                request.post_id,
+                request.target_language_code
+            );
+            
             // Combine title and content preview for embedding
             let content_for_embedding = format!(
                 "{}\n\n{}",
@@ -229,22 +235,29 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             {
                 Ok(_) => {
                     tracing::info!(
-                        "Successfully stored translation embedding for post_id={} language={}",
+                        "✓ Successfully stored translation embedding in Qdrant for post_id={} language={} translation_id={}",
                         request.post_id,
-                        request.target_language_code
+                        request.target_language_code,
+                        post_translation_id
                     );
                 }
                 Err(e) => {
                     // Log error but don't fail the translation
                     // Vector storage is optional and shouldn't break the main flow
-                    tracing::warn!(
-                        "Failed to store translation embedding for post_id={} language={}: {}",
+                    tracing::error!(
+                        "✗ Failed to store translation embedding for post_id={} language={}: {}",
                         request.post_id,
                         request.target_language_code,
                         e
                     );
                 }
             }
+        } else {
+            tracing::info!(
+                "Vector store not configured - skipping embedding storage for post_id={} language={}",
+                request.post_id,
+                request.target_language_code
+            );
         }
 
         Ok(TranslatePostResponse {

@@ -36,6 +36,9 @@ pub struct TranslatePostResponse {
 async fn initialize_vector_store(openai_api_key: &str) -> Option<Arc<application_core::commands::ai::vector_store::VectorStore>> {
     match env::var("QDRANT_URL") {
         Ok(qdrant_url) => {
+            tracing::info!("QDRANT_URL configured: {}", qdrant_url);
+            tracing::info!("Attempting to connect to Qdrant and initialize collection...");
+            
             match application_core::commands::ai::vector_store::VectorStore::new(
                 &qdrant_url,
                 openai_api_key.to_string(),
@@ -43,20 +46,26 @@ async fn initialize_vector_store(openai_api_key: &str) -> Option<Arc<application
             .await
             {
                 Ok(vs) => {
+                    tracing::info!("✓ Successfully connected to Qdrant");
+                    
                     if let Err(e) = vs.initialize_collection().await {
-                        tracing::warn!("Failed to initialize Qdrant collection: {}", e);
+                        tracing::error!("✗ Failed to initialize Qdrant collection: {}", e);
                         None
                     } else {
+                        tracing::info!("✓ Qdrant vector store ready for use");
                         Some(Arc::new(vs))
                     }
                 }
                 Err(e) => {
-                    tracing::warn!("Failed to connect to Qdrant: {}", e);
+                    tracing::error!("✗ Failed to connect to Qdrant at {}: {}", qdrant_url, e);
                     None
                 }
             }
         }
-        Err(_) => None,
+        Err(_) => {
+            tracing::info!("QDRANT_URL not configured - vector storage disabled");
+            None
+        }
     }
 }
 
