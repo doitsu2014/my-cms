@@ -9,7 +9,7 @@ use async_openai::{
 use html5ever::parse_document;
 use html5ever::tendril::TendrilSink;
 use markup5ever_rcdom::{Handle, RcDom};
-use sea_orm::{DatabaseConnection, EntityTrait};
+use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter, ColumnTrait};
 use slugify::slugify;
 use std::io::Cursor;
 use std::sync::Arc;
@@ -30,6 +30,14 @@ const DEFAULT_OPENAI_MODEL: &str = "gpt-4o-mini";
 // Maximum chunk size in characters for content translation
 // Large content will be split into chunks to avoid token limits
 const MAX_CHUNK_SIZE: usize = 2000;
+
+// Temperature setting for translations (lower = more deterministic, less tokens)
+// Range: 0.0 to 2.0. For translations, we use low temperature for consistency
+const TRANSLATION_TEMPERATURE: f32 = 0.3;
+
+// Max tokens to limit response size and reduce costs
+// Average translation has similar length, so we cap it slightly higher than input
+const MAX_TOKENS_PER_REQUEST: u16 = 3000;
 
 pub trait PostTranslateHandlerTrait {
     fn handle_translate_post(
@@ -63,6 +71,31 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             .await
             .map_err(|e| e.into())?
             .ok_or(AppError::NotFound)?;
+
+        // Check if translation already exists to avoid duplicate API calls
+        let existing_translation = post_translations::Entity::find()
+            .filter(post_translations::Column::PostId.eq(request.post_id))
+            .filter(post_translations::Column::LanguageCode.eq(&request.target_language_code))
+            .one(self.db.as_ref())
+            .await
+            .map_err(|e| e.into())?;
+
+        if let Some(existing) = existing_translation {
+            // Return existing translation to save API costs
+            tracing::info!(
+                "Reusing existing translation for post_id={} language={}",
+                request.post_id,
+                request.target_language_code
+            );
+            return Ok(TranslatePostResponse {
+                post_translation_id: existing.id,
+                post_id: existing.post_id,
+                language_code: existing.language_code,
+                translated_title: existing.title,
+                translated_preview_content: existing.preview_content,
+                translated_content: existing.content,
+            });
+        }
 
         // Initialize OpenAI client with API key
         let config = OpenAIConfig::new().with_api_key(openai_api_key);
@@ -360,6 +393,8 @@ impl PostTranslateHandler {
                 let request = CreateChatCompletionRequestArgs::default()
                     .model(DEFAULT_OPENAI_MODEL)
                     .messages(messages)
+                    .temperature(TRANSLATION_TEMPERATURE)
+                    .max_tokens(MAX_TOKENS_PER_REQUEST)
                     .build()
                     .map_err(|e| AppError::OpenAIError(e.to_string()))?;
 
@@ -431,6 +466,8 @@ impl PostTranslateHandler {
         let request = CreateChatCompletionRequestArgs::default()
             .model(DEFAULT_OPENAI_MODEL)
             .messages(messages)
+            .temperature(TRANSLATION_TEMPERATURE)
+            .max_tokens(MAX_TOKENS_PER_REQUEST)
             .build()
             .map_err(|e| AppError::OpenAIError(e.to_string()))?;
 
