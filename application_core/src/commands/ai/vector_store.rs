@@ -193,7 +193,8 @@ impl VectorStore {
         for ending in &sentence_endings {
             if let Some(pos) = truncated.rfind(ending) {
                 if pos > max_length / 2 {  // At least halfway through
-                    return truncated[..=pos].trim().to_string();
+                    // Include the punctuation mark but trim any trailing whitespace
+                    return truncated[..pos + 1].trim().to_string();
                 }
             }
         }

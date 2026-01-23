@@ -42,6 +42,17 @@ const TRANSLATION_TEMPERATURE: f32 = 0.3;
 // This prevents incomplete translations for large content chunks
 const MAX_TOKENS_PER_REQUEST: u16 = 8000;
 
+// Translation instruction for HTML content
+const TRANSLATION_INSTRUCTION_HTML: &str = 
+    "Preserve all HTML tags and structure exactly as they are. Only translate the text content within the tags, \
+     never translate HTML tag names, attributes, or structure. Return valid HTML. Translate the ENTIRE content \
+     provided, do not truncate or summarize.";
+
+// Translation instruction for plain text content
+const TRANSLATION_INSTRUCTION_TEXT: &str = 
+    "Only return the translated text without any additional comments or explanations. Translate the ENTIRE \
+     content provided, do not truncate or summarize.";
+
 pub trait PostTranslateHandlerTrait {
     fn handle_translate_post(
         &self,
@@ -504,11 +515,7 @@ impl PostTranslateHandler {
                         "You are a professional translator. Translate the following {} to {}. {}",
                         if is_html { "HTML content" } else { "text" },
                         target_language,
-                        if is_html {
-                            "Preserve all HTML tags and structure exactly as they are. Only translate the text content within the tags, never translate HTML tag names, attributes, or structure. Return valid HTML. Translate the ENTIRE content provided, do not truncate or summarize."
-                        } else {
-                            "Only return the translated text without any additional comments or explanations. Translate the ENTIRE content provided, do not truncate or summarize."
-                        }
+                        if is_html { TRANSLATION_INSTRUCTION_HTML } else { TRANSLATION_INSTRUCTION_TEXT }
                     ))
                     .build()
                     .map_err(|e| AppError::OpenAIError(e.to_string()))?;
