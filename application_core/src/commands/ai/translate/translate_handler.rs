@@ -56,6 +56,7 @@ pub trait PostTranslateHandlerTrait {
 #[derive(Debug)]
 pub struct PostTranslateHandler {
     pub db: Arc<DatabaseConnection>,
+    pub vector_store: Option<Arc<crate::commands::ai::vector_store::VectorStore>>,
 }
 
 impl PostTranslateHandlerTrait for PostTranslateHandler {
@@ -171,12 +172,13 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
         
         // Clone necessary data for background task
         let db = self.db.clone();
+        let vector_store = self.vector_store.clone();
         let post_id = request.post_id;
         let language_code = request.target_language_code.clone();
         
         // Spawn background task for translation
         tokio::spawn(async move {
-            let handler = PostTranslateHandler { db };
+            let handler = PostTranslateHandler { db, vector_store };
             match handler.handle_translate_post(request, openai_api_key).await {
                 Ok(_) => {
                     tracing::info!(
@@ -586,6 +588,7 @@ mod tests {
 
         // Create translate handler with mocked OpenAI endpoint
         let _translate_handler = PostTranslateHandler {
+            vector_store: None,
             db: arc_conn.clone(),
         };
         
@@ -643,6 +646,7 @@ mod tests {
 
         // Create translate handler
         let translate_handler = PostTranslateHandler {
+            vector_store: None,
             db: arc_conn.clone(),
         };
         
@@ -670,6 +674,7 @@ mod tests {
         let database = test_space.postgres.get_database_connection().await;
         
         let handler = PostTranslateHandler {
+            vector_store: None,
             db: Arc::new(database),
         };
 
@@ -687,6 +692,7 @@ mod tests {
         let database = test_space.postgres.get_database_connection().await;
         
         let handler = PostTranslateHandler {
+            vector_store: None,
             db: Arc::new(database),
         };
 
@@ -706,6 +712,7 @@ mod tests {
         let database = test_space.postgres.get_database_connection().await;
         
         let handler = PostTranslateHandler {
+            vector_store: None,
             db: Arc::new(database),
         };
 
@@ -752,6 +759,7 @@ mod tests {
 
         // Create translate handler
         let translate_handler = PostTranslateHandler {
+            vector_store: None,
             db: arc_conn.clone(),
         };
         
@@ -798,6 +806,7 @@ mod tests {
 
         // Translate the post (requires valid OpenAI API key)
         let translate_handler = PostTranslateHandler {
+            vector_store: None,
             db: arc_conn.clone(),
         };
         let translate_request = TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
