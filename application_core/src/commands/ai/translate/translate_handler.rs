@@ -151,6 +151,50 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             .await
             .map_err(|e| e.into())?;
 
+        // Store translation embedding in vector database if configured
+        // This enables semantic search and similarity matching for cost optimization
+        if let Some(vector_store) = &self.vector_store {
+            // Combine title and content preview for embedding
+            let content_for_embedding = format!(
+                "{}\n\n{}",
+                translated_title,
+                if translated_content.len() > 500 {
+                    &translated_content[..500]
+                } else {
+                    &translated_content
+                }
+            );
+
+            match vector_store
+                .store_translation(
+                    request.post_id,
+                    &request.target_language_code,
+                    post_translation_id,
+                    &translated_title,
+                    &content_for_embedding,
+                )
+                .await
+            {
+                Ok(_) => {
+                    tracing::info!(
+                        "Successfully stored translation embedding for post_id={} language={}",
+                        request.post_id,
+                        request.target_language_code
+                    );
+                }
+                Err(e) => {
+                    // Log error but don't fail the translation
+                    // Vector storage is optional and shouldn't break the main flow
+                    tracing::warn!(
+                        "Failed to store translation embedding for post_id={} language={}: {}",
+                        request.post_id,
+                        request.target_language_code,
+                        e
+                    );
+                }
+            }
+        }
+
         Ok(TranslatePostResponse {
             post_translation_id,
             post_id: request.post_id,
