@@ -10,7 +10,10 @@ use std::env;
 use std::sync::Arc;
 use tracing::instrument;
 
-use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
+use crate::{
+    presentation_models::api_response::ErrorCode, ApiResponseError, ApiResponseWith, AppState,
+    AxumResponse,
+};
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -25,34 +28,13 @@ pub struct TranslatePostResponse {
     pub status: String,
 }
 
-/// Translate a post synchronously (waits for completion)
-/// 
-/// POST /posts/{post_id}/translate
-/// 
-/// Body: { "targetLanguage": "VI" }
-#[instrument]
-pub async fn api_translate_post(
-    state: State<AppState>,
-    Extension(_token): Extension<KeycloakToken<String>>,
-    Path(post_id): Path<Uuid>,
-    Json(body): Json<TranslatePostRequestBody>,
-) -> impl IntoResponse {
-    let openai_api_key = match env::var("OPENAI_API_KEY") {
-        Ok(key) => key,
-        Err(_) => {
-            return ApiResponseError::new()
-                .with_error_code(crate::presentation_models::api_response::ErrorCode::ConnectionError)
-                .add_error("OPENAI_API_KEY environment variable not set".to_string())
-                .to_axum_response();
-        }
-    };
-
-    // Optional: Initialize vector store if Qdrant URL is configured
-    let vector_store = match env::var("QDRANT_URL") {
+/// Initialize optional Qdrant vector store if QDRANT_URL is configured
+async fn initialize_vector_store(openai_api_key: &str) -> Option<Arc<application_core::commands::ai::vector_store::VectorStore>> {
+    match env::var("QDRANT_URL") {
         Ok(qdrant_url) => {
             match application_core::commands::ai::vector_store::VectorStore::new(
                 &qdrant_url,
-                openai_api_key.clone(),
+                openai_api_key.to_string(),
             )
             .await
             {
@@ -71,7 +53,33 @@ pub async fn api_translate_post(
             }
         }
         Err(_) => None,
+    }
+}
+
+/// Translate a post synchronously (waits for completion)
+/// 
+/// POST /posts/{post_id}/translate
+/// 
+/// Body: { "targetLanguage": "VI" }
+#[instrument]
+pub async fn api_translate_post(
+    state: State<AppState>,
+    Extension(_token): Extension<KeycloakToken<String>>,
+    Path(post_id): Path<Uuid>,
+    Json(body): Json<TranslatePostRequestBody>,
+) -> impl IntoResponse {
+    let openai_api_key = match env::var("OPENAI_API_KEY") {
+        Ok(key) => key,
+        Err(_) => {
+            return ApiResponseError::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error("OPENAI_API_KEY environment variable not set".to_string())
+                .to_axum_response();
+        }
     };
+
+    // Optional: Initialize vector store if Qdrant URL is configured
+    let vector_store = initialize_vector_store(&openai_api_key).await;
 
     let handler = PostTranslateHandler {
         db: state.conn.clone(),
@@ -110,37 +118,14 @@ pub async fn api_translate_post_background(
         Ok(key) => key,
         Err(_) => {
             return ApiResponseError::new()
-                .with_error_code(crate::presentation_models::api_response::ErrorCode::ConnectionError)
+                .with_error_code(ErrorCode::ConnectionError)
                 .add_error("OPENAI_API_KEY environment variable not set".to_string())
                 .to_axum_response();
         }
     };
 
     // Optional: Initialize vector store if Qdrant URL is configured
-    let vector_store = match env::var("QDRANT_URL") {
-        Ok(qdrant_url) => {
-            match application_core::commands::ai::vector_store::VectorStore::new(
-                &qdrant_url,
-                openai_api_key.clone(),
-            )
-            .await
-            {
-                Ok(vs) => {
-                    if let Err(e) = vs.initialize_collection().await {
-                        tracing::warn!("Failed to initialize Qdrant collection: {}", e);
-                        None
-                    } else {
-                        Some(Arc::new(vs))
-                    }
-                }
-                Err(e) => {
-                    tracing::warn!("Failed to connect to Qdrant: {}", e);
-                    None
-                }
-            }
-        }
-        Err(_) => None,
-    };
+    let vector_store = initialize_vector_store(&openai_api_key).await;
 
     let handler = PostTranslateHandler {
         db: state.conn.clone(),
