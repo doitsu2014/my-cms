@@ -50,9 +50,18 @@ impl std::fmt::Debug for VectorStore {
 impl VectorStore {
     /// Creates a new VectorStore instance
     pub async fn new(qdrant_url: &str, openai_api_key: String) -> Result<Self, AppError> {
+        // Configure Qdrant client with timeout and connection settings
         let qdrant = Qdrant::from_url(qdrant_url)
+            .timeout(std::time::Duration::from_secs(30))
+            .connect_timeout(std::time::Duration::from_secs(10))
             .build()
-            .map_err(|e| AppError::OpenAIError(format!("Failed to connect to Qdrant: {}", e)))?;
+            .map_err(|e| {
+                AppError::OpenAIError(format!(
+                    "Failed to create Qdrant client for URL '{}': {}. \
+                    Ensure Qdrant is running and the URL is correct (use gRPC port, typically 6334).",
+                    qdrant_url, e
+                ))
+            })?;
 
         let config = OpenAIConfig::new().with_api_key(openai_api_key);
         let openai_client = Client::with_config(config);
@@ -68,12 +77,40 @@ impl VectorStore {
     pub async fn initialize_collection(&self) -> Result<(), AppError> {
         tracing::info!("Initializing Qdrant collection: {}", TRANSLATION_COLLECTION);
         
+        // Perform a healthcheck first to provide better error messages
+        match self.qdrant.health_check().await {
+            Ok(_) => {
+                tracing::debug!("Qdrant health check passed");
+            }
+            Err(e) => {
+                return Err(AppError::OpenAIError(format!(
+                    "Qdrant health check failed: {}. \
+                    Possible causes: \n\
+                    1. Qdrant server is not running\n\
+                    2. Wrong URL/port (gRPC port is typically 6334, not 6333)\n\
+                    3. Network connectivity issues\n\
+                    4. Firewall blocking connection",
+                    e
+                )));
+            }
+        }
+        
         // Check if collection exists
         let collections = self
             .qdrant
             .list_collections()
             .await
-            .map_err(|e| AppError::OpenAIError(format!("Failed to list collections: {}", e)))?;
+            .map_err(|e| {
+                AppError::OpenAIError(format!(
+                    "Failed to list collections: {}. \
+                    This might be an HTTP/2 protocol error. Try:\n\
+                    1. Ensure Qdrant version is compatible with qdrant-client 1.11\n\
+                    2. Check if Qdrant is running: curl http://localhost:6333/health\n\
+                    3. Verify gRPC port 6334 is accessible\n\
+                    4. Restart Qdrant server",
+                    e
+                ))
+            })?;
 
         let collection_exists = collections
             .collections

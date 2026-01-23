@@ -78,6 +78,67 @@ This guide helps diagnose and resolve issues with the Qdrant vector database int
 
 2. **Wrong port configured:**
    - Qdrant has two ports: 6333 (HTTP) and 6334 (gRPC)
+   - For `qdrant-client`, you MUST use port 6334 (gRPC)
+   - Log message with wrong port: `Failed to connect to Qdrant...`
+   - **Solution:** Use the correct gRPC port:
+     ```bash
+     export QDRANT_URL=http://localhost:6334  # Correct for gRPC
+     # NOT http://localhost:6333 (HTTP API only)
+     ```
+
+3. **HTTP/2 Protocol Error:**
+   - Error message: `h2 protocol error: http2 error` or `MetadataMap { headers: {} }`
+   - This usually indicates connection or protocol issues
+   
+   **Common Causes & Solutions:**
+   
+   a. **Qdrant not running:**
+      ```bash
+      # Check if Qdrant is running
+      curl http://localhost:6333/health
+      
+      # If not running, start it:
+      docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
+      ```
+   
+   b. **Port already in use or firewall:**
+      ```bash
+      # Check if port 6334 is accessible
+      telnet localhost 6334
+      # Or use nc (netcat)
+      nc -zv localhost 6334
+      ```
+   
+   c. **Version compatibility issue:**
+      - The `qdrant-client` version 1.11 expects a compatible Qdrant server
+      - Ensure you're running a recent Qdrant version (1.7.0+)
+      ```bash
+      # Check Qdrant version
+      curl http://localhost:6333/
+      # Look for "version" field
+      
+      # Update Qdrant to latest:
+      docker pull qdrant/qdrant:latest
+      docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant:latest
+      ```
+   
+   d. **Connection timeout:**
+      - System now has 30s timeout and 10s connect timeout
+      - If still timing out, check network/Docker settings
+      ```bash
+      # Test gRPC connectivity with grpcurl
+      grpcurl -plaintext localhost:6334 list
+      ```
+   
+   e. **Docker network issues:**
+      - If running in Docker, ensure proper network configuration
+      - Use host network mode or proper port mapping
+      ```bash
+      # Try with host network
+      docker run --network host qdrant/qdrant
+      ```
+
+4. **Qdrant not running:**
    - This application uses **gRPC port 6334**
    - **Solution:** Use `QDRANT_URL=http://localhost:6334`
 
