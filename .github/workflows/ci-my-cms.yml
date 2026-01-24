@@ -11,7 +11,9 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    working-directory: services
+    defaults:
+      run:
+        working-directory: ./services
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
