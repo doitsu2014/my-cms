@@ -9,7 +9,6 @@ on:
       - 'v*.*.*'
     paths:
       - 'frontend/**'
-      - '.github/workflows/release-my-cms-admin-image.yml'
 
 jobs:
   build_push_image:

@@ -3,8 +3,12 @@ name: Build and Release my-cms Docker Image
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags:
-      - "v*.*.*"
+      - 'v*.*.*'
+    paths:
+      - 'services/**'
 
 env:
   CARGO_TERM_COLOR: always
