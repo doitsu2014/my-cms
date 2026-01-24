@@ -186,11 +186,14 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                                 similar.len()
                             );
                             
+                            // Convert request post_id to string once for efficiency
+                            let request_post_id_str = request.post_id.to_string();
+                            
                             // Check if any similar translation meets the reuse threshold
                             for (metadata, score) in similar.iter() {
                                 if *score >= SIMILARITY_REUSE_THRESHOLD 
                                     && metadata.language_code == request.target_language_code 
-                                    && metadata.post_id != request.post_id.to_string() {
+                                    && metadata.post_id != request_post_id_str {
                                     
                                     // Parse the post_id from string to UUID
                                     let similar_post_id = match Uuid::parse_str(&metadata.post_id) {
@@ -260,10 +263,7 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                                             );
                                         }
                                         
-                                        // Parse post_id from metadata (it's stored as String in Qdrant)
-                                        let source_post_uuid = Uuid::parse_str(&metadata.post_id)
-                                            .unwrap_or_else(|_| Uuid::nil());
-                                        
+                                        // We already parsed and validated similar_post_id above, reuse it
                                         return Ok(TranslatePostResponse {
                                             post_translation_id: new_translation_id,
                                             post_id: request.post_id,
@@ -274,7 +274,7 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                                             reused_from_similar: Some(super::translate_response::ReusedTranslationInfo {
                                                 source_translation_id: similar_translation.id,
                                                 similarity_score: *score,
-                                                source_post_id: source_post_uuid,
+                                                source_post_id: similar_post_id,
                                             }),
                                         });
                                     }
