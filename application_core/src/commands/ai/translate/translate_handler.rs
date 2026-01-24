@@ -79,6 +79,261 @@ pub struct PostTranslateHandler {
     pub vector_store: Option<Arc<crate::commands::ai::vector_store::VectorStore>>,
 }
 
+struct SimilarTranslationInfo {
+    source_translation_id: Uuid,
+    source_post_id: Uuid,
+    similarity_score: f32,
+    translated_title: String,
+    translated_preview_content: String,
+    translated_content: String,
+}
+
+impl PostTranslateHandler {
+    /// Database lookup: Check if translation already exists
+    async fn lookup_existing_translation(
+        db: &DatabaseConnection,
+        post_id: Uuid,
+        language_code: &str,
+    ) -> Result<Option<post_translations::Model>, AppError> {
+        post_translations::Entity::find()
+            .filter(post_translations::Column::PostId.eq(post_id))
+            .filter(post_translations::Column::LanguageCode.eq(language_code))
+            .one(db)
+            .await
+            .map_err(|e| e.into())
+    }
+
+    /// Delete existing translation
+    async fn delete_existing_translation(
+        db: &DatabaseConnection,
+        post_id: Uuid,
+        language_code: &str,
+    ) -> Result<(), AppError> {
+        if let Some(existing) = Self::lookup_existing_translation(db, post_id, language_code).await? {
+            post_translations::Entity::delete_by_id(existing.id)
+                .exec(db)
+                .await
+                .map_err(|e| e.into())?;
+            tracing::info!(
+                "Deleted existing translation_id={} for retranslation",
+                existing.id
+            );
+        }
+        Ok(())
+    }
+
+    /// Qdrant similarity search: Find similar translations with score >= threshold
+    async fn find_similar_translation(
+        vector_store: &Option<Arc<crate::commands::ai::vector_store::VectorStore>>,
+        db: &DatabaseConnection,
+        post: &posts::Model,
+        post_id: Uuid,
+        target_language_code: &str,
+    ) -> Result<Option<SimilarTranslationInfo>, AppError> {
+        let Some(vector_store) = vector_store else {
+            return Ok(None);
+        };
+
+        let search_text = format!("{} {}", post.title, post.content.chars().take(500).collect::<String>());
+        let similar = match vector_store.search_similar_translations(&search_text, 5).await {
+            Ok(results) => results,
+            Err(e) => {
+                tracing::warn!("Failed to search similar translations: {}. Continuing with new translation.", e);
+                return Ok(None);
+            }
+        };
+
+        if similar.is_empty() {
+            return Ok(None);
+        }
+
+        tracing::info!(
+            "Found {} similar translations in vector DB for similarity check",
+            similar.len()
+        );
+
+        let request_post_id_str = post_id.to_string();
+
+        for (metadata, score) in similar.iter() {
+            if *score >= SIMILARITY_REUSE_THRESHOLD 
+                && metadata.language_code == target_language_code 
+                && metadata.post_id != request_post_id_str {
+                
+                let similar_post_id = match Uuid::parse_str(&metadata.post_id) {
+                    Ok(uuid) => uuid,
+                    Err(_) => {
+                        tracing::warn!("Invalid post_id UUID in metadata: {}", metadata.post_id);
+                        continue;
+                    }
+                };
+                
+                if let Ok(Some(similar_translation)) = post_translations::Entity::find()
+                    .filter(post_translations::Column::PostId.eq(similar_post_id))
+                    .filter(post_translations::Column::LanguageCode.eq(target_language_code))
+                    .one(db)
+                    .await
+                {
+                    tracing::info!(
+                        "  Source: post_id={} title='{}' language={}",
+                        metadata.post_id,
+                        metadata.title,
+                        metadata.language_code
+                    );
+                    tracing::info!(
+                        "  Reusing translation instead of calling OpenAI API (cost savings!)"
+                    );
+                    
+                    return Ok(Some(SimilarTranslationInfo {
+                        source_translation_id: similar_translation.id,
+                        source_post_id: similar_post_id,
+                        similarity_score: *score,
+                        translated_title: similar_translation.title,
+                        translated_preview_content: similar_translation.preview_content,
+                        translated_content: similar_translation.content,
+                    }));
+                }
+            }
+        }
+
+        for (metadata, score) in similar.iter().take(3) {
+            tracing::info!(
+                "  Similar: score={:.3} post_id={} lang={} title={} {}",
+                score,
+                metadata.post_id,
+                metadata.language_code,
+                metadata.title,
+                if *score >= SIMILARITY_REUSE_THRESHOLD { "(REUSABLE)" } else { "(below threshold)" }
+            );
+        }
+
+        Ok(None)
+    }
+
+    /// OpenAI translation: Translate title, preview, and content
+    async fn translate_from_openai(
+        post: &posts::Model,
+        target_language_code: &str,
+        openai_api_key: &str,
+    ) -> Result<(String, String, String), AppError> {
+        let config = OpenAIConfig::new().with_api_key(openai_api_key);
+        let client = Client::with_config(config);
+
+        let translated_title = Self::translate_text_internal(
+            &client,
+            &post.title,
+            target_language_code,
+            "title",
+        ).await?;
+
+        let translated_preview_content = if let Some(preview) = &post.preview_content {
+            Self::translate_text_internal(&client, preview, target_language_code, "preview").await?
+        } else {
+            String::new()
+        };
+
+        let translated_content = Self::translate_large_content_internal(
+            &client,
+            &post.content,
+            target_language_code,
+        ).await?;
+
+        Ok((translated_title, translated_preview_content, translated_content))
+    }
+
+    /// Save translation to database
+    async fn save_translation(
+        db: &DatabaseConnection,
+        post_id: Uuid,
+        language_code: &str,
+        title: &str,
+        preview_content: &str,
+        content: &str,
+    ) -> Result<Uuid, AppError> {
+        let post_translation_id = Uuid::new_v4();
+        let slug = slugify!(title, max_length = 100);
+        
+        let translation_model = post_translations::ActiveModel {
+            id: sea_orm::Set(post_translation_id),
+            post_id: sea_orm::Set(post_id),
+            language_code: sea_orm::Set(language_code.to_string()),
+            title: sea_orm::Set(title.to_string()),
+            slug: sea_orm::Set(slug),
+            preview_content: sea_orm::Set(preview_content.to_string()),
+            content: sea_orm::Set(content.to_string()),
+        };
+
+        post_translations::Entity::insert(translation_model)
+            .exec(db)
+            .await
+            .map_err(|e| e.into())?;
+
+        Ok(post_translation_id)
+    }
+
+    /// Store translation in vector database
+    async fn store_in_vector_db(
+        vector_store: &Option<Arc<crate::commands::ai::vector_store::VectorStore>>,
+        post_id: Uuid,
+        language_code: &str,
+        translation_id: Uuid,
+        title: &str,
+        content: &str,
+    ) {
+        let Some(vector_store) = vector_store else {
+            tracing::info!(
+                "Vector store not configured - skipping embedding storage for post_id={} language={}",
+                post_id,
+                language_code
+            );
+            return;
+        };
+
+        tracing::info!(
+            "Vector store is configured - attempting to store translation embedding for post_id={} language={}",
+            post_id,
+            language_code
+        );
+        
+        let content_for_embedding = format!(
+            "{}\n\n{}",
+            title,
+            if content.len() > 8000 {
+                &content[..8000]
+            } else {
+                content
+            }
+        );
+
+        match vector_store
+            .store_translation(
+                post_id,
+                language_code,
+                translation_id,
+                title,
+                &content_for_embedding,
+            )
+            .await
+        {
+            Ok(_) => {
+                tracing::info!(
+                    "✓ Successfully stored translation embedding in Qdrant for post_id={} language={} translation_id={}",
+                    post_id,
+                    language_code,
+                    translation_id
+                );
+            }
+            Err(e) => {
+                tracing::error!(
+                    "✗ Failed to store translation embedding for post_id={} language={}: {}",
+                    post_id,
+                    language_code,
+                    e
+                );
+            }
+        }
+    }
+}
+
 impl PostTranslateHandlerTrait for PostTranslateHandler {
     #[instrument]
     async fn handle_translate_post(
@@ -93,325 +348,146 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             .map_err(|e| e.into())?
             .ok_or(AppError::NotFound)?;
 
-        // Check if translation already exists
-        let existing_translation = post_translations::Entity::find()
-            .filter(post_translations::Column::PostId.eq(request.post_id))
-            .filter(post_translations::Column::LanguageCode.eq(&request.target_language_code))
-            .one(self.db.as_ref())
-            .await
-            .map_err(|e| e.into())?;
-
-        // If translation exists and force_retranslate is false, return existing translation
-        if let Some(existing) = &existing_translation {
-            if !request.force_retranslate {
-                // Return existing translation to save API costs
-                tracing::info!(
-                    "Reusing existing translation for post_id={} language={}",
-                    request.post_id,
-                    request.target_language_code
-                );
-                return Ok(TranslatePostResponse {
-                    post_translation_id: existing.id,
-                    post_id: existing.post_id,
-                    language_code: existing.language_code.clone(),
-                    translated_title: existing.title.clone(),
-                    translated_preview_content: existing.preview_content.clone(),
-                    translated_content: existing.content.clone(),
-                    reused_from_similar: None, // Direct reuse, not from similarity
-                });
-            } else {
-                // Force retranslation requested
-                tracing::info!(
-                    "Force retranslation requested for post_id={} language={}",
-                    request.post_id,
-                    request.target_language_code
-                );
-                
-                // Check Qdrant vector store for similar translations if available
-                if let Some(vector_store) = &self.vector_store {
-                    match vector_store.search_similar_translations(
-                        &format!("{} {}", post.title, post.content.chars().take(500).collect::<String>()),
-                        5
-                    ).await {
-                        Ok(similar) => {
-                            if !similar.is_empty() {
-                                tracing::info!(
-                                    "Found {} similar translations in vector DB for post_id={}",
-                                    similar.len(),
-                                    request.post_id
-                                );
-                                for (metadata, score) in similar.iter().take(3) {
-                                    tracing::info!(
-                                        "  Similar: score={:.3} post_id={} lang={} title={}",
-                                        score,
-                                        metadata.post_id,
-                                        metadata.language_code,
-                                        metadata.title
-                                    );
-                                }
-                            }
-                        }
-                        Err(e) => {
-                            tracing::warn!("Failed to search similar translations in vector DB: {}", e);
-                        }
-                    }
-                }
-                
-                // Delete existing translation before creating new one
-                use sea_orm::EntityTrait;
-                post_translations::Entity::delete_by_id(existing.id)
-                    .exec(self.db.as_ref())
-                    .await
-                    .map_err(|e| e.into())?;
-                
-                tracing::info!(
-                    "Deleted existing translation_id={} for retranslation",
-                    existing.id
-                );
-            }
-        }
-
-        // SMART TRANSLATION REUSE: Check for highly similar existing translations
-        // This can save OpenAI API costs by reusing translations for very similar content
-        // Only applies when not force re-translating
-        if !request.force_retranslate {
-            if let Some(vector_store) = &self.vector_store {
-                // Search for similar translations in vector store
-                let search_text = format!("{} {}", post.title, post.content.chars().take(500).collect::<String>());
-                match vector_store.search_similar_translations(&search_text, 5).await {
-                    Ok(similar) => {
-                        if !similar.is_empty() {
-                            tracing::info!(
-                                "Found {} similar translations in vector DB for similarity check",
-                                similar.len()
-                            );
-                            
-                            // Convert request post_id to string once for efficiency
-                            let request_post_id_str = request.post_id.to_string();
-                            
-                            // Check if any similar translation meets the reuse threshold
-                            for (metadata, score) in similar.iter() {
-                                if *score >= SIMILARITY_REUSE_THRESHOLD 
-                                    && metadata.language_code == request.target_language_code 
-                                    && metadata.post_id != request_post_id_str {
-                                    
-                                    // Parse the post_id from string to UUID
-                                    let similar_post_id = match Uuid::parse_str(&metadata.post_id) {
-                                        Ok(uuid) => uuid,
-                                        Err(_) => {
-                                            tracing::warn!("Invalid post_id UUID in metadata: {}", metadata.post_id);
-                                            continue;
-                                        }
-                                    };
-                                    
-                                    // Fetch the highly similar translation from database
-                                    if let Ok(Some(similar_translation)) = post_translations::Entity::find()
-                                        .filter(post_translations::Column::PostId.eq(similar_post_id))
-                                        .filter(post_translations::Column::LanguageCode.eq(&request.target_language_code))
-                                        .one(self.db.as_ref())
-                                        .await
-                                    {
-                                        tracing::info!(
-                                            "🎯 SMART REUSE: Found highly similar translation (score={:.3}, threshold={:.2})",
-                                            score,
-                                            SIMILARITY_REUSE_THRESHOLD
-                                        );
-                                        tracing::info!(
-                                            "  Source: post_id={} title='{}' language={}",
-                                            metadata.post_id,
-                                            metadata.title,
-                                            metadata.language_code
-                                        );
-                                        tracing::info!(
-                                            "  Reusing translation instead of calling OpenAI API (cost savings!)"
-                                        );
-                                        
-                                        // Create new translation record with the similar translation's content
-                                        let new_translation_id = Uuid::new_v4();
-                                        let slug = slugify!(&similar_translation.title, max_length = 100);
-                                        
-                                        let new_translation = post_translations::ActiveModel {
-                                            id: sea_orm::Set(new_translation_id),
-                                            post_id: sea_orm::Set(request.post_id),
-                                            language_code: sea_orm::Set(request.target_language_code.clone()),
-                                            title: sea_orm::Set(similar_translation.title.clone()),
-                                            preview_content: sea_orm::Set(similar_translation.preview_content.clone()),
-                                            content: sea_orm::Set(similar_translation.content.clone()),
-                                            slug: sea_orm::Set(slug),
-                                        };
-                                        
-                                        use sea_orm::ActiveModelTrait;
-                                        new_translation.insert(self.db.as_ref()).await
-                                            .map_err(|e| e.into())?;
-                                        
-                                        tracing::info!(
-                                            "✓ Created new translation_id={} by reusing similar translation",
-                                            new_translation_id
-                                        );
-                                        
-                                        // Store in vector store for future similarity searches
-                                        if let Err(e) = vector_store.store_translation(
-                                            request.post_id,
-                                            &request.target_language_code,
-                                            new_translation_id,
-                                            &similar_translation.title,
-                                            &similar_translation.content,
-                                        ).await {
-                                            tracing::warn!(
-                                                "Failed to store reused translation in vector DB: {}. Continuing anyway.",
-                                                e
-                                            );
-                                        }
-                                        
-                                        // We already parsed and validated similar_post_id above, reuse it
-                                        return Ok(TranslatePostResponse {
-                                            post_translation_id: new_translation_id,
-                                            post_id: request.post_id,
-                                            language_code: request.target_language_code,
-                                            translated_title: similar_translation.title,
-                                            translated_preview_content: similar_translation.preview_content,
-                                            translated_content: similar_translation.content,
-                                            reused_from_similar: Some(super::translate_response::ReusedTranslationInfo {
-                                                source_translation_id: similar_translation.id,
-                                                similarity_score: *score,
-                                                source_post_id: similar_post_id,
-                                            }),
-                                        });
-                                    }
-                                }
-                            }
-                            
-                            // Log similar translations found (even if below threshold)
-                            for (metadata, score) in similar.iter().take(3) {
-                                tracing::info!(
-                                    "  Similar: score={:.3} post_id={} lang={} title={} {}",
-                                    score,
-                                    metadata.post_id,
-                                    metadata.language_code,
-                                    metadata.title,
-                                    if *score >= SIMILARITY_REUSE_THRESHOLD { "(REUSABLE)" } else { "(below threshold)" }
-                                );
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        tracing::warn!("Failed to search similar translations: {}. Continuing with new translation.", e);
-                    }
-                }
-            }
-        }
-
-        // Initialize OpenAI client with API key
-        let config = OpenAIConfig::new().with_api_key(openai_api_key);
-        let client = Client::with_config(config);
-
-        // Translate title
-        let translated_title = self
-            .translate_text(
-                &client,
-                &post.title,
-                &request.target_language_code,
-                "title",
-            )
-            .await?;
-
-        // Translate preview content
-        // Note: If original preview_content is None, we set it to empty string
-        // as the database schema requires a non-nullable String
-        let translated_preview_content = if let Some(preview) = &post.preview_content {
-            self.translate_text(&client, preview, &request.target_language_code, "preview")
-                .await?
-        } else {
-            String::new()
-        };
-
-        // Translate content with chunking for large content
-        let translated_content = self
-            .translate_large_content(
-                &client,
-                &post.content,
-                &request.target_language_code,
-            )
-            .await?;
-
-        // Generate a slug from the translated title
-        let translated_slug = slugify!(&translated_title);
-
-        // Save translation to database
-        let post_translation_id = Uuid::new_v4();
-        let translation_model = post_translations::ActiveModel {
-            id: sea_orm::Set(post_translation_id),
-            post_id: sea_orm::Set(request.post_id),
-            language_code: sea_orm::Set(request.target_language_code.clone()),
-            title: sea_orm::Set(translated_title.clone()),
-            slug: sea_orm::Set(translated_slug),
-            preview_content: sea_orm::Set(translated_preview_content.clone()),
-            content: sea_orm::Set(translated_content.clone()),
-        };
-
-        post_translations::Entity::insert(translation_model)
-            .exec(self.db.as_ref())
-            .await
-            .map_err(|e| e.into())?;
-
-        // Store translation embedding in vector database if configured
-        // This enables semantic search and similarity matching for cost optimization
-        if let Some(vector_store) = &self.vector_store {
+        if request.force_retranslate {
+            // Force retranslate: delete existing and translate from OpenAI
+            Self::delete_existing_translation(self.db.as_ref(), request.post_id, &request.target_language_code).await?;
+            
             tracing::info!(
-                "Vector store is configured - attempting to store translation embedding for post_id={} language={}",
+                "Force retranslation requested for post_id={} language={}",
                 request.post_id,
                 request.target_language_code
             );
             
-            // Use more content for embedding (up to 8000 chars) for better semantic search
-            // The embedding model can handle much longer text than we were using before
-            let content_for_embedding = format!(
-                "{}\n\n{}",
+            let (translated_title, translated_preview_content, translated_content) = 
+                Self::translate_from_openai(&post, &request.target_language_code, &openai_api_key).await?;
+            
+            let post_translation_id = Self::save_translation(
+                self.db.as_ref(),
+                request.post_id,
+                &request.target_language_code,
+                &translated_title,
+                &translated_preview_content,
+                &translated_content,
+            ).await?;
+            
+            Self::store_in_vector_db(
+                &self.vector_store,
+                request.post_id,
+                &request.target_language_code,
+                post_translation_id,
+                &translated_title,
+                &translated_content,
+            ).await;
+            
+            return Ok(TranslatePostResponse {
+                post_translation_id,
+                post_id: request.post_id,
+                language_code: request.target_language_code,
                 translated_title,
-                if translated_content.len() > 8000 {
-                    &translated_content[..8000]
-                } else {
-                    &translated_content
-                }
-            );
+                translated_preview_content,
+                translated_content,
+                reused_from_similar: None,
+            });
+        }
 
-            match vector_store
-                .store_translation(
-                    request.post_id,
-                    &request.target_language_code,
-                    post_translation_id,
-                    &translated_title,
-                    &content_for_embedding,
-                )
-                .await
-            {
-                Ok(_) => {
-                    tracing::info!(
-                        "✓ Successfully stored translation embedding in Qdrant for post_id={} language={} translation_id={}",
-                        request.post_id,
-                        request.target_language_code,
-                        post_translation_id
-                    );
-                }
-                Err(e) => {
-                    // Log error but don't fail the translation
-                    // Vector storage is optional and shouldn't break the main flow
-                    tracing::error!(
-                        "✗ Failed to store translation embedding for post_id={} language={}: {}",
-                        request.post_id,
-                        request.target_language_code,
-                        e
-                    );
-                }
-            }
-        } else {
+        // 3-tier lookup strategy when force_retranslate=false:
+        // 1. Check database first
+        if let Some(existing) = Self::lookup_existing_translation(
+            self.db.as_ref(),
+            request.post_id,
+            &request.target_language_code,
+        ).await? {
             tracing::info!(
-                "Vector store not configured - skipping embedding storage for post_id={} language={}",
+                "Reusing existing translation for post_id={} language={}",
                 request.post_id,
                 request.target_language_code
             );
+            return Ok(TranslatePostResponse {
+                post_translation_id: existing.id,
+                post_id: existing.post_id,
+                language_code: existing.language_code.clone(),
+                translated_title: existing.title.clone(),
+                translated_preview_content: existing.preview_content.clone(),
+                translated_content: existing.content.clone(),
+                reused_from_similar: None,
+            });
         }
 
+        // 2. Check Qdrant for similar translations (score >= 0.95)
+        if let Some(similar_info) = Self::find_similar_translation(
+            &self.vector_store,
+            self.db.as_ref(),
+            &post,
+            request.post_id,
+            &request.target_language_code,
+        ).await? {
+            tracing::info!(
+                "🎯 SMART REUSE: Found highly similar translation (score={:.3}, threshold={:.2})",
+                similar_info.similarity_score,
+                SIMILARITY_REUSE_THRESHOLD
+            );
+            
+            let post_translation_id = Self::save_translation(
+                self.db.as_ref(),
+                request.post_id,
+                &request.target_language_code,
+                &similar_info.translated_title,
+                &similar_info.translated_preview_content,
+                &similar_info.translated_content,
+            ).await?;
+            
+            Self::store_in_vector_db(
+                &self.vector_store,
+                request.post_id,
+                &request.target_language_code,
+                post_translation_id,
+                &similar_info.translated_title,
+                &similar_info.translated_content,
+            ).await;
+            
+            return Ok(TranslatePostResponse {
+                post_translation_id,
+                post_id: request.post_id,
+                language_code: request.target_language_code,
+                translated_title: similar_info.translated_title,
+                translated_preview_content: similar_info.translated_preview_content,
+                translated_content: similar_info.translated_content,
+                reused_from_similar: Some(super::translate_response::ReusedTranslationInfo {
+                    source_translation_id: similar_info.source_translation_id,
+                    similarity_score: similar_info.similarity_score,
+                    source_post_id: similar_info.source_post_id,
+                }),
+            });
+        }
+
+        // 3. Translate from OpenAI
+        tracing::info!(
+            "No existing or similar translation found, translating from OpenAI for post_id={} language={}",
+            request.post_id,
+            request.target_language_code
+        );
+        
+        let (translated_title, translated_preview_content, translated_content) = 
+            Self::translate_from_openai(&post, &request.target_language_code, &openai_api_key).await?;
+        
+        let post_translation_id = Self::save_translation(
+            self.db.as_ref(),
+            request.post_id,
+            &request.target_language_code,
+            &translated_title,
+            &translated_preview_content,
+            &translated_content,
+        ).await?;
+        
+        Self::store_in_vector_db(
+            &self.vector_store,
+            request.post_id,
+            &request.target_language_code,
+            post_translation_id,
+            &translated_title,
+            &translated_content,
+        ).await;
+        
         Ok(TranslatePostResponse {
             post_translation_id,
             post_id: request.post_id,
@@ -419,7 +495,7 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             translated_title,
             translated_preview_content,
             translated_content,
-            reused_from_similar: None, // New translation from OpenAI, not reused
+            reused_from_similar: None,
         })
     }
 
@@ -466,8 +542,7 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
 
 impl PostTranslateHandler {
     /// Checks if content appears to be HTML
-    fn is_html_content(&self, text: &str) -> bool {
-        // Simple heuristic: check for common HTML tags
+    fn is_html_content(text: &str) -> bool {
         text.contains('<') && text.contains('>') && 
         (text.contains("<p") || text.contains("<div") || text.contains("<span") || 
          text.contains("<h") || text.contains("<br") || text.contains("<li") ||
@@ -475,7 +550,7 @@ impl PostTranslateHandler {
     }
 
     /// Serializes HTML node to string
-    fn serialize_node(&self, handle: &Handle) -> String {
+    fn serialize_node(handle: &Handle) -> String {
         use html5ever::serialize::{serialize, SerializeOpts, TraversalScope};
         use markup5ever_rcdom::SerializableHandle;
         
@@ -489,7 +564,7 @@ impl PostTranslateHandler {
     }
 
     /// Chunks HTML content by block-level elements to preserve structure
-    fn chunk_html_content(&self, html: &str, max_chunk_size: usize) -> Vec<String> {
+    fn chunk_html_content(html: &str, max_chunk_size: usize) -> Vec<String> {
         // Parse HTML
         let dom = parse_document(RcDom::default(), Default::default())
             .from_utf8()
@@ -501,7 +576,7 @@ impl PostTranslateHandler {
 
         // Process each top-level child node
         for child in dom.document.children.borrow().iter() {
-            let serialized = self.serialize_node(child);
+            let serialized = Self::serialize_node(child);
             
             // Skip if it's just the document type declaration or empty
             if serialized.trim().is_empty() || serialized.starts_with("<!DOCTYPE") {
@@ -568,7 +643,7 @@ impl PostTranslateHandler {
 
     /// Splits text into chunks at sentence boundaries to avoid breaking mid-sentence
     /// Used for plain text content only
-    fn chunk_text(&self, text: &str, max_chunk_size: usize) -> Vec<String> {
+    fn chunk_text(text: &str, max_chunk_size: usize) -> Vec<String> {
         let mut chunks = Vec::new();
         let mut current_chunk = String::new();
         
@@ -600,22 +675,21 @@ impl PostTranslateHandler {
     }
 
     /// Translates large content by splitting into chunks and processing in parallel
-    async fn translate_large_content(
-        &self,
+    async fn translate_large_content_internal(
         client: &Client<OpenAIConfig>,
         content: &str,
         target_language: &str,
     ) -> Result<String, AppError> {
         // If content is small enough, translate directly
         if content.len() <= MAX_CHUNK_SIZE {
-            return self.translate_text(client, content, target_language, "content").await;
+            return Self::translate_text_internal(client, content, target_language, "content").await;
         }
         
         // Determine if content is HTML and chunk accordingly
-        let chunks = if self.is_html_content(content) {
-            self.chunk_html_content(content, MAX_CHUNK_SIZE)
+        let chunks = if Self::is_html_content(content) {
+            Self::chunk_html_content(content, MAX_CHUNK_SIZE)
         } else {
-            self.chunk_text(content, MAX_CHUNK_SIZE)
+            Self::chunk_text(content, MAX_CHUNK_SIZE)
         };
         
         let total_chunks = chunks.len();
@@ -633,7 +707,7 @@ impl PostTranslateHandler {
         for (index, chunk) in chunks.into_iter().enumerate() {
             let client_clone = client.clone();
             let target_language = target_language.to_string();
-            let is_html = self.is_html_content(&chunk);
+            let is_html = Self::is_html_content(&chunk);
             let chunk_size = chunk.len();
             
             tracing::debug!(
@@ -736,8 +810,7 @@ impl PostTranslateHandler {
         Ok(combined)
     }
 
-    async fn translate_text(
-        &self,
+    async fn translate_text_internal(
         client: &Client<OpenAIConfig>,
         text: &str,
         target_language: &str,
@@ -966,36 +1039,19 @@ mod tests {
 
     #[async_std::test]
     async fn test_html_content_detection() {
-        // Create a minimal test space with just the database connection
-        let test_space = setup_test_space().await;
-        let database = test_space.postgres.get_database_connection().await;
-        
-        let handler = PostTranslateHandler {
-            vector_store: None,
-            db: Arc::new(database),
-        };
-
         // Test HTML detection
-        assert!(handler.is_html_content("<p>Test</p>"));
-        assert!(handler.is_html_content("<div>Content</div>"));
-        assert!(handler.is_html_content("<h1>Title</h1>"));
-        assert!(!handler.is_html_content("Plain text without tags"));
-        assert!(!handler.is_html_content("Text with < and > but not tags"));
+        assert!(PostTranslateHandler::is_html_content("<p>Test</p>"));
+        assert!(PostTranslateHandler::is_html_content("<div>Content</div>"));
+        assert!(PostTranslateHandler::is_html_content("<h1>Title</h1>"));
+        assert!(!PostTranslateHandler::is_html_content("Plain text without tags"));
+        assert!(!PostTranslateHandler::is_html_content("Text with < and > but not tags"));
     }
 
     #[async_std::test]
     async fn test_text_chunking() {
-        let test_space = setup_test_space().await;
-        let database = test_space.postgres.get_database_connection().await;
-        
-        let handler = PostTranslateHandler {
-            vector_store: None,
-            db: Arc::new(database),
-        };
-
         // Test chunking with sentence boundaries
         let text = "First sentence. Second sentence. Third sentence.";
-        let chunks = handler.chunk_text(text, 25);
+        let chunks = PostTranslateHandler::chunk_text(text, 25);
         
         assert!(chunks.len() > 1);
         for chunk in &chunks {
@@ -1005,17 +1061,9 @@ mod tests {
 
     #[async_std::test]
     async fn test_html_chunking() {
-        let test_space = setup_test_space().await;
-        let database = test_space.postgres.get_database_connection().await;
-        
-        let handler = PostTranslateHandler {
-            vector_store: None,
-            db: Arc::new(database),
-        };
-
         // Test HTML chunking
         let html = "<p>First paragraph.</p><div>Second paragraph.</div>";
-        let chunks = handler.chunk_html_content(html, 30);
+        let chunks = PostTranslateHandler::chunk_html_content(html, 30);
         
         // Should split at element boundaries
         assert!(chunks.len() >= 1);
