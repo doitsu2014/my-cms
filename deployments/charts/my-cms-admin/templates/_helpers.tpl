@@ -67,41 +67,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{/*
 =====================================================
-Client Side Helpers
-=====================================================
-*/}}
-
-{{- define "my-cms-admin.clientSide.name" -}}
-{{- printf "%s-client-side" (include "my-cms-admin.name" .) | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{- define "my-cms-admin.clientSide.fullname" -}}
-{{- printf "%s-client-side" (include "my-cms-admin.fullname" .) | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Client Side Common labels
-*/}}
-{{- define "my-cms-admin.clientSide.labels" -}}
-helm.sh/chart: {{ include "my-cms-admin.chart" . }}
-{{ include "my-cms-admin.clientSide.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-app.kubernetes.io/component: client-side
-{{- end }}
-
-{{/*
-Client Side Selector labels
-*/}}
-{{- define "my-cms-admin.clientSide.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "my-cms-admin.clientSide.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
-{{/*
-=====================================================
 Shared Helpers
 =====================================================
 */}}

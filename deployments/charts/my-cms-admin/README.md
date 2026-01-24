@@ -10,9 +10,6 @@ cd deployments/charts
 # Install with default values (admin side only)
 helm install my-cms-admin ./my-cms-admin --namespace my-cms-admin --create-namespace
 
-# Install with both admin and client sides
-helm install my-cms-admin ./my-cms-admin --set clientSide.enabled=true --namespace my-cms-admin --create-namespace
-
 # Install with custom values
 helm install my-cms-admin ./my-cms-admin -f values-prod.yaml --namespace my-cms-admin
 
@@ -29,10 +26,9 @@ helm uninstall my-cms-admin --namespace my-cms-admin
 
 The chart supports two components that can be enabled/disabled independently:
 
-| Component | Default | Description |
-|-----------|---------|-------------|
-| `adminSide.enabled` | `true` | Admin panel for managing blog content |
-| `clientSide.enabled` | `false` | Public-facing blog client |
+| Component           | Default | Description                           |
+| ------------------- | ------- | ------------------------------------- |
+| `adminSide.enabled` | `true`  | Admin panel for managing blog content |
 
 ### Runtime App Config
 
@@ -51,16 +47,6 @@ adminSide:
     graphqlCacheApiUrl: ""
     restApiUrl: "https://api.example.com"
     mediaUploadApiUrl: ""
-```
-
-#### Client Side Config
-
-```yaml
-clientSide:
-  appConfig:
-    graphqlApiUrl: "https://api.example.com/graphql"
-    graphqlCacheApiUrl: ""
-    restApiUrl: "https://api.example.com"
 ```
 
 ### Example `values-prod.yaml`
@@ -105,41 +91,6 @@ adminSide:
       - secretName: admin-tls
         hosts:
           - admin.example.com
-
-  resources:
-    limits:
-      cpu: 200m
-      memory: 128Mi
-    requests:
-      cpu: 100m
-      memory: 64Mi
-
-# Client Side Configuration
-clientSide:
-  enabled: true
-  replicaCount: 3
-
-  image:
-    repository: doitsu2014/my-cms-admin-client-side
-    pullPolicy: Always
-    tag: v1.0.0
-
-  appConfig:
-    graphqlApiUrl: "https://api.example.com/graphql"
-    restApiUrl: "https://api.example.com"
-
-  ingress:
-    enabled: true
-    className: nginx
-    hosts:
-      - host: blog.example.com
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - secretName: blog-tls
-        hosts:
-          - blog.example.com
 
   resources:
     limits:
