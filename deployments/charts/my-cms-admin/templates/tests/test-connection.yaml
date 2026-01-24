@@ -1,0 +1,35 @@
+{{- if .Values.adminSide.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "my-cms-admin.adminSide.fullname" . }}-test-connection"
+  labels:
+    {{- include "my-cms-admin.adminSide.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "my-cms-admin.adminSide.fullname" . }}:{{ .Values.adminSide.service.port }}/health']
+  restartPolicy: Never
+---
+{{- end }}
+{{- if .Values.clientSide.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "my-cms-admin.clientSide.fullname" . }}-test-connection"
+  labels:
+    {{- include "my-cms-admin.clientSide.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "my-cms-admin.clientSide.fullname" . }}:{{ .Values.clientSide.service.port }}/health']
+  restartPolicy: Never
+{{- end }}

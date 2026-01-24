@@ -51,9 +51,9 @@ jobs:
         uses: docker/build-push-action@v5.3.0
         with:
           # Build's context is the set of files located in the specified PATH or URL
-          context: "."
+          context: "./services"
           # Path to the Dockerfile
-          file: "./Dockerfile"
+          file: "./services/Dockerfile"
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

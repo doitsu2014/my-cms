@@ -1,0 +1,5 @@
+/* Admin specific styles - DaisyUI v5 compatible */
+.menu-active {
+  background-color: color-mix(in oklch, var(--color-base-content) 10%, transparent);
+  color: var(--color-base-content);
+}

@@ -1,0 +1,316 @@
+/* Rich Text Editor Styles - Uses DaisyUI v5 Theme Variables */
+
+.rich-text-editor-container {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* Quill Editor Container */
+.quill-editor {
+  background-color: var(--color-base-100);
+}
+
+/* Toolbar Styling */
+.ql-toolbar.ql-snow {
+  background-color: var(--color-base-100);
+  border-color: var(--color-base-300);
+  border-radius: 0.5rem 0.5rem 0 0;
+  padding: 0.75rem;
+}
+
+/* Editor Content Area */
+.ql-container.ql-snow {
+  background-color: var(--color-base-100);
+  border-color: var(--color-base-300);
+  border-radius: 0 0 0.5rem 0.5rem;
+  min-height: 400px;
+  font-family: 'Roboto', Inter, Avenir, Helvetica, Arial, sans-serif;
+}
+
+/* Editor Content */
+.ql-editor {
+  background-color: var(--color-base-100);
+  color: var(--color-base-content);
+  min-height: 400px;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Placeholder */
+.ql-editor.ql-blank::before {
+  color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
+  font-style: normal;
+}
+
+/* Toolbar Buttons */
+.ql-toolbar.ql-snow .ql-stroke {
+  stroke: var(--color-base-content);
+}
+
+.ql-toolbar.ql-snow .ql-fill {
+  fill: var(--color-base-content);
+}
+
+.ql-toolbar.ql-snow .ql-picker-label {
+  color: var(--color-base-content);
+}
+
+/* Toolbar Button Hover */
+.ql-toolbar.ql-snow button:hover,
+.ql-toolbar.ql-snow button:focus,
+.ql-toolbar.ql-snow button.ql-active {
+  background-color: color-mix(in oklch, var(--color-primary) 20%, transparent);
+}
+
+.ql-toolbar.ql-snow button:hover .ql-stroke,
+.ql-toolbar.ql-snow button:focus .ql-stroke,
+.ql-toolbar.ql-snow button.ql-active .ql-stroke {
+  stroke: var(--color-primary);
+}
+
+.ql-toolbar.ql-snow button:hover .ql-fill,
+.ql-toolbar.ql-snow button:focus .ql-fill,
+.ql-toolbar.ql-snow button.ql-active .ql-fill {
+  fill: var(--color-primary);
+}
+
+/* Dropdown Menus */
+.ql-snow .ql-picker-options {
+  background-color: var(--color-base-100);
+  border-color: var(--color-base-300);
+}
+
+.ql-snow .ql-picker-item:hover {
+  background-color: color-mix(in oklch, var(--color-primary) 20%, transparent);
+  color: var(--color-primary);
+}
+
+/* Color Picker */
+.ql-snow .ql-color-picker .ql-picker-options {
+  padding: 0.5rem;
+}
+
+/* Code Block Styling */
+.ql-code-block-container {
+  background-color: var(--color-base-300);
+  border-radius: 0.25rem;
+}
+
+.ql-code-block-container > .ql-ui {
+  background-color: var(--color-base-100);
+  color: var(--color-base-content);
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 20%, transparent);
+}
+
+.ql-code-block-container > .ql-ui option {
+  color: var(--color-base-content);
+}
+
+.ql-editor pre.ql-syntax {
+  background-color: var(--color-neutral);
+  color: var(--color-neutral-content);
+  border-radius: 0.25rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+/* Blockquote Styling */
+.ql-editor blockquote {
+  border-left: 4px solid var(--color-primary);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: color-mix(in oklch, var(--color-base-content) 80%, transparent);
+}
+
+/* Link Styling */
+.ql-editor a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.ql-editor a:hover {
+  color: color-mix(in oklch, var(--color-primary) 80%, black);
+}
+
+/* Table Better Plugin Styles */
+.ql-table-better-wrapper {
+  overflow-x: auto;
+}
+
+.ql-table-better-wrapper table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.ql-table-better-wrapper td,
+.ql-table-better-wrapper th {
+  border: 1px solid var(--color-base-300);
+  padding: 0.5rem;
+}
+
+.ql-table-better-wrapper th {
+  background-color: var(--color-base-200);
+  font-weight: 600;
+}
+
+/* Table Operation Menu */
+.qlbt-operation-menu {
+  background-color: var(--color-base-200);
+  border: 1px solid var(--color-base-300);
+  border-radius: 0.25rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+.qlbt-operation-menu-item {
+  color: var(--color-base-content);
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+.qlbt-operation-menu-item:hover {
+  background-color: color-mix(in oklch, var(--color-primary) 20%, transparent);
+  color: var(--color-primary);
+}
+
+/* HTML Edit Button */
+.ql-html {
+  width: auto !important;
+}
+
+/* Fullscreen Mode */
+.ql-fullscreen {
+  /* position: fixed; */
+  inset: 0;
+  /* z-index: 50; */
+  background-color: var(--color-base-100);
+}
+
+.ql-fullscreen .ql-container {
+  height: calc(100vh - 42px) !important;
+}
+
+.ql-fullscreen .ql-editor {
+  min-height: calc(100vh - 42px);
+  max-height: calc(100vh - 42px);
+  overflow-y: auto;
+}
+
+/* Image Resize Handles */
+.img-resize-handle {
+  background-color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  margin: auto 0;
+  width: 10px;
+  height: 10px;
+}
+
+/* Tooltip for Image Size Display */
+.img-size-display {
+  background-color: var(--color-base-300);
+  color: var(--color-base-content);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+
+/* Lists */
+.ql-editor ul,
+.ql-editor ol {
+  padding-left: 1.5rem;
+}
+
+.ql-editor ul > li::before {
+  color: var(--color-primary);
+}
+
+/* Headings */
+.ql-editor h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 1rem 0;
+}
+
+.ql-editor h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin: 0.75rem 0;
+}
+
+.ql-editor h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+}
+
+.ql-editor h4 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+}
+
+.ql-editor h5 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0.25rem 0;
+}
+
+.ql-editor h6 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0.25rem 0;
+}
+
+/* Images */
+.ql-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.25rem;
+}
+
+/* Video */
+.ql-editor iframe {
+  width: 100%;
+  border-radius: 0.25rem;
+  max-width: 100%;
+}
+
+/* Focus States */
+.ql-container.ql-snow:focus-within {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Scrollbar Styling for Editor */
+.ql-editor::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ql-editor::-webkit-scrollbar-track {
+  background-color: var(--color-base-200);
+}
+
+.ql-editor::-webkit-scrollbar-thumb {
+  background-color: color-mix(in oklch, var(--color-base-content) 20%, transparent);
+  border-radius: 0.25rem;
+}
+
+.ql-editor::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in oklch, var(--color-base-content) 30%, transparent);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .ql-toolbar.ql-snow {
+    padding: 0.5rem;
+  }
+
+  .ql-container.ql-snow {
+    min-height: 300px;
+  }
+
+  .ql-editor {
+    min-height: 300px;
+    font-size: 0.875rem;
+  }
+}
