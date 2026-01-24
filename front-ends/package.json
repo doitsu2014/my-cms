@@ -1,0 +1,22 @@
+{
+  "name": "my-blogs-rsbuild",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "install:all": "pnpm install --recursive",
+    "dev": "concurrently \"pnpm --filter client_side dev\" \"pnpm --filter admin_side dev\"",
+    "dev:client": "pnpm --filter client_side dev",
+    "dev:admin": "pnpm --filter admin_side dev",
+    "build": "pnpm --filter client_side build && pnpm --filter admin_side build",
+    "build:client": "pnpm --filter client_side build",
+    "build:admin": "pnpm --filter admin_side build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "workspaces": [
+    "client_side",
+    "admin_side"
+  ]
+}

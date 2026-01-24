@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json.schemastore.org/pnpm-workspace.json",
+  "packages": [
+    "admin_side"
+  ]
+}
