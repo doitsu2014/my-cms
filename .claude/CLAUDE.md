@@ -36,7 +36,7 @@ cargo test -p test_helpers
 
 ```bash
 # From repository root
-cd front-ends
+cd frontend
 
 # Install dependencies
 pnpm install
@@ -80,7 +80,7 @@ my-cms/
 │   ├── application_core/        # Domain logic, commands, entities
 │   ├── migration/               # SeaORM migrations
 │   └── test_helpers/            # Integration test utilities
-├── front-ends/                  # Frontend applications
+├── frontend/                  # Frontend applications
 │   └── admin_side/              # React admin panel (Rsbuild + DaisyUI)
 └── deployments/                 # Helm charts for Kubernetes
 ```
@@ -182,7 +182,7 @@ QDRANT_URL=<url>
 ENABLED_OTLP_EXPORTER=false
 ```
 
-### Frontend (front-ends/.env.local)
+### Frontend (frontend/.env.local)
 ```
 PUBLIC_KEYCLOAK_URL=https://your-keycloak-url
 PUBLIC_KEYCLOAK_REALM=master

@@ -7,11 +7,11 @@ on:
   workflow_dispatch:  # Allow manual trigger
 
 env:
-  HELM_CHART_REPO: https://doitsu2014.github.io/my-blogs-rsbuild
-  HELM_RELEASE_NAME: my-blogs
-  HELM_CHART_NAME: my-blogs/my-blogs
+  HELM_CHART_REPO: https://doitsu2014.github.io/my-cms
+  HELM_RELEASE_NAME: my-cms-admin
+  HELM_CHART_NAME: my-cms/my-cms-admin
   HELM_CHART_VERSION: 2.0.1
-  NAMESPACE: my-blogs
+  NAMESPACE: my-cms
 
 jobs:
   deploy:
@@ -43,7 +43,7 @@ jobs:
 
       - name: Create values file from secret
         env:
-          HELM_VALUES: ${{ secrets.HELM_VALUES }}
+          HELM_VALUES: ${{ secrets.HELM_VALUES_MY_CMS_ADMIN }}
         run: |
           mkdir -p ./helm-values
           printf '%s\n' "$HELM_VALUES" > ./helm-values/values.yml
@@ -51,7 +51,7 @@ jobs:
 
       - name: Add Helm repository
         run: |
-          helm repo add my-blogs ${{ env.HELM_CHART_REPO }}
+          helm repo add my-cms ${{ env.HELM_CHART_REPO }}
           helm repo update
 
       - name: Deploy with Helm

@@ -8,7 +8,7 @@ on:
     tags:
       - 'v*.*.*'
     paths:
-      - 'front-ends/**'
+      - 'frontend/**'
       - '.github/workflows/release-my-cms-admin-image.yml'
 
 jobs:
@@ -52,8 +52,8 @@ jobs:
       - name: Build and push Docker images
         uses: docker/build-push-action@v6
         with:
-          context: './front-ends'
-          file: './front-ends/Dockerfile'
+          context: './frontend'
+          file: './frontend/Dockerfile'
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
