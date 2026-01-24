@@ -11,11 +11,11 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./services
     steps:
       - uses: actions/checkout@v3
+      - name: Work in custom directory
+        run: |
+          cd services
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
