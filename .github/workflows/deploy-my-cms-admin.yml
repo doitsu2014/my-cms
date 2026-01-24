@@ -10,7 +10,7 @@ env:
   HELM_CHART_REPO: https://doitsu2014.github.io/my-cms
   HELM_RELEASE_NAME: my-cms-admin
   HELM_CHART_NAME: my-cms/my-cms-admin
-  HELM_CHART_VERSION: 3.0.0
+  HELM_CHART_VERSION: 3.0.1
   NAMESPACE: my-cms
 
 jobs:
