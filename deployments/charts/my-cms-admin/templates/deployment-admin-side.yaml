@@ -2,16 +2,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "my-blogs.adminSide.fullname" . }}
+  name: {{ include "my-cms-admin.adminSide.fullname" . }}
   labels:
-    {{- include "my-blogs.adminSide.labels" . | nindent 4 }}
+    {{- include "my-cms-admin.adminSide.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.adminSide.autoscaling.enabled }}
   replicas: {{ .Values.adminSide.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "my-blogs.adminSide.selectorLabels" . | nindent 6 }}
+      {{- include "my-cms-admin.adminSide.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
@@ -20,10 +20,10 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "my-blogs.adminSide.selectorLabels" . | nindent 8 }}
+        {{- include "my-cms-admin.adminSide.selectorLabels" . | nindent 8 }}
     spec:
       imagePullSecrets:
-        - name: {{ include "my-blogs.fullname" . }}-image-pull-secrets
+        - name: {{ include "my-cms-admin.fullname" . }}-image-pull-secrets
       securityContext:
         {{- toYaml .Values.adminSide.podSecurityContext | nindent 8 }}
       containers:
@@ -65,7 +65,7 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ include "my-blogs.adminSide.fullname" . }}-config
+            name: {{ include "my-cms-admin.adminSide.fullname" . }}-config
             items:
               - key: config.js
                 path: config.js

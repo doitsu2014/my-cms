@@ -1,5 +1,5 @@
 {{- if and .Values.adminSide.enabled .Values.adminSide.ingress.enabled -}}
-{{- $fullName := include "my-blogs.adminSide.fullname" . -}}
+{{- $fullName := include "my-cms-admin.adminSide.fullname" . -}}
 {{- $svcPort := .Values.adminSide.service.port -}}
 {{- if and .Values.adminSide.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.adminSide.ingress.annotations "kubernetes.io/ingress.class") }}
@@ -11,7 +11,7 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}-ingress
   labels:
-    {{- include "my-blogs.adminSide.labels" . | nindent 4 }}
+    {{- include "my-cms-admin.adminSide.labels" . | nindent 4 }}
   {{- with .Values.adminSide.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

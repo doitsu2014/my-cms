@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "my-blogs.adminSide.fullname" . }}
+  name: {{ include "my-cms-admin.adminSide.fullname" . }}
   labels:
-    {{- include "my-blogs.adminSide.labels" . | nindent 4 }}
+    {{- include "my-cms-admin.adminSide.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "my-blogs.adminSide.fullname" . }}
+    name: {{ include "my-cms-admin.adminSide.fullname" . }}
   minReplicas: {{ .Values.adminSide.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.adminSide.autoscaling.maxReplicas }}
   metrics:

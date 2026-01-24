@@ -1,6 +1,6 @@
-# my-blogs Helm Chart
+# my-cms-admin Helm Chart
 
-Helm chart for deploying my-blogs applications (Admin Side and Client Side React SPAs served by nginx with runtime configuration).
+Helm chart for deploying my-cms-admin applications (Admin Side and Client Side React SPAs served by nginx with runtime configuration).
 
 ## Quick Start
 
@@ -8,19 +8,19 @@ Helm chart for deploying my-blogs applications (Admin Side and Client Side React
 cd deployments/charts
 
 # Install with default values (admin side only)
-helm install my-blogs ./my-blogs --namespace my-blogs --create-namespace
+helm install my-cms-admin ./my-cms-admin --namespace my-cms-admin --create-namespace
 
 # Install with both admin and client sides
-helm install my-blogs ./my-blogs --set clientSide.enabled=true --namespace my-blogs --create-namespace
+helm install my-cms-admin ./my-cms-admin --set clientSide.enabled=true --namespace my-cms-admin --create-namespace
 
 # Install with custom values
-helm install my-blogs ./my-blogs -f values-prod.yaml --namespace my-blogs
+helm install my-cms-admin ./my-cms-admin -f values-prod.yaml --namespace my-cms-admin
 
 # Upgrade
-helm upgrade my-blogs ./my-blogs -f values-prod.yaml --namespace my-blogs
+helm upgrade my-cms-admin ./my-cms-admin -f values-prod.yaml --namespace my-cms-admin
 
 # Uninstall
-helm uninstall my-blogs --namespace my-blogs
+helm uninstall my-cms-admin --namespace my-cms-admin
 ```
 
 ## Configuration
@@ -79,7 +79,7 @@ adminSide:
   replicaCount: 2
 
   image:
-    repository: doitsu2014/my-blogs-admin-side
+    repository: doitsu2014/my-cms-admin-admin-side
     pullPolicy: Always
     tag: v1.0.0
 
@@ -120,7 +120,7 @@ clientSide:
   replicaCount: 3
 
   image:
-    repository: doitsu2014/my-blogs-client-side
+    repository: doitsu2014/my-cms-admin-client-side
     pullPolicy: Always
     tag: v1.0.0
 
@@ -157,7 +157,7 @@ Both nginx containers expose `/health` endpoint for liveness and readiness probe
 ## Chart Structure
 
 ```
-my-blogs/
+my-cms-admin/
 ├── Chart.yaml
 ├── values.yaml
 ├── .helmignore

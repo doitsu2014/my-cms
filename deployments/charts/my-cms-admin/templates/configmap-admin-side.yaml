@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "my-blogs.adminSide.fullname" . }}-config
+  name: {{ include "my-cms-admin.adminSide.fullname" . }}-config
   labels:
-    {{- include "my-blogs.adminSide.labels" . | nindent 4 }}
+    {{- include "my-cms-admin.adminSide.labels" . | nindent 4 }}
 data:
   config.js: |
     window.__APP_CONFIG__ = {

@@ -1,4 +1,4 @@
-my-blogs has been deployed!
+my-cms-admin has been deployed!
 
 {{- if .Values.adminSide.enabled }}
 =====================================================
@@ -12,16 +12,16 @@ ADMIN SIDE
   {{- end }}
 {{- end }}
 {{- else if contains "NodePort" .Values.adminSide.service.type }}
-  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "my-blogs.adminSide.fullname" . }})
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "my-cms-admin.adminSide.fullname" . }})
   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
   echo http://$NODE_IP:$NODE_PORT
 {{- else if contains "LoadBalancer" .Values.adminSide.service.type }}
   NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-  kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "my-blogs.adminSide.fullname" . }}
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "my-blogs.adminSide.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "my-cms-admin.adminSide.fullname" . }}
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "my-cms-admin.adminSide.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
   echo http://$SERVICE_IP:{{ .Values.adminSide.service.port }}
 {{- else if contains "ClusterIP" .Values.adminSide.service.type }}
-  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "my-blogs.adminSide.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "my-cms-admin.adminSide.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:80
   echo "Visit http://127.0.0.1:8080"
 {{- end }}
@@ -45,16 +45,16 @@ CLIENT SIDE
   {{- end }}
 {{- end }}
 {{- else if contains "NodePort" .Values.clientSide.service.type }}
-  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "my-blogs.clientSide.fullname" . }})
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "my-cms-admin.clientSide.fullname" . }})
   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
   echo http://$NODE_IP:$NODE_PORT
 {{- else if contains "LoadBalancer" .Values.clientSide.service.type }}
   NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-  kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "my-blogs.clientSide.fullname" . }}
-  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "my-blogs.clientSide.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "my-cms-admin.clientSide.fullname" . }}
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "my-cms-admin.clientSide.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
   echo http://$SERVICE_IP:{{ .Values.clientSide.service.port }}
 {{- else if contains "ClusterIP" .Values.clientSide.service.type }}
-  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "my-blogs.clientSide.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "my-cms-admin.clientSide.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8081:80
   echo "Visit http://127.0.0.1:8081"
 {{- end }}

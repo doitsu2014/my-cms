@@ -1,0 +1,8 @@
+apiVersion: v2
+name: my-cms-admin
+description: A Helm chart for my-cms-admin (admin side and client side React SPAs with nginx)
+
+type: application
+
+version: 2.0.1
+appVersion: '2.0.1'
