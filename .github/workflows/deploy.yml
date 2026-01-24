@@ -1,0 +1,77 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+      - release/*  # Trigger on push to main branch
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  HELM_CHART_REPO: https://doitsu2014.github.io/my-blogs-rsbuild
+  HELM_RELEASE_NAME: my-blogs
+  HELM_CHART_NAME: my-blogs/my-blogs
+  HELM_CHART_VERSION: 2.0.1
+  NAMESPACE: my-blogs
+
+jobs:
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+
+      - name: Configure Kubernetes context
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Verify cluster connection
+        run: kubectl cluster-info
+
+      - name: Create values file from secret
+        env:
+          HELM_VALUES: ${{ secrets.HELM_VALUES }}
+        run: |
+          mkdir -p ./helm-values
+          printf '%s\n' "$HELM_VALUES" > ./helm-values/values.yml
+          echo "Values file created"
+
+      - name: Add Helm repository
+        run: |
+          helm repo add my-blogs ${{ env.HELM_CHART_REPO }}
+          helm repo update
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade -i ${{ env.HELM_RELEASE_NAME }} \
+            ${{ env.HELM_CHART_NAME }} \
+            -f ./helm-values/values.yml \
+            --namespace ${{ env.NAMESPACE }} \
+            --create-namespace \
+            --version ${{ env.HELM_CHART_VERSION }} \
+            --wait \
+            --timeout 5m
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -n ${{ env.NAMESPACE }}
+          kubectl get services -n ${{ env.NAMESPACE }}
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "Deployment failed, rolling back..."
+          helm rollback ${{ env.HELM_RELEASE_NAME }} -n ${{ env.NAMESPACE }}
