@@ -42,6 +42,12 @@ const TRANSLATION_TEMPERATURE: f32 = 0.3;
 // This prevents incomplete translations for large content chunks
 const MAX_TOKENS_PER_REQUEST: u16 = 8000;
 
+// Similarity threshold for automatic translation reuse
+// If a similar translation has score >= this threshold, reuse it instead of creating new translation
+// Range: 0.0 to 1.0, where 1.0 is identical content
+// 0.95 means 95% similar - very high similarity, likely same/similar content
+const SIMILARITY_REUSE_THRESHOLD: f32 = 0.95;
+
 // Translation instruction for HTML content
 const TRANSLATION_INSTRUCTION_HTML: &str = 
     "Preserve all HTML tags and structure exactly as they are. Only translate the text content within the tags, \
@@ -111,6 +117,7 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                     translated_title: existing.title.clone(),
                     translated_preview_content: existing.preview_content.clone(),
                     translated_content: existing.content.clone(),
+                    reused_from_similar: None, // Direct reuse, not from similarity
                 });
             } else {
                 // Force retranslation requested
@@ -161,6 +168,136 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                     "Deleted existing translation_id={} for retranslation",
                     existing.id
                 );
+            }
+        }
+
+        // SMART TRANSLATION REUSE: Check for highly similar existing translations
+        // This can save OpenAI API costs by reusing translations for very similar content
+        // Only applies when not force re-translating
+        if !request.force_retranslate {
+            if let Some(vector_store) = &self.vector_store {
+                // Search for similar translations in vector store
+                let search_text = format!("{} {}", post.title, post.content.chars().take(500).collect::<String>());
+                match vector_store.search_similar_translations(&search_text, 5).await {
+                    Ok(similar) => {
+                        if !similar.is_empty() {
+                            tracing::info!(
+                                "Found {} similar translations in vector DB for similarity check",
+                                similar.len()
+                            );
+                            
+                            // Check if any similar translation meets the reuse threshold
+                            for (metadata, score) in similar.iter() {
+                                if *score >= SIMILARITY_REUSE_THRESHOLD 
+                                    && metadata.language_code == request.target_language_code 
+                                    && metadata.post_id != request.post_id.to_string() {
+                                    
+                                    // Parse the post_id from string to UUID
+                                    let similar_post_id = match Uuid::parse_str(&metadata.post_id) {
+                                        Ok(uuid) => uuid,
+                                        Err(_) => {
+                                            tracing::warn!("Invalid post_id UUID in metadata: {}", metadata.post_id);
+                                            continue;
+                                        }
+                                    };
+                                    
+                                    // Fetch the highly similar translation from database
+                                    if let Ok(Some(similar_translation)) = post_translations::Entity::find()
+                                        .filter(post_translations::Column::PostId.eq(similar_post_id))
+                                        .filter(post_translations::Column::LanguageCode.eq(&request.target_language_code))
+                                        .one(self.db.as_ref())
+                                        .await
+                                    {
+                                        tracing::info!(
+                                            "🎯 SMART REUSE: Found highly similar translation (score={:.3}, threshold={:.2})",
+                                            score,
+                                            SIMILARITY_REUSE_THRESHOLD
+                                        );
+                                        tracing::info!(
+                                            "  Source: post_id={} title='{}' language={}",
+                                            metadata.post_id,
+                                            metadata.title,
+                                            metadata.language_code
+                                        );
+                                        tracing::info!(
+                                            "  Reusing translation instead of calling OpenAI API (cost savings!)"
+                                        );
+                                        
+                                        // Create new translation record with the similar translation's content
+                                        let new_translation_id = Uuid::new_v4();
+                                        let slug = slugify!(&similar_translation.title, max_length = 100);
+                                        
+                                        let new_translation = post_translations::ActiveModel {
+                                            id: sea_orm::Set(new_translation_id),
+                                            post_id: sea_orm::Set(request.post_id),
+                                            language_code: sea_orm::Set(request.target_language_code.clone()),
+                                            title: sea_orm::Set(similar_translation.title.clone()),
+                                            preview_content: sea_orm::Set(similar_translation.preview_content.clone()),
+                                            content: sea_orm::Set(similar_translation.content.clone()),
+                                            slug: sea_orm::Set(slug),
+                                        };
+                                        
+                                        use sea_orm::ActiveModelTrait;
+                                        new_translation.insert(self.db.as_ref()).await
+                                            .map_err(|e| e.into())?;
+                                        
+                                        tracing::info!(
+                                            "✓ Created new translation_id={} by reusing similar translation",
+                                            new_translation_id
+                                        );
+                                        
+                                        // Store in vector store for future similarity searches
+                                        if let Err(e) = vector_store.store_translation(
+                                            request.post_id,
+                                            &request.target_language_code,
+                                            new_translation_id,
+                                            &similar_translation.title,
+                                            &similar_translation.content,
+                                        ).await {
+                                            tracing::warn!(
+                                                "Failed to store reused translation in vector DB: {}. Continuing anyway.",
+                                                e
+                                            );
+                                        }
+                                        
+                                        // Parse post_id from metadata (it's stored as String in Qdrant)
+                                        let source_post_uuid = Uuid::parse_str(&metadata.post_id)
+                                            .unwrap_or_else(|_| Uuid::nil());
+                                        
+                                        return Ok(TranslatePostResponse {
+                                            post_translation_id: new_translation_id,
+                                            post_id: request.post_id,
+                                            language_code: request.target_language_code,
+                                            translated_title: similar_translation.title,
+                                            translated_preview_content: similar_translation.preview_content,
+                                            translated_content: similar_translation.content,
+                                            reused_from_similar: Some(super::translate_response::ReusedTranslationInfo {
+                                                source_translation_id: similar_translation.id,
+                                                similarity_score: *score,
+                                                source_post_id: source_post_uuid,
+                                            }),
+                                        });
+                                    }
+                                }
+                            }
+                            
+                            // Log similar translations found (even if below threshold)
+                            for (metadata, score) in similar.iter().take(3) {
+                                tracing::info!(
+                                    "  Similar: score={:.3} post_id={} lang={} title={} {}",
+                                    score,
+                                    metadata.post_id,
+                                    metadata.language_code,
+                                    metadata.title,
+                                    if *score >= SIMILARITY_REUSE_THRESHOLD { "(REUSABLE)" } else { "(below threshold)" }
+                                );
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        tracing::warn!("Failed to search similar translations: {}. Continuing with new translation.", e);
+                    }
+                }
             }
         }
 
@@ -282,6 +419,7 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             translated_title,
             translated_preview_content,
             translated_content,
+            reused_from_similar: None, // New translation from OpenAI, not reused
         })
     }
 
