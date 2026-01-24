@@ -1,6 +1,28 @@
 apiVersion: v1
 entries:
+  my-cms-admin:
+  - apiVersion: v2
+    appVersion: 3.0.0
+    created: "2026-01-24T13:36:54.273034235Z"
+    description: A Helm chart for my-cms-admin (admin side and client side React SPAs
+      with nginx)
+    digest: 352f978d228d7e6f1d0800cf47acb2bed1a18f31548575f166cb43c980b18a60
+    name: my-cms-admin
+    type: application
+    urls:
+    - https://github.com/doitsu2014/my-cms/releases/download/my-cms-admin-3.0.0/my-cms-admin-3.0.0.tgz
+    version: 3.0.0
   my-cms-api:
+  - apiVersion: v2
+    appVersion: 3.0.0
+    created: "2026-01-24T13:36:54.440470464Z"
+    description: A helm chart for my-cms-api
+    digest: b6cc3ed3b1676db39585eea1a5472f1fd4d35fc582b2d9e2e2515bf8e20cbb06
+    name: my-cms-api
+    type: application
+    urls:
+    - https://github.com/doitsu2014/my-cms/releases/download/my-cms-api-3.0.0/my-cms-api-3.0.0.tgz
+    version: 3.0.0
   - apiVersion: v2
     appVersion: 1.0.10
     created: "2024-09-02T15:21:19.190839074Z"
@@ -21,4 +43,4 @@ entries:
     urls:
     - https://github.com/doitsu2014/my-cms/releases/download/my-cms-api-1.0.9/my-cms-api-1.0.9.tgz
     version: 1.0.9
-generated: "2024-09-02T15:21:19.190851848Z"
+generated: "2026-01-24T13:36:54.440498312Z"
