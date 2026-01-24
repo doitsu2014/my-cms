@@ -52,8 +52,8 @@ jobs:
       - name: Build and push Docker images
         uses: docker/build-push-action@v6
         with:
-          context: './admin_side/'
-          file: './admin_side/Dockerfile'
+          context: './front-ends'
+          file: './front-ends/Dockerfile'
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
