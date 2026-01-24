@@ -1,4 +1,4 @@
-name: Release helm chart workflow
+name: Release helm charts workflow
 
 on:
   workflow_dispatch:

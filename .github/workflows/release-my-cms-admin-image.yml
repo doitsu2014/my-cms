@@ -1,4 +1,4 @@
-name: Release Docker image - Admin Side
+name: Build and Release my-cms-admin Docker Image
 
 on:
   workflow_dispatch:
