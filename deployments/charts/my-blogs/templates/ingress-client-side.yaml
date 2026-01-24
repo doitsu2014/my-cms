@@ -1,0 +1,48 @@
+{{- if and .Values.clientSide.enabled .Values.clientSide.ingress.enabled -}}
+{{- $fullName := include "my-blogs.clientSide.fullname" . -}}
+{{- $svcPort := .Values.clientSide.service.port -}}
+{{- if and .Values.clientSide.ingress.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
+  {{- if not (hasKey .Values.clientSide.ingress.annotations "kubernetes.io/ingress.class") }}
+  {{- $_ := set .Values.clientSide.ingress.annotations "kubernetes.io/ingress.class" .Values.clientSide.ingress.className}}
+  {{- end }}
+{{- end }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-ingress
+  labels:
+    {{- include "my-blogs.clientSide.labels" . | nindent 4 }}
+  {{- with .Values.clientSide.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if .Values.clientSide.ingress.className }}
+  ingressClassName: {{ .Values.clientSide.ingress.className }}
+  {{- end }}
+  {{- if .Values.clientSide.ingress.tls }}
+  tls:
+    {{- range .Values.clientSide.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.clientSide.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $svcPort }}
+          {{- end }}
+    {{- end }}
+{{- end }}

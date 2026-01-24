@@ -1,0 +1,64 @@
+{{- if .Values.clientSide.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "my-blogs.clientSide.fullname" . }}
+  labels:
+    {{- include "my-blogs.clientSide.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.clientSide.autoscaling.enabled }}
+  replicas: {{ .Values.clientSide.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "my-blogs.clientSide.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-client-side.yaml") . | sha256sum }}
+        {{- with .Values.clientSide.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "my-blogs.clientSide.selectorLabels" . | nindent 8 }}
+    spec:
+      imagePullSecrets:
+        - name: {{ include "my-blogs.fullname" . }}-image-pull-secrets
+      securityContext:
+        {{- toYaml .Values.clientSide.podSecurityContext | nindent 8 }}
+      containers:
+        - name: client-side
+          securityContext:
+            {{- toYaml .Values.clientSide.securityContext | nindent 12 }}
+          image: "{{ .Values.clientSide.image.repository }}:{{ .Values.clientSide.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.clientSide.image.pullPolicy }}
+          {{- with .Values.clientSide.container_ports }}
+          ports:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "my-blogs.clientSide.fullname" . }}-config
+          {{- if .Values.clientSide.container_readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.clientSide.container_readinessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.clientSide.container_livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.clientSide.container_livenessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.clientSide.resources | nindent 12 }}
+      {{- with .Values.clientSide.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clientSide.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.clientSide.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

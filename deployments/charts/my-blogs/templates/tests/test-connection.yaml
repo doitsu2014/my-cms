@@ -1,0 +1,35 @@
+{{- if .Values.adminSide.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "my-blogs.adminSide.fullname" . }}-test-connection"
+  labels:
+    {{- include "my-blogs.adminSide.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "my-blogs.adminSide.fullname" . }}:{{ .Values.adminSide.service.port }}/health']
+  restartPolicy: Never
+---
+{{- end }}
+{{- if .Values.clientSide.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "my-blogs.clientSide.fullname" . }}-test-connection"
+  labels:
+    {{- include "my-blogs.clientSide.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "my-blogs.clientSide.fullname" . }}:{{ .Values.clientSide.service.port }}/health']
+  restartPolicy: Never
+{{- end }}

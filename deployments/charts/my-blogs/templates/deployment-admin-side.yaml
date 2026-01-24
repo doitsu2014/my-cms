@@ -1,0 +1,72 @@
+{{- if .Values.adminSide.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "my-blogs.adminSide.fullname" . }}
+  labels:
+    {{- include "my-blogs.adminSide.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.adminSide.autoscaling.enabled }}
+  replicas: {{ .Values.adminSide.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "my-blogs.adminSide.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-admin-side.yaml") . | sha256sum }}
+        {{- with .Values.adminSide.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "my-blogs.adminSide.selectorLabels" . | nindent 8 }}
+    spec:
+      imagePullSecrets:
+        - name: {{ include "my-blogs.fullname" . }}-image-pull-secrets
+      securityContext:
+        {{- toYaml .Values.adminSide.podSecurityContext | nindent 8 }}
+      containers:
+        - name: admin-side
+          securityContext:
+            {{- toYaml .Values.adminSide.securityContext | nindent 12 }}
+          image: "{{ .Values.adminSide.image.repository }}:{{ .Values.adminSide.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.adminSide.image.pullPolicy }}
+          {{- with .Values.adminSide.container_ports }}
+          ports:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /usr/share/nginx/html/config.js
+              subPath: config.js
+          {{- if .Values.adminSide.container_readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.adminSide.container_readinessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.adminSide.container_livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.adminSide.container_livenessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.adminSide.resources | nindent 12 }}
+      {{- with .Values.adminSide.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.adminSide.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.adminSide.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "my-blogs.adminSide.fullname" . }}-config
+            items:
+              - key: config.js
+                path: config.js
+{{- end }}

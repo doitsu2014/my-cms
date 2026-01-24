@@ -1,0 +1,20 @@
+{{- if .Values.adminSide.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "my-blogs.adminSide.fullname" . }}-config
+  labels:
+    {{- include "my-blogs.adminSide.labels" . | nindent 4 }}
+data:
+  config.js: |
+    window.__APP_CONFIG__ = {
+      keycloakUrl: {{ .Values.adminSide.appConfig.keycloakUrl | quote }},
+      keycloakRealm: {{ .Values.adminSide.appConfig.keycloakRealm | quote }},
+      keycloakClientId: {{ .Values.adminSide.appConfig.keycloakClientId | quote }},
+      keycloakScope: {{ .Values.adminSide.appConfig.keycloakScope | quote }},
+      graphqlApiUrl: {{ .Values.adminSide.appConfig.graphqlApiUrl | quote }},
+      graphqlCacheApiUrl: {{ .Values.adminSide.appConfig.graphqlCacheApiUrl | quote }},
+      restApiUrl: {{ .Values.adminSide.appConfig.restApiUrl | quote }},
+      mediaUploadApiUrl: {{ .Values.adminSide.appConfig.mediaUploadApiUrl | quote }}
+    };
+{{- end }}

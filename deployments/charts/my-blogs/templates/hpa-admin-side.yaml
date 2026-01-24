@@ -1,0 +1,32 @@
+{{- if and .Values.adminSide.enabled .Values.adminSide.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "my-blogs.adminSide.fullname" . }}
+  labels:
+    {{- include "my-blogs.adminSide.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "my-blogs.adminSide.fullname" . }}
+  minReplicas: {{ .Values.adminSide.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.adminSide.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.adminSide.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.adminSide.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.adminSide.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.adminSide.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

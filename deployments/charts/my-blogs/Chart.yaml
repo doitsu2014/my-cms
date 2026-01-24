@@ -1,0 +1,9 @@
+apiVersion: v2
+name: my-blogs
+description: A Helm chart for my-blogs (admin side and client side React SPAs with nginx)
+
+type: application
+
+version: 2.0.1
+
+appVersion: '2.0.1'

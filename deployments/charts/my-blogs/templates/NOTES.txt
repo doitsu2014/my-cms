@@ -1,0 +1,66 @@
+my-blogs has been deployed!
+
+{{- if .Values.adminSide.enabled }}
+=====================================================
+ADMIN SIDE
+=====================================================
+1. Get the Admin Side application URL:
+{{- if .Values.adminSide.ingress.enabled }}
+{{- range $host := .Values.adminSide.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.adminSide.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.adminSide.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "my-blogs.adminSide.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.adminSide.service.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+  kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "my-blogs.adminSide.fullname" . }}
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "my-blogs.adminSide.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.adminSide.service.port }}
+{{- else if contains "ClusterIP" .Values.adminSide.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "my-blogs.adminSide.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:80
+  echo "Visit http://127.0.0.1:8080"
+{{- end }}
+
+2. Admin Side Runtime Configuration:
+   The app config is mounted from ConfigMap at /usr/share/nginx/html/config.js
+   - keycloakUrl: {{ .Values.adminSide.appConfig.keycloakUrl }}
+   - keycloakRealm: {{ .Values.adminSide.appConfig.keycloakRealm }}
+   - graphqlApiUrl: {{ .Values.adminSide.appConfig.graphqlApiUrl }}
+{{- end }}
+
+{{- if .Values.clientSide.enabled }}
+=====================================================
+CLIENT SIDE
+=====================================================
+1. Get the Client Side application URL:
+{{- if .Values.clientSide.ingress.enabled }}
+{{- range $host := .Values.clientSide.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.clientSide.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.clientSide.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "my-blogs.clientSide.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.clientSide.service.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+  kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "my-blogs.clientSide.fullname" . }}
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "my-blogs.clientSide.fullname" . }} --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.clientSide.service.port }}
+{{- else if contains "ClusterIP" .Values.clientSide.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "my-blogs.clientSide.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8081:80
+  echo "Visit http://127.0.0.1:8081"
+{{- end }}
+
+2. Client Side Runtime Configuration:
+   The app config is mounted from ConfigMap at /usr/share/nginx/html/config.js
+   - graphqlApiUrl: {{ .Values.clientSide.appConfig.graphqlApiUrl }}
+   - restApiUrl: {{ .Values.clientSide.appConfig.restApiUrl }}
+{{- end }}

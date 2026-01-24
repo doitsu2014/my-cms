@@ -1,0 +1,20 @@
+{{- if .Values.clientSide.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "my-blogs.clientSide.fullname" . }}
+  labels:
+    {{- include "my-blogs.clientSide.labels" . | nindent 4 }}
+  {{- with .Values.clientSide.serviceAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.clientSide.service.type }}
+  {{- with .Values.clientSide.service.ports }}
+  ports:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    {{- include "my-blogs.clientSide.selectorLabels" . | nindent 4 }}
+{{- end }}

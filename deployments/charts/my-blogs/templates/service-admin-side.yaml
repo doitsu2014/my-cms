@@ -1,0 +1,20 @@
+{{- if .Values.adminSide.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "my-blogs.adminSide.fullname" . }}
+  labels:
+    {{- include "my-blogs.adminSide.labels" . | nindent 4 }}
+  {{- with .Values.adminSide.serviceAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.adminSide.service.type }}
+  {{- with .Values.adminSide.service.ports }}
+  ports:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    {{- include "my-blogs.adminSide.selectorLabels" . | nindent 4 }}
+{{- end }}
