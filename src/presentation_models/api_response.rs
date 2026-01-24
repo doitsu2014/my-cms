@@ -141,6 +141,9 @@ impl From<AppError> for ApiResponseError {
             AppError::ConcurrencyOptimistic(m) => Self::new()
                 .with_error_code(ErrorCode::ConcurrencyOptimistic)
                 .add_error(m),
+            AppError::OpenAIError(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err),
             AppError::Unknown => Self::new().with_error_code(ErrorCode::UnknownError),
             AppError::NotFound => Self::new().with_error_code(ErrorCode::NotFound),
         }

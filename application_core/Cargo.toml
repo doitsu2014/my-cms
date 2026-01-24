@@ -24,6 +24,7 @@ async-graphql = { version = "7.0.17", features = [
 ] }
 lazy_static = "1.5.0"
 serde = { version = "1.0.226", features = ["derive"] }
+serde_json = "1.0"
 uuid = { version = "1.18.1", features = ["v4"] }
 chrono = { version = "0.4.42", features = ["serde"] }
 slugify = "0.1.0"
@@ -43,6 +44,10 @@ tracing-subscriber = { version = "0.3.20", default-features = false, features = 
 rust-s3 = { version = "0.37.0" }
 image = "0.25"
 moka = { version = "0.12", features = ["future"] }
+async-openai = "0.27"
+html5ever = "0.27"
+markup5ever_rcdom = "0.3"
+qdrant-client = "1.11"
 
 [dev-dependencies]
 sea-orm-migration = "1.1.16"
@@ -50,3 +55,5 @@ fake = { version = "4.4.0", features = ["derive"] }
 migration = { path = "../migration" }
 test_helpers = { path = "../test_helpers" }
 rand = "0.9.2"
+wiremock = "0.6"
+tokio-test = "0.4"

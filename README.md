@@ -20,6 +20,7 @@ flowchart TD
         API_Module["API Modules"]:::api
         API_Category["Category API"]:::api
         API_Post["Post API"]:::api
+        API_Translate["Translation API<br/>(AI-powered)"]:::api_ai
         API_Media["Media API"]:::api
         API_Tag["Tag API"]:::api
         API_Public["Public API"]:::api
@@ -33,6 +34,7 @@ flowchart TD
         Core_Module["Core Module"]:::app
         CMD_Category["Category Command Handler"]:::app
         CMD_Post["Post Command Handler"]:::app
+        CMD_AI["AI Translation Handler<br/>(3-Tier Lookup)"]:::app_ai
         CMD_Media["Media Command Handler"]:::app
         CMD_Tag["Tag Command Handler"]:::app
         Common_Domain["Common Domain Logic"]:::app
@@ -46,7 +48,14 @@ flowchart TD
         DB["((PostgreSQL Database))"]:::db
     end
 
-    %% Level 5: Deployment & External/Config/Testing
+    %% Level 5: External AI Services
+    subgraph "AI Services & Vector DB"
+        direction TB
+        OpenAI["OpenAI API<br/>(GPT-4o-mini)"]:::ai
+        Qdrant["Qdrant Vector DB<br/>(Similarity Search)"]:::ai
+    end
+
+    %% Level 6: Deployment & External/Config/Testing
     subgraph "Infrastructure & Cross-Cutting Concerns"
         direction TB
         Config[".env Configuration"]:::config
@@ -68,6 +77,7 @@ flowchart TD
     %% Internal API Layer connections
     API_Module -->|"includes"| API_Category
     API_Module -->|"includes"| API_Post
+    API_Module -->|"includes"| API_Translate
     API_Module -->|"includes"| API_Media
     API_Module -->|"includes"| API_Tag
     API_Module -->|"includes"| API_Public
@@ -77,9 +87,16 @@ flowchart TD
     %% Internal Application Core connections
     Core_Module -->|"executes"| CMD_Category
     Core_Module -->|"executes"| CMD_Post
+    Core_Module -->|"executes"| CMD_AI
     Core_Module -->|"executes"| CMD_Media
     Core_Module -->|"executes"| CMD_Tag
     Core_Module -->|"utilizes"| Common_Domain
+
+    %% AI Translation Flow (3-Tier Lookup)
+    CMD_AI -->|"1. Check cache"| DB
+    CMD_AI -->|"2. Similarity search"| Qdrant
+    CMD_AI -->|"3. Translate"| OpenAI
+    CMD_AI -->|"Store embeddings"| Qdrant
 
     %% Deployment & Config Influence
     Docker ---|"deploys"| API_Module
@@ -90,6 +107,8 @@ flowchart TD
     Config ---|"configures"| API_Module
     Config ---|"configures"| Core_Module
     Config ---|"configures"| DB
+    Config ---|"API keys"| OpenAI
+    Config ---|"connection"| Qdrant
 
     %% External Services Influence
     API_Module ---|"traced by"| Jaeger
@@ -97,11 +116,13 @@ flowchart TD
 
     %% Testing Influence
     Testing ---|"validates"| Core_Module
+    Testing ---|"validates"| CMD_AI
 
     %% Click Events for API Layer
     click API_Module "https://github.com/doitsu2014/my-cms/tree/main/src/api"
     click API_Category "https://github.com/doitsu2014/my-cms/tree/main/src/api/category"
     click API_Post "https://github.com/doitsu2014/my-cms/tree/main/src/api/post"
+    click API_Translate "https://github.com/doitsu2014/my-cms/tree/main/src/api/post/translate"
     click API_Media "https://github.com/doitsu2014/my-cms/tree/main/src/api/media"
     click API_Tag "https://github.com/doitsu2014/my-cms/tree/main/src/api/tag"
     click API_Public "https://github.com/doitsu2014/my-cms/tree/main/src/api/public"
@@ -112,6 +133,7 @@ flowchart TD
     click Core_Module "https://github.com/doitsu2014/my-cms/tree/main/application_core"
     click CMD_Category "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/category"
     click CMD_Post "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/post"
+    click CMD_AI "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/ai"
     click CMD_Media "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/media"
     click CMD_Tag "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/tag"
     click Common_Domain "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/common"
@@ -133,7 +155,10 @@ flowchart TD
 
     %% Styles
     classDef api fill:#a6cee3,stroke:#1f78b4,stroke-width:2px;
+    classDef api_ai fill:#ff9999,stroke:#cc0000,stroke-width:3px;
     classDef app fill:#b2df8a,stroke:#33a02c,stroke-width:2px;
+    classDef app_ai fill:#ffcc99,stroke:#ff6600,stroke-width:3px;
+    classDef ai fill:#ffccff,stroke:#cc00cc,stroke-width:3px;
     classDef db fill:#fcae91,stroke:#fb9a99,stroke-width:2px;
     classDef deploy fill:#ffe599,stroke:#b08d57,stroke-width:2px;
     classDef config fill:#d9d9d9,stroke:#7f7f7f,stroke-width:2px;
@@ -196,6 +221,19 @@ AWS_SECRET_ACCESS_KEY=
 
 MEDIA_IMG_PROXY_SERVER=https://imgproxy.doitsu.tech
 ```
+
+## Features
+
+### AI Translation Service
+
+Intelligent post translation powered by OpenAI GPT-4o-mini with cost-saving features:
+- **3-Tier Lookup Strategy**: Database → Qdrant similarity → OpenAI (minimizes API costs)
+- **HTML-Aware Processing**: Preserves structure when translating HTML content
+- **Smart Translation Reuse**: Automatically reuses highly similar translations (≥95% similarity)
+- **Background Processing**: Non-blocking execution for large content
+- **Vector Database Integration**: Qdrant for semantic search and similarity matching
+
+See [AI Translation Documentation](application_core/src/commands/ai/README.md) for details.
 
 ## Development Guidelines
 

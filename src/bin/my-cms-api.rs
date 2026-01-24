@@ -142,6 +142,14 @@ pub async fn protected_router() -> Router {
             "/posts/{post_id}",
             get(api::post::read::read_handler::api_get_post),
         )
+        .route(
+            "/posts/{post_id}/translate",
+            post(api::post::translate::translate_handler::api_translate_post),
+        )
+        .route(
+            "/posts/{post_id}/translate/background",
+            post(api::post::translate::translate_handler::api_translate_post_background),
+        )
         .route("/tags", delete(api_delete_tags))
         // Media management routes
         .route(
