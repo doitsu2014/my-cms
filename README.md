@@ -197,6 +197,19 @@ AWS_SECRET_ACCESS_KEY=
 MEDIA_IMG_PROXY_SERVER=https://imgproxy.doitsu.tech
 ```
 
+## Features
+
+### AI Translation Service
+
+Intelligent post translation powered by OpenAI GPT-4o-mini with cost-saving features:
+- **3-Tier Lookup Strategy**: Database → Qdrant similarity → OpenAI (minimizes API costs)
+- **HTML-Aware Processing**: Preserves structure when translating HTML content
+- **Smart Translation Reuse**: Automatically reuses highly similar translations (≥95% similarity)
+- **Background Processing**: Non-blocking execution for large content
+- **Vector Database Integration**: Qdrant for semantic search and similarity matching
+
+See [AI Translation Documentation](application_core/src/commands/ai/README.md) for details.
+
 ## Development Guidelines
 
 ### 1. ORM
