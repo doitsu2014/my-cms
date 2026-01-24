@@ -4,9 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A headless CMS API system built in Rust using Axum for the web framework and SeaORM for database interactions. The system provides REST and GraphQL APIs for managing categories, posts, tags, and media.
+A headless CMS system with a Rust API backend (Axum + SeaORM) and React admin frontend. Provides REST and GraphQL APIs for managing categories, posts, tags, and media, with AI-powered translation capabilities.
 
 ## Build and Run Commands
+
+### Backend (Rust API)
 
 ```bash
 # Build the project
@@ -30,10 +32,32 @@ cargo test -p migration
 cargo test -p test_helpers
 ```
 
+### Frontend (Admin Panel)
+
+```bash
+# From repository root
+cd front-ends/admin_side
+
+# Install dependencies
+pnpm install
+
+# Start development server (port 3002)
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Lint code
+pnpm lint
+
+# Format code
+pnpm format
+```
+
 ## Database Commands (SeaORM)
 
 ```bash
-# Run migrations (replace connection_string with your DATABASE_URL)
+# Run migrations
 sea-orm-cli migrate --database-url <connection_string> up
 
 # Rollback migrations
@@ -45,14 +69,23 @@ sea-orm-cli generate entity --database-url <connection_string> -o application_co
 
 ## Architecture
 
-### Workspace Structure
+### Repository Structure
 
-- **cms** (root crate): Main API application with Axum routes and middleware
-- **application_core**: Domain logic, command handlers, entities, and GraphQL schema
-- **migration**: SeaORM database migrations
-- **test_helpers**: Shared utilities for integration tests using testcontainers
+```
+my-cms/
+├── services/                    # Backend Rust workspace
+│   ├── src/                     # Main API application (cms crate)
+│   │   ├── bin/my-cms-api.rs    # Application entry point
+│   │   └── api/                 # REST/GraphQL handlers
+│   ├── application_core/        # Domain logic, commands, entities
+│   ├── migration/               # SeaORM migrations
+│   └── test_helpers/            # Integration test utilities
+├── front-ends/                  # Frontend applications
+│   └── admin_side/              # React admin panel (Rsbuild + DaisyUI)
+└── deployments/                 # Helm charts for Kubernetes
+```
 
-### Layered Architecture
+### Backend Layered Architecture
 
 ```
 API Layer (src/api/)          → REST endpoints and GraphQL handlers
@@ -64,85 +97,103 @@ Entities (SeaORM)             → Database models and ORM operations
 PostgreSQL Database
 ```
 
-### Key Modules
+### Key Backend Modules
 
 **src/bin/my-cms-api.rs**: Application entry point with three router groups:
-- `public_router`: Health checks and immutable GraphQL endpoint
+- `public_router`: Health checks, immutable GraphQL, media delivery
 - `protected_router`: CRUD operations (requires `my-headless-cms-writer` role)
 - `protected_administrator_router`: Migration endpoint (requires `my-headless-cms-administrator` role)
 
 **application_core/src/commands/**: Command handlers for each domain:
-- `category/` - Category CRUD operations
-- `post/` - Post CRUD operations
-- `media/` - S3 media upload and delivery with auto-resize
+- `category/` - Category CRUD with hierarchical support
+- `post/` - Post CRUD with translations
+- `media/` - S3 upload, delivery with auto-resize, caching
 - `tag/` - Tag operations
+- `ai/translate/` - AI-powered translation (3-tier lookup)
 
 **application_core/src/entities/**: SeaORM entities generated from database schema
 
 **application_core/src/graphql/**: Dynamic GraphQL schema using async-graphql and seaography
 
+### Frontend Architecture (admin_side)
+
+- **Build Tool**: Rsbuild with Rspack
+- **Framework**: React 19 with TypeScript
+- **UI**: DaisyUI + Tailwind CSS
+- **Rich Text**: TipTap editor
+- **Auth**: Keycloak (Authorization Code Flow + PKCE)
+- **API Client**: Apollo Client (GraphQL) + fetch (REST)
+
+Key directories:
+- `src/app/admin/` - Admin pages (blogs, categories, media)
+- `src/auth/` - Keycloak authentication
+- `src/infrastructure/` - GraphQL client and utilities
+- `src/domains/` - Domain models
+
 ### Authentication
 
-Uses Keycloak via `axum-keycloak-auth` with role-based access control. Configure via environment variables:
-- `KEYCLOAK_ISSUER`
-- `KEYCLOAK_REALM`
-- `AUTHORIZATION_AUDIENCE`
+Uses Keycloak via `axum-keycloak-auth` with role-based access control:
+- `my-headless-cms-writer` - Standard content management access
+- `my-headless-cms-administrator` - Database migration access
+
+### AI Translation Service
+
+3-tier lookup strategy to minimize OpenAI API costs:
+1. **Database cache** - Check for existing translations
+2. **Qdrant similarity search** - Find similar translations (≥95% match)
+3. **OpenAI GPT-4o-mini** - Generate new translation if no match found
+
+Features: HTML-aware processing, chunked processing for large content, background execution support.
 
 ### Media API
 
-**Upload**: `POST /media` (protected)
-- Accepts multipart form data with `file` or `image` field
-- Supports images + documents (PDF, Office docs, text files)
-- Returns JSON with `path` and `url`
-
-**List**: `GET /media` (protected)
-- Lists all media files in S3 bucket
-- Query params: `?prefix=folder/` to filter by prefix
-- Returns array of `MediaMetadata` (path, url, contentType, size, lastModified)
-
-**Get Metadata**: `GET /media/info/{path}` (protected)
-- Returns detailed metadata for a specific file
-
-**Delete Single**: `DELETE /media/delete/{path}` (protected)
-- Deletes a single file by path
-
-**Delete Batch**: `DELETE /media` (protected)
-- Body: JSON array of paths `["file1.jpg", "file2.pdf"]`
-- Returns `{ deletedCount: N }`
-
-**Image Delivery**: `GET /media/images/{path}` (public)
-- Serves images with optional auto-resize
-- Query params: `?w=800` (width), `?h=600` (height)
-- Includes in-memory caching (1 hour TTL, max 500 files)
-
-**General Media Delivery**: `GET /media/{path}` (public)
-- Serves documents and other files as-is (no resize)
-- Includes in-memory caching
-
-**Supported Content Types**:
-- Images: jpeg, png, gif, webp, bmp (with resize support)
-- Documents: PDF, Word, Excel, PowerPoint
-- Text: plain text, CSV, Markdown
-
-### External Dependencies
-
-- **PostgreSQL**: Primary database
-- **S3-Compatible Storage**: Media storage (Contabo or any S3-compatible service)
-- **Jaeger**: Optional OpenTelemetry tracing (enable via `ENABLED_OTLP_EXPORTER=true`)
+- **Upload**: `POST /media` - Multipart form data, supports images and documents
+- **List**: `GET /media` - List files with optional `?prefix=` filter
+- **Delivery**: `GET /media/images/{path}` - Images with optional resize (`?w=800&h=600`)
+- **Delivery**: `GET /media/{path}` - Documents and other files
+- **Delete**: `DELETE /media/delete/{path}` or batch `DELETE /media`
+- Includes in-memory caching (Moka, 1 hour TTL, max 500 files)
 
 ## Environment Configuration
 
-Key environment variables (see `.env` for full list):
-- `DATABASE_URL`: PostgreSQL connection string
-- `HOST` / `PORT`: API server binding (default: 127.0.0.1:8989)
-- `S3_ENDPOINT`: S3-compatible storage endpoint (e.g., `https://sin1.contabostorage.com`)
-- `S3_BUCKET_NAME`: Storage bucket name
-- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`: S3 credentials
-- `MEDIA_BASE_URL`: Base URL for media delivery URLs (defaults to `http://{HOST}:{PORT}`)
-- `ENABLED_OTLP_EXPORTER`: Enable Jaeger tracing
+### Backend (.env)
+```
+DATABASE_URL=postgresql://user:pass@localhost:5432/my-cms
+HOST=127.0.0.1
+PORT=8989
+
+# S3-Compatible Storage
+S3_ENDPOINT=https://sin1.contabostorage.com
+S3_BUCKET_NAME=<bucket>
+AWS_ACCESS_KEY_ID=<key>
+AWS_SECRET_ACCESS_KEY=<secret>
+MEDIA_BASE_URL=http://127.0.0.1:8989
+
+# Keycloak Authentication
+KEYCLOAK_ISSUER=<issuer>
+KEYCLOAK_REALM=<realm>
+AUTHORIZATION_AUDIENCE=<audience>
+
+# AI Translation (optional)
+OPENAI_API_KEY=<key>
+QDRANT_URL=<url>
+
+# Tracing (optional)
+ENABLED_OTLP_EXPORTER=false
+```
+
+### Frontend (front-ends/admin_side/.env.local)
+```
+PUBLIC_KEYCLOAK_URL=https://your-keycloak-url
+PUBLIC_KEYCLOAK_REALM=master
+PUBLIC_KEYCLOAK_CLIENT_ID=your-client-id
+PUBLIC_KEYCLOAK_SCOPE=my-headless-cms-api-all email openid profile
+PUBLIC_GRAPHQL_API_URL=http://localhost:8989/graphql
+PUBLIC_REST_API_URL=http://localhost:8989/api
+```
 
 ## Testing
 
-- Unit tests use SeaORM's built-in mock feature
-- Integration tests use testcontainers for PostgreSQL setup
-- Coverage reports generated with grcov (CI uses nightly toolchain with `llvm-tools-preview`)
+- **Unit tests**: SeaORM's built-in mock feature
+- **Integration tests**: testcontainers for PostgreSQL setup
+- **Coverage**: grcov with nightly toolchain (`llvm-tools-preview`)
