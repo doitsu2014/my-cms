@@ -1,222 +1,180 @@
-# My Blogs - Rsbuild Micro-Frontend Project
+# Admin Side Module
 
-A modern, independent micro-frontend architecture project built with **Rsbuild**, **Rspack**, and **React 19**. This project demonstrates how to build scalable web applications using modular architecture with completely independent standalone applications.
+## Overview
+The `admin_side` module is a micro-frontend application built with **Rsbuild** and **React 19** that provides administrative features for the blog platform. It uses **Module Federation 2.0** to integrate seamlessly with the shell application.
 
-## 🏗️ Architecture Overview
+## Current Status
+🚧 **Under Development** - Migration in progress from [doitsu2014/my-blogs](https://github.com/doitsu2014/my-blogs)
 
-This project implements a **simplified micro-frontend architecture** with **two independent standalone applications**:
+## Planned Features
 
-- **admin_side** (Admin Application): Independent admin panel with Keycloak auth and my-cms integration, running on port 3002
+### Categories Management
+- View all blog categories
+- Create new categories
+- Edit existing categories
+- Delete categories
+- Automatic slug generation
 
-### Simplified Architecture
+### Blogs Management
+- View all blog posts
+- Create new blog posts with rich text editor (Quill)
+- Edit existing blog posts
+- Delete blog posts
+- Upload and manage images
+- Tag management
+- Category assignment
+- Publish/Draft status control
 
-**No Module Federation** - Each application runs completely independently:
-- No shared components module
-- No runtime dependency between modules
-- Clean separation of concerns
-- Simple deployment model
+### Admin Dashboard
+- Overview statistics
+- Quick access to management features
+- Recent activities
 
-## 🚀 Key Features
+### Authentication & Authorization
+- Secure login/logout
+- Session management
+- Protected admin routes
 
-- **Rsbuild/Rspack**: Fast, modern build tool for lightning-fast builds
-- **React 19**: Latest React version with improved performance and features
-- **TypeScript**: Full type safety across all modules
-- **Hot Module Replacement**: Fast development experience with HMR
-- **Independent Modules**: Each application runs standalone
-- **Keycloak Authentication**: Production-ready authentication for admin module
-- **my-cms Integration**: GraphQL and REST API integration for content management (admin_side)
+## Technology Stack
 
-## 📦 Project Structure
-
-```
-my-blogs-rsbuild/
-├── admin_side/          # Admin panel (port 3002)
-│   ├── src/
-│   │   ├── auth/        # Keycloak authentication
-│   │   ├── domains/     # Domain models
-│   │   ├── infrastructure/  # GraphQL, utilities
-│   │   └── app/admin/   # Admin pages
-│   └── rsbuild.config.ts
-├── package.json         # Root package for workspace management
-├── pnpm-workspace.yaml  # pnpm workspace configuration
-├── MIGRATION_PLAN.md    # Admin features migration documentation
-└── README.md
-```
-
-## 🛠️ Technology Stack
-
-- **Build Tool**: Rsbuild 1.5.x (with Rspack)
 - **Framework**: React 19.1.x
+- **Build Tool**: Rsbuild 1.5.x
 - **Language**: TypeScript 5.9.x
-- **Routing**: React Router DOM 7.9.x (admin_side)
-- **Authentication**: Keycloak (admin_side)
-- **Backend**: my-cms GraphQL + REST API (admin_side)
-- **UI Framework**: DaisyUI + Tailwind CSS (admin_side)
-- **Package Manager**: pnpm (with workspaces)
-- **Linting**: ESLint 9.x
-- **Formatting**: Prettier 3.x
+- **Module Federation**: @module-federation/enhanced 0.21.6
+- **UI Framework**: DaisyUI v5 + Tailwind CSS (planned)
+- **Rich Text Editor**: Quill 2.0 (planned)
+- **Data Layer**: Apollo Client + GraphQL (planned)
+- **Authentication**: next-auth v5 (planned, may be adapted)
+- **Icons**: lucide-react (planned)
 
-## 🚦 Getting Started
+## Architecture
+
+This module is designed as a **Remote Module** in the Module Federation architecture:
+- **Port**: 3002 (planned)
+- **Exposes**: Admin components for consumption by the shell app
+- **Shared**: React, React-DOM, and other common dependencies
+
+## Migration Plan
+
+See the [MIGRATION_PLAN.md](../MIGRATION_PLAN.md) in the root directory for the complete migration strategy from the old Next.js platform to this micro-frontend architecture.
+
+### Migration Phases
+1. ✅ Repository Analysis & Setup
+2. 🚧 Domain Models & Infrastructure
+3. ⏳ Dependencies Installation
+4. ⏳ Admin Layout & Context
+5. ⏳ Categories Management
+6. ⏳ Blogs Management
+7. ⏳ Admin Dashboard
+8. ⏳ Authentication & Middleware
+9. ⏳ Configuration & Styling
+10. ⏳ Module Federation Configuration
+11. ⏳ Testing & Validation
+12. ⏳ Documentation
+
+Legend: ✅ Complete | 🚧 In Progress | ⏳ Pending
+
+## Development
 
 ### Prerequisites
-
-- **Node.js**: 18.x or higher
-- **pnpm**: 8.x or higher
-- **my-cms backend** (for admin_side): [https://github.com/doitsu2014/my-cms](https://github.com/doitsu2014/my-cms)
-- **Keycloak** (for admin_side): Configured at `https://my-ids-admin.ducth.dev`
+- Node.js (LTS version)
+- pnpm (package manager)
 
 ### Installation
-
 ```bash
-# Install dependencies for all modules
+cd admin_side
 pnpm install
-
-# Or install individually
-cd admin_side && pnpm install
 ```
 
-### Development
-
-#### Start All Modules (Recommended)
-
+### Development Server
 ```bash
-# From root directory
 pnpm dev
 ```
+The development server will start on port 3002 (once configured).
 
-This starts all three modules concurrently:
-- common_side: http://localhost:3003
-- admin_side: http://localhost:3002
-
-#### Start Individual Modules
-
+### Build
 ```bash
-# Start all modules concurrently
-pnpm dev
-
-# Or start individually
-
-# Start admin_side (requires my-cms backend + Keycloak)
-pnpm dev:admin
-# or
-cd admin_side && pnpm dev
-```
-
-### Production Build
-
-```bash
-# Build all modules
 pnpm build
-
-# Or build individually
-pnpm build:admin
 ```
 
-## 🎯 Module Architecture
-
-### admin_side (Port 3002)
-
-**Purpose**: Admin panel for content management
-
-**Features**:
-- Keycloak authentication (Authorization Code Flow + PKCE)
-- Categories management (CRUD)
-- Blogs management (CRUD with rich text editor)
-- Admin dashboard with stats
-- my-cms backend integration (GraphQL + REST API)
-- User profile and management
-- Standalone application with no shared dependencies
-
-**Configuration Required**:
+### Linting
 ```bash
-# .env.local in admin_side/
-PUBLIC_KEYCLOAK_URL=https://my-ids-admin.ducth.dev
-PUBLIC_KEYCLOAK_REALM=master
-PUBLIC_KEYCLOAK_CLIENT_ID=my-blogs-admin-localhost
-PUBLIC_KEYCLOAK_SCOPE=my-headless-cms-api-all email openid profile
-PUBLIC_GRAPHQL_API_URL=http://localhost:8989/graphql
-PUBLIC_REST_API_URL=http://localhost:8989/api
+pnpm lint
 ```
 
-## 📊 Module Architecture Flow
-
-```
-┌─────────────┐       ┌─────────────┐
-       │
-       ├──────────────┬──────────────┐
-       │              │              │
-       ▼              ▼              ▼
-┌─────────────┐ ┌─────────────┐ (Future modules)
-│ admin_side  │
-│ Port 3002   │
-│ + Keycloak  │
-│ + my-cms    │
-└─────────────┘
+### Format Code
+```bash
+pnpm format
 ```
 
-## 🎯 Use Cases
+## Environment Variables
 
-This architecture is ideal for:
+(To be documented after migration)
 
-- Large-scale applications with multiple teams
-- Applications requiring independent deployment cycles
-- Gradual migration from monolithic to micro-frontend architecture
-- Multi-tenant platforms
-- Blog platforms with modular content sections
-- Admin panels separated from public applications
-- Progressive web applications with code splitting needs
+```env
+# GraphQL API
+GRAPHQL_API_URL=http://localhost:4000/graphql
 
-## 🚧 Current Development
+# Authentication
+NEXTAUTH_URL=http://localhost:3002
+NEXTAUTH_SECRET=your-secret-key
 
-### Admin Features Migration - COMPLETE ✅
+# Upload/Storage
+UPLOAD_URL=http://localhost:4000/upload
+```
 
-All admin features have been successfully migrated from the [old Next.js platform](https://github.com/doitsu2014/my-blogs) to the new `admin_side` module.
+## Project Structure
 
-**Migrated Features:**
-- ✅ Categories Management (CRUD operations)
-- ✅ Blogs Management with rich text editor
-- ✅ Admin Dashboard with stats
-- ✅ Keycloak Authentication (Authorization Code Flow + PKCE)
-- ✅ my-cms Backend Integration (GraphQL + REST API)
-- ✅ User management and profiles
-- ✅ Module Federation integration
+```
+admin_side/
+├── src/
+│   ├── app/                    # Application pages
+│   │   └── admin/             # Admin features (to be migrated)
+│   │       ├── blogs/         # Blog management
+│   │       ├── categories/    # Category management
+│   │       ├── components/    # Shared admin components
+│   │       └── page.tsx       # Admin dashboard
+│   ├── domains/               # Domain models (to be added)
+│   ├── infrastructure/        # Infrastructure layer (to be added)
+│   ├── App.tsx               # Main app component
+│   └── index.tsx             # Entry point
+├── rsbuild.config.ts         # Rsbuild configuration
+├── package.json              # Dependencies
+└── README.md                 # This file
+```
 
-For detailed information, see:
-- [MIGRATION_PLAN.md](./MIGRATION_PLAN.md) - Complete migration strategy
-- [PHASE_8_10_IMPLEMENTATION.md](./PHASE_8_10_IMPLEMENTATION.md) - Keycloak and my-cms integration
-- [admin_side/README.md](./admin_side/README.md) - Admin module documentation
+## Integration with Shell App
 
-## 📚 Learning Resources
+Once migration is complete, the shell app will load this module as a remote:
 
-- [Rsbuild Documentation](https://rsbuild.dev/)
-- [Rspack Documentation](https://rspack.dev/)
-- [Keycloak Documentation](https://www.keycloak.org/documentation)
-- [React 19 Documentation](https://react.dev/)
+```typescript
+// In shell/rsbuild.config.ts
+remotes: {
+  admin_side: 'admin_side@http://localhost:3002/mf-manifest.json'
+}
+```
 
-## 🔧 Development Tips
+Then import admin components in the shell:
+```typescript
+import AdminDashboard from 'admin_side/AdminDashboard';
+```
 
-1. **Independent modules** - Each application runs completely standalone
-2. **Use pnpm workspaces** - Manage dependencies across all modules efficiently
-3. **Check port availability** - Ensure ports 3001, 3002 are available
-4. **Backend requirements** - admin_side requires my-cms backend (port 8989) and Keycloak
-5. **Hot reload** - All modules support HMR for fast development
-6. **No Module Federation** - Simplified architecture without runtime dependencies
+## Contributing
 
-## 📝 Adding New Modules
+This module is being actively developed. Please coordinate with the development team before making changes.
 
-## 🤝 Contributing
+## Related Documentation
 
-1. Fork the repository
-2. Create a feature branch
-3. Work on your module independently
-4. Test your changes
-5. Submit a pull request
+- [Migration Plan](../MIGRATION_PLAN.md) - Detailed migration strategy
+- [Main Project README](../README.md) - Overall project documentation
+- [Module Federation Guide](https://module-federation.io/) - Module Federation documentation
+
+## License
+
+Private project - All rights reserved
 
 ---
 
-Built with ❤️ using modern web technologies
-
-**Architecture**: Independent Micro-Frontends with Rsbuild  
-**Build Tool**: Rsbuild/Rspack  
-**Framework**: React 19  
-**Package Manager**: pnpm workspaces
+**Status**: 🚧 Under Development  
+**Version**: 0.1.0  
+**Last Updated**: 2025-12-18

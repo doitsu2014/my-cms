@@ -79,7 +79,7 @@ adminSide:
   replicaCount: 2
 
   image:
-    repository: doitsu2014/my-cms-admin-admin-side
+    repository: doitsu2014/my-cms-admin
     pullPolicy: Always
     tag: v1.0.0
 

@@ -36,7 +36,7 @@ cargo test -p test_helpers
 
 ```bash
 # From repository root
-cd front-ends/admin_side
+cd front-ends
 
 # Install dependencies
 pnpm install
@@ -182,7 +182,7 @@ QDRANT_URL=<url>
 ENABLED_OTLP_EXPORTER=false
 ```
 
-### Frontend (front-ends/admin_side/.env.local)
+### Frontend (front-ends/.env.local)
 ```
 PUBLIC_KEYCLOAK_URL=https://your-keycloak-url
 PUBLIC_KEYCLOAK_REALM=master

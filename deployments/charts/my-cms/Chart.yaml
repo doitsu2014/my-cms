@@ -1,0 +1,18 @@
+apiVersion: v2
+name: my-cms
+description: A Helm chart for deploying the complete my-cms system (API + Admin UI)
+
+type: application
+
+version: 1.0.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: my-cms-api
+    version: "1.0.10"
+    repository: "file://../my-cms-api"
+    condition: my-cms-api.enabled
+  - name: my-cms-admin
+    version: "2.0.1"
+    repository: "file://../my-cms-admin"
+    condition: my-cms-admin.enabled
