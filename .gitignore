@@ -24,3 +24,6 @@ deployments/charts/**/secret.values.yaml
 .idea/
 **/test-llvm-reports
 lcov.info
+
+node_modules
+dist
