@@ -1,6 +1,4 @@
-
 [![Automation Test my-cms-api](https://github.com/doitsu2014/my-cms/actions/workflows/ci-my-cms.yml/badge.svg)](https://github.com/doitsu2014/my-cms/actions/workflows/ci-my-cms.yml)
-
 <br/>
 [![codecov](https://codecov.io/gh/doitsu2014/my-cms/branch/main/graph/badge.svg?token=7V6BYO0TJO)](https://codecov.io/gh/doitsu2014/my-cms)
 <br/>
