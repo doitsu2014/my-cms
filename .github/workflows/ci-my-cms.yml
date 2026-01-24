@@ -1,4 +1,4 @@
-name: CI Workflow
+name: Automation Test my-cms-api
 on:
   pull_request:
     branches: ["main"]
@@ -7,18 +7,13 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+# Please run test in folder services from repository
 jobs:
   test:
     runs-on: ubuntu-latest
+    working-directory: services
     steps:
       - uses: actions/checkout@v3
-      # - name: Configure Caching CI
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: |
-      #       ~/.cargo/bin
-      #       target
-      #     key: test-${{ runner.os }}-cargo-nightly-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: nightly
