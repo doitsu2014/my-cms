@@ -84,9 +84,15 @@ export default function AdminBlogsPage() {
     try {
       setIsDeleting(true);
       const response = await authenticatedFetch(
-        getApiUrl(`/posts/${blogToDelete.id}`),
+        getApiUrl('/posts'),
         token,
-        { method: 'DELETE' },
+        { 
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify([blogToDelete.id]),
+        },
         keycloak || undefined
       );
 
