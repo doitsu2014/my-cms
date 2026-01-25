@@ -70,6 +70,11 @@ jobs:
           kubectl get pods -n ${{ env.NAMESPACE }}
           kubectl get services -n ${{ env.NAMESPACE }}
 
+      - name: Rollout restart deployment
+        run: |
+          kubectl rollout restart deployment/${{ env.HELM_RELEASE_NAME }} -n ${{ env.NAMESPACE }}
+          kubectl rollout status deployment/${{ env.HELM_RELEASE_NAME }} -n ${{ env.NAMESPACE }} --timeout=5m
+
       - name: Rollback on failure
         if: failure()
         run: |
