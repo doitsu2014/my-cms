@@ -73,8 +73,8 @@ jobs:
 
       - name: Rollout restart deployment
         run: |
-          kubectl rollout restart deployment/${{ env.HELM_RELEASE_NAME }} -n ${{ env.NAMESPACE }}
-          kubectl rollout status deployment/${{ env.HELM_RELEASE_NAME }} -n ${{ env.NAMESPACE }} --timeout=5m
+          kubectl rollout restart deployment/${{ env.HELM_RELEASE_NAME }}-admin-side -n ${{ env.NAMESPACE }}
+          kubectl rollout status deployment/${{ env.HELM_RELEASE_NAME }}-admin-side -n ${{ env.NAMESPACE }} --timeout=5m
 
       - name: Rollback on failure
         if: failure()
