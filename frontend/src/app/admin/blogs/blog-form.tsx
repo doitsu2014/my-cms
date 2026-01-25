@@ -932,7 +932,13 @@ export default function BlogForm({ id }: { id?: string }) {
                     <p className="text-sm text-base-content/60">This may take a moment</p>
                   </div>
                 </div>
-                <div className="w-full bg-base-200 rounded-full h-2 overflow-hidden" role="progressbar" aria-label="Translation in progress">
+                <div 
+                  className="w-full bg-base-200 rounded-full h-2 overflow-hidden" 
+                  role="progressbar" 
+                  aria-label="Translation in progress"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
                   <div className="h-full bg-gradient-to-r from-primary via-secondary to-accent animate-pulse"></div>
                   <span className="sr-only">Translating post content, please wait...</span>
                 </div>
