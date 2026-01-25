@@ -28,6 +28,7 @@ import { RichTextEditor } from '../components/inputs/rich-text-editor/rich-text-
 import ThumbnailsInput from '../components/inputs/thumbnail-input';
 import { getApiUrl, authenticatedFetch } from '@/config/api.config';
 import { useAuth } from '@/auth/AuthContext';
+import type { OpenAIModel } from '@/domains/ai-model';
 
 const AVAILABLE_LANGUAGES = [{ code: 'vi', displayName: 'Vietnamese (vi)' }];
 
@@ -56,6 +57,11 @@ export default function BlogForm({ id }: { id?: string }) {
   const [showTranslateModal, setShowTranslateModal] = useState(false);
   const [selectedTranslateLanguage, setSelectedTranslateLanguage] = useState('');
   const [retranslatingIndex, setRetranslatingIndex] = useState<number | null>(null);
+  
+  // AI model selection state
+  const [aiModels, setAiModels] = useState<OpenAIModel[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>('gpt-4o-mini');
+  const [loadingModels, setLoadingModels] = useState(false);
 
   const {
     register,
@@ -142,6 +148,27 @@ export default function BlogForm({ id }: { id?: string }) {
     }
   };
 
+  // Fetch AI models
+  const fetchAIModels = async () => {
+    setLoadingModels(true);
+    try {
+      const response = await authenticatedFetch(
+        getApiUrl('/ai/models'),
+        token,
+        { cache: 'no-store' },
+        keycloak || undefined
+      );
+      if (response.ok) {
+        const result = await response.json();
+        setAiModels(result.data.models);
+      }
+    } catch (error) {
+      console.error('Error fetching AI models:', error);
+    } finally {
+      setLoadingModels(false);
+    }
+  };
+
   useEffect(() => {
     if (id) {
       reloadPostData();
@@ -161,6 +188,13 @@ export default function BlogForm({ id }: { id?: string }) {
       setOriginalTranslationContents({});
     }
   }, [id, reset, token, keycloak]);
+
+  // Fetch AI models when modal is opened
+  useEffect(() => {
+    if (showTranslateModal && aiModels.length === 0) {
+      fetchAIModels();
+    }
+  }, [showTranslateModal]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -329,6 +363,7 @@ export default function BlogForm({ id }: { id?: string }) {
           body: JSON.stringify({
             targetLanguage: selectedTranslateLanguage,
             forceRetranslate: false,
+            model: selectedModel,
           }),
         },
         keycloak || undefined
@@ -387,6 +422,7 @@ export default function BlogForm({ id }: { id?: string }) {
           body: JSON.stringify({
             targetLanguage: translation.languageCode,
             forceRetranslate: true,
+            model: selectedModel,
           }),
         },
         keycloak || undefined
@@ -1049,6 +1085,48 @@ export default function BlogForm({ id }: { id?: string }) {
                       AI will translate the title, preview, and content
                     </span>
                   </label>
+                </div>
+
+                <div className="form-control w-full">
+                  <label className="label">
+                    <span className="label-text font-medium">AI Model</span>
+                  </label>
+                  {loadingModels ? (
+                    <div className="flex items-center justify-center p-4">
+                      <span className="loading loading-spinner loading-sm"></span>
+                      <span className="ml-2 text-sm">Loading models...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <select
+                        className="select select-bordered w-full focus:select-primary"
+                        value={selectedModel}
+                        onChange={(e) => setSelectedModel(e.target.value)}
+                      >
+                        {aiModels.map((model) => (
+                          <option key={model.id} value={model.id}>
+                            {model.name} - ${model.inputPricePer1m.toFixed(2)}/${model.outputPricePer1m.toFixed(2)} per 1M tokens
+                            {model.isRecommended ? ' ⭐' : ''}
+                          </option>
+                        ))}
+                      </select>
+                      <label className="label">
+                        <span className="label-text-alt text-base-content/60">
+                          {aiModels.find(m => m.id === selectedModel)?.isRecommended && (
+                            <span className="text-warning font-medium">
+                              ⭐ Recommended: {aiModels.find(m => m.id === selectedModel)?.recommendationReason}
+                            </span>
+                          )}
+                          {!aiModels.find(m => m.id === selectedModel)?.isRecommended && (
+                            <span>
+                              Input: ${aiModels.find(m => m.id === selectedModel)?.inputPricePer1m.toFixed(2)}/1M tokens, 
+                              Output: ${aiModels.find(m => m.id === selectedModel)?.outputPricePer1m.toFixed(2)}/1M tokens
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    </>
+                  )}
                 </div>
 
                 <div className="flex gap-2 justify-end pt-2">
