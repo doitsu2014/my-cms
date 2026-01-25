@@ -150,6 +150,10 @@ pub async fn protected_router() -> Router {
             "/posts/{post_id}/translate/background",
             post(api::post::translate::translate_handler::api_translate_post_background),
         )
+        .route(
+            "/ai/models",
+            get(api::ai::models::models_handler::api_get_openai_models),
+        )
         .route("/tags", delete(api_delete_tags))
         // Media management routes
         .route(

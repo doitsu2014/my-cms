@@ -214,6 +214,7 @@ impl PostTranslateHandler {
         post: &posts::Model,
         target_language_code: &str,
         openai_api_key: &str,
+        model: &str,
     ) -> Result<(String, String, String), AppError> {
         let config = OpenAIConfig::new().with_api_key(openai_api_key);
         let client = Client::with_config(config);
@@ -223,10 +224,11 @@ impl PostTranslateHandler {
             &post.title,
             target_language_code,
             "title",
+            model,
         ).await?;
 
         let translated_preview_content = if let Some(preview) = &post.preview_content {
-            Self::translate_text_internal(&client, preview, target_language_code, "preview").await?
+            Self::translate_text_internal(&client, preview, target_language_code, "preview", model).await?
         } else {
             String::new()
         };
@@ -235,6 +237,7 @@ impl PostTranslateHandler {
             &client,
             &post.content,
             target_language_code,
+            model,
         ).await?;
 
         Ok((translated_title, translated_preview_content, translated_content))
@@ -348,18 +351,22 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             .map_err(|e| e.into())?
             .ok_or(AppError::NotFound)?;
 
+        // Get model from request or use default
+        let model = request.model.as_deref().unwrap_or(DEFAULT_OPENAI_MODEL);
+
         if request.force_retranslate {
             // Force retranslate: delete existing and translate from OpenAI
             Self::delete_existing_translation(self.db.as_ref(), request.post_id, &request.target_language_code).await?;
             
             tracing::info!(
-                "Force retranslation requested for post_id={} language={}",
+                "Force retranslation requested for post_id={} language={} using model={}",
                 request.post_id,
-                request.target_language_code
+                request.target_language_code,
+                model
             );
             
             let (translated_title, translated_preview_content, translated_content) = 
-                Self::translate_from_openai(&post, &request.target_language_code, &openai_api_key).await?;
+                Self::translate_from_openai(&post, &request.target_language_code, &openai_api_key, model).await?;
             
             let post_translation_id = Self::save_translation(
                 self.db.as_ref(),
@@ -462,13 +469,14 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
 
         // 3. Translate from OpenAI
         tracing::info!(
-            "No existing or similar translation found, translating from OpenAI for post_id={} language={}",
+            "No existing or similar translation found, translating from OpenAI for post_id={} language={} using model={}",
             request.post_id,
-            request.target_language_code
+            request.target_language_code,
+            model
         );
         
         let (translated_title, translated_preview_content, translated_content) = 
-            Self::translate_from_openai(&post, &request.target_language_code, &openai_api_key).await?;
+            Self::translate_from_openai(&post, &request.target_language_code, &openai_api_key, model).await?;
         
         let post_translation_id = Self::save_translation(
             self.db.as_ref(),
@@ -679,10 +687,11 @@ impl PostTranslateHandler {
         client: &Client<OpenAIConfig>,
         content: &str,
         target_language: &str,
+        model: &str,
     ) -> Result<String, AppError> {
         // If content is small enough, translate directly
         if content.len() <= MAX_CHUNK_SIZE {
-            return Self::translate_text_internal(client, content, target_language, "content").await;
+            return Self::translate_text_internal(client, content, target_language, "content", model).await;
         }
         
         // Determine if content is HTML and chunk accordingly
@@ -707,6 +716,7 @@ impl PostTranslateHandler {
         for (index, chunk) in chunks.into_iter().enumerate() {
             let client_clone = client.clone();
             let target_language = target_language.to_string();
+            let model = model.to_string();
             let is_html = Self::is_html_content(&chunk);
             let chunk_size = chunk.len();
             
@@ -743,7 +753,7 @@ impl PostTranslateHandler {
                 ];
 
                 let request = CreateChatCompletionRequestArgs::default()
-                    .model(DEFAULT_OPENAI_MODEL)
+                    .model(model)
                     .messages(messages)
                     .temperature(TRANSLATION_TEMPERATURE)
                     .max_tokens(MAX_TOKENS_PER_REQUEST)
@@ -815,6 +825,7 @@ impl PostTranslateHandler {
         text: &str,
         target_language: &str,
         content_type: &str,
+        model: &str,
     ) -> Result<String, AppError> {
         let system_message = ChatCompletionRequestSystemMessageArgs::default()
             .content(format!(
@@ -836,7 +847,7 @@ impl PostTranslateHandler {
         ];
 
         let request = CreateChatCompletionRequestArgs::default()
-            .model(DEFAULT_OPENAI_MODEL)
+            .model(model)
             .messages(messages)
             .temperature(TRANSLATION_TEMPERATURE)
             .max_tokens(MAX_TOKENS_PER_REQUEST)
