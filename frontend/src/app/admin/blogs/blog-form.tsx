@@ -22,6 +22,7 @@ import {
   Plus,
   X,
   ChevronDown,
+  RotateCw,
 } from 'lucide-react';
 import { RichTextEditor } from '../components/inputs/rich-text-editor/rich-text-editor';
 import ThumbnailsInput from '../components/inputs/thumbnail-input';
@@ -54,6 +55,7 @@ export default function BlogForm({ id }: { id?: string }) {
   const [isTranslating, setIsTranslating] = useState(false);
   const [showTranslateModal, setShowTranslateModal] = useState(false);
   const [selectedTranslateLanguage, setSelectedTranslateLanguage] = useState('');
+  const [retranslatingIndex, setRetranslatingIndex] = useState<number | null>(null);
 
   const {
     register,
@@ -357,6 +359,62 @@ export default function BlogForm({ id }: { id?: string }) {
       toast.error('Network error. Please try again.');
     } finally {
       setIsTranslating(false);
+    }
+  };
+
+  const handleRetranslateTranslation = async (index: number) => {
+    if (!id) {
+      toast.error('Post ID is required to re-translate');
+      return;
+    }
+
+    const translation = translations[index];
+    if (!translation || !translation.languageCode) {
+      toast.error('Please select a language for this translation');
+      return;
+    }
+
+    setRetranslatingIndex(index);
+    try {
+      const response = await authenticatedFetch(
+        getApiUrl(`/posts/${id}/translate`),
+        token,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            targetLanguage: translation.languageCode,
+            forceRetranslate: true,
+          }),
+        },
+        keycloak || undefined
+      );
+
+      if (response.ok) {
+        await response.json();
+        toast.success(`Translation re-generated successfully for ${translation.languageCode.toUpperCase()}!`);
+        
+        // Reload post data to show the updated translation
+        await reloadPostData();
+      } else {
+        let errorMessage = 'Failed to re-translate';
+        try {
+          const errorData = await response.json();
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch {
+          // If parsing JSON fails, use default error message
+        }
+        toast.error(errorMessage);
+      }
+    } catch (error) {
+      console.error('Error re-translating:', error);
+      toast.error('Network error. Please try again.');
+    } finally {
+      setRetranslatingIndex(null);
     }
   };
 
@@ -742,15 +800,36 @@ export default function BlogForm({ id }: { id?: string }) {
                         <Languages className="w-4 h-4" />
                         Translation #{index + 1}
                       </span>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-ghost text-error hover:bg-error/10 gap-1"
-                        onClick={() => removeTranslationTab(index)}
-                        disabled={isLoading}
-                      >
-                        <X className="w-4 h-4" />
-                        Remove
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-ghost text-primary hover:bg-primary/10 gap-1"
+                          onClick={() => handleRetranslateTranslation(index)}
+                          disabled={isLoading || retranslatingIndex === index || !translations[index]?.languageCode}
+                          title="Re-translate this translation using AI"
+                        >
+                          {retranslatingIndex === index ? (
+                            <>
+                              <span className="loading loading-spinner loading-xs"></span>
+                              Re-translating...
+                            </>
+                          ) : (
+                            <>
+                              <RotateCw className="w-4 h-4" />
+                              Re-translate
+                            </>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-ghost text-error hover:bg-error/10 gap-1"
+                          onClick={() => removeTranslationTab(index)}
+                          disabled={isLoading}
+                        >
+                          <X className="w-4 h-4" />
+                          Remove
+                        </button>
+                      </div>
                     </div>
 
                     {/* Language Selection */}
