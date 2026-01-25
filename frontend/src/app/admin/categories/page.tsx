@@ -69,9 +69,15 @@ export default function AdminCategoriesListPage() {
     try {
       setIsDeleting(true);
       const response = await authenticatedFetch(
-        getApiUrl(`/categories/${categoryToDelete.id}`),
+        getApiUrl('/categories'),
         token,
-        { method: 'DELETE' },
+        { 
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify([categoryToDelete.id]),
+        },
         keycloak || undefined,
       );
 
