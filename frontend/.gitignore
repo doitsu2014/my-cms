@@ -7,6 +7,9 @@
 node_modules
 dist/
 
+# Lock files (project uses pnpm)
+package-lock.json
+
 # Profile
 .rspack-profile-*/
 

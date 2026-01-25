@@ -49,6 +49,11 @@ export default function BlogForm({ id }: { id?: string }) {
   const [previewContentOpen, setPreviewContentOpen] = useState(true);
   const [fullArticleOpen, setFullArticleOpen] = useState(true);
   const [fabOpen, setFabOpen] = useState(false);
+  
+  // Translation modal state
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [showTranslateModal, setShowTranslateModal] = useState(false);
+  const [selectedTranslateLanguage, setSelectedTranslateLanguage] = useState('');
 
   const {
     register,
@@ -297,6 +302,91 @@ export default function BlogForm({ id }: { id?: string }) {
     const allUsed = AVAILABLE_LANGUAGES.every((lang) => usedLanguages.includes(lang.code));
     const maxReached = fields.length >= AVAILABLE_LANGUAGES.length;
     return allUsed || maxReached;
+  };
+
+  const handleTranslatePost = async () => {
+    if (!id || !selectedTranslateLanguage) {
+      toast.error('Please select a language to translate to');
+      return;
+    }
+
+    setIsTranslating(true);
+    try {
+      const response = await authenticatedFetch(
+        getApiUrl(`/posts/${id}/translate`),
+        token,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            targetLanguage: selectedTranslateLanguage,
+            forceRetranslate: false,
+          }),
+        },
+        keycloak || undefined
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        toast.success('Translation completed successfully!');
+        setShowTranslateModal(false);
+        setSelectedTranslateLanguage('');
+        
+        // Reload post data to show the new translation
+        const postResponse = await authenticatedFetch(
+          getApiUrl(`/posts/${id}`),
+          token,
+          { cache: 'no-store' },
+          keycloak || undefined
+        );
+        
+        if (postResponse && postResponse.ok) {
+          const res: { data: PostModel } = await postResponse.json();
+          setOriginalContent(res.data.content);
+
+          const translationContents: Record<number, string> = {};
+          res.data.translations?.forEach((t, index) => {
+            translationContents[index] = t.content;
+          });
+          setOriginalTranslationContents(translationContents);
+
+          reset({
+            title: res.data.title,
+            previewContent: res.data.previewContent,
+            content: res.data.content,
+            thumbnailPaths: res.data.thumbnailPaths ?? [],
+            published: res.data.published,
+            tagNames: res.data.tags?.map((tag) => tag.name) ?? [],
+            categoryId: res.data.categoryId,
+            translations:
+              res.data.translations?.map((t) => ({
+                id: t.id,
+                languageCode: t.languageCode,
+                title: t.title,
+                previewContent: t.previewContent,
+                content: t.content,
+                slug: t.slug,
+              })) ?? [],
+            rowVersion: res.data.rowVersion,
+          });
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || 'Failed to translate post');
+      }
+    } catch (error) {
+      console.error('Error translating post:', error);
+      toast.error('Network error. Please try again.');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  const getAvailableTranslationLanguages = () => {
+    const usedLanguages = translations?.map((t) => t.languageCode) || [];
+    return AVAILABLE_LANGUAGES.filter((lang) => !usedLanguages.includes(lang.code));
   };
 
   return (
@@ -602,7 +692,18 @@ export default function BlogForm({ id }: { id?: string }) {
         {/* Translations Tab */}
         {activeMainTab === 'translations' && (
           <div className="space-y-4">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              {id && getAvailableTranslationLanguages().length > 0 && (
+                <button
+                  type="button"
+                  className="btn btn-sm btn-primary gap-1"
+                  onClick={() => setShowTranslateModal(true)}
+                  disabled={isLoading || isTranslating}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  AI Translate
+                </button>
+              )}
               <button
                 type="button"
                 className="btn btn-sm btn-neutral btn-outline gap-1"
@@ -828,6 +929,88 @@ export default function BlogForm({ id }: { id?: string }) {
           <Plus className="w-5 h-5" />
         </button>
       </div>
+
+      {/* Translation Modal */}
+      {showTranslateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-base-100 rounded-2xl shadow-xl max-w-md w-full mx-4 p-6 space-y-4 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 p-3 rounded-xl">
+                <Sparkles className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold">AI Translation</h3>
+                <p className="text-sm text-base-content/60">Translate this post automatically</p>
+              </div>
+            </div>
+
+            {isTranslating ? (
+              <div className="py-8 space-y-4">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="relative">
+                    <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                    <Sparkles className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                  </div>
+                  <div className="text-center space-y-2">
+                    <p className="font-medium">Translating your post...</p>
+                    <p className="text-sm text-base-content/60">This may take a moment</p>
+                  </div>
+                </div>
+                <div className="w-full bg-base-200 rounded-full h-2 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-primary via-secondary to-accent animate-pulse"></div>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="form-control w-full">
+                  <label className="label">
+                    <span className="label-text font-medium">Target Language</span>
+                  </label>
+                  <select
+                    className="select select-bordered w-full focus:select-primary"
+                    value={selectedTranslateLanguage}
+                    onChange={(e) => setSelectedTranslateLanguage(e.target.value)}
+                  >
+                    <option value="">Select a language</option>
+                    {getAvailableTranslationLanguages().map((lang) => (
+                      <option key={lang.code} value={lang.code}>
+                        {lang.displayName}
+                      </option>
+                    ))}
+                  </select>
+                  <label className="label">
+                    <span className="label-text-alt text-base-content/60">
+                      AI will translate the title, preview, and content
+                    </span>
+                  </label>
+                </div>
+
+                <div className="flex gap-2 justify-end pt-2">
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={() => {
+                      setShowTranslateModal(false);
+                      setSelectedTranslateLanguage('');
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary gap-2"
+                    onClick={handleTranslatePost}
+                    disabled={!selectedTranslateLanguage}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Start Translation
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </form>
   );
 }
