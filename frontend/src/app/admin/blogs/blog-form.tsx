@@ -60,7 +60,7 @@ export default function BlogForm({ id }: { id?: string }) {
   
   // AI model selection state
   const [aiModels, setAiModels] = useState<OpenAIModel[]>([]);
-  const [selectedModel, setSelectedModel] = useState<string>('gpt-4o-mini');
+  const [selectedModel, setSelectedModel] = useState<string>('gpt-5-nano');
   const [loadingModels, setLoadingModels] = useState(false);
 
   const {

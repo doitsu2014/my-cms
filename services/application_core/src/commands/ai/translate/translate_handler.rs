@@ -25,7 +25,7 @@ use crate::{
 use super::{translate_request::TranslatePostRequest, translate_response::TranslatePostResponse};
 
 // Default OpenAI model to use for translation
-const DEFAULT_OPENAI_MODEL: &str = "gpt-4o-mini";
+const DEFAULT_OPENAI_MODEL: &str = "gpt-5-nano";
 
 // Maximum chunk size in characters for content translation
 // Reduced from 2000 to 1500 to ensure comfortable fit within token limits

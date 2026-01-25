@@ -23,6 +23,18 @@ impl ModelsHandler {
     /// a curated list of commonly used models with their current pricing
     fn get_hardcoded_models() -> Vec<OpenAIModelInfo> {
         vec![
+            // GPT-5-nano - most cost-effective (HIGHLY RECOMMENDED)
+            OpenAIModelInfo::new(
+                "gpt-5-nano".to_string(),
+                "GPT-5 Nano".to_string(),
+                0.05,  // $0.05 per 1M input tokens
+                0.40,  // $0.40 per 1M output tokens
+                400000,
+                128000,
+            )
+            .with_recommendation(
+                "Most cost-effective model! 3x cheaper than GPT-4o Mini with larger context window (400k tokens). Perfect for translations.".to_string()
+            ),
             // GPT-4o models - most capable
             OpenAIModelInfo::new(
                 "gpt-4o".to_string(),
