@@ -418,6 +418,10 @@ export default function BlogForm({ id }: { id?: string }) {
     }
   };
 
+  const isRetranslateDisabled = (index: number) => {
+    return isLoading || retranslatingIndex === index || !translations[index]?.languageCode;
+  };
+
   const getAvailableTranslationLanguages = () => {
     const usedLanguages = translations?.map((t) => t.languageCode) || [];
     return AVAILABLE_LANGUAGES.filter((lang) => !usedLanguages.includes(lang.code));
@@ -805,7 +809,7 @@ export default function BlogForm({ id }: { id?: string }) {
                           type="button"
                           className="btn btn-sm btn-ghost text-primary hover:bg-primary/10 gap-1"
                           onClick={() => handleRetranslateTranslation(index)}
-                          disabled={isLoading || retranslatingIndex === index || !translations[index]?.languageCode}
+                          disabled={isRetranslateDisabled(index)}
                           title="Re-translate this translation using AI"
                         >
                           {retranslatingIndex === index ? (
