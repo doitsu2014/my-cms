@@ -1112,17 +1112,25 @@ export default function BlogForm({ id }: { id?: string }) {
                       </select>
                       <label className="label">
                         <span className="label-text-alt text-base-content/60">
-                          {aiModels.find(m => m.id === selectedModel)?.isRecommended && (
-                            <span className="text-warning font-medium">
-                              ⭐ Recommended: {aiModels.find(m => m.id === selectedModel)?.recommendationReason}
-                            </span>
-                          )}
-                          {!aiModels.find(m => m.id === selectedModel)?.isRecommended && (
-                            <span>
-                              Input: ${aiModels.find(m => m.id === selectedModel)?.inputPricePer1m.toFixed(2)}/1M tokens, 
-                              Output: ${aiModels.find(m => m.id === selectedModel)?.outputPricePer1m.toFixed(2)}/1M tokens
-                            </span>
-                          )}
+                          {(() => {
+                            const currentModel = aiModels.find(m => m.id === selectedModel);
+                            if (!currentModel) return null;
+                            
+                            if (currentModel.isRecommended) {
+                              return (
+                                <span className="text-warning font-medium">
+                                  ⭐ Recommended: {currentModel.recommendationReason}
+                                </span>
+                              );
+                            }
+                            
+                            return (
+                              <span>
+                                Input: ${currentModel.inputPricePer1m.toFixed(2)}/1M tokens, 
+                                Output: ${currentModel.outputPricePer1m.toFixed(2)}/1M tokens
+                              </span>
+                            );
+                          })()}
                         </span>
                       </label>
                     </>
