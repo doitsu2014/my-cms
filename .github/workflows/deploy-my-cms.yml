@@ -5,6 +5,7 @@ on:
     branches:
       - release/*  # Trigger on push to main branch
   workflow_dispatch:  # Allow manual trigger
+  workflow_call:  # Allow being called from other workflows
 
 env:
   HELM_CHART_REPO: https://doitsu2014.github.io/my-cms
