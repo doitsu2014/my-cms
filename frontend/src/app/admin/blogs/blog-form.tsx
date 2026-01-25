@@ -86,59 +86,63 @@ export default function BlogForm({ id }: { id?: string }) {
   const translations = watch('translations');
   const isLoading = isSubmitting || fetchingData;
 
+  // Reusable function to reload post data
+  const reloadPostData = async () => {
+    if (!id) return;
+    
+    setFetchingData(true);
+    try {
+      const response = await authenticatedFetch(
+        getApiUrl(`/posts/${id}`),
+        token,
+        { cache: 'no-store' },
+        keycloak || undefined
+      );
+      
+      if (response && response.ok) {
+        const res: { data: PostModel } = await response.json();
+        setOriginalContent(res.data.content);
+
+        // Store original translation contents for rich text editors
+        const translationContents: Record<number, string> = {};
+        res.data.translations?.forEach((t, index) => {
+          translationContents[index] = t.content;
+        });
+        setOriginalTranslationContents(translationContents);
+
+        reset({
+          title: res.data.title,
+          previewContent: res.data.previewContent,
+          content: res.data.content,
+          thumbnailPaths: res.data.thumbnailPaths ?? [],
+          published: res.data.published,
+          tagNames: res.data.tags?.map((tag) => tag.name) ?? [],
+          categoryId: res.data.categoryId,
+          translations:
+            res.data.translations?.map((t) => ({
+              id: t.id,
+              languageCode: t.languageCode,
+              title: t.title,
+              previewContent: t.previewContent,
+              content: t.content,
+              slug: t.slug,
+            })) ?? [],
+          rowVersion: res.data.rowVersion,
+        });
+      } else {
+        toast.error('Failed to load post data');
+      }
+    } catch (error) {
+      console.error('Error fetching post:', error);
+      toast.error('Error loading post');
+    } finally {
+      setFetchingData(false);
+    }
+  };
+
   useEffect(() => {
     if (id) {
-      const fetchPost = async () => {
-        setFetchingData(true);
-        try {
-          const response = await authenticatedFetch(
-            getApiUrl(`/posts/${id}`),
-            token,
-            { cache: 'no-store' },
-            keycloak || undefined
-          );
-          if (response && response.ok) {
-            const res: { data: PostModel } = await response.json();
-            setOriginalContent(res.data.content);
-
-            // Store original translation contents for rich text editors
-            const translationContents: Record<number, string> = {};
-            res.data.translations?.forEach((t, index) => {
-              translationContents[index] = t.content;
-            });
-            setOriginalTranslationContents(translationContents);
-
-            reset({
-              title: res.data.title,
-              previewContent: res.data.previewContent,
-              content: res.data.content,
-              thumbnailPaths: res.data.thumbnailPaths ?? [],
-              published: res.data.published,
-              tagNames: res.data.tags?.map((tag) => tag.name) ?? [],
-              categoryId: res.data.categoryId,
-              translations:
-                res.data.translations?.map((t) => ({
-                  id: t.id,
-                  languageCode: t.languageCode,
-                  title: t.title,
-                  previewContent: t.previewContent,
-                  content: t.content,
-                  slug: t.slug,
-                })) ?? [],
-              rowVersion: res.data.rowVersion,
-            });
-          } else {
-            toast.error('Failed to load post data');
-          }
-        } catch (error) {
-          console.error('Error fetching post:', error);
-          toast.error('Error loading post');
-        } finally {
-          setFetchingData(false);
-        }
-      };
-
-      fetchPost();
+      reloadPostData();
     } else {
       reset({
         title: '',
@@ -329,52 +333,24 @@ export default function BlogForm({ id }: { id?: string }) {
       );
 
       if (response.ok) {
-        const result = await response.json();
+        await response.json();
         toast.success('Translation completed successfully!');
         setShowTranslateModal(false);
         setSelectedTranslateLanguage('');
         
         // Reload post data to show the new translation
-        const postResponse = await authenticatedFetch(
-          getApiUrl(`/posts/${id}`),
-          token,
-          { cache: 'no-store' },
-          keycloak || undefined
-        );
-        
-        if (postResponse && postResponse.ok) {
-          const res: { data: PostModel } = await postResponse.json();
-          setOriginalContent(res.data.content);
-
-          const translationContents: Record<number, string> = {};
-          res.data.translations?.forEach((t, index) => {
-            translationContents[index] = t.content;
-          });
-          setOriginalTranslationContents(translationContents);
-
-          reset({
-            title: res.data.title,
-            previewContent: res.data.previewContent,
-            content: res.data.content,
-            thumbnailPaths: res.data.thumbnailPaths ?? [],
-            published: res.data.published,
-            tagNames: res.data.tags?.map((tag) => tag.name) ?? [],
-            categoryId: res.data.categoryId,
-            translations:
-              res.data.translations?.map((t) => ({
-                id: t.id,
-                languageCode: t.languageCode,
-                title: t.title,
-                previewContent: t.previewContent,
-                content: t.content,
-                slug: t.slug,
-              })) ?? [],
-            rowVersion: res.data.rowVersion,
-          });
-        }
+        await reloadPostData();
       } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || 'Failed to translate post');
+        let errorMessage = 'Failed to translate post';
+        try {
+          const errorData = await response.json();
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch {
+          // If parsing JSON fails, use default error message
+        }
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Error translating post:', error);
@@ -956,8 +932,9 @@ export default function BlogForm({ id }: { id?: string }) {
                     <p className="text-sm text-base-content/60">This may take a moment</p>
                   </div>
                 </div>
-                <div className="w-full bg-base-200 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-base-200 rounded-full h-2 overflow-hidden" role="progressbar" aria-label="Translation in progress">
                   <div className="h-full bg-gradient-to-r from-primary via-secondary to-accent animate-pulse"></div>
+                  <span className="sr-only">Translating post content, please wait...</span>
                 </div>
               </div>
             ) : (
