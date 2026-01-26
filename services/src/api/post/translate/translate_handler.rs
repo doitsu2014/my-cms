@@ -23,6 +23,9 @@ pub struct TranslatePostRequestBody {
     /// When true, will check Qdrant for similar translations before proceeding
     #[serde(default)]
     pub force_retranslate: bool,
+    /// OpenAI model to use for translation (e.g., "gpt-4o-mini", "gpt-4o")
+    /// If not specified, defaults to "gpt-5-nano"
+    pub model: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -99,8 +102,12 @@ pub async fn api_translate_post(
         vector_store,
     };
 
-    let request = TranslatePostRequest::new(post_id, body.target_language)
+    let mut request = TranslatePostRequest::new(post_id, body.target_language)
         .with_force_retranslate(body.force_retranslate);
+    
+    if let Some(model) = body.model {
+        request = request.with_model(model);
+    }
 
     let result = handler
         .handle_translate_post(request, openai_api_key)
@@ -146,8 +153,12 @@ pub async fn api_translate_post_background(
         vector_store,
     };
 
-    let request = TranslatePostRequest::new(post_id, body.target_language)
+    let mut request = TranslatePostRequest::new(post_id, body.target_language)
         .with_force_retranslate(body.force_retranslate);
+    
+    if let Some(model) = body.model {
+        request = request.with_model(model);
+    }
 
     let result = handler
         .handle_translate_post_background(request, openai_api_key)

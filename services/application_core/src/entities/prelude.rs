@@ -7,3 +7,4 @@ pub use super::post_tags::Entity as PostTags;
 pub use super::post_translations::Entity as PostTranslations;
 pub use super::posts::Entity as Posts;
 pub use super::tags::Entity as Tags;
+pub use super::translation_jobs::Entity as TranslationJobs;

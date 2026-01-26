@@ -57,6 +57,16 @@ export default function BlogForm({ id }: { id?: string }) {
   const [showTranslateModal, setShowTranslateModal] = useState(false);
   const [selectedTranslateLanguage, setSelectedTranslateLanguage] = useState('');
   const [retranslatingIndex, setRetranslatingIndex] = useState<number | null>(null);
+  const [showRetranslateDialog, setShowRetranslateDialog] = useState(false);
+  const [retranslateLanguage, setRetranslateLanguage] = useState('');
+  const [translationJobId, setTranslationJobId] = useState<string | null>(null);
+  const [translationProgress, setTranslationProgress] = useState(0);
+  const [activeJobs, setActiveJobs] = useState<Array<{
+    jobId: string;
+    targetLanguage: string;
+    status: string;
+    progress: number;
+  }>>([]);
   
   // AI model selection state
   const [aiModels, setAiModels] = useState<OpenAIModel[]>([]);
@@ -172,6 +182,7 @@ export default function BlogForm({ id }: { id?: string }) {
   useEffect(() => {
     if (id) {
       reloadPostData();
+      checkActiveJobs();
     } else {
       reset({
         title: '',
@@ -191,10 +202,10 @@ export default function BlogForm({ id }: { id?: string }) {
 
   // Fetch AI models when modal is opened
   useEffect(() => {
-    if (showTranslateModal && aiModels.length === 0) {
+    if ((showTranslateModal || showRetranslateDialog) && aiModels.length === 0) {
       fetchAIModels();
     }
-  }, [showTranslateModal]);
+  }, [showTranslateModal, showRetranslateDialog]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -344,6 +355,60 @@ export default function BlogForm({ id }: { id?: string }) {
     return allUsed || maxReached;
   };
 
+  // Check for active translation jobs
+  const checkActiveJobs = async () => {
+    if (!id) return;
+    
+    try {
+      const response = await authenticatedFetch(
+        getApiUrl(`/posts/${id}/translate/jobs`),
+        token,
+        { method: 'GET' },
+        keycloak || undefined
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        setActiveJobs(data.data?.jobs || []);
+      }
+    } catch (error) {
+      console.error('Error checking active jobs:', error);
+    }
+  };
+  
+  // Poll job status
+  const pollJobStatus = async (jobId: string): Promise<boolean> => {
+    if (!id) return false;
+    
+    try {
+      const response = await authenticatedFetch(
+        getApiUrl(`/posts/${id}/translate/jobs/${jobId}`),
+        token,
+        { method: 'GET' },
+        keycloak || undefined
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        const job = data.data;
+        
+        setTranslationProgress(job.progress || 0);
+        
+        if (job.status === 'completed') {
+          return true;
+        } else if (job.status === 'failed') {
+          toast.error(`Translation failed: ${job.errorMessage || 'Unknown error'}`);
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error polling job status:', error);
+      return false;
+    }
+  };
+
   const handleTranslatePost = async () => {
     if (!id || !selectedTranslateLanguage) {
       toast.error('Please select a language to translate to');
@@ -351,9 +416,10 @@ export default function BlogForm({ id }: { id?: string }) {
     }
 
     setIsTranslating(true);
+    setTranslationProgress(0);
     try {
       const response = await authenticatedFetch(
-        getApiUrl(`/posts/${id}/translate`),
+        getApiUrl(`/posts/${id}/translate/background`),
         token,
         {
           method: 'POST',
@@ -370,15 +436,42 @@ export default function BlogForm({ id }: { id?: string }) {
       );
 
       if (response.ok) {
-        await response.json();
-        toast.success('Translation completed successfully!');
-        setShowTranslateModal(false);
-        setSelectedTranslateLanguage('');
+        const result = await response.json();
+        const jobId = result.data?.translationId;
         
-        // Reload post data to show the new translation
-        await reloadPostData();
+        if (jobId) {
+          setTranslationJobId(jobId);
+          toast.info('Translation started in background...');
+          
+          // Poll for job completion
+          const pollInterval = setInterval(async () => {
+            const isComplete = await pollJobStatus(jobId);
+            
+            if (isComplete) {
+              clearInterval(pollInterval);
+              setIsTranslating(false);
+              setShowTranslateModal(false);
+              setSelectedTranslateLanguage('');
+              setTranslationJobId(null);
+              setTranslationProgress(0);
+              
+              toast.success('Translation completed successfully!');
+              await reloadPostData();
+              await checkActiveJobs();
+            }
+          }, 2000); // Poll every 2 seconds
+          
+          // Set a timeout to stop polling after 5 minutes
+          setTimeout(() => {
+            clearInterval(pollInterval);
+            if (isTranslating) {
+              setIsTranslating(false);
+              toast.warning('Translation is taking longer than expected. Please refresh the page to check status.');
+            }
+          }, 5 * 60 * 1000);
+        }
       } else {
-        let errorMessage = 'Failed to translate post';
+        let errorMessage = 'Failed to start translation';
         try {
           const errorData = await response.json();
           if (errorData.message) {
@@ -388,11 +481,11 @@ export default function BlogForm({ id }: { id?: string }) {
           // If parsing JSON fails, use default error message
         }
         toast.error(errorMessage);
+        setIsTranslating(false);
       }
     } catch (error) {
       console.error('Error translating post:', error);
       toast.error('Network error. Please try again.');
-    } finally {
       setIsTranslating(false);
     }
   };
@@ -408,11 +501,22 @@ export default function BlogForm({ id }: { id?: string }) {
       toast.error('Please select a language for this translation');
       return;
     }
-
+    
+    // Show model selection dialog
     setRetranslatingIndex(index);
+    setRetranslateLanguage(translation.languageCode);
+    setShowRetranslateDialog(true);
+  };
+  
+  const confirmRetranslate = async () => {
+    if (!id || retranslatingIndex === null) return;
+    
+    const translation = translations[retranslatingIndex];
+    setShowRetranslateDialog(false);
+    
     try {
       const response = await authenticatedFetch(
-        getApiUrl(`/posts/${id}/translate`),
+        getApiUrl(`/posts/${id}/translate/background`),
         token,
         {
           method: 'POST',
@@ -429,11 +533,36 @@ export default function BlogForm({ id }: { id?: string }) {
       );
 
       if (response.ok) {
-        await response.json();
-        toast.success(`Translation re-generated successfully for ${translation.languageCode.toUpperCase()}!`);
+        const result = await response.json();
+        const jobId = result.data?.translationId;
         
-        // Reload post data to show the updated translation
-        await reloadPostData();
+        if (jobId) {
+          toast.info(`Re-translation started for ${translation.languageCode.toUpperCase()}...`);
+          await checkActiveJobs();
+          
+          // Poll for job completion
+          const pollInterval = setInterval(async () => {
+            const isComplete = await pollJobStatus(jobId);
+            
+            if (isComplete) {
+              clearInterval(pollInterval);
+              setRetranslatingIndex(null);
+              
+              toast.success(`Translation re-generated successfully for ${translation.languageCode.toUpperCase()}!`);
+              await reloadPostData();
+              await checkActiveJobs();
+            }
+          }, 2000);
+          
+          // Set a timeout to stop polling after 5 minutes
+          setTimeout(() => {
+            clearInterval(pollInterval);
+            if (retranslatingIndex !== null) {
+              setRetranslatingIndex(null);
+              toast.warning('Re-translation is taking longer than expected. Please refresh the page to check status.');
+            }
+          }, 5 * 60 * 1000);
+        }
       } else {
         let errorMessage = 'Failed to re-translate';
         try {
@@ -445,17 +574,26 @@ export default function BlogForm({ id }: { id?: string }) {
           // If parsing JSON fails, use default error message
         }
         toast.error(errorMessage);
+        setRetranslatingIndex(null);
       }
     } catch (error) {
       console.error('Error re-translating:', error);
       toast.error('Network error. Please try again.');
-    } finally {
       setRetranslatingIndex(null);
     }
   };
 
   const isRetranslateDisabled = (index: number) => {
-    return isLoading || retranslatingIndex === index || !translations[index]?.languageCode;
+    const translation = translations[index];
+    if (!translation?.languageCode) return true;
+    
+    // Check if there's an active job for this language
+    const hasActiveJob = activeJobs.some(
+      job => job.targetLanguage.toLowerCase() === translation.languageCode.toLowerCase() &&
+             (job.status === 'pending' || job.status === 'processing')
+    );
+    
+    return isLoading || retranslatingIndex === index || hasActiveJob;
   };
 
   const getAvailableTranslationLanguages = () => {
@@ -1048,7 +1186,9 @@ export default function BlogForm({ id }: { id?: string }) {
                   </div>
                   <div className="text-center space-y-2">
                     <p className="font-medium">Translating your post...</p>
-                    <p className="text-sm text-base-content/60">This may take a moment</p>
+                    <p className="text-sm text-base-content/60">
+                      {translationProgress > 0 ? `Progress: ${translationProgress}%` : 'Starting translation...'}
+                    </p>
                   </div>
                 </div>
                 <div 
@@ -1057,9 +1197,17 @@ export default function BlogForm({ id }: { id?: string }) {
                   aria-label="Translation in progress"
                   aria-valuemin={0}
                   aria-valuemax={100}
+                  aria-valuenow={translationProgress}
                 >
-                  <div className="h-full bg-gradient-to-r from-primary via-secondary to-accent animate-pulse"></div>
-                  <span className="sr-only">Translating post content, please wait...</span>
+                  {translationProgress > 0 ? (
+                    <div 
+                      className="h-full bg-gradient-to-r from-primary via-secondary to-accent transition-all duration-500"
+                      style={{ width: `${translationProgress}%` }}
+                    ></div>
+                  ) : (
+                    <div className="h-full bg-gradient-to-r from-primary via-secondary to-accent animate-pulse"></div>
+                  )}
+                  <span className="sr-only">Translating post content, progress: {translationProgress}%</span>
                 </div>
               </div>
             ) : (
@@ -1160,6 +1308,103 @@ export default function BlogForm({ id }: { id?: string }) {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+      
+      {/* Re-translate Model Selection Dialog */}
+      {showRetranslateDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-base-100 rounded-2xl shadow-xl max-w-md w-full mx-4 p-6 space-y-4 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center gap-3">
+              <div className="bg-warning/10 p-3 rounded-xl">
+                <RotateCw className="w-6 h-6 text-warning" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold">Re-translate Confirmation</h3>
+                <p className="text-sm text-base-content/60">
+                  Choose AI model for {retranslateLanguage.toUpperCase()} translation
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-warning/5 border border-warning/20 rounded-xl p-4">
+              <p className="text-sm text-base-content/80">
+                This will replace the existing translation with a new AI-generated version.
+              </p>
+            </div>
+
+            <div className="form-control w-full">
+              <label className="label">
+                <span className="label-text font-medium">AI Model</span>
+              </label>
+              {loadingModels ? (
+                <div className="flex items-center justify-center p-4">
+                  <span className="loading loading-spinner loading-sm"></span>
+                  <span className="ml-2 text-sm">Loading models...</span>
+                </div>
+              ) : (
+                <>
+                  <select
+                    className="select select-bordered w-full focus:select-primary"
+                    value={selectedModel}
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                  >
+                    {aiModels.map((model) => (
+                      <option key={model.id} value={model.id}>
+                        {model.name} - ${model.inputPricePer1m.toFixed(2)}/${model.outputPricePer1m.toFixed(2)} per 1M tokens
+                        {model.isRecommended ? ' ⭐' : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <label className="label">
+                    <span className="label-text-alt text-base-content/60">
+                      {(() => {
+                        const currentModel = aiModels.find(m => m.id === selectedModel);
+                        if (!currentModel) return null;
+                        
+                        if (currentModel.isRecommended) {
+                          return (
+                            <span className="text-warning font-medium">
+                              ⭐ Recommended: {currentModel.recommendationReason}
+                            </span>
+                          );
+                        }
+                        
+                        return (
+                          <span>
+                            Input: ${currentModel.inputPricePer1m.toFixed(2)}/1M tokens, 
+                            Output: ${currentModel.outputPricePer1m.toFixed(2)}/1M tokens
+                          </span>
+                        );
+                      })()}
+                    </span>
+                  </label>
+                </>
+              )}
+            </div>
+
+            <div className="flex gap-2 justify-end pt-2">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => {
+                  setShowRetranslateDialog(false);
+                  setRetranslatingIndex(null);
+                  setRetranslateLanguage('');
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-warning gap-2"
+                onClick={confirmRetranslate}
+              >
+                <RotateCw className="w-4 h-4" />
+                Re-translate
+              </button>
+            </div>
           </div>
         </div>
       )}

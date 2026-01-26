@@ -226,14 +226,49 @@ MEDIA_IMG_PROXY_SERVER=https://imgproxy.doitsu.tech
 
 ### AI Translation Service
 
-Intelligent post translation powered by OpenAI GPT-4o-mini with cost-saving features:
+Intelligent post translation powered by OpenAI with advanced features and background job processing:
+
+#### Core Features
 - **3-Tier Lookup Strategy**: Database → Qdrant similarity → OpenAI (minimizes API costs)
 - **HTML-Aware Processing**: Preserves structure when translating HTML content
 - **Smart Translation Reuse**: Automatically reuses highly similar translations (≥95% similarity)
-- **Background Processing**: Non-blocking execution for large content
+- **Background Processing**: Non-blocking execution with job tracking and progress monitoring
 - **Vector Database Integration**: Qdrant for semantic search and similarity matching
+- **Model Selection**: Choose from multiple AI models (gpt-5-nano, gpt-4o-mini, gpt-4o) with cost transparency
 
-See [AI Translation Documentation](application_core/src/commands/ai/README.md) for details.
+#### Background Job Tracking (Release 3.0.0)
+
+**Database Schema:**
+- New `translation_jobs` table tracks job lifecycle (pending → processing → completed/failed)
+- Stores progress (0-100%), error messages, AI model selection, and timestamps
+- Indexed for efficient active job queries
+
+**API Endpoints:**
+- `POST /posts/{post_id}/translate/background` - Start background translation
+- `GET /posts/{post_id}/translate/jobs/{job_id}` - Get specific job status
+- `GET /posts/{post_id}/translate/jobs` - Get all active jobs for a post
+
+**Frontend Features:**
+- Real-time progress tracking with 2-second polling
+- Model selection dialog for re-translations
+- Active job detection to prevent duplicates
+- Automatic UI disabling when translations are in progress
+- Timeout handling (5 minutes) with user notifications
+
+**Job Status Response:**
+```json
+{
+  "jobId": "uuid",
+  "status": "processing",  // pending, processing, completed, failed
+  "progress": 45,          // 0-100
+  "aiModel": "gpt-5-nano",
+  "errorMessage": null,
+  "createdAt": "2026-01-26T...",
+  "updatedAt": "2026-01-26T..."
+}
+```
+
+See [AI Translation Documentation](application_core/src/commands/ai/README.md) for implementation details.
 
 ## Development Guidelines
 
