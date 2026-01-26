@@ -1280,4 +1280,382 @@ mod tests {
         assert!(!result.translated_title.is_empty());
         assert!(!result.translated_content.is_empty());
     }
+
+    #[async_std::test]
+    async fn test_job_creation_on_background_translation() {
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        let arc_conn = Arc::new(database);
+
+        // Create category and post
+        let category_create_handler = CategoryCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_category_request = fake_create_category_request(0);
+        let created_category_id = category_create_handler
+            .handle_create_category_with_tags(create_category_request, None)
+            .await
+            .unwrap();
+
+        let post_create_handler = PostCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_post_request = fake_create_post_request(created_category_id, 0);
+        let created_post_id = post_create_handler
+            .handle_create_post(create_post_request, None)
+            .await
+            .unwrap();
+
+        // Create translate handler
+        let translate_handler = PostTranslateHandler {
+            vector_store: None,
+            db: arc_conn.clone(),
+        };
+        
+        let mut translate_request = TranslatePostRequest::new(created_post_id, "vi".to_string());
+        translate_request = translate_request.with_model("gpt-4o-mini".to_string());
+        
+        // Start background translation
+        let job_id = translate_handler
+            .handle_translate_post_background(translate_request, "fake-api-key".to_string())
+            .await
+            .unwrap();
+
+        // Give the background task a moment to create the job record
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
+        // Verify job was created in database
+        use crate::entities::translation_jobs;
+        let job = translation_jobs::Entity::find_by_id(job_id)
+            .one(arc_conn.as_ref())
+            .await
+            .unwrap();
+
+        assert!(job.is_some());
+        let job = job.unwrap();
+        assert_eq!(job.post_id, created_post_id);
+        assert_eq!(job.target_language, "vi");
+        assert_eq!(job.ai_model, "gpt-4o-mini");
+        assert!(job.status == "pending" || job.status == "processing" || job.status == "failed");
+        assert!(job.progress >= 0 && job.progress <= 100);
+    }
+
+    #[async_std::test]
+    async fn test_job_status_tracking() {
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        let arc_conn = Arc::new(database);
+
+        // Create a test job record
+        use crate::entities::translation_jobs;
+        let job_id = Uuid::new_v4();
+        let post_id = Uuid::new_v4();
+        
+        let job = translation_jobs::ActiveModel {
+            id: sea_orm::Set(job_id),
+            post_id: sea_orm::Set(post_id),
+            target_language: sea_orm::Set("vi".to_string()),
+            status: sea_orm::Set("pending".to_string()),
+            progress: sea_orm::Set(0),
+            error_message: sea_orm::Set(None),
+            ai_model: sea_orm::Set("gpt-5-nano".to_string()),
+            created_at: sea_orm::Set(chrono::Utc::now().into()),
+            updated_at: sea_orm::Set(chrono::Utc::now().into()),
+        };
+
+        translation_jobs::Entity::insert(job)
+            .exec(arc_conn.as_ref())
+            .await
+            .unwrap();
+
+        // Update job status
+        PostTranslateHandler::update_job_status(
+            arc_conn.as_ref(),
+            job_id,
+            "processing",
+            50,
+            None,
+        )
+        .await
+        .unwrap();
+
+        // Verify status was updated
+        let updated_job = translation_jobs::Entity::find_by_id(job_id)
+            .one(arc_conn.as_ref())
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(updated_job.status, "processing");
+        assert_eq!(updated_job.progress, 50);
+
+        // Update to completed
+        PostTranslateHandler::update_job_status(
+            arc_conn.as_ref(),
+            job_id,
+            "completed",
+            100,
+            None,
+        )
+        .await
+        .unwrap();
+
+        let completed_job = translation_jobs::Entity::find_by_id(job_id)
+            .one(arc_conn.as_ref())
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(completed_job.status, "completed");
+        assert_eq!(completed_job.progress, 100);
+    }
+
+    #[async_std::test]
+    async fn test_job_error_tracking() {
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        let arc_conn = Arc::new(database);
+
+        // Create a test job record
+        use crate::entities::translation_jobs;
+        let job_id = Uuid::new_v4();
+        let post_id = Uuid::new_v4();
+        
+        let job = translation_jobs::ActiveModel {
+            id: sea_orm::Set(job_id),
+            post_id: sea_orm::Set(post_id),
+            target_language: sea_orm::Set("vi".to_string()),
+            status: sea_orm::Set("processing".to_string()),
+            progress: sea_orm::Set(25),
+            error_message: sea_orm::Set(None),
+            ai_model: sea_orm::Set("gpt-5-nano".to_string()),
+            created_at: sea_orm::Set(chrono::Utc::now().into()),
+            updated_at: sea_orm::Set(chrono::Utc::now().into()),
+        };
+
+        translation_jobs::Entity::insert(job)
+            .exec(arc_conn.as_ref())
+            .await
+            .unwrap();
+
+        // Update job to failed with error message
+        let error_msg = "OpenAI API error: Rate limit exceeded";
+        PostTranslateHandler::update_job_status(
+            arc_conn.as_ref(),
+            job_id,
+            "failed",
+            25,
+            Some(error_msg.to_string()),
+        )
+        .await
+        .unwrap();
+
+        // Verify error was recorded
+        let failed_job = translation_jobs::Entity::find_by_id(job_id)
+            .one(arc_conn.as_ref())
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(failed_job.status, "failed");
+        assert_eq!(failed_job.progress, 25);
+        assert!(failed_job.error_message.is_some());
+        assert_eq!(failed_job.error_message.unwrap(), error_msg);
+    }
+
+    #[async_std::test]
+    async fn test_model_parameter_support() {
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        let arc_conn = Arc::new(database);
+
+        // Create category and post
+        let category_create_handler = CategoryCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_category_request = fake_create_category_request(0);
+        let created_category_id = category_create_handler
+            .handle_create_category_with_tags(create_category_request, None)
+            .await
+            .unwrap();
+
+        let post_create_handler = PostCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_post_request = fake_create_post_request(created_category_id, 0);
+        let created_post_id = post_create_handler
+            .handle_create_post(create_post_request, None)
+            .await
+            .unwrap();
+
+        // Test with different models
+        let models = vec!["gpt-4o-mini", "gpt-4o", "gpt-5-nano"];
+        
+        for model in models {
+            let translate_handler = PostTranslateHandler {
+                vector_store: None,
+                db: arc_conn.clone(),
+            };
+            
+            let translate_request = TranslatePostRequest::new(created_post_id, format!("{}_lang", model))
+                .with_model(model.to_string());
+            
+            // Start background translation
+            let job_id = translate_handler
+                .handle_translate_post_background(translate_request, "fake-api-key".to_string())
+                .await
+                .unwrap();
+
+            // Give the background task a moment
+            tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
+            // Verify correct model was stored
+            use crate::entities::translation_jobs;
+            let job = translation_jobs::Entity::find_by_id(job_id)
+                .one(arc_conn.as_ref())
+                .await
+                .unwrap()
+                .unwrap();
+
+            assert_eq!(job.ai_model, model);
+        }
+    }
+
+    #[async_std::test]
+    async fn test_active_jobs_query() {
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        let arc_conn = Arc::new(database);
+
+        let post_id = Uuid::new_v4();
+        
+        // Create multiple jobs with different statuses
+        use crate::entities::translation_jobs;
+        
+        let jobs_data = vec![
+            ("pending", 0),
+            ("processing", 50),
+            ("completed", 100),
+            ("failed", 30),
+        ];
+
+        for (status, progress) in jobs_data {
+            let job = translation_jobs::ActiveModel {
+                id: sea_orm::Set(Uuid::new_v4()),
+                post_id: sea_orm::Set(post_id),
+                target_language: sea_orm::Set(format!("{}_lang", status)),
+                status: sea_orm::Set(status.to_string()),
+                progress: sea_orm::Set(progress),
+                error_message: sea_orm::Set(None),
+                ai_model: sea_orm::Set("gpt-5-nano".to_string()),
+                created_at: sea_orm::Set(chrono::Utc::now().into()),
+                updated_at: sea_orm::Set(chrono::Utc::now().into()),
+            };
+
+            translation_jobs::Entity::insert(job)
+                .exec(arc_conn.as_ref())
+                .await
+                .unwrap();
+        }
+
+        // Query active jobs (pending or processing)
+        let active_jobs = translation_jobs::Entity::find()
+            .filter(translation_jobs::Column::PostId.eq(post_id))
+            .filter(
+                translation_jobs::Column::Status.eq("pending")
+                    .or(translation_jobs::Column::Status.eq("processing"))
+            )
+            .all(arc_conn.as_ref())
+            .await
+            .unwrap();
+
+        // Should have 2 active jobs (pending and processing)
+        assert_eq!(active_jobs.len(), 2);
+        
+        for job in active_jobs {
+            assert!(job.status == "pending" || job.status == "processing");
+        }
+    }
+
+    #[async_std::test]
+    async fn test_force_retranslate_with_model() {
+        let test_space = setup_test_space().await;
+        let database = test_space.postgres.get_database_connection().await;
+        let arc_conn = Arc::new(database);
+
+        // Create category and post
+        let category_create_handler = CategoryCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_category_request = fake_create_category_request(0);
+        let created_category_id = category_create_handler
+            .handle_create_category_with_tags(create_category_request, None)
+            .await
+            .unwrap();
+
+        let post_create_handler = PostCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_post_request = fake_create_post_request(created_category_id, 0);
+        let created_post_id = post_create_handler
+            .handle_create_post(create_post_request, None)
+            .await
+            .unwrap();
+
+        // Manually insert a translation
+        use crate::entities::post_translations;
+        let existing_translation_id = Uuid::new_v4();
+        let translation = post_translations::ActiveModel {
+            id: sea_orm::Set(existing_translation_id),
+            post_id: sea_orm::Set(created_post_id),
+            language_code: sea_orm::Set("vi".to_string()),
+            title: sea_orm::Set("Old Title".to_string()),
+            slug: sea_orm::Set("old-title".to_string()),
+            preview_content: sea_orm::Set("Old Preview".to_string()),
+            content: sea_orm::Set("Old Content".to_string()),
+        };
+
+        post_translations::Entity::insert(translation)
+            .exec(arc_conn.as_ref())
+            .await
+            .unwrap();
+
+        // Verify translation exists
+        let existing = post_translations::Entity::find()
+            .filter(post_translations::Column::PostId.eq(created_post_id))
+            .filter(post_translations::Column::LanguageCode.eq("vi"))
+            .one(arc_conn.as_ref())
+            .await
+            .unwrap();
+        assert!(existing.is_some());
+
+        // Start background retranslation with force flag and specific model
+        let translate_handler = PostTranslateHandler {
+            vector_store: None,
+            db: arc_conn.clone(),
+        };
+        
+        let translate_request = TranslatePostRequest::new(created_post_id, "vi".to_string())
+            .with_force_retranslate(true)
+            .with_model("gpt-4o".to_string());
+        
+        let job_id = translate_handler
+            .handle_translate_post_background(translate_request, "fake-api-key".to_string())
+            .await
+            .unwrap();
+
+        // Give the background task a moment
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+
+        // Verify job was created with correct model
+        use crate::entities::translation_jobs;
+        let job = translation_jobs::Entity::find_by_id(job_id)
+            .one(arc_conn.as_ref())
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(job.ai_model, "gpt-4o");
+        assert_eq!(job.target_language, "vi");
+    }
 }

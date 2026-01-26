@@ -1173,6 +1173,7 @@ dependencies = [
  "seaography",
  "serde",
  "serde_json",
+ "test_helpers",
  "testcontainers",
  "testcontainers-modules",
  "tokio",

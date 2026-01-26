@@ -76,3 +76,4 @@ testcontainers-modules = { version = "0.13.0", features = [
   "postgres",
   "redis",
 ] }
+test_helpers = { path = "test_helpers" }
