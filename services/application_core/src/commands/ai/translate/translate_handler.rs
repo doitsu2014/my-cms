@@ -34,6 +34,7 @@ const MAX_CHUNK_SIZE: usize = 1500;
 
 // Temperature setting for translations (lower = more deterministic, less tokens)
 // Range: 0.0 to 2.0. For translations, we use low temperature for consistency
+// Note: Some models (e.g., gpt-5-nano) only support default temperature (1) and don't accept custom values
 const TRANSLATION_TEMPERATURE: f32 = 0.3;
 
 // Max tokens for OpenAI response (not input)
@@ -89,6 +90,12 @@ struct SimilarTranslationInfo {
 }
 
 impl PostTranslateHandler {
+    /// Helper function to check if a model supports custom temperature values
+    /// GPT-5-nano only supports the default temperature (1), not custom values
+    fn supports_custom_temperature(model: &str) -> bool {
+        !model.starts_with("gpt-5-nano")
+    }
+
     /// Database lookup: Check if translation already exists
     async fn lookup_existing_translation(
         db: &DatabaseConnection,
@@ -752,13 +759,24 @@ impl PostTranslateHandler {
                     ChatCompletionRequestMessage::User(user_message),
                 ];
 
-                let request = CreateChatCompletionRequestArgs::default()
-                    .model(model)
-                    .messages(messages)
-                    .temperature(TRANSLATION_TEMPERATURE)
-                    .max_completion_tokens(MAX_TOKENS_PER_REQUEST as u32)
-                    .build()
-                    .map_err(|e| AppError::OpenAIError(e.to_string()))?;
+                // Build request with conditional temperature based on model support
+                // GPT-5-nano only supports default temperature (1), not custom values
+                let request = if Self::supports_custom_temperature(&model) {
+                    CreateChatCompletionRequestArgs::default()
+                        .model(model)
+                        .messages(messages)
+                        .temperature(TRANSLATION_TEMPERATURE)
+                        .max_completion_tokens(MAX_TOKENS_PER_REQUEST as u32)
+                        .build()
+                        .map_err(|e| AppError::OpenAIError(e.to_string()))?
+                } else {
+                    CreateChatCompletionRequestArgs::default()
+                        .model(model)
+                        .messages(messages)
+                        .max_completion_tokens(MAX_TOKENS_PER_REQUEST as u32)
+                        .build()
+                        .map_err(|e| AppError::OpenAIError(e.to_string()))?
+                };
 
                 let response = new_client
                     .chat()
@@ -846,13 +864,24 @@ impl PostTranslateHandler {
             ChatCompletionRequestMessage::User(user_message),
         ];
 
-        let request = CreateChatCompletionRequestArgs::default()
-            .model(model)
-            .messages(messages)
-            .temperature(TRANSLATION_TEMPERATURE)
-            .max_completion_tokens(MAX_TOKENS_PER_REQUEST as u32)
-            .build()
-            .map_err(|e| AppError::OpenAIError(e.to_string()))?;
+        // Build request with conditional temperature based on model support
+        // GPT-5-nano only supports default temperature (1), not custom values
+        let request = if Self::supports_custom_temperature(model) {
+            CreateChatCompletionRequestArgs::default()
+                .model(model)
+                .messages(messages)
+                .temperature(TRANSLATION_TEMPERATURE)
+                .max_completion_tokens(MAX_TOKENS_PER_REQUEST as u32)
+                .build()
+                .map_err(|e| AppError::OpenAIError(e.to_string()))?
+        } else {
+            CreateChatCompletionRequestArgs::default()
+                .model(model)
+                .messages(messages)
+                .max_completion_tokens(MAX_TOKENS_PER_REQUEST as u32)
+                .build()
+                .map_err(|e| AppError::OpenAIError(e.to_string()))?
+        };
 
         let response = client
             .chat()
