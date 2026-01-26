@@ -90,12 +90,13 @@ impl MigrationTrait for Migration {
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        // Drop index first
+        // Drop index first (if it exists)
         manager
             .drop_index(
                 Index::drop()
                     .name("index_translation_jobs_post_id_status")
                     .table(TranslationJobs::Table)
+                    .if_exists()
                     .to_owned(),
             )
             .await?;
