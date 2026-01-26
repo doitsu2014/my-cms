@@ -70,12 +70,18 @@ impl MigrationTrait for Migration {
                             .to(Posts::Table, Posts::Id)
                             .on_delete(ForeignKeyAction::Cascade),
                     )
-                    .index(
-                        Index::create()
-                            .name("index_translation_jobs_post_id_status")
-                            .col(TranslationJobs::PostId)
-                            .col(TranslationJobs::Status),
-                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        // Create index separately as non-unique indexes cannot be created inline in PostgreSQL
+        manager
+            .create_index(
+                Index::create()
+                    .name("index_translation_jobs_post_id_status")
+                    .table(TranslationJobs::Table)
+                    .col(TranslationJobs::PostId)
+                    .col(TranslationJobs::Status)
                     .to_owned(),
             )
             .await?;
@@ -84,6 +90,17 @@ impl MigrationTrait for Migration {
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        // Drop index first
+        manager
+            .drop_index(
+                Index::drop()
+                    .name("index_translation_jobs_post_id_status")
+                    .table(TranslationJobs::Table)
+                    .to_owned(),
+            )
+            .await?;
+
+        // Then drop table
         manager
             .drop_table(Table::drop().table(TranslationJobs::Table).to_owned())
             .await?;
