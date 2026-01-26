@@ -151,6 +151,14 @@ pub async fn protected_router() -> Router {
             post(api::post::translate::translate_handler::api_translate_post_background),
         )
         .route(
+            "/posts/{post_id}/translate/jobs/{job_id}",
+            get(api::post::translate::job_handler::api_get_job_status),
+        )
+        .route(
+            "/posts/{post_id}/translate/jobs",
+            get(api::post::translate::job_handler::api_get_active_jobs),
+        )
+        .route(
             "/ai/models",
             get(api::ai::models::models_handler::api_get_openai_models),
         )

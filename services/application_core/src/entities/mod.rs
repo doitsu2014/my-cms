@@ -10,3 +10,4 @@ pub mod post_translations;
 pub mod posts;
 pub mod sea_orm_active_enums;
 pub mod tags;
+pub mod translation_jobs;

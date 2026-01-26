@@ -9,17 +9,18 @@ use async_openai::{
 use html5ever::parse_document;
 use html5ever::tendril::TendrilSink;
 use markup5ever_rcdom::{Handle, RcDom};
-use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter, ColumnTrait};
+use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter, ColumnTrait, Set, ActiveModelTrait};
 use slugify::slugify;
 use std::io::Cursor;
 use std::sync::Arc;
 use tokio::task::JoinSet;
 use tracing::instrument;
 use uuid::Uuid;
+use chrono::Utc;
 
 use crate::{
     common::app_error::AppError,
-    entities::{post_translations, posts},
+    entities::{post_translations, posts, translation_jobs},
 };
 
 use super::{translate_request::TranslatePostRequest, translate_response::TranslatePostResponse};
@@ -520,8 +521,37 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
         request: TranslatePostRequest,
         openai_api_key: String,
     ) -> Result<Uuid, AppError> {
-        // Generate translation ID upfront
-        let post_translation_id = Uuid::new_v4();
+        // Generate job ID upfront
+        let job_id = Uuid::new_v4();
+        
+        // Get model from request or use default
+        let model = request.model.clone().unwrap_or_else(|| DEFAULT_OPENAI_MODEL.to_string());
+        
+        // Create job record in database
+        let job = translation_jobs::ActiveModel {
+            id: Set(job_id),
+            post_id: Set(request.post_id),
+            target_language: Set(request.target_language_code.clone()),
+            status: Set("pending".to_string()),
+            progress: Set(0),
+            error_message: Set(None),
+            ai_model: Set(model.clone()),
+            created_at: Set(Utc::now().into()),
+            updated_at: Set(Utc::now().into()),
+        };
+        
+        job.insert(self.db.as_ref()).await.map_err(|e| {
+            tracing::error!("Failed to create translation job: {}", e);
+            AppError::Db(e)
+        })?;
+        
+        tracing::info!(
+            "Created translation job_id={} for post_id={} language={} model={}",
+            job_id,
+            request.post_id,
+            request.target_language_code,
+            model
+        );
         
         // Clone necessary data for background task
         let db = self.db.clone();
@@ -531,31 +561,73 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
         
         // Spawn background task for translation
         tokio::spawn(async move {
-            let handler = PostTranslateHandler { db, vector_store };
+            // Update status to processing
+            if let Err(e) = Self::update_job_status(db.as_ref(), job_id, "processing", 10, None).await {
+                tracing::error!("Failed to update job status to processing: {}", e);
+            }
+            
+            let handler = PostTranslateHandler { 
+                db: db.clone(), 
+                vector_store 
+            };
+            
             match handler.handle_translate_post(request, openai_api_key).await {
                 Ok(_) => {
                     tracing::info!(
-                        "Background translation completed successfully for post_id={} to language={}",
+                        "Background translation completed successfully for job_id={} post_id={} language={}",
+                        job_id,
                         post_id,
                         language_code
                     );
+                    // Update status to completed
+                    if let Err(e) = Self::update_job_status(db.as_ref(), job_id, "completed", 100, None).await {
+                        tracing::error!("Failed to update job status to completed: {}", e);
+                    }
                 }
                 Err(e) => {
+                    let error_msg = format!("{}", e);
                     tracing::error!(
-                        "Background translation failed for post_id={} to language={}: {}",
+                        "Background translation failed for job_id={} post_id={} language={}: {}",
+                        job_id,
                         post_id,
                         language_code,
-                        e
+                        error_msg
                     );
+                    // Update status to failed
+                    if let Err(e) = Self::update_job_status(db.as_ref(), job_id, "failed", 0, Some(error_msg)).await {
+                        tracing::error!("Failed to update job status to failed: {}", e);
+                    }
                 }
             }
         });
         
-        Ok(post_translation_id)
+        Ok(job_id)
     }
 }
 
 impl PostTranslateHandler {
+    /// Update job status, progress, and error message
+    async fn update_job_status(
+        db: &DatabaseConnection,
+        job_id: Uuid,
+        status: &str,
+        progress: i32,
+        error_message: Option<String>,
+    ) -> Result<(), AppError> {
+        use translation_jobs::Entity;
+        
+        if let Some(job) = Entity::find_by_id(job_id).one(db).await.map_err(|e| AppError::Db(e))? {
+            let mut job: translation_jobs::ActiveModel = job.into();
+            job.status = Set(status.to_string());
+            job.progress = Set(progress);
+            job.error_message = Set(error_message);
+            job.updated_at = Set(Utc::now().into());
+            job.update(db).await.map_err(|e| AppError::Db(e))?;
+        }
+        
+        Ok(())
+    }
+    
     /// Checks if content appears to be HTML
     fn is_html_content(text: &str) -> bool {
         text.contains('<') && text.contains('>') && 
