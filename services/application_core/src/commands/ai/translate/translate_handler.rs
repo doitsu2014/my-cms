@@ -756,7 +756,7 @@ impl PostTranslateHandler {
                     .model(model)
                     .messages(messages)
                     .temperature(TRANSLATION_TEMPERATURE)
-                    .max_tokens(MAX_TOKENS_PER_REQUEST)
+                    .max_completion_tokens(MAX_TOKENS_PER_REQUEST as u32)
                     .build()
                     .map_err(|e| AppError::OpenAIError(e.to_string()))?;
 
@@ -850,7 +850,7 @@ impl PostTranslateHandler {
             .model(model)
             .messages(messages)
             .temperature(TRANSLATION_TEMPERATURE)
-            .max_tokens(MAX_TOKENS_PER_REQUEST)
+            .max_completion_tokens(MAX_TOKENS_PER_REQUEST as u32)
             .build()
             .map_err(|e| AppError::OpenAIError(e.to_string()))?;
 
