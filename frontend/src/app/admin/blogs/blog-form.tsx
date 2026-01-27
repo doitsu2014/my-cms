@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -67,6 +67,9 @@ export default function BlogForm({ id }: { id?: string }) {
     status: string;
     progress: number;
   }>>([]);
+  
+  // Track previous job count for detecting completion
+  const prevJobCountRef = useRef(0);
   
   // AI model selection state
   const [aiModels, setAiModels] = useState<OpenAIModel[]>([]);
@@ -212,17 +215,33 @@ export default function BlogForm({ id }: { id?: string }) {
     if (!id) return;
     
     const pollInterval = setInterval(async () => {
-      const prevActiveJobs = activeJobs;
-      await checkActiveJobs();
-      
-      // If there were active jobs and now they're done, reload post data
-      if (prevActiveJobs.length > 0 && activeJobs.length === 0) {
-        await reloadPostData();
+      try {
+        const response = await authenticatedFetch(
+          getApiUrl(`/posts/${id}/translate/jobs`),
+          token,
+          { method: 'GET' },
+          keycloak || undefined
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          const currentJobs = data.data?.jobs || [];
+          setActiveJobs(currentJobs);
+          
+          // If there were active jobs and now they're done, reload post data
+          if (prevJobCountRef.current > 0 && currentJobs.length === 0) {
+            await reloadPostData();
+          }
+          
+          prevJobCountRef.current = currentJobs.length;
+        }
+      } catch (error) {
+        console.error('Error checking active jobs:', error);
       }
     }, 3000); // Poll every 3 seconds
     
     return () => clearInterval(pollInterval);
-  }, [id, activeJobs]);
+  }, [id, token, keycloak]);
 
   useEffect(() => {
     const fetchCategories = async () => {
