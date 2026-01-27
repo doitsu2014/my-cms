@@ -29,9 +29,10 @@ use super::{translate_request::TranslatePostRequest, translate_response::Transla
 const DEFAULT_OPENAI_MODEL: &str = "gpt-5-nano";
 
 // Maximum chunk size in characters for content translation
-// Reduced from 2000 to 1500 to ensure comfortable fit within token limits
-// This allows for longer translations without hitting output token limits
-const MAX_CHUNK_SIZE: usize = 1500;
+// Reduced to 800 to work reliably with gpt-5-nano model
+// The model fails with empty responses on chunks larger than ~1000 characters
+// This smaller size ensures consistent translation output, especially for HTML content
+const MAX_CHUNK_SIZE: usize = 800;
 
 // Temperature setting for translations (lower = more deterministic, less tokens)
 // Range: 0.0 to 2.0. For translations, we use low temperature for consistency

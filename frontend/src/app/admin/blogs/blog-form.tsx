@@ -207,6 +207,23 @@ export default function BlogForm({ id }: { id?: string }) {
     }
   }, [showTranslateModal, showRetranslateDialog]);
 
+  // Periodically check for active jobs and update status
+  useEffect(() => {
+    if (!id) return;
+    
+    const pollInterval = setInterval(async () => {
+      const prevActiveJobs = activeJobs;
+      await checkActiveJobs();
+      
+      // If there were active jobs and now they're done, reload post data
+      if (prevActiveJobs.length > 0 && activeJobs.length === 0) {
+        await reloadPostData();
+      }
+    }, 3000); // Poll every 3 seconds
+    
+    return () => clearInterval(pollInterval);
+  }, [id, activeJobs]);
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -598,7 +615,15 @@ export default function BlogForm({ id }: { id?: string }) {
 
   const getAvailableTranslationLanguages = () => {
     const usedLanguages = translations?.map((t) => t.languageCode) || [];
-    return AVAILABLE_LANGUAGES.filter((lang) => !usedLanguages.includes(lang.code));
+    // Also filter out languages with active translation jobs
+    const activeJobLanguages = activeJobs
+      .filter(job => job.status === 'pending' || job.status === 'processing')
+      .map(job => job.targetLanguage.toLowerCase());
+    
+    return AVAILABLE_LANGUAGES.filter((lang) => 
+      !usedLanguages.includes(lang.code) && 
+      !activeJobLanguages.includes(lang.code.toLowerCase())
+    );
   };
 
   return (
@@ -947,24 +972,35 @@ export default function BlogForm({ id }: { id?: string }) {
               <>
                 {/* Translation Language Tabs */}
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {fields.map((field, index) => (
-                    <button
-                      key={field.id}
-                      type="button"
-                      className={`relative px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 flex items-center gap-2
-                        ${activeTranslationTab === index
-                          ? 'bg-neutral text-neutral-content shadow-md shadow-neutral/20'
-                          : 'bg-base-200 text-base-content/60 hover:bg-base-300 hover:text-base-content'
-                        }`}
-                      onClick={() => setActiveTranslationTab(index)}
-                    >
-                      <Globe className="w-3.5 h-3.5" />
-                      <span>{translations[index]?.languageCode?.toUpperCase() || 'New'}</span>
-                      {activeTranslationTab === index && (
-                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-neutral-content/50 rounded-full" />
-                      )}
-                    </button>
-                  ))}
+                  {fields.map((field, index) => {
+                    const translation = translations[index];
+                    const hasActiveJob = translation?.languageCode && activeJobs.some(
+                      job => job.targetLanguage.toLowerCase() === translation.languageCode.toLowerCase() &&
+                             (job.status === 'pending' || job.status === 'processing')
+                    );
+                    
+                    return (
+                      <button
+                        key={field.id}
+                        type="button"
+                        className={`relative px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 flex items-center gap-2
+                          ${activeTranslationTab === index
+                            ? 'bg-neutral text-neutral-content shadow-md shadow-neutral/20'
+                            : 'bg-base-200 text-base-content/60 hover:bg-base-300 hover:text-base-content'
+                          }`}
+                        onClick={() => setActiveTranslationTab(index)}
+                      >
+                        <Globe className="w-3.5 h-3.5" />
+                        <span>{translations[index]?.languageCode?.toUpperCase() || 'New'}</span>
+                        {hasActiveJob && (
+                          <span className="loading loading-spinner loading-xs text-primary"></span>
+                        )}
+                        {activeTranslationTab === index && (
+                          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-neutral-content/50 rounded-full" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* Translation Content */}
@@ -986,17 +1022,38 @@ export default function BlogForm({ id }: { id?: string }) {
                           disabled={isRetranslateDisabled(index)}
                           title="Re-translate this translation using AI"
                         >
-                          {retranslatingIndex === index ? (
-                            <>
-                              <span className="loading loading-spinner loading-xs"></span>
-                              Re-translating...
-                            </>
-                          ) : (
-                            <>
-                              <RotateCw className="w-4 h-4" />
-                              Re-translate
-                            </>
-                          )}
+                          {(() => {
+                            const translation = translations[index];
+                            const activeJob = translation?.languageCode && activeJobs.find(
+                              job => job.targetLanguage.toLowerCase() === translation.languageCode.toLowerCase() &&
+                                     (job.status === 'pending' || job.status === 'processing')
+                            );
+                            
+                            if (activeJob) {
+                              return (
+                                <>
+                                  <span className="loading loading-spinner loading-xs"></span>
+                                  Translating... ({activeJob.progress}%)
+                                </>
+                              );
+                            }
+                            
+                            if (retranslatingIndex === index) {
+                              return (
+                                <>
+                                  <span className="loading loading-spinner loading-xs"></span>
+                                  Re-translating...
+                                </>
+                              );
+                            }
+                            
+                            return (
+                              <>
+                                <RotateCw className="w-4 h-4" />
+                                Re-translate
+                              </>
+                            );
+                          })()}
                         </button>
                         <button
                           type="button"
@@ -1300,10 +1357,13 @@ export default function BlogForm({ id }: { id?: string }) {
                     type="button"
                     className="btn btn-primary gap-2"
                     onClick={handleTranslatePost}
-                    disabled={!selectedTranslateLanguage}
+                    disabled={!selectedTranslateLanguage || isTranslating || activeJobs.some(
+                      job => job.targetLanguage.toLowerCase() === selectedTranslateLanguage.toLowerCase() &&
+                             (job.status === 'pending' || job.status === 'processing')
+                    )}
                   >
                     <Sparkles className="w-4 h-4" />
-                    Start Translation
+                    {isTranslating ? 'Translating...' : 'Start Translation'}
                   </button>
                 </div>
               </>
