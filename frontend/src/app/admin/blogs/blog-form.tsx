@@ -234,11 +234,6 @@ export default function BlogForm({ id }: { id?: string }) {
           }
           
           prevJobCountRef.current = currentJobs.length;
-          
-          // Stop polling if there are no active jobs
-          if (currentJobs.length === 0 && prevJobCountRef.current === 0) {
-            clearInterval(pollInterval);
-          }
         }
       } catch (error) {
         console.error('Error checking active jobs:', error);
