@@ -234,6 +234,11 @@ export default function BlogForm({ id }: { id?: string }) {
           }
           
           prevJobCountRef.current = currentJobs.length;
+          
+          // Stop polling if there are no active jobs
+          if (currentJobs.length === 0 && prevJobCountRef.current === 0) {
+            clearInterval(pollInterval);
+          }
         }
       } catch (error) {
         console.error('Error checking active jobs:', error);
@@ -411,39 +416,6 @@ export default function BlogForm({ id }: { id?: string }) {
       console.error('Error checking active jobs:', error);
     }
   };
-  
-  // Poll job status
-  const pollJobStatus = async (jobId: string): Promise<boolean> => {
-    if (!id) return false;
-    
-    try {
-      const response = await authenticatedFetch(
-        getApiUrl(`/posts/${id}/translate/jobs/${jobId}`),
-        token,
-        { method: 'GET' },
-        keycloak || undefined
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        const job = data.data;
-        
-        setTranslationProgress(job.progress || 0);
-        
-        if (job.status === 'completed') {
-          return true;
-        } else if (job.status === 'failed') {
-          toast.error(`Translation failed: ${job.errorMessage || 'Unknown error'}`);
-          return true;
-        }
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('Error polling job status:', error);
-      return false;
-    }
-  };
 
   const handleTranslatePost = async () => {
     if (!id || !selectedTranslateLanguage) {
@@ -479,32 +451,13 @@ export default function BlogForm({ id }: { id?: string }) {
           setTranslationJobId(jobId);
           toast.info('Translation started in background...');
           
-          // Poll for job completion
-          const pollInterval = setInterval(async () => {
-            const isComplete = await pollJobStatus(jobId);
-            
-            if (isComplete) {
-              clearInterval(pollInterval);
-              setIsTranslating(false);
-              setShowTranslateModal(false);
-              setSelectedTranslateLanguage('');
-              setTranslationJobId(null);
-              setTranslationProgress(0);
-              
-              toast.success('Translation completed successfully!');
-              await reloadPostData();
-              await checkActiveJobs();
-            }
-          }, 2000); // Poll every 2 seconds
+          // Close modal immediately and let general polling handle the rest
+          setShowTranslateModal(false);
+          setSelectedTranslateLanguage('');
+          setIsTranslating(false);
           
-          // Set a timeout to stop polling after 5 minutes
-          setTimeout(() => {
-            clearInterval(pollInterval);
-            if (isTranslating) {
-              setIsTranslating(false);
-              toast.warning('Translation is taking longer than expected. Please refresh the page to check status.');
-            }
-          }, 5 * 60 * 1000);
+          // Refresh active jobs to show the new job
+          await checkActiveJobs();
         }
       } else {
         let errorMessage = 'Failed to start translation';
@@ -574,30 +527,10 @@ export default function BlogForm({ id }: { id?: string }) {
         
         if (jobId) {
           toast.info(`Re-translation started for ${translation.languageCode.toUpperCase()}...`);
+          setRetranslatingIndex(null);
+          
+          // Refresh active jobs to show the new job
           await checkActiveJobs();
-          
-          // Poll for job completion
-          const pollInterval = setInterval(async () => {
-            const isComplete = await pollJobStatus(jobId);
-            
-            if (isComplete) {
-              clearInterval(pollInterval);
-              setRetranslatingIndex(null);
-              
-              toast.success(`Translation re-generated successfully for ${translation.languageCode.toUpperCase()}!`);
-              await reloadPostData();
-              await checkActiveJobs();
-            }
-          }, 2000);
-          
-          // Set a timeout to stop polling after 5 minutes
-          setTimeout(() => {
-            clearInterval(pollInterval);
-            if (retranslatingIndex !== null) {
-              setRetranslatingIndex(null);
-              toast.warning('Re-translation is taking longer than expected. Please refresh the page to check status.');
-            }
-          }, 5 * 60 * 1000);
         }
       } else {
         let errorMessage = 'Failed to re-translate';
