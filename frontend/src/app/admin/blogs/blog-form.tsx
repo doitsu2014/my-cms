@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -108,7 +108,7 @@ export default function BlogForm({ id }: { id?: string }) {
   const isLoading = isSubmitting || fetchingData;
 
   // Reusable function to reload post data
-  const reloadPostData = async () => {
+  const reloadPostData = useCallback(async () => {
     if (!id) return;
     
     setFetchingData(true);
@@ -159,7 +159,7 @@ export default function BlogForm({ id }: { id?: string }) {
     } finally {
       setFetchingData(false);
     }
-  };
+  }, [id, token, keycloak, reset]);
 
   // Fetch AI models
   const fetchAIModels = async () => {
@@ -241,7 +241,7 @@ export default function BlogForm({ id }: { id?: string }) {
     }, 3000); // Poll every 3 seconds
     
     return () => clearInterval(pollInterval);
-  }, [id, token, keycloak]);
+  }, [id, token, keycloak, reloadPostData]);
 
   useEffect(() => {
     const fetchCategories = async () => {
