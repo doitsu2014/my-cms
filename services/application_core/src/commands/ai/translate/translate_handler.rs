@@ -26,17 +26,18 @@ use crate::{
 use super::{translate_request::TranslatePostRequest, translate_response::TranslatePostResponse};
 
 // Default OpenAI model to use for translation
-const DEFAULT_OPENAI_MODEL: &str = "gpt-5-nano";
+// Changed from "gpt-5-nano" to "gpt-4o-mini" because gpt-5-nano is not a real OpenAI model
+// and causes empty responses. gpt-4o-mini is reliable and cost-effective.
+const DEFAULT_OPENAI_MODEL: &str = "gpt-4o-mini";
 
 // Maximum chunk size in characters for content translation
-// Reduced to 800 to work reliably with gpt-5-nano model
-// The model fails with empty responses on chunks larger than ~1000 characters
-// This smaller size ensures consistent translation output, especially for HTML content
-const MAX_CHUNK_SIZE: usize = 800;
+// Set to 2000 for reliable translation with gpt-4o-mini and other production models
+// Previous value of 800 was a workaround for the non-existent "gpt-5-nano" model
+// Larger chunks improve translation quality and reduce API calls
+const MAX_CHUNK_SIZE: usize = 2000;
 
 // Temperature setting for translations (lower = more deterministic, less tokens)
 // Range: 0.0 to 2.0. For translations, we use low temperature for consistency
-// Note: Some models (e.g., gpt-5-nano) only support default temperature (1) and don't accept custom values
 const TRANSLATION_TEMPERATURE: f32 = 0.3;
 
 // Max tokens for OpenAI response (not input)
@@ -93,9 +94,10 @@ struct SimilarTranslationInfo {
 
 impl PostTranslateHandler {
     /// Helper function to check if a model supports custom temperature values
-    /// GPT-5-nano only supports the default temperature (1), not custom values
     fn supports_custom_temperature(model: &str) -> bool {
-        !model.starts_with("gpt-5-nano")
+        // All standard OpenAI models support custom temperature
+        // Return false only for specific test/mock models if needed
+        !model.starts_with("mock-") && !model.starts_with("test-")
     }
 
     /// Database lookup: Check if translation already exists
@@ -364,8 +366,9 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
         let model = request.model.as_deref().unwrap_or(DEFAULT_OPENAI_MODEL);
 
         if request.force_retranslate {
-            // Force retranslate: delete existing and translate from OpenAI
-            Self::delete_existing_translation(self.db.as_ref(), request.post_id, &request.target_language_code).await?;
+            // Force retranslate: translate from OpenAI first, THEN replace existing
+            // This ensures the old translation remains visible until the new one is ready
+            // Important for UI continuity when users refresh during background processing
             
             tracing::info!(
                 "Force retranslation requested for post_id={} language={} using model={}",
@@ -374,9 +377,15 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                 model
             );
             
+            // Translate the content using OpenAI
             let (translated_title, translated_preview_content, translated_content) = 
                 Self::translate_from_openai(&post, &request.target_language_code, &openai_api_key, model).await?;
             
+            // Delete the existing translation only AFTER successful translation
+            // This prevents the UI from losing the old translation during processing
+            Self::delete_existing_translation(self.db.as_ref(), request.post_id, &request.target_language_code).await?;
+            
+            // Save the new translation
             let post_translation_id = Self::save_translation(
                 self.db.as_ref(),
                 request.post_id,
