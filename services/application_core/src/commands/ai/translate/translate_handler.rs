@@ -26,8 +26,8 @@ use crate::{
 use super::{translate_request::TranslatePostRequest, translate_response::TranslatePostResponse};
 
 // Default OpenAI model to use for translation
-// Changed from "gpt-5-nano" to "gpt-4o-mini" because gpt-5-nano is not a real OpenAI model
-// and causes empty responses. gpt-4o-mini is reliable and cost-effective.
+// Changed from "gpt-5-nano" (which was never a real OpenAI model) to "gpt-4o-mini"
+// gpt-4o-mini is a real, reliable, and cost-effective production model
 const DEFAULT_OPENAI_MODEL: &str = "gpt-4o-mini";
 
 // Maximum chunk size in characters for content translation
@@ -367,8 +367,10 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
 
         if request.force_retranslate {
             // Force retranslate: translate from OpenAI first, THEN replace existing
-            // This ensures the old translation remains visible until the new one is ready
-            // Important for UI continuity when users refresh during background processing
+            // This is safer than deleting first: the old translation remains available
+            // until translation succeeds. If translation fails, the old one is preserved.
+            // Note: There's still a small window between delete and save where data could be lost
+            // if save fails. Future improvement: use UPDATE or transaction for atomicity.
             
             tracing::info!(
                 "Force retranslation requested for post_id={} language={} using model={}",
@@ -377,15 +379,16 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                 model
             );
             
-            // Translate the content using OpenAI
+            // Step 1: Translate the content using OpenAI
             let (translated_title, translated_preview_content, translated_content) = 
                 Self::translate_from_openai(&post, &request.target_language_code, &openai_api_key, model).await?;
             
-            // Delete the existing translation only AFTER successful translation
-            // This prevents the UI from losing the old translation during processing
+            // Step 2: Delete the existing translation only AFTER successful translation
+            // If translation failed, old translation is preserved
             Self::delete_existing_translation(self.db.as_ref(), request.post_id, &request.target_language_code).await?;
             
-            // Save the new translation
+            // Step 3: Save the new translation
+            // Note: If this fails, old translation was already deleted (small risk window)
             let post_translation_id = Self::save_translation(
                 self.db.as_ref(),
                 request.post_id,
