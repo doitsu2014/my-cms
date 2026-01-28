@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -68,6 +68,9 @@ export default function BlogForm({ id }: { id?: string }) {
     progress: number;
   }>>([]);
   
+  // Track previous job count for detecting completion
+  const prevJobCountRef = useRef(0);
+  
   // AI model selection state
   const [aiModels, setAiModels] = useState<OpenAIModel[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('gpt-5-nano');
@@ -105,7 +108,7 @@ export default function BlogForm({ id }: { id?: string }) {
   const isLoading = isSubmitting || fetchingData;
 
   // Reusable function to reload post data
-  const reloadPostData = async () => {
+  const reloadPostData = useCallback(async () => {
     if (!id) return;
     
     setFetchingData(true);
@@ -156,7 +159,7 @@ export default function BlogForm({ id }: { id?: string }) {
     } finally {
       setFetchingData(false);
     }
-  };
+  }, [id, token, keycloak, reset]);
 
   // Fetch AI models
   const fetchAIModels = async () => {
@@ -206,6 +209,39 @@ export default function BlogForm({ id }: { id?: string }) {
       fetchAIModels();
     }
   }, [showTranslateModal, showRetranslateDialog]);
+
+  // Periodically check for active jobs and update status
+  useEffect(() => {
+    if (!id) return;
+    
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await authenticatedFetch(
+          getApiUrl(`/posts/${id}/translate/jobs`),
+          token,
+          { method: 'GET' },
+          keycloak || undefined
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          const currentJobs = data.data?.jobs || [];
+          setActiveJobs(currentJobs);
+          
+          // If there were active jobs and now they're done, reload post data
+          if (prevJobCountRef.current > 0 && currentJobs.length === 0) {
+            await reloadPostData();
+          }
+          
+          prevJobCountRef.current = currentJobs.length;
+        }
+      } catch (error) {
+        console.error('Error checking active jobs:', error);
+      }
+    }, 3000); // Poll every 3 seconds
+    
+    return () => clearInterval(pollInterval);
+  }, [id, token, keycloak, reloadPostData]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -375,39 +411,6 @@ export default function BlogForm({ id }: { id?: string }) {
       console.error('Error checking active jobs:', error);
     }
   };
-  
-  // Poll job status
-  const pollJobStatus = async (jobId: string): Promise<boolean> => {
-    if (!id) return false;
-    
-    try {
-      const response = await authenticatedFetch(
-        getApiUrl(`/posts/${id}/translate/jobs/${jobId}`),
-        token,
-        { method: 'GET' },
-        keycloak || undefined
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        const job = data.data;
-        
-        setTranslationProgress(job.progress || 0);
-        
-        if (job.status === 'completed') {
-          return true;
-        } else if (job.status === 'failed') {
-          toast.error(`Translation failed: ${job.errorMessage || 'Unknown error'}`);
-          return true;
-        }
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('Error polling job status:', error);
-      return false;
-    }
-  };
 
   const handleTranslatePost = async () => {
     if (!id || !selectedTranslateLanguage) {
@@ -443,32 +446,13 @@ export default function BlogForm({ id }: { id?: string }) {
           setTranslationJobId(jobId);
           toast.info('Translation started in background...');
           
-          // Poll for job completion
-          const pollInterval = setInterval(async () => {
-            const isComplete = await pollJobStatus(jobId);
-            
-            if (isComplete) {
-              clearInterval(pollInterval);
-              setIsTranslating(false);
-              setShowTranslateModal(false);
-              setSelectedTranslateLanguage('');
-              setTranslationJobId(null);
-              setTranslationProgress(0);
-              
-              toast.success('Translation completed successfully!');
-              await reloadPostData();
-              await checkActiveJobs();
-            }
-          }, 2000); // Poll every 2 seconds
+          // Close modal immediately and let general polling handle the rest
+          setShowTranslateModal(false);
+          setSelectedTranslateLanguage('');
+          setIsTranslating(false);
           
-          // Set a timeout to stop polling after 5 minutes
-          setTimeout(() => {
-            clearInterval(pollInterval);
-            if (isTranslating) {
-              setIsTranslating(false);
-              toast.warning('Translation is taking longer than expected. Please refresh the page to check status.');
-            }
-          }, 5 * 60 * 1000);
+          // Refresh active jobs to show the new job
+          await checkActiveJobs();
         }
       } else {
         let errorMessage = 'Failed to start translation';
@@ -538,30 +522,10 @@ export default function BlogForm({ id }: { id?: string }) {
         
         if (jobId) {
           toast.info(`Re-translation started for ${translation.languageCode.toUpperCase()}...`);
+          setRetranslatingIndex(null);
+          
+          // Refresh active jobs to show the new job
           await checkActiveJobs();
-          
-          // Poll for job completion
-          const pollInterval = setInterval(async () => {
-            const isComplete = await pollJobStatus(jobId);
-            
-            if (isComplete) {
-              clearInterval(pollInterval);
-              setRetranslatingIndex(null);
-              
-              toast.success(`Translation re-generated successfully for ${translation.languageCode.toUpperCase()}!`);
-              await reloadPostData();
-              await checkActiveJobs();
-            }
-          }, 2000);
-          
-          // Set a timeout to stop polling after 5 minutes
-          setTimeout(() => {
-            clearInterval(pollInterval);
-            if (retranslatingIndex !== null) {
-              setRetranslatingIndex(null);
-              toast.warning('Re-translation is taking longer than expected. Please refresh the page to check status.');
-            }
-          }, 5 * 60 * 1000);
         }
       } else {
         let errorMessage = 'Failed to re-translate';
@@ -598,7 +562,15 @@ export default function BlogForm({ id }: { id?: string }) {
 
   const getAvailableTranslationLanguages = () => {
     const usedLanguages = translations?.map((t) => t.languageCode) || [];
-    return AVAILABLE_LANGUAGES.filter((lang) => !usedLanguages.includes(lang.code));
+    // Also filter out languages with active translation jobs
+    const activeJobLanguages = activeJobs
+      .filter(job => job.status === 'pending' || job.status === 'processing')
+      .map(job => job.targetLanguage.toLowerCase());
+    
+    return AVAILABLE_LANGUAGES.filter((lang) => 
+      !usedLanguages.includes(lang.code) && 
+      !activeJobLanguages.includes(lang.code.toLowerCase())
+    );
   };
 
   return (
@@ -947,24 +919,35 @@ export default function BlogForm({ id }: { id?: string }) {
               <>
                 {/* Translation Language Tabs */}
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {fields.map((field, index) => (
-                    <button
-                      key={field.id}
-                      type="button"
-                      className={`relative px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 flex items-center gap-2
-                        ${activeTranslationTab === index
-                          ? 'bg-neutral text-neutral-content shadow-md shadow-neutral/20'
-                          : 'bg-base-200 text-base-content/60 hover:bg-base-300 hover:text-base-content'
-                        }`}
-                      onClick={() => setActiveTranslationTab(index)}
-                    >
-                      <Globe className="w-3.5 h-3.5" />
-                      <span>{translations[index]?.languageCode?.toUpperCase() || 'New'}</span>
-                      {activeTranslationTab === index && (
-                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-neutral-content/50 rounded-full" />
-                      )}
-                    </button>
-                  ))}
+                  {fields.map((field, index) => {
+                    const translation = translations[index];
+                    const hasActiveJob = translation?.languageCode && activeJobs.some(
+                      job => job.targetLanguage.toLowerCase() === translation.languageCode.toLowerCase() &&
+                             (job.status === 'pending' || job.status === 'processing')
+                    );
+                    
+                    return (
+                      <button
+                        key={field.id}
+                        type="button"
+                        className={`relative px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 flex items-center gap-2
+                          ${activeTranslationTab === index
+                            ? 'bg-neutral text-neutral-content shadow-md shadow-neutral/20'
+                            : 'bg-base-200 text-base-content/60 hover:bg-base-300 hover:text-base-content'
+                          }`}
+                        onClick={() => setActiveTranslationTab(index)}
+                      >
+                        <Globe className="w-3.5 h-3.5" />
+                        <span>{translations[index]?.languageCode?.toUpperCase() || 'New'}</span>
+                        {hasActiveJob && (
+                          <span className="loading loading-spinner loading-xs text-primary"></span>
+                        )}
+                        {activeTranslationTab === index && (
+                          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-neutral-content/50 rounded-full" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* Translation Content */}
@@ -986,17 +969,38 @@ export default function BlogForm({ id }: { id?: string }) {
                           disabled={isRetranslateDisabled(index)}
                           title="Re-translate this translation using AI"
                         >
-                          {retranslatingIndex === index ? (
-                            <>
-                              <span className="loading loading-spinner loading-xs"></span>
-                              Re-translating...
-                            </>
-                          ) : (
-                            <>
-                              <RotateCw className="w-4 h-4" />
-                              Re-translate
-                            </>
-                          )}
+                          {(() => {
+                            const translation = translations[index];
+                            const activeJob = translation?.languageCode && activeJobs.find(
+                              job => job.targetLanguage.toLowerCase() === translation.languageCode.toLowerCase() &&
+                                     (job.status === 'pending' || job.status === 'processing')
+                            );
+                            
+                            if (activeJob) {
+                              return (
+                                <>
+                                  <span className="loading loading-spinner loading-xs"></span>
+                                  Translating... ({activeJob.progress}%)
+                                </>
+                              );
+                            }
+                            
+                            if (retranslatingIndex === index) {
+                              return (
+                                <>
+                                  <span className="loading loading-spinner loading-xs"></span>
+                                  Re-translating...
+                                </>
+                              );
+                            }
+                            
+                            return (
+                              <>
+                                <RotateCw className="w-4 h-4" />
+                                Re-translate
+                              </>
+                            );
+                          })()}
                         </button>
                         <button
                           type="button"
@@ -1300,10 +1304,13 @@ export default function BlogForm({ id }: { id?: string }) {
                     type="button"
                     className="btn btn-primary gap-2"
                     onClick={handleTranslatePost}
-                    disabled={!selectedTranslateLanguage}
+                    disabled={!selectedTranslateLanguage || isTranslating || activeJobs.some(
+                      job => job.targetLanguage.toLowerCase() === selectedTranslateLanguage.toLowerCase() &&
+                             (job.status === 'pending' || job.status === 'processing')
+                    )}
                   >
                     <Sparkles className="w-4 h-4" />
-                    Start Translation
+                    {isTranslating ? 'Translating...' : 'Start Translation'}
                   </button>
                 </div>
               </>
