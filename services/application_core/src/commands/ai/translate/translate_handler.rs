@@ -1359,10 +1359,28 @@ mod tests {
         let database = test_space.postgres.get_database_connection().await;
         let arc_conn = Arc::new(database);
 
+        // Create a test post first to satisfy foreign key constraint
+        let category_create_handler = CategoryCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_category_request = fake_create_category_request(0);
+        let created_category_id = category_create_handler
+            .handle_create_category_with_tags(create_category_request, None)
+            .await
+            .unwrap();
+
+        let post_create_handler = PostCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_post_request = fake_create_post_request(created_category_id, 0);
+        let post_id = post_create_handler
+            .handle_create_post(create_post_request, None)
+            .await
+            .unwrap();
+
         // Create a test job record
         use crate::entities::translation_jobs;
         let job_id = Uuid::new_v4();
-        let post_id = Uuid::new_v4();
         
         let job = translation_jobs::ActiveModel {
             id: sea_orm::Set(job_id),
@@ -1371,7 +1389,7 @@ mod tests {
             status: sea_orm::Set("pending".to_string()),
             progress: sea_orm::Set(0),
             error_message: sea_orm::Set(None),
-            ai_model: sea_orm::Set("gpt-5-nano".to_string()),
+            ai_model: sea_orm::Set("gpt-4o-mini".to_string()),
             created_at: sea_orm::Set(chrono::Utc::now().into()),
             updated_at: sea_orm::Set(chrono::Utc::now().into()),
         };
@@ -1429,10 +1447,28 @@ mod tests {
         let database = test_space.postgres.get_database_connection().await;
         let arc_conn = Arc::new(database);
 
+        // Create a test post first to satisfy foreign key constraint
+        let category_create_handler = CategoryCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_category_request = fake_create_category_request(0);
+        let created_category_id = category_create_handler
+            .handle_create_category_with_tags(create_category_request, None)
+            .await
+            .unwrap();
+
+        let post_create_handler = PostCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_post_request = fake_create_post_request(created_category_id, 0);
+        let post_id = post_create_handler
+            .handle_create_post(create_post_request, None)
+            .await
+            .unwrap();
+
         // Create a test job record
         use crate::entities::translation_jobs;
         let job_id = Uuid::new_v4();
-        let post_id = Uuid::new_v4();
         
         let job = translation_jobs::ActiveModel {
             id: sea_orm::Set(job_id),
@@ -1441,7 +1477,7 @@ mod tests {
             status: sea_orm::Set("processing".to_string()),
             progress: sea_orm::Set(25),
             error_message: sea_orm::Set(None),
-            ai_model: sea_orm::Set("gpt-5-nano".to_string()),
+            ai_model: sea_orm::Set("gpt-4o-mini".to_string()),
             created_at: sea_orm::Set(chrono::Utc::now().into()),
             updated_at: sea_orm::Set(chrono::Utc::now().into()),
         };
@@ -1502,15 +1538,16 @@ mod tests {
             .unwrap();
 
         // Test with different models
-        let models = vec!["gpt-4o-mini", "gpt-4o", "gpt-5-nano"];
+        let models = vec!["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"];
+        let languages = vec!["vi", "ja", "ko"]; // Use short language codes (max 10 chars)
         
-        for model in models {
+        for (i, model) in models.iter().enumerate() {
             let translate_handler = PostTranslateHandler {
                 vector_store: None,
                 db: arc_conn.clone(),
             };
             
-            let translate_request = TranslatePostRequest::new(created_post_id, format!("{}_lang", model))
+            let translate_request = TranslatePostRequest::new(created_post_id, languages[i].to_string())
                 .with_model(model.to_string());
             
             // Start background translation
@@ -1540,27 +1577,44 @@ mod tests {
         let database = test_space.postgres.get_database_connection().await;
         let arc_conn = Arc::new(database);
 
-        let post_id = Uuid::new_v4();
+        // Create a test post first to satisfy foreign key constraint
+        let category_create_handler = CategoryCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_category_request = fake_create_category_request(0);
+        let created_category_id = category_create_handler
+            .handle_create_category_with_tags(create_category_request, None)
+            .await
+            .unwrap();
+
+        let post_create_handler = PostCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_post_request = fake_create_post_request(created_category_id, 0);
+        let post_id = post_create_handler
+            .handle_create_post(create_post_request, None)
+            .await
+            .unwrap();
         
         // Create multiple jobs with different statuses
         use crate::entities::translation_jobs;
         
         let jobs_data = vec![
-            ("pending", 0),
-            ("processing", 50),
-            ("completed", 100),
-            ("failed", 30),
+            ("pending", 0, "vi"),
+            ("processing", 50, "ja"),
+            ("completed", 100, "ko"),
+            ("failed", 30, "zh"),
         ];
 
-        for (status, progress) in jobs_data {
+        for (status, progress, lang) in jobs_data {
             let job = translation_jobs::ActiveModel {
                 id: sea_orm::Set(Uuid::new_v4()),
                 post_id: sea_orm::Set(post_id),
-                target_language: sea_orm::Set(format!("{}_lang", status)),
+                target_language: sea_orm::Set(lang.to_string()),
                 status: sea_orm::Set(status.to_string()),
                 progress: sea_orm::Set(progress),
                 error_message: sea_orm::Set(None),
-                ai_model: sea_orm::Set("gpt-5-nano".to_string()),
+                ai_model: sea_orm::Set("gpt-4o-mini".to_string()),
                 created_at: sea_orm::Set(chrono::Utc::now().into()),
                 updated_at: sea_orm::Set(chrono::Utc::now().into()),
             };
