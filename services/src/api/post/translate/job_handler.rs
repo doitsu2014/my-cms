@@ -135,16 +135,57 @@ mod tests {
     use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
     use sea_orm::DatabaseConnection;
 
+    async fn create_test_post(db: Arc<DatabaseConnection>) -> Uuid {
+        use application_core::entities::{posts, categories, sea_orm_active_enums::CategoryType};
+        use sea_orm::{ActiveModelTrait, Set};
+        use chrono::Utc;
+        
+        // Create a category first
+        let category = categories::ActiveModel {
+            id: Set(Uuid::new_v4()),
+            display_name: Set("Test Category".to_string()),
+            slug: Set("test-category".to_string()),
+            category_type: Set(CategoryType::Blog),
+            created_by: Set("test-user".to_string()),
+            created_at: Set(Utc::now().into()),
+            last_modified_by: Set(None),
+            last_modified_at: Set(None),
+            parent_id: Set(None),
+            row_version: Set(0),
+        };
+        let category_id = category.insert(db.as_ref()).await.unwrap().id;
+        
+        // Create a post
+        let post = posts::ActiveModel {
+            id: Set(Uuid::new_v4()),
+            title: Set("Test Post".to_string()),
+            slug: Set("test-post".to_string()),
+            preview_content: Set(Some("Preview content".to_string())),
+            content: Set("Test content".to_string()),
+            thumbnail_paths: Set(vec![]),
+            published: Set(false),
+            created_by: Set("test-user".to_string()),
+            created_at: Set(Utc::now().into()),
+            last_modified_by: Set(None),
+            last_modified_at: Set(None),
+            category_id: Set(category_id),
+            row_version: Set(0),
+        };
+        post.insert(db.as_ref()).await.unwrap().id
+    }
+
     #[async_std::test]
     async fn test_get_job_status_success() {
         let test_space = setup_test_space().await;
         let database: DatabaseConnection = test_space.postgres.get_database_connection().await;
         let arc_conn = Arc::new(database);
 
+        // Create a test post first to satisfy foreign key constraint
+        let post_id = create_test_post(arc_conn.clone()).await;
+
         // Create a test job
         use application_core::entities::translation_jobs;
         let job_id = Uuid::new_v4();
-        let post_id = Uuid::new_v4();
         
         let job = translation_jobs::ActiveModel {
             id: sea_orm::Set(job_id),
@@ -202,7 +243,8 @@ mod tests {
         let database: DatabaseConnection = test_space.postgres.get_database_connection().await;
         let arc_conn = Arc::new(database);
 
-        let post_id = Uuid::new_v4();
+        // Create a test post first to satisfy foreign key constraint
+        let post_id = create_test_post(arc_conn.clone()).await;
         
         // Create jobs with different statuses
         use application_core::entities::translation_jobs;
@@ -222,7 +264,7 @@ mod tests {
                 status: sea_orm::Set(status.to_string()),
                 progress: sea_orm::Set(progress),
                 error_message: sea_orm::Set(None),
-                ai_model: sea_orm::Set("gpt-5-nano".to_string()),
+                ai_model: sea_orm::Set("gpt-4o-mini".to_string()),
                 created_at: sea_orm::Set(chrono::Utc::now().into()),
                 updated_at: sea_orm::Set(chrono::Utc::now().into()),
             };
@@ -258,9 +300,11 @@ mod tests {
         let database: DatabaseConnection = test_space.postgres.get_database_connection().await;
         let arc_conn = Arc::new(database);
 
+        // Create a test post first to satisfy foreign key constraint
+        let post_id = create_test_post(arc_conn.clone()).await;
+
         use application_core::entities::translation_jobs;
         let job_id = Uuid::new_v4();
-        let post_id = Uuid::new_v4();
         
         // Create job at 0%
         let job = translation_jobs::ActiveModel {
@@ -270,7 +314,7 @@ mod tests {
             status: sea_orm::Set("pending".to_string()),
             progress: sea_orm::Set(0),
             error_message: sea_orm::Set(None),
-            ai_model: sea_orm::Set("gpt-5-nano".to_string()),
+            ai_model: sea_orm::Set("gpt-4o-mini".to_string()),
             created_at: sea_orm::Set(chrono::Utc::now().into()),
             updated_at: sea_orm::Set(chrono::Utc::now().into()),
         };
@@ -318,7 +362,8 @@ mod tests {
         let database: DatabaseConnection = test_space.postgres.get_database_connection().await;
         let arc_conn = Arc::new(database);
 
-        let post_id = Uuid::new_v4();
+        // Create a test post first to satisfy foreign key constraint
+        let post_id = create_test_post(arc_conn.clone()).await;
         
         // Create jobs for different languages
         use application_core::entities::translation_jobs;
@@ -332,7 +377,7 @@ mod tests {
                 status: sea_orm::Set("processing".to_string()),
                 progress: sea_orm::Set(25),
                 error_message: sea_orm::Set(None),
-                ai_model: sea_orm::Set("gpt-5-nano".to_string()),
+                ai_model: sea_orm::Set("gpt-4o-mini".to_string()),
                 created_at: sea_orm::Set(chrono::Utc::now().into()),
                 updated_at: sea_orm::Set(chrono::Utc::now().into()),
             };

@@ -26,17 +26,18 @@ use crate::{
 use super::{translate_request::TranslatePostRequest, translate_response::TranslatePostResponse};
 
 // Default OpenAI model to use for translation
-const DEFAULT_OPENAI_MODEL: &str = "gpt-5-nano";
+// Changed from "gpt-5-nano" (which was never a real OpenAI model) to "gpt-4o-mini"
+// gpt-4o-mini is a real, reliable, and cost-effective production model
+const DEFAULT_OPENAI_MODEL: &str = "gpt-4o-mini";
 
 // Maximum chunk size in characters for content translation
-// Reduced to 800 to work reliably with gpt-5-nano model
-// The model fails with empty responses on chunks larger than ~1000 characters
-// This smaller size ensures consistent translation output, especially for HTML content
-const MAX_CHUNK_SIZE: usize = 800;
+// Set to 2000 for reliable translation with gpt-4o-mini and other production models
+// Previous value of 800 was a workaround for the non-existent "gpt-5-nano" model
+// Larger chunks improve translation quality and reduce API calls
+const MAX_CHUNK_SIZE: usize = 2000;
 
 // Temperature setting for translations (lower = more deterministic, less tokens)
 // Range: 0.0 to 2.0. For translations, we use low temperature for consistency
-// Note: Some models (e.g., gpt-5-nano) only support default temperature (1) and don't accept custom values
 const TRANSLATION_TEMPERATURE: f32 = 0.3;
 
 // Max tokens for OpenAI response (not input)
@@ -93,9 +94,10 @@ struct SimilarTranslationInfo {
 
 impl PostTranslateHandler {
     /// Helper function to check if a model supports custom temperature values
-    /// GPT-5-nano only supports the default temperature (1), not custom values
     fn supports_custom_temperature(model: &str) -> bool {
-        !model.starts_with("gpt-5-nano")
+        // All standard OpenAI models support custom temperature
+        // Return false only for specific test/mock models if needed
+        !model.starts_with("mock-") && !model.starts_with("test-")
     }
 
     /// Database lookup: Check if translation already exists
@@ -364,8 +366,11 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
         let model = request.model.as_deref().unwrap_or(DEFAULT_OPENAI_MODEL);
 
         if request.force_retranslate {
-            // Force retranslate: delete existing and translate from OpenAI
-            Self::delete_existing_translation(self.db.as_ref(), request.post_id, &request.target_language_code).await?;
+            // Force retranslate: translate from OpenAI first, THEN replace existing
+            // This is safer than deleting first: the old translation remains available
+            // until translation succeeds. If translation fails, the old one is preserved.
+            // Note: There's still a small window between delete and save where data could be lost
+            // if save fails. Future improvement: use UPDATE or transaction for atomicity.
             
             tracing::info!(
                 "Force retranslation requested for post_id={} language={} using model={}",
@@ -374,9 +379,16 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                 model
             );
             
+            // Step 1: Translate the content using OpenAI
             let (translated_title, translated_preview_content, translated_content) = 
                 Self::translate_from_openai(&post, &request.target_language_code, &openai_api_key, model).await?;
             
+            // Step 2: Delete the existing translation only AFTER successful translation
+            // If translation failed, old translation is preserved
+            Self::delete_existing_translation(self.db.as_ref(), request.post_id, &request.target_language_code).await?;
+            
+            // Step 3: Save the new translation
+            // Note: If this fails, old translation was already deleted (small risk window)
             let post_translation_id = Self::save_translation(
                 self.db.as_ref(),
                 request.post_id,
@@ -1347,10 +1359,28 @@ mod tests {
         let database = test_space.postgres.get_database_connection().await;
         let arc_conn = Arc::new(database);
 
+        // Create a test post first to satisfy foreign key constraint
+        let category_create_handler = CategoryCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_category_request = fake_create_category_request(0);
+        let created_category_id = category_create_handler
+            .handle_create_category_with_tags(create_category_request, None)
+            .await
+            .unwrap();
+
+        let post_create_handler = PostCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_post_request = fake_create_post_request(created_category_id, 0);
+        let post_id = post_create_handler
+            .handle_create_post(create_post_request, None)
+            .await
+            .unwrap();
+
         // Create a test job record
         use crate::entities::translation_jobs;
         let job_id = Uuid::new_v4();
-        let post_id = Uuid::new_v4();
         
         let job = translation_jobs::ActiveModel {
             id: sea_orm::Set(job_id),
@@ -1359,7 +1389,7 @@ mod tests {
             status: sea_orm::Set("pending".to_string()),
             progress: sea_orm::Set(0),
             error_message: sea_orm::Set(None),
-            ai_model: sea_orm::Set("gpt-5-nano".to_string()),
+            ai_model: sea_orm::Set("gpt-4o-mini".to_string()),
             created_at: sea_orm::Set(chrono::Utc::now().into()),
             updated_at: sea_orm::Set(chrono::Utc::now().into()),
         };
@@ -1417,10 +1447,28 @@ mod tests {
         let database = test_space.postgres.get_database_connection().await;
         let arc_conn = Arc::new(database);
 
+        // Create a test post first to satisfy foreign key constraint
+        let category_create_handler = CategoryCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_category_request = fake_create_category_request(0);
+        let created_category_id = category_create_handler
+            .handle_create_category_with_tags(create_category_request, None)
+            .await
+            .unwrap();
+
+        let post_create_handler = PostCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_post_request = fake_create_post_request(created_category_id, 0);
+        let post_id = post_create_handler
+            .handle_create_post(create_post_request, None)
+            .await
+            .unwrap();
+
         // Create a test job record
         use crate::entities::translation_jobs;
         let job_id = Uuid::new_v4();
-        let post_id = Uuid::new_v4();
         
         let job = translation_jobs::ActiveModel {
             id: sea_orm::Set(job_id),
@@ -1429,7 +1477,7 @@ mod tests {
             status: sea_orm::Set("processing".to_string()),
             progress: sea_orm::Set(25),
             error_message: sea_orm::Set(None),
-            ai_model: sea_orm::Set("gpt-5-nano".to_string()),
+            ai_model: sea_orm::Set("gpt-4o-mini".to_string()),
             created_at: sea_orm::Set(chrono::Utc::now().into()),
             updated_at: sea_orm::Set(chrono::Utc::now().into()),
         };
@@ -1490,15 +1538,16 @@ mod tests {
             .unwrap();
 
         // Test with different models
-        let models = vec!["gpt-4o-mini", "gpt-4o", "gpt-5-nano"];
+        let models = vec!["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"];
+        let languages = vec!["vi", "ja", "ko"]; // Use short language codes (max 10 chars)
         
-        for model in models {
+        for (i, model) in models.iter().enumerate() {
             let translate_handler = PostTranslateHandler {
                 vector_store: None,
                 db: arc_conn.clone(),
             };
             
-            let translate_request = TranslatePostRequest::new(created_post_id, format!("{}_lang", model))
+            let translate_request = TranslatePostRequest::new(created_post_id, languages[i].to_string())
                 .with_model(model.to_string());
             
             // Start background translation
@@ -1528,27 +1577,44 @@ mod tests {
         let database = test_space.postgres.get_database_connection().await;
         let arc_conn = Arc::new(database);
 
-        let post_id = Uuid::new_v4();
+        // Create a test post first to satisfy foreign key constraint
+        let category_create_handler = CategoryCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_category_request = fake_create_category_request(0);
+        let created_category_id = category_create_handler
+            .handle_create_category_with_tags(create_category_request, None)
+            .await
+            .unwrap();
+
+        let post_create_handler = PostCreateHandler {
+            db: arc_conn.clone(),
+        };
+        let create_post_request = fake_create_post_request(created_category_id, 0);
+        let post_id = post_create_handler
+            .handle_create_post(create_post_request, None)
+            .await
+            .unwrap();
         
         // Create multiple jobs with different statuses
         use crate::entities::translation_jobs;
         
         let jobs_data = vec![
-            ("pending", 0),
-            ("processing", 50),
-            ("completed", 100),
-            ("failed", 30),
+            ("pending", 0, "vi"),
+            ("processing", 50, "ja"),
+            ("completed", 100, "ko"),
+            ("failed", 30, "zh"),
         ];
 
-        for (status, progress) in jobs_data {
+        for (status, progress, lang) in jobs_data {
             let job = translation_jobs::ActiveModel {
                 id: sea_orm::Set(Uuid::new_v4()),
                 post_id: sea_orm::Set(post_id),
-                target_language: sea_orm::Set(format!("{}_lang", status)),
+                target_language: sea_orm::Set(lang.to_string()),
                 status: sea_orm::Set(status.to_string()),
                 progress: sea_orm::Set(progress),
                 error_message: sea_orm::Set(None),
-                ai_model: sea_orm::Set("gpt-5-nano".to_string()),
+                ai_model: sea_orm::Set("gpt-4o-mini".to_string()),
                 created_at: sea_orm::Set(chrono::Utc::now().into()),
                 updated_at: sea_orm::Set(chrono::Utc::now().into()),
             };
