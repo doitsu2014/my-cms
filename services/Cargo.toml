@@ -13,7 +13,6 @@ license = "MIT OR Apache-2.0"
 tokio = { version = "1.47.1", features = ["full"] }
 async-std = "1.13.2"
 axum = { version = "0.8.4", features = ["http2", "tracing", "multipart"] }
-axum-keycloak-auth = { version = "0.8.3" }
 axum-tracing-opentelemetry = { version = "0.30.0" }
 
 serde = { version = "1.0.226", features = ["derive"] }
@@ -62,7 +61,6 @@ opentelemetry = { version = "0.30.0" }
 opentelemetry-otlp = { version = "0.30.0" }
 
 jsonwebtoken = { version = "9.3.1" }
-oauth2 = { version = "5.0.0" }
 reqwest = { version = "0.12.23" }
 image = "0.25"
 moka = { version = "0.12", features = ["future"] }

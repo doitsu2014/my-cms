@@ -1,1 +1,1 @@
-pub mod keycloak_extension;
+pub mod supabase_auth;
