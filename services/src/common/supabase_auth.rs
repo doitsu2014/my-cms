@@ -161,7 +161,197 @@ where
     }
 }
 
-async fn validate_supabase_token(
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::{body::Body, http::Request, response::Response, routing::get, Router};
+    use jsonwebtoken::{encode, EncodingKey, Header};
+    use serde_json::json;
+    use std::time::{SystemTime, UNIX_EPOCH};
+    use tower::ServiceExt;
+
+    const TEST_JWT_SECRET: &str = "test-secret-key-at-least-32-characters-long!!";
+    const TEST_SUPABASE_URL: &str = "http://localhost:8001";
+
+    fn make_token(app_metadata: serde_json::Value, exp_offset_secs: i64) -> String {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
+
+        let claims = json!({
+            "sub": "test-user-id",
+            "email": "test@example.com",
+            "aud": "authenticated",
+            "role": "authenticated",
+            "exp": now + exp_offset_secs,
+            "iat": now,
+            "app_metadata": app_metadata,
+            "user_metadata": {},
+        });
+
+        let header = Header::new(Algorithm::HS256);
+        encode(
+            &header,
+            &claims,
+            &EncodingKey::from_secret(TEST_JWT_SECRET.as_bytes()),
+        )
+        .expect("should encode test token")
+    }
+
+    fn valid_token_with_role(role: &str) -> String {
+        make_token(
+            json!({"roles": [role]}),
+            3600,
+        )
+    }
+
+    fn valid_token_without_roles() -> String {
+        make_token(json!({}), 3600)
+    }
+
+    fn expired_token() -> String {
+        make_token(json!({"roles": ["my-headless-cms-writer"]}), -3600)
+    }
+
+    fn test_app() -> Router {
+        let config = SupabaseAuthConfig {
+            supabase_url: TEST_SUPABASE_URL.to_string(),
+            jwt_secret: TEST_JWT_SECRET.to_string(),
+            expected_audience: "authenticated".to_string(),
+            required_roles: vec!["my-headless-cms-writer".to_string()],
+        };
+
+        Router::new()
+            .route("/", get(|| async { "ok" }))
+            .layer(SupabaseAuthLayer::new(config))
+    }
+
+    async fn assert_status(response: Response<Body>, expected: StatusCode) {
+        assert_eq!(
+            response.status(),
+            expected,
+            "expected {} got {}: body={:?}",
+            expected,
+            response.status(),
+            axum::body::to_bytes(response.into_body(), 1024).await.ok()
+        );
+    }
+
+    #[tokio::test]
+    async fn valid_token_passes_auth() {
+        let token = valid_token_with_role("my-headless-cms-writer");
+        let app = test_app();
+
+        let response = app
+            .oneshot(
+                Request::get("/")
+                    .header("Authorization", format!("Bearer {}", token))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_status(response, StatusCode::OK).await;
+    }
+
+    #[tokio::test]
+    async fn missing_auth_header_returns_401() {
+        let app = test_app();
+
+        let response = app
+            .oneshot(Request::get("/").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_status(response, StatusCode::UNAUTHORIZED).await;
+    }
+
+    #[tokio::test]
+    async fn wrong_role_returns_403() {
+        let token = valid_token_with_role("my-headless-cms-administrator");
+        let app = test_app();
+
+        let response = app
+            .oneshot(
+                Request::get("/")
+                    .header("Authorization", format!("Bearer {}", token))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_status(response, StatusCode::FORBIDDEN).await;
+    }
+
+    #[tokio::test]
+    async fn no_roles_returns_403() {
+        let token = valid_token_without_roles();
+        let app = test_app();
+
+        let response = app
+            .oneshot(
+                Request::get("/")
+                    .header("Authorization", format!("Bearer {}", token))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_status(response, StatusCode::FORBIDDEN).await;
+    }
+
+    #[tokio::test]
+    async fn expired_token_returns_401() {
+        let token = expired_token();
+        let app = test_app();
+
+        let response = app
+            .oneshot(
+                Request::get("/")
+                    .header("Authorization", format!("Bearer {}", token))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_status(response, StatusCode::UNAUTHORIZED).await;
+    }
+
+    #[tokio::test]
+    async fn empty_required_roles_allows_any_authenticated_user() {
+        let config = SupabaseAuthConfig {
+            supabase_url: TEST_SUPABASE_URL.to_string(),
+            jwt_secret: TEST_JWT_SECRET.to_string(),
+            expected_audience: "authenticated".to_string(),
+            required_roles: vec![],
+        };
+
+        let app = Router::new()
+            .route("/", get(|| async { "ok" }))
+            .layer(SupabaseAuthLayer::new(config));
+
+        let token = valid_token_without_roles();
+
+        let response = app
+            .oneshot(
+                Request::get("/")
+                    .header("Authorization", format!("Bearer {}", token))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_status(response, StatusCode::OK).await;
+    }
+}
+
+    async fn validate_supabase_token(
     token: &str,
     config: &SupabaseAuthConfig,
 ) -> Result<SupabaseClaims, String> {

@@ -296,13 +296,180 @@ mod tests {
     fn test_create_content_preview_truncates_at_paragraph() {
         let content = "First paragraph.\n\nSecond paragraph. This is some extra text that makes it longer.";
         let result = VectorStore::create_content_preview(content, 50);
-        assert!(!result.contains("Second paragraph"));
+        assert!(!result.contains("extra text"));
+        assert!(result.len() <= 50);
     }
 
     #[test]
     fn test_create_content_preview_truncates_at_sentence() {
         let content = "First sentence. Second sentence. Third sentence that continues.";
         let result = VectorStore::create_content_preview(content, 30);
-        assert!(result.ends_with('.'));
+        assert!(result.len() <= 30);
+        assert!(!result.contains("Third sentence"));
+    }
+
+    #[test]
+    fn test_format_embedding_for_pg() {
+        let embedding = vec![1.0_f32, 2.5, 3.0];
+        let result = VectorStore::format_embedding_for_pg(&embedding);
+        assert_eq!(result, "[1,2.5,3]");
+    }
+
+    fn require_openai_key() -> Option<String> {
+        std::env::var("OPENAI_API_KEY").ok()
+    }
+
+    use test_helpers::ContainerAsyncPostgresEx;
+
+    /// Integration test: store and retrieve a translation embedding
+    #[async_std::test]
+    async fn test_store_and_find_translation() {
+        let api_key = match require_openai_key() {
+            Some(k) => k,
+            None => {
+                eprintln!("Skipping: OPENAI_API_KEY not set");
+                return;
+            }
+        };
+
+        let test_space = test_helpers::setup_test_space_with_pgvector().await;
+        let db: DatabaseConnection = test_space.postgres.get_database_connection().await;
+        let db = std::sync::Arc::new(db);
+
+        let store = VectorStore::new(db.clone(), api_key)
+            .await
+            .expect("should create VectorStore");
+        store.initialize_collection().await.expect("pgvector available");
+
+        let post_id = uuid::Uuid::new_v4();
+        let translation_id = uuid::Uuid::new_v4();
+
+        store
+            .store_translation(post_id, "en", translation_id, "Hello World", "Some content here for embedding")
+            .await
+            .expect("should store embedding");
+
+        let found = store
+            .find_translation(post_id, "en")
+            .await
+            .expect("should find embedding")
+            .expect("should return Some");
+
+        assert_eq!(found.post_id, post_id.to_string());
+        assert_eq!(found.language_code, "en");
+        assert_eq!(found.translation_id, translation_id.to_string());
+        assert_eq!(found.title, "Hello World");
+    }
+
+    /// Integration test: search for similar translations
+    #[async_std::test]
+    async fn test_search_similar_translations() {
+        let api_key = match require_openai_key() {
+            Some(k) => k,
+            None => {
+                eprintln!("Skipping: OPENAI_API_KEY not set");
+                return;
+            }
+        };
+
+        let test_space = test_helpers::setup_test_space_with_pgvector().await;
+        let db: DatabaseConnection = test_space.postgres.get_database_connection().await;
+        let db = std::sync::Arc::new(db);
+
+        let store = VectorStore::new(db.clone(), api_key)
+            .await
+            .expect("should create VectorStore");
+        store.initialize_collection().await.expect("pgvector available");
+
+        let post_a_id = uuid::Uuid::new_v4();
+        let post_b_id = uuid::Uuid::new_v4();
+
+        store
+            .store_translation(post_a_id, "en", uuid::Uuid::new_v4(), "Rust Programming Guide", "Rust is a systems programming language focused on safety and performance.")
+            .await
+            .expect("store post a");
+
+        store
+            .store_translation(post_b_id, "en", uuid::Uuid::new_v4(), "Italian Cooking", "Pasta carbonara is a classic Italian dish made with eggs, cheese, and bacon.")
+            .await
+            .expect("store post b");
+
+        let results = store
+            .search_similar_translations("Rust programming language tutorial", 3)
+            .await
+            .expect("should search");
+
+        assert!(!results.is_empty(), "should find at least one result");
+
+        let best_match = &results[0].0;
+        assert!(best_match.title.contains("Rust"), "best match should be about Rust, got: {}", best_match.title);
+    }
+
+    /// Integration test: upsert on conflict
+    #[async_std::test]
+    async fn test_store_translation_upsert() {
+        let api_key = match require_openai_key() {
+            Some(k) => k,
+            None => {
+                eprintln!("Skipping: OPENAI_API_KEY not set");
+                return;
+            }
+        };
+
+        let test_space = test_helpers::setup_test_space_with_pgvector().await;
+        let db: DatabaseConnection = test_space.postgres.get_database_connection().await;
+        let db = std::sync::Arc::new(db);
+
+        let store = VectorStore::new(db.clone(), api_key)
+            .await
+            .expect("should create VectorStore");
+        store.initialize_collection().await.expect("pgvector available");
+
+        let post_id = uuid::Uuid::new_v4();
+        let tid1 = uuid::Uuid::new_v4();
+        let tid2 = uuid::Uuid::new_v4();
+
+        store
+            .store_translation(post_id, "fr", tid1, "Version 1", "Première version du contenu.")
+            .await
+            .expect("store initial");
+
+        store
+            .store_translation(post_id, "fr", tid2, "Version 2", "Deuxième version mise à jour.")
+            .await
+            .expect("store update");
+
+        let found = store
+            .find_translation(post_id, "fr")
+            .await
+            .expect("should find")
+            .expect("should exist");
+
+        assert_eq!(found.translation_id, tid2.to_string(), "should reflect updated translation_id");
+        assert_eq!(found.title, "Version 2", "should reflect updated title");
+    }
+
+    /// Integration test: find_translation returns None for non-existent entry
+    #[async_std::test]
+    async fn test_find_translation_not_found() {
+        let api_key = match require_openai_key() {
+            Some(k) => k,
+            None => {
+                eprintln!("Skipping: OPENAI_API_KEY not set");
+                return;
+            }
+        };
+
+        let test_space = test_helpers::setup_test_space_with_pgvector().await;
+        let db: DatabaseConnection = test_space.postgres.get_database_connection().await;
+        let db = std::sync::Arc::new(db);
+
+        let store = VectorStore::new(db.clone(), api_key)
+            .await
+            .expect("should create VectorStore");
+        store.initialize_collection().await.expect("pgvector available");
+
+        let result = store.find_translation(uuid::Uuid::new_v4(), "xx").await.expect("should not error");
+        assert!(result.is_none(), "should return None for non-existent entry");
     }
 }

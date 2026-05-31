@@ -1567,7 +1567,7 @@ mod tests {
                 .unwrap()
                 .unwrap();
 
-            assert_eq!(job.ai_model, model);
+            assert_eq!(job.ai_model, *model);
         }
     }
 

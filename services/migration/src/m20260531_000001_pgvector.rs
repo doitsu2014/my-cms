@@ -9,10 +9,42 @@ pub struct Migration;
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        manager
+        let ext_result = manager
             .get_connection()
-            .execute_unprepared("CREATE EXTENSION IF NOT EXISTS vector")
-            .await?;
+            .execute_unprepared(
+                "DO $$
+                BEGIN
+                    CREATE EXTENSION IF NOT EXISTS vector;
+                EXCEPTION WHEN OTHERS THEN
+                    RAISE NOTICE 'pgvector extension not available, skipping embeddings table';
+                END $$;",
+            )
+            .await;
+
+        match ext_result {
+            Ok(_) => {}
+            Err(DbErr::Exec(_)) => {
+                eprintln!("WARN: Could not check pgvector extension; skipping embeddings table creation");
+                return Ok(());
+            }
+            Err(e) => return Err(e),
+        }
+
+        let ext_exists = manager
+            .get_connection()
+            .query_one(sea_orm::Statement::from_string(
+                sea_orm::DatabaseBackend::Postgres,
+                "SELECT 1 FROM pg_extension WHERE extname = 'vector'".to_string(),
+            ))
+            .await;
+
+        match ext_exists {
+            Ok(Some(_)) => {}
+            _ => {
+                eprintln!("WARN: pgvector extension not installed, skipping embeddings table");
+                return Ok(());
+            }
+        }
 
         manager
             .create_table(
