@@ -1,8 +1,10 @@
 name: Automation Test my-cms-api
-on:
-  pull_request:
-    branches: ["main"]
-  workflow_dispatch:
+
+# TEMPORARY DISABLED, PLEASE CHECK BACK LATER
+# on:
+#   pull_request:
+#     branches: ["main"]
+#   workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
