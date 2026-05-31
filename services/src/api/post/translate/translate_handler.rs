@@ -3,7 +3,7 @@ use application_core::commands::ai::translate::{
     translate_request::TranslatePostRequest,
 };
 use axum::{extract::{Path, State}, response::IntoResponse, Extension, Json};
-use axum_keycloak_auth::decode::KeycloakToken;
+use crate::common::supabase_auth::SupabaseToken;
 use sea_orm::sqlx::types::Uuid;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
@@ -71,7 +71,7 @@ async fn initialize_vector_store(
 #[instrument]
 pub async fn api_translate_post(
     state: State<AppState>,
-    Extension(_token): Extension<KeycloakToken<String>>,
+    Extension(_token): Extension<SupabaseToken>,
     Path(post_id): Path<Uuid>,
     Json(body): Json<TranslatePostRequestBody>,
 ) -> impl IntoResponse {
@@ -121,7 +121,7 @@ pub async fn api_translate_post(
 #[instrument]
 pub async fn api_translate_post_background(
     state: State<AppState>,
-    Extension(_token): Extension<KeycloakToken<String>>,
+    Extension(_token): Extension<SupabaseToken>,
     Path(post_id): Path<Uuid>,
     Json(body): Json<TranslatePostRequestBody>,
 ) -> impl IntoResponse {

@@ -1,5 +1,5 @@
 use crate::{
-    keycloak_extension::ExtractKeyCloakToken, ApiResponseError, ApiResponseWith, AppState,
+    ApiResponseError, ApiResponseWith, AppState,
     AxumResponse,
 };
 use application_core::commands::category::modify::{
@@ -7,7 +7,7 @@ use application_core::commands::category::modify::{
     modify_request::ModifyCategoryRequest,
 };
 use axum::{extract::State, response::IntoResponse, Extension, Json};
-use axum_keycloak_auth::decode::KeycloakToken;
+use crate::common::supabase_auth::SupabaseToken;
 use tower_cookies::Cookies;
 use tracing::instrument;
 
@@ -15,7 +15,7 @@ use tracing::instrument;
 pub async fn api_modify_category(
     state: State<AppState>,
     cookies: Cookies,
-    Extension(token): Extension<KeycloakToken<String>>,
+    Extension(token): Extension<SupabaseToken>,
     Json(body): Json<ModifyCategoryRequest>,
 ) -> impl IntoResponse {
     let handler = CategoryModifyHandler {
@@ -23,7 +23,7 @@ pub async fn api_modify_category(
     };
 
     let result = handler
-        .handle_modify_category(body, Some(token.extract_email().email))
+        .handle_modify_category(body, Some(token.email().unwrap_or("").to_string()))
         .await;
 
     match result {

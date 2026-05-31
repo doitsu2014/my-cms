@@ -6,7 +6,7 @@ use axum::{
     response::IntoResponse,
     Extension, Json,
 };
-use axum_keycloak_auth::decode::KeycloakToken;
+use crate::common::supabase_auth::SupabaseToken;
 use tower_cookies::Cookies;
 use tracing::instrument;
 
@@ -17,7 +17,7 @@ use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
 pub async fn api_delete_media(
     state: State<AppState>,
     _cookies: Cookies,
-    Extension(_token): Extension<KeycloakToken<String>>,
+    Extension(_token): Extension<SupabaseToken>,
     Path(path): Path<String>,
 ) -> impl IntoResponse {
     let handler = DeleteMediaHandler {
@@ -35,7 +35,7 @@ pub async fn api_delete_media(
 pub async fn api_delete_media_batch(
     state: State<AppState>,
     _cookies: Cookies,
-    Extension(_token): Extension<KeycloakToken<String>>,
+    Extension(_token): Extension<SupabaseToken>,
     Json(paths): Json<Vec<String>>,
 ) -> impl IntoResponse {
     let handler = DeleteMediaHandler {

@@ -1,5 +1,5 @@
 use crate::{
-    keycloak_extension::ExtractKeyCloakToken, ApiResponseError, ApiResponseWith, AppState,
+    ApiResponseError, ApiResponseWith, AppState,
     AxumResponse,
 };
 use application_core::commands::category::create::{
@@ -7,7 +7,7 @@ use application_core::commands::category::create::{
     create_request::CreateCategoryRequest,
 };
 use axum::{extract::State, response::IntoResponse, Extension, Json};
-use axum_keycloak_auth::decode::KeycloakToken;
+use crate::common::supabase_auth::SupabaseToken;
 use tower_cookies::Cookies;
 use tracing::instrument;
 
@@ -15,7 +15,7 @@ use tracing::instrument;
 pub async fn api_create_category_with_tags(
     state: State<AppState>,
     cookies: Cookies,
-    Extension(token): Extension<KeycloakToken<String>>,
+    Extension(token): Extension<SupabaseToken>,
     Json(body): Json<CreateCategoryRequest>,
 ) -> impl IntoResponse {
     let handler = CategoryCreateHandler {
@@ -23,7 +23,7 @@ pub async fn api_create_category_with_tags(
     };
 
     let result = handler
-        .handle_create_category_with_tags(body, Some(token.extract_email().email))
+        .handle_create_category_with_tags(body, Some(token.email().unwrap_or("").to_string()))
         .await;
 
     match result {

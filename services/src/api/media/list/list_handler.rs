@@ -6,7 +6,7 @@ use axum::{
     response::IntoResponse,
     Extension,
 };
-use axum_keycloak_auth::decode::KeycloakToken;
+use crate::common::supabase_auth::SupabaseToken;
 use serde::Deserialize;
 use tower_cookies::Cookies;
 use tracing::instrument;
@@ -22,7 +22,7 @@ pub struct ListQueryParams {
 pub async fn api_list_media(
     state: State<AppState>,
     _cookies: Cookies,
-    Extension(_token): Extension<KeycloakToken<String>>,
+    Extension(_token): Extension<SupabaseToken>,
     Query(params): Query<ListQueryParams>,
 ) -> impl IntoResponse {
     let handler = ListMediaHandler {

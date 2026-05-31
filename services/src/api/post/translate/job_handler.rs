@@ -1,5 +1,5 @@
 use axum::{extract::{Path, State}, response::IntoResponse, Extension};
-use axum_keycloak_auth::decode::KeycloakToken;
+use crate::common::supabase_auth::SupabaseToken;
 use sea_orm::{EntityTrait, QueryFilter, ColumnTrait};
 use sea_orm::sqlx::types::Uuid;
 use serde::{Deserialize, Serialize};
@@ -38,7 +38,7 @@ pub struct ActiveJobsResponse {
 #[instrument]
 pub async fn api_get_job_status(
     state: State<AppState>,
-    Extension(_token): Extension<KeycloakToken<String>>,
+    Extension(_token): Extension<SupabaseToken>,
     Path((post_id, job_id)): Path<(Uuid, Uuid)>,
 ) -> impl IntoResponse {
     let job_result = translation_jobs::Entity::find_by_id(job_id)
@@ -84,7 +84,7 @@ pub async fn api_get_job_status(
 #[instrument]
 pub async fn api_get_active_jobs(
     state: State<AppState>,
-    Extension(_token): Extension<KeycloakToken<String>>,
+    Extension(_token): Extension<SupabaseToken>,
     Path(post_id): Path<Uuid>,
 ) -> impl IntoResponse {
     let jobs_result = translation_jobs::Entity::find()

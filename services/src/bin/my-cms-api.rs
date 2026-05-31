@@ -11,12 +11,9 @@ use axum::{
     routing::{delete, get, post},
     Router,
 };
-use axum_keycloak_auth::{
-    instance::{KeycloakAuthInstance, KeycloakConfig},
-    layer::KeycloakAuthLayer,
-    PassthroughMode,
-};
 use cms::{
+    common::supabase_auth::{SupabaseAuthConfig, SupabaseAuthLayer},
+
     api, category::delete::delete_handler::api_delete_categories,
     post::delete::delete_handler::api_delete_posts, public,
     tag::delete::delete_handler::api_delete_tags, AppState,
@@ -27,7 +24,6 @@ use init_tracing_opentelemetry::{
     otlp::OtelGuard,
     tracing_subscriber_ext::{build_level_filter_layer, build_logger_text},
 };
-use reqwest::Url;
 use s3::creds::Credentials;
 use sea_orm::Database;
 use tower_cookies::CookieManagerLayer;
@@ -184,15 +180,9 @@ pub async fn protected_router() -> Router {
                 app_state.graphql_mutable_schema.as_ref().to_owned(),
             )),
         )
-        .layer(
-            KeycloakAuthLayer::<String>::builder()
-                .instance(construct_keycloak_auth_instance())
-                .passthrough_mode(PassthroughMode::Block)
-                .persist_raw_claims(false)
-                .expected_audiences(vec![env::var("AUTHORIZATION_AUDIENCE").unwrap_or("my-cms-headless-api".to_string())])
-                .required_roles(vec![String::from("my-headless-cms-writer")])
-                .build(),
-        )
+        .layer(construct_supabase_auth_layer(
+            env::var("AUTHORIZATION_AUDIENCE").unwrap_or("authenticated".to_string()),
+        ))
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
         .layer(CookieManagerLayer::new())
@@ -214,15 +204,9 @@ pub async fn protected_administrator_router() -> Router {
             "/administrator/database/migration",
             post(api::administrator::migration::migration_handler::handle_api_database_migration),
         )
-        .layer(
-            KeycloakAuthLayer::<String>::builder()
-                .instance(construct_keycloak_auth_instance())
-                .passthrough_mode(PassthroughMode::Block)
-                .persist_raw_claims(false)
-                .expected_audiences(vec![env::var("AUTHORIZATION_AUDIENCE").unwrap_or("my-cms-headless-api".to_string())])
-                .required_roles(vec![String::from("my-headless-cms-administrator")])
-                .build(),
-        )
+        .layer(construct_supabase_auth_layer(
+            env::var("AUTHORIZATION_AUDIENCE").unwrap_or("authenticated".to_string()),
+        ))
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
         .layer(CookieManagerLayer::new())
@@ -262,17 +246,15 @@ async fn construct_app_state() -> AppState {
     }
 }
 
-fn construct_keycloak_auth_instance() -> KeycloakAuthInstance {
-    let issuer =
-        env::var("KEYCLOAK_ISSUER").unwrap_or("https://my-ids-admin.ducth.dev".to_string());
-    let realm = env::var("KEYCLOAK_REALM").unwrap_or("master".to_string());
+fn construct_supabase_auth_layer(expected_audience: String) -> SupabaseAuthLayer {
+    let supabase_url = env::var("SUPABASE_URL").expect("SUPABASE_URL must be set");
+    let jwt_secret = env::var("SUPABASE_JWT_SECRET").expect("SUPABASE_JWT_SECRET must be set");
 
-    KeycloakAuthInstance::new(
-        KeycloakConfig::builder()
-            .server(Url::parse(&issuer).unwrap())
-            .realm(realm)
-            .build(),
-    )
+    SupabaseAuthLayer::new(SupabaseAuthConfig {
+        supabase_url,
+        jwt_secret,
+        expected_audience,
+    })
 }
 
 fn construct_cors_layer() -> CorsLayer {

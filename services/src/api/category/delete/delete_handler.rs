@@ -1,12 +1,12 @@
 use crate::{
-    keycloak_extension::ExtractKeyCloakToken, ApiResponseError, ApiResponseWith, AppState,
+    ApiResponseError, ApiResponseWith, AppState,
     AxumResponse,
 };
 use application_core::commands::category::delete::delete_handler::{
     CategoryDeleteHandler, CategoryDeleteHandlerTrait,
 };
 use axum::{extract::State, response::IntoResponse, Extension, Json};
-use axum_keycloak_auth::decode::KeycloakToken;
+use crate::common::supabase_auth::SupabaseToken;
 use sea_orm::sqlx::types::Uuid;
 use tower_cookies::Cookies;
 use tracing::instrument;
@@ -15,7 +15,7 @@ use tracing::instrument;
 pub async fn api_delete_categories(
     state: State<AppState>,
     cookies: Cookies,
-    Extension(token): Extension<KeycloakToken<String>>,
+    Extension(token): Extension<SupabaseToken>,
     Json(body): Json<Vec<Uuid>>,
 ) -> impl IntoResponse {
     let handler = CategoryDeleteHandler {
@@ -23,7 +23,7 @@ pub async fn api_delete_categories(
     };
 
     let result = handler
-        .handle_delete_categories(body, Some(token.extract_email().email))
+        .handle_delete_categories(body, Some(token.email().unwrap_or("").to_string()))
         .await;
 
     match result {
