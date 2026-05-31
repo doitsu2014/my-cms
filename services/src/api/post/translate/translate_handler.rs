@@ -5,6 +5,7 @@ use application_core::commands::ai::translate::{
 use axum::{extract::{Path, State}, response::IntoResponse, Extension, Json};
 use axum_keycloak_auth::decode::KeycloakToken;
 use sea_orm::sqlx::types::Uuid;
+use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::sync::Arc;
@@ -35,38 +36,28 @@ pub struct TranslatePostResponse {
     pub status: String,
 }
 
-/// Initialize optional Qdrant vector store if QDRANT_URL is configured
-async fn initialize_vector_store(openai_api_key: &str) -> Option<Arc<application_core::commands::ai::vector_store::VectorStore>> {
-    match env::var("QDRANT_URL") {
-        Ok(qdrant_url) => {
-            tracing::info!("QDRANT_URL configured: {}", qdrant_url);
-            tracing::info!("Attempting to connect to Qdrant and initialize collection...");
-            
-            match application_core::commands::ai::vector_store::VectorStore::new(
-                &qdrant_url,
-                openai_api_key.to_string(),
-            )
-            .await
-            {
-                Ok(vs) => {
-                    tracing::info!("✓ Successfully connected to Qdrant");
-                    
-                    if let Err(e) = vs.initialize_collection().await {
-                        tracing::error!("✗ Failed to initialize Qdrant collection: {}", e);
-                        None
-                    } else {
-                        tracing::info!("✓ Qdrant vector store ready for use");
-                        Some(Arc::new(vs))
-                    }
-                }
-                Err(e) => {
-                    tracing::error!("✗ Failed to connect to Qdrant at {}: {}", qdrant_url, e);
-                    None
-                }
+/// Initialize pgvector-backed vector store for AI translation embeddings
+async fn initialize_vector_store(
+    db: Arc<DatabaseConnection>,
+    openai_api_key: &str,
+) -> Option<Arc<application_core::commands::ai::vector_store_pg::VectorStore>> {
+    match application_core::commands::ai::vector_store_pg::VectorStore::new(
+        db,
+        openai_api_key.to_string(),
+    )
+    .await
+    {
+        Ok(vs) => {
+            if let Err(e) = vs.initialize_collection().await {
+                tracing::error!("Failed to initialize pgvector embeddings table: {}", e);
+                None
+            } else {
+                tracing::info!("pgvector embeddings store ready for use");
+                Some(Arc::new(vs))
             }
         }
-        Err(_) => {
-            tracing::info!("QDRANT_URL not configured - vector storage disabled");
+        Err(e) => {
+            tracing::error!("Failed to create pgvector VectorStore: {}", e);
             None
         }
     }
@@ -94,8 +85,7 @@ pub async fn api_translate_post(
         }
     };
 
-    // Optional: Initialize vector store if Qdrant URL is configured
-    let vector_store = initialize_vector_store(&openai_api_key).await;
+    let vector_store = initialize_vector_store(state.conn.clone(), &openai_api_key).await;
 
     let handler = PostTranslateHandler {
         db: state.conn.clone(),
@@ -145,8 +135,7 @@ pub async fn api_translate_post_background(
         }
     };
 
-    // Optional: Initialize vector store if Qdrant URL is configured
-    let vector_store = initialize_vector_store(&openai_api_key).await;
+    let vector_store = initialize_vector_store(state.conn.clone(), &openai_api_key).await;
 
     let handler = PostTranslateHandler {
         db: state.conn.clone(),

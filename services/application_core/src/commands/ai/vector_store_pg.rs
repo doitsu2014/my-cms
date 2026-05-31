@@ -11,10 +11,7 @@ use uuid::Uuid;
 
 use crate::common::app_error::AppError;
 
-pub(crate) const TRANSLATION_COLLECTION: &str = "translations";
 pub(crate) const EMBEDDING_MODEL: &str = "text-embedding-3-small";
-pub(crate) const EMBEDDING_DIMENSION: u64 = 1536;
-pub(crate) const SIMILARITY_REUSE_THRESHOLD: f32 = 0.95;
 pub(crate) const MAX_SEARCH_TEXT_LENGTH: usize = 8000;
 pub(crate) const CONTENT_PREVIEW_LENGTH: usize = 2000;
 
@@ -141,8 +138,8 @@ impl VectorStore {
         content: &str,
     ) -> Result<(), AppError> {
         let text_for_embedding = format!("{} {}", title, content);
-        let truncated_text = if text_for_embedding.len() > 8000 {
-            &text_for_embedding[..8000]
+        let truncated_text = if text_for_embedding.len() > MAX_SEARCH_TEXT_LENGTH {
+            &text_for_embedding[..MAX_SEARCH_TEXT_LENGTH]
         } else {
             &text_for_embedding
         };
@@ -157,7 +154,7 @@ impl VectorStore {
         );
 
         let embedding_str = Self::format_embedding_for_pg(&embedding);
-        let content_preview = Self::create_content_preview(content, 2000);
+        let content_preview = Self::create_content_preview(content, CONTENT_PREVIEW_LENGTH);
         let id = Uuid::new_v4();
 
         let safe_title = title.replace('\'', "''");

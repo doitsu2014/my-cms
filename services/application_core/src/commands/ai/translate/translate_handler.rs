@@ -80,7 +80,7 @@ pub trait PostTranslateHandlerTrait {
 #[derive(Debug)]
 pub struct PostTranslateHandler {
     pub db: Arc<DatabaseConnection>,
-    pub vector_store: Option<Arc<crate::commands::ai::vector_store::VectorStore>>,
+    pub vector_store: Option<Arc<crate::commands::ai::vector_store_pg::VectorStore>>,
 }
 
 struct SimilarTranslationInfo {
@@ -135,7 +135,7 @@ impl PostTranslateHandler {
 
     /// Qdrant similarity search: Find similar translations with score >= threshold
     async fn find_similar_translation(
-        vector_store: &Option<Arc<crate::commands::ai::vector_store::VectorStore>>,
+        vector_store: &Option<Arc<crate::commands::ai::vector_store_pg::VectorStore>>,
         db: &DatabaseConnection,
         post: &posts::Model,
         post_id: Uuid,
@@ -286,7 +286,7 @@ impl PostTranslateHandler {
 
     /// Store translation in vector database
     async fn store_in_vector_db(
-        vector_store: &Option<Arc<crate::commands::ai::vector_store::VectorStore>>,
+        vector_store: &Option<Arc<crate::commands::ai::vector_store_pg::VectorStore>>,
         post_id: Uuid,
         language_code: &str,
         translation_id: Uuid,
