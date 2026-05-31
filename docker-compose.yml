@@ -22,7 +22,7 @@ services:
   # ========================================
   db:
     container_name: supabase-db
-    image: supabase/postgres:15.6.1.148
+    image: supabase/postgres:15.14.1.132
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
@@ -79,7 +79,7 @@ services:
   # ========================================
   auth:
     container_name: supabase-auth
-    image: supabase/gotrue:v2.179.6
+    image: supabase/gotrue:v2.179.0
     restart: unless-stopped
     healthcheck:
       test:
@@ -181,7 +181,7 @@ services:
   # ========================================
   storage:
     container_name: supabase-storage
-    image: supabase/storage-api:v1.33.23
+    image: supabase/storage-api:v1.60.2
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/status"]
@@ -225,7 +225,7 @@ services:
   # ========================================
   imgproxy:
     container_name: supabase-imgproxy
-    image: darthsim/imgproxy:v3.26.0
+    image: darthsim/imgproxy:v4.0.3
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "imgproxy", "health"]
@@ -247,7 +247,7 @@ services:
   # ========================================
   meta:
     container_name: supabase-meta
-    image: supabase/postgres-meta:v0.91.0
+    image: supabase/postgres-meta:v0.96.6
     restart: unless-stopped
     environment:
       PG_META_PORT: 8080
@@ -268,7 +268,7 @@ services:
   # ========================================
   studio:
     container_name: supabase-studio
-    image: supabase/studio:2026.05.07-sha-2e4841f
+    image: supabase/studio:2026.05.25-sha-65c570e
     restart: unless-stopped
     environment:
       STUDIO_PG_META_URL: http://meta:8080
