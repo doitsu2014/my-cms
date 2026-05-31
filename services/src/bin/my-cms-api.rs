@@ -182,6 +182,7 @@ pub async fn protected_router() -> Router {
         )
         .layer(construct_supabase_auth_layer(
             env::var("AUTHORIZATION_AUDIENCE").unwrap_or("authenticated".to_string()),
+            vec![String::from("my-headless-cms-writer")],
         ))
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
@@ -206,6 +207,7 @@ pub async fn protected_administrator_router() -> Router {
         )
         .layer(construct_supabase_auth_layer(
             env::var("AUTHORIZATION_AUDIENCE").unwrap_or("authenticated".to_string()),
+            vec![String::from("my-headless-cms-administrator")],
         ))
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
@@ -246,7 +248,7 @@ async fn construct_app_state() -> AppState {
     }
 }
 
-fn construct_supabase_auth_layer(expected_audience: String) -> SupabaseAuthLayer {
+fn construct_supabase_auth_layer(expected_audience: String, required_roles: Vec<String>) -> SupabaseAuthLayer {
     let supabase_url = env::var("SUPABASE_URL").expect("SUPABASE_URL must be set");
     let jwt_secret = env::var("SUPABASE_JWT_SECRET").expect("SUPABASE_JWT_SECRET must be set");
 
@@ -254,6 +256,7 @@ fn construct_supabase_auth_layer(expected_audience: String) -> SupabaseAuthLayer
         supabase_url,
         jwt_secret,
         expected_audience,
+        required_roles,
     })
 }
 

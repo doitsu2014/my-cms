@@ -15,6 +15,7 @@ pub struct SupabaseAuthConfig {
     pub supabase_url: String,
     pub jwt_secret: String,
     pub expected_audience: String,
+    pub required_roles: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -128,6 +129,29 @@ where
                         .into_response());
                 }
             };
+
+            if !config.required_roles.is_empty() {
+                let has_role = claims
+                    .app_metadata
+                    .as_ref()
+                    .and_then(|meta| meta.get("roles"))
+                    .and_then(|roles| roles.as_array())
+                    .map(|roles| {
+                        roles.iter().any(|r| {
+                            r.as_str()
+                                .map(|s| config.required_roles.contains(&s.to_string()))
+                                .unwrap_or(false)
+                        })
+                    })
+                    .unwrap_or(false);
+
+                if !has_role {
+                    return Ok((
+                        StatusCode::FORBIDDEN,
+                        r#"{"error":"Insufficient permissions"}"#,
+                    ).into_response());
+                }
+            }
 
             let mut req = req;
             req.extensions_mut().insert(SupabaseToken { claims });
