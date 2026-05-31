@@ -34,7 +34,7 @@ const AVAILABLE_LANGUAGES = [{ code: 'vi', displayName: 'Vietnamese (vi)' }];
 
 export default function BlogForm({ id }: { id?: string }) {
   const navigate = useNavigate();
-  const { token, keycloak } = useAuth();
+  const { token } = useAuth();
   const [categories, setCategories] = useState<CategoryModel[]>([]);
   const [originalContent, setOriginalContent] = useState('');
   const [originalTranslationContents, setOriginalTranslationContents] = useState<
@@ -116,8 +116,7 @@ export default function BlogForm({ id }: { id?: string }) {
       const response = await authenticatedFetch(
         getApiUrl(`/posts/${id}`),
         token,
-        { cache: 'no-store' },
-        keycloak || undefined
+        { cache: 'no-store' }
       );
       
       if (response && response.ok) {
@@ -159,7 +158,7 @@ export default function BlogForm({ id }: { id?: string }) {
     } finally {
       setFetchingData(false);
     }
-  }, [id, token, keycloak, reset]);
+  }, [id, token, reset]);
 
   // Fetch AI models
   const fetchAIModels = async () => {
@@ -168,8 +167,7 @@ export default function BlogForm({ id }: { id?: string }) {
       const response = await authenticatedFetch(
         getApiUrl('/ai/models'),
         token,
-        { cache: 'no-store' },
-        keycloak || undefined
+        { cache: 'no-store' }
       );
       if (response.ok) {
         const result = await response.json();
@@ -201,7 +199,7 @@ export default function BlogForm({ id }: { id?: string }) {
       setOriginalContent('');
       setOriginalTranslationContents({});
     }
-  }, [id, reset, token, keycloak]);
+  }, [id, reset, token]);
 
   // Fetch AI models when modal is opened
   useEffect(() => {
@@ -220,7 +218,6 @@ export default function BlogForm({ id }: { id?: string }) {
           getApiUrl(`/posts/${id}/translate/jobs`),
           token,
           { method: 'GET' },
-          keycloak || undefined
         );
         
         if (response.ok) {
@@ -241,7 +238,7 @@ export default function BlogForm({ id }: { id?: string }) {
     }, 3000); // Poll every 3 seconds
     
     return () => clearInterval(pollInterval);
-  }, [id, token, keycloak, reloadPostData]);
+  }, [id, token, reloadPostData]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -250,7 +247,6 @@ export default function BlogForm({ id }: { id?: string }) {
           getApiUrl('/categories'),
           token,
           { cache: 'no-store' },
-          keycloak || undefined
         );
         if (response.ok) {
           const res: { data: CategoryModel[] } = await response.json();
@@ -269,7 +265,7 @@ export default function BlogForm({ id }: { id?: string }) {
     };
 
     fetchCategories();
-  }, [id, token, keycloak, setValue, watch]);
+  }, [id, token, setValue, watch]);
 
   const onSubmit = async (data: BlogFormData) => {
     try {
@@ -298,7 +294,6 @@ export default function BlogForm({ id }: { id?: string }) {
           },
           body: JSON.stringify(postData),
         },
-        keycloak || undefined
       );
 
       if (response.ok) {
@@ -400,7 +395,6 @@ export default function BlogForm({ id }: { id?: string }) {
         getApiUrl(`/posts/${id}/translate/jobs`),
         token,
         { method: 'GET' },
-        keycloak || undefined
       );
       
       if (response.ok) {
@@ -435,7 +429,6 @@ export default function BlogForm({ id }: { id?: string }) {
             model: selectedModel,
           }),
         },
-        keycloak || undefined
       );
 
       if (response.ok) {
@@ -513,7 +506,6 @@ export default function BlogForm({ id }: { id?: string }) {
             model: selectedModel,
           }),
         },
-        keycloak || undefined
       );
 
       if (response.ok) {

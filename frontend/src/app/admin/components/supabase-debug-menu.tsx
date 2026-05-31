@@ -11,9 +11,10 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
+import { getSupabaseClient } from '@/auth/supabase';
 
-export default function KeycloakDebugMenu() {
-  const { userInfo, authenticated, token, keycloak } = useAuth();
+export default function SupabaseDebugMenu() {
+  const { userInfo, authenticated, token, session } = useAuth();
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
   const userName = userInfo?.name || userInfo?.username || 'Admin User';
@@ -26,29 +27,28 @@ export default function KeycloakDebugMenu() {
   };
 
   const handleCheckAuth = () => {
+    const supabase = getSupabaseClient();
     console.log('=== Authentication Status ===');
     console.log('Authenticated:', authenticated);
-    console.log('Keycloak authenticated:', keycloak?.authenticated);
-    toast.info(`Authenticated: ${authenticated}`);
+    supabase.auth.getSession().then(({ data }) => {
+      console.log('Session:', data.session);
+      toast.info(`Authenticated: ${authenticated} | Session: ${!!data.session}`);
+    });
     closeDropdown();
   };
 
   const handleShowToken = () => {
     console.log('=== Token Information ===');
     console.log('Token:', token);
-    console.log('Token parsed:', keycloak?.tokenParsed);
-    console.log(
-      'Token expires in (seconds):',
-      keycloak?.tokenParsed?.exp
-        ? keycloak.tokenParsed.exp - Math.floor(Date.now() / 1000)
-        : 'N/A'
-    );
-    console.log('Refresh token available:', keycloak?.refreshToken ? 'YES' : 'NO');
-
-    const hasRefreshToken = keycloak?.refreshToken ? 'YES' : 'NO';
+    if (session) {
+      console.log('Token expires at:', session.expires_at
+        ? new Date(session.expires_at * 1000).toISOString()
+        : 'N/A');
+      console.log('Refresh token available:', session.refresh_token ? 'YES' : 'NO');
+    }
     toast.info(
       token
-        ? `Token: ${token.substring(0, 30)}... | Refresh: ${hasRefreshToken}`
+        ? `Token: ${token.substring(0, 30)}...`
         : 'No token available',
       { duration: 6000 }
     );
@@ -58,14 +58,14 @@ export default function KeycloakDebugMenu() {
   const handleRefreshToken = async () => {
     try {
       console.log('=== Refreshing Token ===');
-      const refreshed = await keycloak?.updateToken(70);
-      console.log('Token refreshed:', refreshed);
-      console.log('New token:', keycloak?.token);
+      const { data, error } = await getSupabaseClient().auth.refreshSession();
+      console.log('Token refreshed:', !error);
+      console.log('New session:', data.session);
       toast.success(
-        refreshed ? 'Token refreshed successfully' : 'Token still valid (no refresh needed)'
+        error ? 'Token refresh failed' : 'Token refreshed successfully'
       );
-    } catch (error) {
-      console.error('Token refresh failed:', error);
+    } catch (e) {
+      console.error('Token refresh failed:', e);
       toast.error('Token refresh failed! Check console for details.');
     }
     closeDropdown();
@@ -74,35 +74,37 @@ export default function KeycloakDebugMenu() {
   const handleShowUserInfo = () => {
     console.log('=== User Information ===');
     console.log('User Info:', userInfo);
-    console.log('Keycloak subject:', keycloak?.subject);
-    console.log('Keycloak realm access:', keycloak?.realmAccess);
-    console.log('Keycloak resource access:', keycloak?.resourceAccess);
+    console.log('Session user:', session?.user);
     toast.info(`User: ${userName} | Email: ${userEmail}`, { duration: 5000 });
     closeDropdown();
   };
 
   const handleCheckTokenValidity = () => {
-    const isExpired = keycloak?.isTokenExpired();
-    const timeSkew = keycloak?.timeSkew;
-    console.log('=== Token Validity ===');
-    console.log('Is token expired:', isExpired);
-    console.log('Time skew:', timeSkew);
-    console.log('Token parsed:', keycloak?.tokenParsed);
-    toast.info(`Token expired: ${isExpired} | Time skew: ${timeSkew}s`);
+    const supabase = getSupabaseClient();
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      const isExpired = s?.expires_at ? s.expires_at < Math.floor(Date.now() / 1000) : null;
+      console.log('=== Token Validity ===');
+      console.log('Is token expired:', isExpired);
+      console.log('Expires at:', s?.expires_at
+        ? new Date(s.expires_at * 1000).toISOString()
+        : 'N/A');
+      toast.info(`Token expired: ${isExpired ?? 'unknown'}`);
+    });
     closeDropdown();
   };
 
-  const handleShowAllKeycloakInfo = () => {
-    console.log('=== Complete Keycloak State ===');
-    console.log('Keycloak instance:', keycloak);
+  const handleShowAllSupabaseInfo = () => {
+    const supabase = getSupabaseClient();
+    console.log('=== Complete Supabase Auth State ===');
+    console.log('Session:', session);
     console.log('Authenticated:', authenticated);
     console.log('Token:', token);
     console.log('User Info:', userInfo);
-    console.log('Token Parsed:', keycloak?.tokenParsed);
-    console.log('Refresh Token:', keycloak?.refreshToken);
-    console.log('ID Token:', keycloak?.idToken);
-    console.log('ID Token Parsed:', keycloak?.idTokenParsed);
-    toast.info('Complete Keycloak state logged to console. Open DevTools to view.', {
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      console.log('Live session:', s);
+      console.log('User:', s?.user);
+    });
+    toast.info('Complete auth state logged to console. Open DevTools to view.', {
       duration: 5000,
     });
     closeDropdown();
@@ -111,12 +113,12 @@ export default function KeycloakDebugMenu() {
   const handleLoadUserProfile = async () => {
     try {
       console.log('=== Loading User Profile ===');
-      const profile = await keycloak?.loadUserProfile();
-      console.log('User profile:', profile);
-      toast.success(`Profile: ${profile?.username} (${profile?.email})`);
+      const { data } = await getSupabaseClient().auth.getUser();
+      console.log('User:', data.user);
+      toast.success(`User: ${data.user?.email ?? 'unknown'}`);
     } catch (error) {
-      console.error('Failed to load user profile:', error);
-      toast.error('Failed to load user profile!');
+      console.error('Failed to load user:', error);
+      toast.error('Failed to load user!');
     }
     closeDropdown();
   };
@@ -130,7 +132,7 @@ export default function KeycloakDebugMenu() {
       </summary>
       <ul className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-56 border border-base-300">
         <li className="menu-title">
-          <span>Keycloak Debug</span>
+          <span>Supabase Debug</span>
         </li>
         <li>
           <button onClick={handleCheckAuth} className="flex items-center gap-2">
@@ -165,13 +167,13 @@ export default function KeycloakDebugMenu() {
         <li>
           <button onClick={handleLoadUserProfile} className="flex items-center gap-2">
             <UserCircle className="w-4 h-4" />
-            Load Profile
+            Load User
           </button>
         </li>
         <div className="divider my-1"></div>
         <li>
           <button
-            onClick={handleShowAllKeycloakInfo}
+            onClick={handleShowAllSupabaseInfo}
             className="flex items-center gap-2 text-accent"
           >
             <Database className="w-4 h-4" />

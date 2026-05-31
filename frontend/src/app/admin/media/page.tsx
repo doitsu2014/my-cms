@@ -21,7 +21,7 @@ import { getApiUrl, authenticatedFetch } from '@/config/api.config';
 import { useAuth } from '@/auth/AuthContext';
 
 export default function AdminMediaPage() {
-  const { token, keycloak } = useAuth();
+  const { token } = useAuth();
   const [mediaFiles, setMediaFiles] = useState<MediaMetadata[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [prefixFilter, setPrefixFilter] = useState('');
@@ -45,8 +45,7 @@ export default function AdminMediaPage() {
       const response = await authenticatedFetch(
         url,
         token,
-        { cache: 'no-store' },
-        keycloak || undefined
+        { cache: 'no-store' }
       );
 
       if (!response.ok) {
@@ -66,7 +65,7 @@ export default function AdminMediaPage() {
 
   useEffect(() => {
     loadMediaFiles();
-  }, [token, keycloak]);
+  }, [token]);
 
   // Filtering
   const filteredMediaFiles = useMemo(() => {
@@ -129,8 +128,7 @@ export default function AdminMediaPage() {
       const response = await authenticatedFetch(
         getApiUrl(`/media/delete/${encodeURIComponent(fileToDelete.path)}`),
         token,
-        { method: 'DELETE' },
-        keycloak || undefined
+        { method: 'DELETE' }
       );
 
       if (response.ok) {
@@ -169,8 +167,7 @@ export default function AdminMediaPage() {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(pathsToDelete),
-        },
-        keycloak || undefined
+        }
       );
 
       if (response.ok) {

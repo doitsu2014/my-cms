@@ -19,7 +19,7 @@ const AVAILABLE_LANGUAGES = [{ code: 'vi', displayName: 'Vietnamese (vi)' }];
 
 export default function CategoryForm({ id }: { id?: string }) {
   const navigate = useNavigate();
-  const { token, keycloak } = useAuth();
+  const { token } = useAuth();
   const [fetchingData, setFetchingData] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [fabOpen, setFabOpen] = useState(false);
@@ -59,7 +59,6 @@ export default function CategoryForm({ id }: { id?: string }) {
             getApiUrl(`/categories/${id}`),
             token,
             { cache: 'no-store' },
-            keycloak || undefined,
           );
           if (response && response.ok) {
             const res: { data: CategoryModel } = await response.json();
@@ -95,7 +94,7 @@ export default function CategoryForm({ id }: { id?: string }) {
         rowVersion: 0,
       });
     }
-  }, [id, reset, token, keycloak]);
+  }, [id, reset, token]);
 
   const onSubmit = async (data: CategoryFormData) => {
     try {
@@ -123,7 +122,6 @@ export default function CategoryForm({ id }: { id?: string }) {
             },
             body: JSON.stringify(categoryData),
           },
-          keycloak || undefined,
         );
 
         if (updateResponse.ok) {
@@ -155,7 +153,6 @@ export default function CategoryForm({ id }: { id?: string }) {
             },
             body: JSON.stringify(categoryData),
           },
-          keycloak || undefined,
         );
 
         if (createResponse.ok) {

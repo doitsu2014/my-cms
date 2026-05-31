@@ -53,7 +53,7 @@ export const getApiUrl = (path: string): string => {
 
 /**
  * Create headers with authentication token
- * @param token - JWT access token from Keycloak
+ * @param token - JWT access token
  * @param additionalHeaders - Additional headers to include
  * @returns Headers object with Authorization
  */
@@ -75,12 +75,11 @@ export const createAuthHeaders = (
 /**
  * Authenticated fetch wrapper
  * Automatically includes Authorization header with Bearer token
- * Refreshes token if expired before making the request
+ * Token auto-refresh is handled by Supabase client internally
  *
  * @param url - API endpoint URL
- * @param token - JWT access token from Keycloak
+ * @param token - JWT access token
  * @param options - Fetch options (method, body, headers, etc.)
- * @param keycloak - Optional Keycloak instance for token refresh
  * @returns Promise<Response>
  *
  * @example
@@ -94,26 +93,9 @@ export const authenticatedFetch = async (
   url: string,
   token: string | null,
   options?: RequestInit,
-  keycloak?: { updateToken: (minValidity: number) => Promise<boolean>; token?: string }
+  _keycloak?: unknown
 ): Promise<Response> => {
-  let currentToken = token;
-
-  // If keycloak instance is provided, try to refresh token if it's about to expire
-  if (keycloak) {
-    try {
-      const refreshed = await keycloak.updateToken(30); // Refresh if expires in 30 seconds
-      if (refreshed && keycloak.token) {
-        currentToken = keycloak.token;
-        // Update localStorage with refreshed token
-        localStorage.setItem('kc_token', keycloak.token);
-      }
-    } catch (error) {
-      console.error('Token refresh failed before request:', error);
-      // Continue with existing token, let the request fail if token is invalid
-    }
-  }
-
-  const headers = createAuthHeaders(currentToken, options?.headers);
+  const headers = createAuthHeaders(token, options?.headers);
 
   return fetch(url, {
     ...options,

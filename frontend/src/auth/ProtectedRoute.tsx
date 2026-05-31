@@ -20,7 +20,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
 
     // Check sessionStorage to see if we recently triggered a login
-    const lastLoginAttempt = sessionStorage.getItem('keycloak_login_attempt');
+    const lastLoginAttempt = sessionStorage.getItem('supabase_login_attempt');
     const now = Date.now();
     const recentLoginAttempt = lastLoginAttempt && (now - parseInt(lastLoginAttempt)) < 30000; // 30 seconds
 
@@ -28,7 +28,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     if (!authenticated && !loading && !isProcessingCallback && !recentLoginAttempt && !loginTriggered.current) {
       loginTriggered.current = true;
       // Store timestamp to prevent multiple login attempts
-      sessionStorage.setItem('keycloak_login_attempt', now.toString());
+      sessionStorage.setItem('supabase_login_attempt', now.toString());
       // Trigger login redirect
       login();
     }
@@ -37,7 +37,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   // Clean up sessionStorage flag when authenticated
   useEffect(() => {
     if (authenticated) {
-      sessionStorage.removeItem('keycloak_login_attempt');
+      sessionStorage.removeItem('supabase_login_attempt');
       loginTriggered.current = false;
     }
   }, [authenticated]);
@@ -63,7 +63,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
 
     if (isProcessingCallback) {
-      // Don't trigger login again, Keycloak is processing the callback
+      // Don't trigger login again, auth provider is processing the callback
       return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">

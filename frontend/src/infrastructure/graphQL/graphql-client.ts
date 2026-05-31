@@ -1,6 +1,6 @@
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
-import { getAuthHeaders } from '../utilities.auth';
+import { getSupabaseClient } from '../../auth/supabase';
 import { config } from '../../config/runtime-config';
 
 // HTTP link to my-cms GraphQL API
@@ -8,20 +8,21 @@ const httpLink = createHttpLink({
   uri: config().graphqlApiUrl || 'http://localhost:4000/graphql',
 });
 
-// Auth link to add Keycloak Bearer token to requests
-const authLink = setContext((_, { headers }) => {
-  const authHeaders = getAuthHeaders();
+// Auth link to add Supabase Bearer token to requests
+const authLink = setContext(async (_, { headers }) => {
+  const { data } = await getSupabaseClient().auth.getSession();
+  const token = data.session?.access_token;
   return {
     headers: {
       ...headers,
-      ...authHeaders,
-    }
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
   };
 });
 
 /**
  * Build Apollo GraphQL Client for my-cms backend
- * Configured with Keycloak authentication
+ * Configured with Supabase authentication
  * Backend: https://github.com/doitsu2014/my-cms
  */
 export const buildGraphQLClient = () =>

@@ -21,7 +21,7 @@ import { getApiUrl, authenticatedFetch } from '@/config/api.config';
 import { useAuth } from '@/auth/AuthContext';
 
 export default function AdminBlogsPage() {
-  const { token, keycloak } = useAuth();
+  const { token } = useAuth();
   const [blogs, setBlogs] = useState<PostModel[]>([]);
   const [categories, setCategories] = useState<CategoryModel[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
@@ -45,14 +45,12 @@ export default function AdminBlogsPage() {
           authenticatedFetch(
             getApiUrl('/posts?categoryType=Blog'),
             token,
-            { cache: 'no-store' },
-            keycloak || undefined
+            { cache: 'no-store' }
           ),
           authenticatedFetch(
             getApiUrl('/categories'),
             token,
-            { cache: 'no-store' },
-            keycloak || undefined
+            { cache: 'no-store' }
           ),
         ]);
 
@@ -71,7 +69,7 @@ export default function AdminBlogsPage() {
     };
 
     loadData();
-  }, [token, keycloak]);
+  }, [token]);
 
   const handleDeleteClick = (blog: PostModel) => {
     setBlogToDelete(blog);
@@ -92,8 +90,7 @@ export default function AdminBlogsPage() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify([blogToDelete.id]),
-        },
-        keycloak || undefined
+        }
       );
 
       if (response.ok) {

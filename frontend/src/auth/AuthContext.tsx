@@ -1,10 +1,14 @@
-import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import keycloak from './keycloak';
-import type Keycloak from 'keycloak-js';
-import { config } from '../config/runtime-config';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import type { Session, User } from "@supabase/supabase-js";
+import { getSupabaseClient } from "./supabase";
 
 interface AuthContextType {
-  keycloak: Keycloak | null;
+  user: User | null;
+  session: Session | null;
+  isLoading: boolean;
+  getAccessToken: () => Promise<string | null>;
+  signOut: () => Promise<void>;
+
   authenticated: boolean;
   loading: boolean;
   token: string | null;
@@ -14,178 +18,70 @@ interface AuthContextType {
     username?: string;
     picture?: string;
   } | null;
-  login: () => void;
-  logout: () => void;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-// Track if Keycloak has been initialized to prevent multiple initializations
-let keycloakInitialized = false;
-let tokenRefreshInterval: NodeJS.Timeout | null = null;
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
-  const [userInfo, setUserInfo] = useState<AuthContextType['userInfo']>(null);
-  const initRef = React.useRef(false);
 
   useEffect(() => {
-    // Prevent double initialization (React Strict Mode in dev, or component re-mounting)
-    if (initRef.current || keycloakInitialized) {
-      return;
-    }
-    
-    initRef.current = true;
-    keycloakInitialized = true;
-    
-    // Initialize Keycloak with PKCE and custom scope
-    // IMPORTANT: Include 'offline_access' to get refresh tokens
-    const baseScope = config().keycloakScope || 'my-headless-cms-api-all email openid profile';
-    const scope = baseScope.includes('offline_access') ? baseScope : `${baseScope} offline_access`;
+    const supabase = getSupabaseClient();
 
-    keycloak
-      .init({
-        onLoad: 'check-sso', // Check SSO silently
-        pkceMethod: 'S256', // Use PKCE with SHA-256
-        checkLoginIframe: false, // Disable iframe for better performance and compatibility
-        scope: scope, // Include custom CMS API scope + offline_access for refresh tokens
-        // Enable redirect mode for better handling of OAuth callbacks
-        flow: 'standard',
-        // Clean up URL after successful authentication
-        enableLogging: false,
-        // Enable token persistence in localStorage to survive page refreshes
-        // This stores the token, refresh token, and ID token in browser storage
-        // Critical for maintaining user session across page reloads
-        token: localStorage.getItem('kc_token') || undefined,
-        refreshToken: localStorage.getItem('kc_refreshToken') || undefined,
-        idToken: localStorage.getItem('kc_idToken') || undefined,
-      })
-      .then((auth) => {
-        setAuthenticated(auth);
-        setLoading(false);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setToken(session?.access_token ?? null);
+      setIsLoading(false);
+    });
 
-        if (auth && keycloak.token) {
-          setToken(keycloak.token);
-
-          // Persist tokens to localStorage for session continuity across page reloads
-          if (keycloak.token) {
-            localStorage.setItem('kc_token', keycloak.token);
-          }
-          if (keycloak.refreshToken) {
-            localStorage.setItem('kc_refreshToken', keycloak.refreshToken);
-          }
-          if (keycloak.idToken) {
-            localStorage.setItem('kc_idToken', keycloak.idToken);
-          }
-
-          // Clean up URL hash after successful authentication
-          // Add a small delay to ensure Keycloak has finished processing
-          setTimeout(() => {
-            if (window.location.hash && (
-              window.location.hash.includes('state=') ||
-              window.location.hash.includes('code=') ||
-              window.location.hash.includes('session_state=')
-            )) {
-              // Use history API to remove hash without triggering navigation
-              window.history.replaceState(null, '', window.location.pathname + window.location.search);
-            }
-          }, 100);
-
-          // Load user info from token claims
-          const tokenParsed = keycloak.idTokenParsed as any;
-          setUserInfo({
-            name: tokenParsed?.name,
-            email: tokenParsed?.email,
-            username: tokenParsed?.preferred_username,
-            picture: tokenParsed?.avatar,
-          });
-
-          // Setup token refresh (clear any existing interval first)
-          if (tokenRefreshInterval) {
-            clearInterval(tokenRefreshInterval);
-          }
-
-          tokenRefreshInterval = setInterval(() => {
-            keycloak.updateToken(70).then((refreshed) => {
-              if (refreshed && keycloak.token) {
-                setToken(keycloak.token);
-
-                // Update localStorage with refreshed tokens
-                if (keycloak.token) {
-                  localStorage.setItem('kc_token', keycloak.token);
-                }
-                if (keycloak.refreshToken) {
-                  localStorage.setItem('kc_refreshToken', keycloak.refreshToken);
-                }
-                if (keycloak.idToken) {
-                  localStorage.setItem('kc_idToken', keycloak.idToken);
-                }
-
-                console.log('Token refreshed');
-              }
-            }).catch(() => {
-              console.error('Failed to refresh token');
-              // Clear tokens from localStorage on refresh failure
-              localStorage.removeItem('kc_token');
-              localStorage.removeItem('kc_refreshToken');
-              localStorage.removeItem('kc_idToken');
-              keycloak.logout();
-            });
-          }, 60 * 1000); // Check every minute
-        }
-      })
-      .catch((error) => {
-        console.error('Keycloak initialization failed:', error);
-        setLoading(false);
-      });
-    
-    // Cleanup function
-    return () => {
-      if (tokenRefreshInterval) {
-        clearInterval(tokenRefreshInterval);
-        tokenRefreshInterval = null;
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setToken(session?.access_token ?? null);
       }
-    };
+    );
+
+    return () => authListener.subscription.unsubscribe();
   }, []);
 
-  const login = () => {
-    // Ensure we request offline_access scope for refresh tokens
-    const baseScope = config().keycloakScope || 'my-headless-cms-api-all email openid profile';
-    const scope = baseScope.includes('offline_access') ? baseScope : `${baseScope} offline_access`;
+  const getAccessToken = async () => {
+    const { data } = await getSupabaseClient().auth.getSession();
+    return data.session?.access_token ?? null;
+  };
 
-    keycloak.login({
-      scope: scope,
+  const signOut = async () => {
+    await getSupabaseClient().auth.signOut();
+  };
+
+  const authenticated = !!user;
+
+  const userInfo: AuthContextType["userInfo"] = user
+    ? {
+        name: user.user_metadata?.name ?? user.user_metadata?.full_name ?? undefined,
+        email: user.email,
+        username: user.user_metadata?.preferred_username ?? user.user_metadata?.username ?? undefined,
+        picture: user.user_metadata?.avatar_url ?? user.user_metadata?.picture ?? undefined,
+      }
+    : null;
+
+  const login = async () => {
+    await getSupabaseClient().auth.signInWithOAuth({
+      provider: "keycloak",
     });
   };
 
-  const logout = () => {
-    // Clear tokens from localStorage before logging out
-    localStorage.removeItem('kc_token');
-    localStorage.removeItem('kc_refreshToken');
-    localStorage.removeItem('kc_idToken');
-
-    keycloak.logout({
-      redirectUri: window.location.origin,
-    });
+  const logout = async () => {
+    await signOut();
   };
 
-  const value: AuthContextType = {
-    keycloak,
-    authenticated,
-    loading,
-    token,
-    userInfo,
-    login,
-    logout,
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -196,13 +92,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
   }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        isLoading,
+        getAccessToken,
+        signOut,
+        authenticated,
+        loading: isLoading,
+        token,
+        userInfo,
+        login,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
 
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}

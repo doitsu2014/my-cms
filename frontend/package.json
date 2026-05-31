@@ -13,6 +13,7 @@
   "dependencies": {
     "@apollo/client": "^3.12.6",
     "@hookform/resolvers": "^5.2.2",
+    "@supabase/supabase-js": "^2.106.2",
     "@tiptap/extension-code-block-lowlight": "^3.14.0",
     "@tiptap/extension-color": "^3.14.0",
     "@tiptap/extension-highlight": "^3.14.0",
@@ -39,7 +40,6 @@
     "graphql": "^16.10.0",
     "graphql-tag": "^2.12.6",
     "highlight.js": "^11.11.1",
-    "keycloak-js": "^26.0.7",
     "lowlight": "^3.3.0",
     "lucide-react": "^0.476.0",
     "marked": "^17.0.1",

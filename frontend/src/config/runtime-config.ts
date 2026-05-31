@@ -9,11 +9,8 @@
  */
 
 export interface AppConfig {
-  // Keycloak Configuration
-  keycloakUrl: string;
-  keycloakRealm: string;
-  keycloakClientId: string;
-  keycloakScope: string;
+  supabaseUrl: string;
+  supabaseAnonKey: string;
 
   // Backend API Configuration
   graphqlApiUrl: string;
@@ -40,10 +37,8 @@ export const getConfig = (): AppConfig => {
 
   // Fall back to build-time env vars (development)
   return {
-    keycloakUrl: import.meta.env.PUBLIC_KEYCLOAK_URL || 'https://my-ids-admin.ducth.dev',
-    keycloakRealm: import.meta.env.PUBLIC_KEYCLOAK_REALM || 'master',
-    keycloakClientId: import.meta.env.PUBLIC_KEYCLOAK_CLIENT_ID || 'admin-side-client',
-    keycloakScope: import.meta.env.PUBLIC_KEYCLOAK_SCOPE || 'my-headless-cms-api-all email openid profile',
+    supabaseUrl: import.meta.env.PUBLIC_SUPABASE_URL || 'http://localhost:8000',
+    supabaseAnonKey: import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '',
     graphqlApiUrl: import.meta.env.PUBLIC_GRAPHQL_API_URL || 'http://localhost:4000/graphql',
     graphqlCacheApiUrl: import.meta.env.PUBLIC_GRAPHQL_CACHE_API_URL,
     restApiUrl: import.meta.env.PUBLIC_REST_API_URL || '',

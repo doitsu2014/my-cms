@@ -20,7 +20,7 @@ import { getApiUrl, authenticatedFetch } from '@/config/api.config';
 import { useAuth } from '@/auth/AuthContext';
 
 export default function AdminCategoriesListPage() {
-  const { token, keycloak } = useAuth();
+  const { token } = useAuth();
   const [categories, setCategories] = useState<CategoryModel[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(
@@ -42,7 +42,6 @@ export default function AdminCategoriesListPage() {
           getApiUrl('/categories'),
           token,
           { cache: 'no-store' },
-          keycloak || undefined,
         );
         const res = await response.json();
         // Ensure we always set an array
@@ -56,7 +55,7 @@ export default function AdminCategoriesListPage() {
     };
 
     loadCategories();
-  }, [token, keycloak]);
+  }, [token]);
 
   const handleDeleteClick = (category: CategoryModel) => {
     setCategoryToDelete(category);
@@ -78,7 +77,6 @@ export default function AdminCategoriesListPage() {
           },
           body: JSON.stringify([categoryToDelete.id]),
         },
-        keycloak || undefined,
       );
 
       if (response.ok) {

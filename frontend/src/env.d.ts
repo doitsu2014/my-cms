@@ -17,11 +17,8 @@ declare module '*.svg?react' {
  * See .env.example for documentation on each variable.
  */
 interface ImportMetaEnv {
-  // Keycloak Configuration
-  readonly PUBLIC_KEYCLOAK_URL: string;
-  readonly PUBLIC_KEYCLOAK_REALM: string;
-  readonly PUBLIC_KEYCLOAK_CLIENT_ID: string;
-  readonly PUBLIC_KEYCLOAK_SCOPE: string;
+  readonly PUBLIC_SUPABASE_URL: string;
+  readonly PUBLIC_SUPABASE_ANON_KEY: string;
 
   // Backend API Configuration (my-cms)
   readonly PUBLIC_GRAPHQL_API_URL: string;

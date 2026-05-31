@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Search, Sun, Moon, Menu, LogOut, LogIn } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
-import KeycloakDebugMenu from './keycloak-debug-menu';
+import SupabaseDebugMenu from './supabase-debug-menu';
 
 export default function TopBar() {
   const [searchExpanded, setSearchExpanded] = useState(false);
@@ -46,8 +46,8 @@ export default function TopBar() {
             </button>
           </div>
 
-          {/* Keycloak Debug Menu - visible when authenticated */}
-          {authenticated && <KeycloakDebugMenu />}
+          {/* Supabase Debug Menu - visible when authenticated */}
+          {authenticated && <SupabaseDebugMenu />}
 
           {/* Auth Button */}
           {authenticated ? (

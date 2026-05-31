@@ -1,65 +1,67 @@
-import keycloak from '@/auth/keycloak';
+import { getSupabaseClient } from "../auth/supabase";
 
-/**
- * Build headers for API requests with Keycloak authentication
- * @param includeAuthorizedToken - Whether to include the Bearer token
- * @param isContentTypeJson - Whether to set Content-Type to application/json
- */
-export const buildHeader = async (includeAuthorizedToken: boolean = true, isContentTypeJson: boolean = true) => {
-  let header: any = {};
+export async function getAuthorizationHeader(): Promise<{
+  Authorization: string;
+} | null> {
+  const { data } = await getSupabaseClient().auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) return null;
+  return { Authorization: `Bearer ${token}` };
+}
 
-  // Add Keycloak Bearer token if authenticated
-  if (includeAuthorizedToken && keycloak.token) {
-    header['Authorization'] = `Bearer ${keycloak.token}`;
+export const getAuthHeaders = () => {
+  const supabase = getSupabaseClient();
+
+  return supabase.auth.getSession().then(({ data }) => {
+    const token = data.session?.access_token;
+    if (!token) {
+      console.warn("No authentication token available");
+      return { "Content-Type": "application/json" };
+    }
+    return {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+  });
+};
+
+export const buildHeader = async (
+  includeAuthorizedToken: boolean = true,
+  isContentTypeJson: boolean = true
+) => {
+  const header: Record<string, string> = {};
+
+  if (includeAuthorizedToken) {
+    const { data } = await getSupabaseClient().auth.getSession();
+    const token = data.session?.access_token;
+    if (token) {
+      header["Authorization"] = `Bearer ${token}`;
+    }
   }
 
   if (isContentTypeJson) {
-    header["Content-Type"] = 'application/json';
+    header["Content-Type"] = "application/json";
   }
 
   return header;
 };
 
-/**
- * Get authentication headers for API requests
- * Uses Keycloak token from the authenticated session
- */
-export const getAuthHeaders = () => {
-  if (!keycloak.token) {
-    console.warn('No authentication token available');
-    return { 'Content-Type': 'application/json' };
-  }
-
-  return {
-    'Authorization': `Bearer ${keycloak.token}`,
-    'Content-Type': 'application/json',
-  };
+export const isAuthenticated = async (): Promise<boolean> => {
+  const { data } = await getSupabaseClient().auth.getSession();
+  return !!data.session;
 };
 
-/**
- * Check if user is authenticated
- */
-export const isAuthenticated = (): boolean => {
-  return keycloak.authenticated || false;
+export const getToken = async (): Promise<string | undefined> => {
+  const { data } = await getSupabaseClient().auth.getSession();
+  return data.session?.access_token;
 };
 
-/**
- * Get current user token
- */
-export const getToken = (): string | undefined => {
-  return keycloak.token;
-};
-
-/**
- * Refresh the authentication token
- */
 export const refreshToken = async (): Promise<boolean> => {
   try {
-    const refreshed = await keycloak.updateToken(70);
-    return refreshed;
+    const { data } = await getSupabaseClient().auth.refreshSession();
+    return !!data.session;
   } catch (error) {
-    console.error('Failed to refresh token:', error);
+    console.error("Failed to refresh token:", error);
     return false;
   }
 };
-
