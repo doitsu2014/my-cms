@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "My-CMS Design System — Style Guide",
+  "entry": "my-cms-style-guide.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "primary": true,
+  "createdAt": "2026-06-05T16:22:07.722Z",
+  "updatedAt": "2026-06-05T16:22:07.749Z",
+  "sourceSkillId": "agent-browser",
+  "designSystemId": "cafe",
+  "metadata": {
+    "identifier": "my-cms-style-guide",
+    "artifactType": "text/html",
+    "inferred": false
+  }
+}

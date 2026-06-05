@@ -83,7 +83,7 @@ services:
   # ========================================
   supavisor:
     container_name: supabase-supavisor
-    image: supabase/supavisor:2.7.6
+    image: supabase/supavisor:2.7.4
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "supavisor", "healthcheck"]
