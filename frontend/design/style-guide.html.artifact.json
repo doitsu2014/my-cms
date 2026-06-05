@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "style-guide.html",
+  "entry": "style-guide.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-06-05T16:14:04.515Z",
+  "updatedAt": "2026-06-05T16:14:04.515Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

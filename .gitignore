@@ -31,3 +31,4 @@ dist
 # Docker compose
 .env
 docker-compose.override.yml
+.pnpm-store

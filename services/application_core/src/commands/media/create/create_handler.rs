@@ -27,7 +27,6 @@ impl CreateMediaHandlerTrait for CreateMediaHandler {
         media: &[u8],
         content_type: String,
     ) -> Result<MediaModel, AppError> {
-        let bucket = self.media_config.s3_media_storage.spawn_bucket()?;
         let media_extension = media_name
             .clone()
             .split('.')
@@ -36,17 +35,13 @@ impl CreateMediaHandlerTrait for CreateMediaHandler {
             .to_string();
         let media_name_with_nano = format!("{} {}", nanoid!(10), media_name.clone()).to_slug();
         let beautiful_media_name = format!("{}.{}", media_name_with_nano, media_extension);
-        let response = bucket
-            .put_object_with_content_type(
-                beautiful_media_name.clone(),
-                media,
-                content_type.as_str(),
-            )
-            .await
-            .map_err(|e| e.into())?;
-        info!("{:?}", response);
 
-        // Use /media/images/ path for images (supports resize), /media/ for other files
+        self.media_config
+            .storage
+            .upload(&beautiful_media_name, media, content_type.as_str(), None)
+            .await?;
+        info!("Uploaded media: {}", beautiful_media_name);
+
         let url_path = if is_image_content_type(&content_type) {
             format!(
                 "{}/media/images/{}",

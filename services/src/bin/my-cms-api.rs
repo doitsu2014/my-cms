@@ -2,7 +2,7 @@ use std::env;
 use std::sync::Arc;
 
 use application_core::{
-    commands::media::{read::read_handler::create_media_cache, MediaConfig, S3MediaStorage},
+    commands::media::{read::read_handler::create_media_cache, MediaConfig, SupabaseStorage},
     graphql::query_root::schema,
 };
 use async_graphql_axum::GraphQL;
@@ -12,11 +12,13 @@ use axum::{
     Router,
 };
 use cms::{
+    api,
+    category::delete::delete_handler::api_delete_categories,
     common::supabase_auth::{SupabaseAuthConfig, SupabaseAuthLayer},
-
-    api, category::delete::delete_handler::api_delete_categories,
-    post::delete::delete_handler::api_delete_posts, public,
-    tag::delete::delete_handler::api_delete_tags, AppState,
+    post::delete::delete_handler::api_delete_posts,
+    public,
+    tag::delete::delete_handler::api_delete_tags,
+    AppState,
 };
 use dotenv::{dotenv, from_filename};
 use hyper::Method;
@@ -24,7 +26,6 @@ use init_tracing_opentelemetry::{
     otlp::OtelGuard,
     tracing_subscriber_ext::{build_level_filter_layer, build_logger_text},
 };
-use s3::creds::Credentials;
 use sea_orm::Database;
 use tower_cookies::CookieManagerLayer;
 use tower_http::cors::{Any, CorsLayer};
@@ -219,15 +220,23 @@ pub async fn protected_administrator_router() -> Router {
 async fn construct_app_state() -> AppState {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let conn = Database::connect(&database_url).await.unwrap();
-    let s3_endpoint = env::var("S3_ENDPOINT").unwrap_or_default();
-    let s3_bucket_name = env::var("S3_BUCKET_NAME").unwrap_or_default();
-    let s3_credentials: Credentials =
-        Credentials::from_env().unwrap_or(Credentials::default().unwrap());
+
+    let supabase_url = env::var("SUPABASE_URL").expect("SUPABASE_URL must be set");
+    let supabase_anon_key = env::var("SUPABASE_ANON_KEY").expect("SUPABASE_ANON_KEY must be set");
+    let supabase_service_role_key = env::var("SUPABASE_SERVICE_ROLE_KEY").ok();
+    let supabase_storage_bucket =
+        env::var("SUPABASE_STORAGE_BUCKET").unwrap_or_else(|_| "media".to_string());
 
     let host = env::var("HOST").unwrap_or("127.0.0.1".to_string());
     let port = env::var("PORT").unwrap_or("8989".to_string());
-    let media_base_url =
-        env::var("MEDIA_BASE_URL").unwrap_or(format!("http://{}:{}", host, port));
+    let media_base_url = env::var("MEDIA_BASE_URL").unwrap_or(format!("http://{}:{}", host, port));
+
+    let storage = SupabaseStorage::new(
+        supabase_url,
+        supabase_anon_key,
+        supabase_service_role_key,
+        supabase_storage_bucket,
+    );
 
     let graphql_immutable_schema = schema(conn.clone(), None, None, false).unwrap();
     let graphql_mutable_schema = schema(conn.clone(), None, None, true).unwrap();
@@ -235,11 +244,7 @@ async fn construct_app_state() -> AppState {
     AppState {
         conn: Arc::new(conn),
         media_config: Arc::new(MediaConfig {
-            s3_media_storage: S3MediaStorage {
-                s3_endpoint,
-                s3_credentials,
-                s3_bucket_name,
-            },
+            storage,
             media_base_url,
         }),
         media_cache: Arc::new(create_media_cache()),
@@ -248,7 +253,10 @@ async fn construct_app_state() -> AppState {
     }
 }
 
-fn construct_supabase_auth_layer(expected_audience: String, required_roles: Vec<String>) -> SupabaseAuthLayer {
+fn construct_supabase_auth_layer(
+    expected_audience: String,
+    required_roles: Vec<String>,
+) -> SupabaseAuthLayer {
     let supabase_url = env::var("SUPABASE_URL").expect("SUPABASE_URL must be set");
     let jwt_secret = env::var("SUPABASE_JWT_SECRET").expect("SUPABASE_JWT_SECRET must be set");
 

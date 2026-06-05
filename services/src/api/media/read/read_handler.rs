@@ -5,7 +5,7 @@ use axum::{
     body::Body,
     extract::{Path, Query, State},
     http::{header, HeaderMap, StatusCode},
-    response::{IntoResponse, Response},
+    response::{IntoResponse, Redirect, Response},
 };
 use serde::Deserialize;
 use std::sync::Arc;
@@ -19,15 +19,22 @@ pub struct ImageQueryParams {
     pub h: Option<u32>,
 }
 
-/// Serve images with optional resize support
 #[instrument(skip(state))]
 pub async fn api_get_media_image(
     state: State<AppState>,
     Path(path): Path<String>,
     Query(params): Query<ImageQueryParams>,
-) -> impl IntoResponse {
+) -> Response {
+    if params.w.is_some() || params.h.is_some() {
+        let url = state
+            .media_config
+            .storage
+            .render_image_url(&path, params.w, params.h);
+        return Redirect::temporary(&url).into_response();
+    }
+
     let handler = ReadMediaHandler::new(
-        Arc::new(state.media_config.s3_media_storage.clone()),
+        Arc::new(state.media_config.storage.clone()),
         state.media_cache.clone(),
     );
 
@@ -56,14 +63,10 @@ pub async fn api_get_media_image(
     }
 }
 
-/// Serve general media files (documents, etc.) without resize
 #[instrument(skip(state))]
-pub async fn api_get_media(
-    state: State<AppState>,
-    Path(path): Path<String>,
-) -> impl IntoResponse {
+pub async fn api_get_media(state: State<AppState>, Path(path): Path<String>) -> impl IntoResponse {
     let handler = ReadMediaHandler::new(
-        Arc::new(state.media_config.s3_media_storage.clone()),
+        Arc::new(state.media_config.storage.clone()),
         state.media_cache.clone(),
     );
 

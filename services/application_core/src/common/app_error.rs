@@ -1,14 +1,13 @@
 use core::fmt;
 use std::{error::Error, fmt::Display};
 
-use s3::error::S3Error;
 use sea_orm::{DbErr, TransactionError};
 
 #[derive(Debug)]
 pub enum AppError {
     Db(DbErr),
     DbTx(TransactionError<DbErr>),
-    S3Error(S3Error),
+    StorageError(String),
     Validation(String, String),
     Logical(String),
     ConcurrencyOptimistic(String),
@@ -31,7 +30,7 @@ impl Display for AppError {
             }
             AppError::NotFound => write!(f, "Not found"),
             AppError::Unknown => write!(f, "Unknown error"),
-            AppError::S3Error(err) => write!(f, "S3 error: {}", err),
+            AppError::StorageError(msg) => write!(f, "Storage error: {}", msg),
             AppError::OpenAIError(err) => write!(f, "OpenAI error: {}", err),
         }
     }
@@ -42,20 +41,14 @@ impl Error for AppError {
         match self {
             AppError::Db(err) => Some(err),
             AppError::DbTx(err) => Some(err),
-            AppError::S3Error(err) => Some(err),
             AppError::Validation(_, _) => None,
             AppError::Logical(_) => None,
             AppError::ConcurrencyOptimistic(_) => None,
             AppError::NotFound => None,
             AppError::Unknown => None,
+            AppError::StorageError(_) => None,
             AppError::OpenAIError(_) => None,
         }
-    }
-}
-
-impl Into<AppError> for s3::error::S3Error {
-    fn into(self) -> AppError {
-        AppError::S3Error(self)
     }
 }
 
