@@ -1,23 +1,24 @@
--- volumes/db/init/00-setup-roles.sql
+-- volumes/db/init/00-setup-roles.sql.template
 -- Creates required roles for Supabase services on first startup.
--- WARNING: The password below must match POSTGRES_PASSWORD in .env
+-- ${POSTGRES_PASSWORD} is resolved by the `init-config` service via envsubst
+-- before this file is mounted into the db container as /docker-entrypoint-initdb.d/00-setup-roles.sql.
 
 -- Used by GoTrue auth service
-CREATE ROLE supabase_auth_admin WITH LOGIN CREATEROLE NOINHERIT PASSWORD 'change-me-to-a-secure-password';
+CREATE ROLE supabase_auth_admin WITH LOGIN CREATEROLE NOINHERIT PASSWORD '${POSTGRES_PASSWORD}';
 
 -- Used by Storage API
-CREATE ROLE supabase_storage_admin WITH LOGIN CREATEROLE NOINHERIT PASSWORD 'change-me-to-a-secure-password';
+CREATE ROLE supabase_storage_admin WITH LOGIN CREATEROLE NOINHERIT PASSWORD '${POSTGRES_PASSWORD}';
 
 -- Used by PostgREST for anonymous requests
 CREATE ROLE anon WITH LOGIN NOINHERIT;
 CREATE ROLE authenticated WITH LOGIN NOINHERIT;
-CREATE ROLE authenticator WITH LOGIN NOINHERIT PASSWORD 'change-me-to-a-secure-password';
+CREATE ROLE authenticator WITH LOGIN NOINHERIT PASSWORD '${POSTGRES_PASSWORD}';
 
 -- Used by service_role key
 CREATE ROLE service_role WITH LOGIN NOINHERIT;
 
 -- Used by Supavisor connection pooler
-CREATE ROLE supabase_admin WITH LOGIN CREATEROLE NOINHERIT PASSWORD 'change-me-to-a-secure-password';
+CREATE ROLE supabase_admin WITH LOGIN CREATEROLE NOINHERIT PASSWORD '${POSTGRES_PASSWORD}';
 
 -- Grant schema access to authenticator
 GRANT anon, authenticated, service_role TO authenticator;

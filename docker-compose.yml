@@ -13,10 +13,40 @@
 #   Jaeger UI:         http://localhost:16686
 #   Mailpit (email):   http://localhost:8025
 #   Clean reset:       ./resetsupabasedb.sh
-
-version: "3.8"
+#
+# Startup order:
+#   init-config  → renders envsubst templates into db_init_rendered
+#   db           → mounts db_init_rendered, runs init SQL on first boot
+#   migrate      → one-shot sea-orm migrate up; my-cms-api waits on completion
+#   my-cms-api   → boots only after migrations succeed
+#   my-cms-frontend
 
 services:
+  # ========================================
+  # Config: render envsubst templates before db starts
+  # ========================================
+  init-config:
+    container_name: my-cms-init-config
+    image: alpine:3.20
+    restart: "no"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./volumes/db/init:/templates:ro
+      - db_init_rendered:/rendered
+    command: >
+      sh -c "apk add --no-cache gettext >/dev/null &&
+             mkdir -p /rendered &&
+             for tpl in /templates/*.template; do
+               [ -e \"$$tpl\" ] || continue;
+               out=\"/rendered/$$(basename \"$$tpl\" .template)\";
+               envsubst < \"$$tpl\" > \"$$out\";
+               echo \"rendered: $$out\";
+             done &&
+             echo 'init-config: all templates rendered'"
+    networks:
+      - supabase_network
+
   # ========================================
   # Supabase: PostgreSQL Database
   # ========================================
@@ -41,7 +71,10 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - supabase_db_data:/var/lib/postgresql/data
-      - ./volumes/db/init:/docker-entrypoint-initdb.d:ro
+      - db_init_rendered:/docker-entrypoint-initdb.d:ro
+    depends_on:
+      init-config:
+        condition: service_completed_successfully
     networks:
       - supabase_network
 
@@ -397,6 +430,25 @@ services:
       - supabase_network
 
   # ========================================
+  # Project: Database migrations (sea-orm-cli one-shot)
+  # ========================================
+  migrate:
+    container_name: my-cms-migrate
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    entrypoint: ["/app/migration"]
+    command: ["up"]
+    networks:
+      - supabase_network
+
+  # ========================================
   # Project: my-cms API (Rust)
   # ========================================
   my-cms-api:
@@ -425,12 +477,13 @@ services:
       SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
       SUPABASE_STORAGE_BUCKET: ${SUPABASE_STORAGE_BUCKET}
-      KEYCLOAK_ISSUER: ${KEYCLOAK_ISSUER}
-      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      SUPABASE_JWT_SECRET: ${JWT_SECRET}
       AUTHORIZATION_AUDIENCE: ${AUTHORIZATION_AUDIENCE}
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
       jaeger:
         condition: service_started
     networks:
@@ -448,10 +501,6 @@ services:
     ports:
       - "3002:3002"
     environment:
-      PUBLIC_KEYCLOAK_URL: ${PUBLIC_KEYCLOAK_URL}
-      PUBLIC_KEYCLOAK_REALM: ${PUBLIC_KEYCLOAK_REALM}
-      PUBLIC_KEYCLOAK_CLIENT_ID: ${PUBLIC_KEYCLOAK_CLIENT_ID}
-      PUBLIC_KEYCLOAK_SCOPE: ${PUBLIC_KEYCLOAK_SCOPE}
       PUBLIC_GRAPHQL_API_URL: ${PUBLIC_GRAPHQL_API_URL}
       PUBLIC_GRAPHQL_CACHE_API_URL: ${PUBLIC_GRAPHQL_CACHE_API_URL}
       PUBLIC_REST_API_URL: ${PUBLIC_REST_API_URL}
@@ -482,3 +531,5 @@ volumes:
     name: supabase_storage_data
   mailpit_data:
     name: mailpit_data
+  db_init_rendered:
+    name: db_init_rendered
