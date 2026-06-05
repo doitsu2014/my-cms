@@ -131,9 +131,9 @@ impl From<AppError> for ApiResponseError {
             AppError::DbTx(err) => Self::new()
                 .with_error_code(ErrorCode::ConnectionError)
                 .add_error(err.to_string()),
-            AppError::S3Error(err) => Self::new()
+            AppError::StorageError(err) => Self::new()
                 .with_error_code(ErrorCode::ConnectionError)
-                .add_error(err.to_string()),
+                .add_error(err),
             AppError::Validation(field, message) => Self::new()
                 .with_error_code(ErrorCode::ValidationError)
                 .add_error(format!("{}: {}", field, message)),

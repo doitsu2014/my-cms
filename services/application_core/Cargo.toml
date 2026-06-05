@@ -41,8 +41,7 @@ tracing-subscriber = { version = "0.3.23", default-features = false, features = 
   "fmt",
 ] }
 
-rust-s3 = { version = "0.37.2" }
-image = "0.25.10"
+reqwest = { version = "0.12.28", features = ["multipart"] }
 moka = { version = "0.12.15", features = ["future"] }
 async-openai = "0.27"
 html5ever = "0.27"
