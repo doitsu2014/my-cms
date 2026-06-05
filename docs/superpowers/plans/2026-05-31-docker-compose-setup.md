@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking. This plan must be completed first — Plans 1 and 2 (auth/vector + image/storage) depend on it.
 
+**Status:** ✅ **Completed 2026-06-04** — All 10 tasks implemented and merged to `main`.
+
 **Goal:** Create a single `docker compose up` command that starts the full Supabase stack + my-cms API + frontend admin panel + Jaeger tracing.
 
 **Architecture:** All services on a shared `supabase_network` bridge. Supabase services use the standard self-hosted docker-compose from `supabase/supabase`. The my-cms API is built from `services/Dockerfile`. The frontend runs an rsbuild dev server. Jaeger provides OTLP tracing on port 4317.
@@ -18,7 +20,7 @@
 - Create: `.env.example`
 - Copy: `.env.example` → `.env` (user fills secrets manually)
 
-- [ ] **Step 1: Write `.env.example`**
+- [x] **Step 1: Write `.env.example`**
 
 ```bash
 # ============================================
@@ -100,7 +102,7 @@ PUBLIC_REST_API_URL=http://localhost:8989/api
 PUBLIC_MEDIA_UPLOAD_API_URL=http://localhost:8989/api/media/upload
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add .env.example
@@ -114,7 +116,7 @@ git commit -m "feat: add .env.example for docker compose setup"
 **Files:**
 - Create: `docker-compose.yml`
 
-- [ ] **Step 1: Write the compose file**
+- [x] **Step 1: Write the compose file**
 
 ```yaml
 # docker-compose.yml
@@ -603,7 +605,7 @@ volumes:
     name: mailpit_data
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add docker-compose.yml
@@ -617,7 +619,7 @@ git commit -m "feat: add docker-compose.yml with full Supabase stack + project s
 **Files:**
 - Create: `volumes/api/kong.yml`
 
-- [ ] **Step 1: Create directories and kong config**
+- [x] **Step 1: Create directories and kong config**
 
 ```bash
 mkdir -p volumes/api volumes/db/init
@@ -782,7 +784,7 @@ services:
             - admin
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add volumes/api/kong.yml
@@ -796,7 +798,7 @@ git commit -m "feat: add Kong API gateway configuration for Supabase"
 **Files:**
 - Create: `volumes/db/init/00-setup-roles.sql`
 
-- [ ] **Step 1: Write init SQL for required roles**
+- [x] **Step 1: Write init SQL for required roles**
 
 ```sql
 -- volumes/db/init/00-setup-roles.sql
@@ -850,7 +852,7 @@ Note: This script uses `${POSTGRES_PASSWORD}` which Docker Compose does **not** 
 
 The simpler approach: write the password directly since this is local dev.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add volumes/db/init/00-setup-roles.sql
@@ -864,7 +866,7 @@ git commit -m "feat: add DB init script for Supabase roles and pgvector"
 **Files:**
 - Create: `frontend/Dockerfile.dev`
 
-- [ ] **Step 1: Write dev Dockerfile**
+- [x] **Step 1: Write dev Dockerfile**
 
 ```dockerfile
 # frontend/Dockerfile.dev
@@ -885,7 +887,7 @@ EXPOSE 3002
 CMD ["pnpm", "run", "dev", "--port", "3002", "--host", "0.0.0.0"]
 ```
 
-- [ ] **Step 2: Check if pnpm-lock.yaml exists, commit**
+- [x] **Step 2: Check if pnpm-lock.yaml exists, commit**
 
 ```bash
 git add frontend/Dockerfile.dev
@@ -899,7 +901,7 @@ git commit -m "feat: add frontend dev Dockerfile for compose"
 **Files:**
 - Create: `resetsupabasedb.sh`
 
-- [ ] **Step 1: Write reset script**
+- [x] **Step 1: Write reset script**
 
 ```bash
 #!/usr/bin/env bash
@@ -927,7 +929,7 @@ echo "Jaeger UI:       http://localhost:16686"
 echo "Mailpit:         http://localhost:8025"
 ```
 
-- [ ] **Step 2: Make executable and commit**
+- [x] **Step 2: Make executable and commit**
 
 ```bash
 chmod +x resetsupabasedb.sh
@@ -942,7 +944,7 @@ git commit -m "feat: add reset script for clean supabase restart"
 **Files:**
 - Create: `docker-compose.override.example.yml`
 
-- [ ] **Step 1: Write overrides for hot-reload dev**
+- [x] **Step 1: Write overrides for hot-reload dev**
 
 ```yaml
 # docker-compose.override.example.yml
@@ -970,7 +972,7 @@ services:
       - NODE_ENV=development
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add docker-compose.override.example.yml
@@ -984,7 +986,7 @@ git commit -m "feat: add docker compose override example for hot-reload dev"
 **Files:**
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Add entries**
+- [x] **Step 1: Add entries**
 
 ```gitignore
 # Add these lines if not present:
@@ -993,7 +995,7 @@ docker-compose.override.yml
 volumes/
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add .gitignore
@@ -1004,7 +1006,7 @@ git commit -m "chore: add .env, volumes/, and override to .gitignore"
 
 ### Task 0.9: Verify the Setup
 
-- [ ] **Step 1: Start all services**
+- [x] **Step 1: Start all services**
 
 ```bash
 cp .env.example .env
@@ -1012,7 +1014,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-- [ ] **Step 2: Health-check Supabase**
+- [x] **Step 2: Health-check Supabase**
 
 ```bash
 curl -s http://localhost:8000 | head -20
@@ -1022,21 +1024,21 @@ curl -s http://localhost:8001/auth/v1/health
 # Expected: {"healthy":true} (may need Bearer token)
 ```
 
-- [ ] **Step 3: Health-check my-cms API**
+- [x] **Step 3: Health-check my-cms API**
 
 ```bash
 curl -s http://localhost:8989/health
 # Expected: {"status":"ok"}
 ```
 
-- [ ] **Step 4: Health-check Jaeger**
+- [x] **Step 4: Health-check Jaeger**
 
 ```bash
 curl -s http://localhost:16686 | head -5
 # Expected: HTML of Jaeger UI
 ```
 
-- [ ] **Step 5: Verify Supabase Studio login**
+- [x] **Step 5: Verify Supabase Studio login**
 
 Open `http://localhost:8000` in a browser. Login with `admin` / `admin` (set in `.env` as `DASHBOARD_USERNAME` / `DASHBOARD_PASSWORD`).
 
@@ -1053,16 +1055,46 @@ git commit -m "chore: finalize docker compose setup for local development"
 
 ## Verification Checklist
 
-- [ ] `docker compose up -d` starts all 12+ services without errors
-- [ ] `docker compose ps` shows all services as "healthy" or "running"
-- [ ] Supabase Studio accessible at `http://localhost:8000`
-- [ ] Kong API gateway accessible at `http://localhost:8001`
-- [ ] my-cms API health check returns 200 at `http://localhost:8989/health`
-- [ ] Frontend dev server accessible at `http://localhost:3002`
-- [ ] Jaeger UI accessible at `http://localhost:16686`
-- [ ] Mailpit accessible at `http://localhost:8025`
-- [ ] PostgreSQL accessible at `localhost:5432` (via supavisor)
-- [ ] `docker compose down` stops and removes all containers
-- [ ] `./resetsupabasedb.sh` wipes volumes and restarts cleanly
-- [ ] pgvector extension is enabled in PostgreSQL
-- [ ] Supabase Storage bucket creation works in Studio UI
+- [x] `docker compose up -d` starts all 12+ services without errors
+- [x] `docker compose ps` shows all services as "healthy" or "running"
+- [x] Supabase Studio accessible at `http://localhost:8000`
+- [x] Kong API gateway accessible at `http://localhost:8001`
+- [x] my-cms API health check returns 200 at `http://localhost:8989/health`
+- [x] Frontend dev server accessible at `http://localhost:3002`
+- [x] Jaeger UI accessible at `http://localhost:16686`
+- [x] Mailpit accessible at `http://localhost:8025`
+- [x] PostgreSQL accessible at `localhost:5432` (via supavisor)
+- [x] `docker compose down` stops and removes all containers
+- [x] `./resetsupabasedb.sh` wipes volumes and restarts cleanly
+- [x] pgvector extension is enabled in PostgreSQL
+- [x] Supabase Storage bucket creation works in Studio UI
+
+---
+
+## Archive
+
+**Archived:** 2026-06-04
+**Final branch:** `main`
+**Implementation commits:**
+
+| Commit | Task | Description |
+|--------|------|-------------|
+| `bdb22c6` | 0.1 | feat: add `.env.example` for docker compose setup |
+| `4d3e4ff` | 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8 | feat: add docker compose setup with full Supabase stack, Kong config, frontend dev Dockerfile, reset script, and .gitignore updates |
+| `32efee0` | maintenance | chore: update Supabase and imgproxy images in docker-compose files |
+
+**Files delivered:**
+- `.env.example`
+- `docker-compose.yml`
+- `volumes/api/kong.yml`
+- `volumes/db/init/00-setup-roles.sql`
+- `frontend/Dockerfile.dev`
+- `resetsupabasedb.sh`
+- `docker-compose.override.example.yml`
+- `.gitignore` (updated)
+
+**Deviations from plan:**
+- `.gitignore` does **not** include `volumes/` entry. This is intentional — the `volumes/api/kong.yml` and `volumes/db/init/00-setup-roles.sql` config files are committed in git, so a blanket `volumes/` ignore would have hidden them. Runtime data uses named Docker volumes (`supabase_db_data`, `supabase_storage_data`, `mailpit_data`) which are managed by Docker, not the host filesystem.
+
+**Related spec:** `docs/superpowers/specs/2026-05-31-supabase-docker-compose-design.md`
+**Dependent plans:** Plan 1 (auth/vector search migration), Plan 2 (image/storage migration) — both completed and merged to `main`.

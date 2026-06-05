@@ -3,99 +3,183 @@
 ## Project
 Headless CMS — Rust (Axum + SeaORM) backend, React (DaisyUI + TipTap) frontend, Supabase (PostgreSQL + pgvector + Storage) platform.
 
+## Tooling Split
+
+The SDLC combines two complementary toolchains:
+
+| Concern                         | Tool            | Why                                                                |
+|---------------------------------|-----------------|--------------------------------------------------------------------|
+| Requirements & spec design      | **OpenSpec**    | Versioned, testable capability specs; machine-checkable artifacts  |
+| Proposal → design → task docs   | **OpenSpec**    | Standardized `proposal.md` / `specs/` / `design.md` / `tasks.md`   |
+| Archive & spec sync             | **OpenSpec**    | Syncs delta specs into canonical `openspec/specs/<capability>/`    |
+| Implementation & code execution  | **Superpowers** | Battle-tested execution skills (TDD, subagents, code review)       |
+
+> **OpenSpec** owns *what* and *why*. **Superpowers** owns *how* (the actual coding).
+
 ## SDLC Phases
 
 ```
 ┌──────────────────────┐     ┌──────────────────────┐     ┌──────────────────────┐
-│ 1. EXPLORE           │ ──▶ │ 2. PROPOSE           │ ──▶ │ 3. IMPLEMENT         │
+│ 1. EXPLORE           │ ──▶ │ 2. PROPOSE & DESIGN  │ ──▶ │ 3. IMPLEMENT         │
 │                      │     │                      │     │                      │
 │ Agent: product-owner │     │ Agents:              │     │ Agent: coder         │
-│ Skill: brainstorming │     │ product-owner        │     │ Skill: executing-    │
-│                      │     │ (proposal)           │     │ plans                │
-│                      │     │                      │     │                      │
-│                      │     │ software-architect   │     │ + subagent-driven    │
-│                      │     │ (design + tasks)     │     │ + TDD                │
-│                      │     │ Skill: writing-plans │     │ + code review        │
+│ Skill:               │     │  product-owner       │     │ Skills (Superpowers):│
+│  openspec-explore    │     │   (proposal)         │     │  executing-plans     │
+│  (+ brainstorming    │     │  software-architect  │     │  subagent-driven-    │
+│     for free-form)   │     │   (specs, design,    │     │   development        │
+│                      │     │    tasks)            │     │  test-driven-        │
+│                      │     │ Skill:               │     │   development        │
+│                      │     │  openspec-propose    │     │  requesting-code-    │
+│                      │     │  openspec-new        │     │   review             │
+│                      │     │  openspec-continue   │     │  verification-       │
+│                      │     │  openspec-ff-change  │     │   before-completion  │
 └──────────────────────┘     └──────────────────────┘     └──────────────────────┘
                                                                      │
                                                                      ▼
                                                             ┌──────────────────────┐
-                                                            │ 4. ARCHIVE           │
-                                                            │ Wrap up change       │
-                                                            │ Skill: finishing-    │
-                                                            │ a-development-branch │
+                                                            │ 4. VERIFY & ARCHIVE  │
+                                                            │                      │
+                                                            │ Skills (OpenSpec):   │
+                                                            │  openspec-verify-    │
+                                                            │   change             │
+                                                            │  openspec-sync-specs │
+                                                            │  openspec-archive-   │
+                                                            │   change             │
+                                                            │ Skill (Superpowers): │
+                                                            │  finishing-a-        │
+                                                            │   development-branch │
                                                             └──────────────────────┘
 ```
 
 ## Phase Details
 
-### Phase 1: Gather Requirements
+### Phase 1: Explore Requirements
 **Agent:** `product-owner`
-**Skill:** `brainstorming`
+**Primary skill:** `openspec-explore` (+ optional `brainstorming` for free-form idea capture)
 
-- Explore ideas, investigate problems, clarify requirements
-- Read existing specs in `docs/superpowers/specs/` and codebase
-- Produce a design document at `docs/superpowers/specs/YYYY-MM-DD-feature-name.md`
-- No code written — thinking phase only
+- Enter explore mode and investigate the problem space
+- Read the codebase, map integration points, surface hidden complexity
+- Check `openspec list --json` for any active change that may be relevant
+- Optionally use `brainstorming` (Superpowers) for unstructured idea generation
+- **No code is written in this phase.** Specs may be drafted in conversation but not saved
+- When thinking crystallizes, offer to create a change
 
-### Phase 2: Design + Tasks
-**Agents:** `product-owner` (proposal) + `software-architect` (design + tasks)
-**Skill:** `writing-plans`
+### Phase 2: Propose & Design (OpenSpec-driven)
+**Agents:** `product-owner` (proposal) + `software-architect` (specs, design, tasks)
+**Primary skills:** `openspec-propose` *or* `openspec-new` + `openspec-continue` *or* `openspec-ff-change`
 
-- `product-owner` writes the proposal: what & why, user stories, acceptance criteria
-- `software-architect` reads the proposal, designs architecture, writes the implementation plan
-- Plan output: `docs/superpowers/plans/YYYY-MM-DD-feature-name.md`
-- Plan format: detailed tasks with exact file paths, `- [ ]` checkboxes, verification steps
+- Run `openspec new change "<kebab-case-name>"` to scaffold the change under `openspec/changes/`
+- A change contains four artifacts, created in dependency order:
+  1. **`proposal.md`** — *product-owner* drafts Why, What Changes, Capabilities, Impact
+  2. **`specs/<capability>/spec.md`** — *software-architect* writes testable `### Requirement` + `#### Scenario` blocks (WHEN/THEN/AND)
+  3. **`design.md`** — *software-architect* captures Context, Goals/Non-Goals, Decisions, architecture
+  4. **`tasks.md`** — *software-architect* breaks work into numbered `- [ ]` checkboxes
+- Use `openspec instructions <artifact> --change "<name>" --json` to get templates & rules for each artifact
+- For small changes, `openspec-propose` or `openspec-ff-change` generates all four artifacts in one go
+- For larger changes, step through them with `openspec-new` + `openspec-continue <name>` to review each artifact
+- Re-run `openspec status --change "<name>" --json` between artifacts to track `applyRequires` readiness
+- Stop when status reports all `applyRequires` artifacts `done` → ready for implementation
 
-### Phase 3: Implement
+### Phase 3: Implement (Superpowers-driven)
 **Agent:** `coder`
-**Skills:** `executing-plans` + `subagent-driven-development` + `test-driven-development` + `requesting-code-review`
+**Primary skills:** `executing-plans` + `subagent-driven-development` + `test-driven-development` + `requesting-code-review` + `verification-before-completion`
 
-- Reads the plan from `docs/superpowers/plans/`
-- Executes tasks step by step (executing-plans)
-- Spawns subagents for parallel independent tasks (subagent-driven-development)
-- Follows RED-GREEN-REFACTOR cycle (test-driven-development)
-- Requests code review between task groups (requesting-code-review)
-- Runs `cargo check` → `cargo test` to verify
-- Marks tasks `[x]` as completed
+- Read the OpenSpec change artifacts from `openspec/changes/<name>/` (proposal, specs, design, **tasks.md**)
+- Use `executing-plans` to walk through `tasks.md` checkboxes step by step
+- For independent tasks, dispatch subagents in parallel (`subagent-driven-development`)
+- Follow RED-GREEN-REFACTOR for every behavioral change (`test-driven-development`)
+- Request a code review between task groups (`requesting-code-review`)
+- Before claiming done, run `verification-before-completion`:
+  - `cargo check`
+  - `cargo test`
+  - `cargo fmt -- --check`
+  - `cargo clippy`
+  - `pnpm build` (in `frontend/`)
+- Mark each task complete in `tasks.md` (`- [ ]` → `- [x]`) immediately after it passes verification
 
-### Phase 4: Archive
-**Skill:** `finishing-a-development-branch` + `verification-before-completion`
+> **Note:** The OpenSpec `openspec-apply-change` skill is available as a fallback if you want OpenSpec to drive task execution. By default, the project prefers Superpowers `executing-plans` for the actual coding loop.
 
-- Verifies all tests pass
-- Presents options: merge, PR, keep, or discard
-- Archives completed specs and plans into `docs/superpowers/` for permanent reference
-- Final documents live at:
-  - `docs/superpowers/specs/YYYY-MM-DD-feature-name.md` (design, user stories, acceptance criteria)
-  - `docs/superpowers/plans/YYYY-MM-DD-feature-name.md` (architecture, tasks, verification results)
+### Phase 4: Verify & Archive
+**Agent:** `coder` (verify + sync) → `product-owner` (final archive approval)
+**Primary skills (OpenSpec):** `openspec-verify-change` → `openspec-sync-specs` → `openspec-archive-change`
+**Plus (Superpowers):** `finishing-a-development-branch`
+
+1. **Verify** — Run `openspec-verify-change <name>` to check Completeness (tasks, spec coverage), Correctness (requirement ↔ implementation mapping), and Coherence (design adherence, pattern consistency). Fix all `CRITICAL` issues; review `WARNING` issues.
+2. **Sync specs** — Run `openspec-sync-specs <name>` to merge delta specs from `openspec/changes/<name>/specs/` into the canonical `openspec/specs/<capability>/spec.md`. This is agent-driven and idempotent.
+3. **Archive** — Run `openspec-archive-change <name>`. The change moves to `openspec/changes/archive/YYYY-MM-DD-<name>/` and becomes part of the project's decision history.
+4. **Wrap up branch** — Use `finishing-a-development-branch` (Superpowers) to present options: merge, PR, keep, or discard. Never force-push; respect protected branches.
+5. **Final verification** — `verification-before-completion` once more on the merged result.
 
 ## Agent Quick Reference
 
-| Agent | Skill | Phase | Responsibility |
-|-------|-------|-------|----------------|
-| `product-owner` | `brainstorming` | 1, 2 | Requirements, user stories, proposal |
-| `software-architect` | `writing-plans` | 2 | System design, API contracts, DB schema, task breakdown |
-| `coder` | `executing-plans` | 3 | Implementation, unit tests, verification |
+| Agent                | Phase      | Primary tool | Primary skills                                                              | Responsibility                                      |
+|----------------------|------------|--------------|-----------------------------------------------------------------------------|-----------------------------------------------------|
+| `product-owner`      | 1, 2, 4    | OpenSpec     | `openspec-explore`, `openspec-propose`, `brainstorming` (optional)          | Requirements, user stories, proposal, final sign-off |
+| `software-architect` | 2          | OpenSpec     | `openspec-new`, `openspec-continue`, `openspec-ff-change`                   | Capability specs, design, task breakdown            |
+| `coder`              | 3, 4       | Superpowers  | `executing-plans`, `subagent-driven-development`, `test-driven-development`, `requesting-code-review`, `verification-before-completion`, `finishing-a-development-branch` | Implementation, tests, verification, branch wrap-up  |
 
 ## Key Commands / Workflow
 
 ```
-"Let's brainstorm <feature>"       → product-owner uses brainstorming
-"Write a plan for <feature>"       → software-architect uses writing-plans
-"Execute the plan"                 → coder uses executing-plans
+"Let's explore <feature>"          → product-owner uses openspec-explore
+"Propose <feature>"                → product-owner uses openspec-propose
+"Write specs/design/tasks for X"   → software-architect uses openspec-continue
+"Implement <change-name>"          → coder uses executing-plans (reads tasks.md)
+"Verify and archive <change>"      → coder uses openspec-verify-change → sync → archive
+```
+
+**Quick CLI reference:**
+
+```bash
+# OpenSpec — spec/design lifecycle
+openspec new change "<kebab-name>"        # scaffold a change
+openspec list                              # list active changes
+openspec status --change "<name>" --json   # artifact readiness
+openspec instructions <artifact> --change "<name>" --json   # template + rules
+openspec verify --change "<name>"          # completeness + correctness check
+openspec sync --change "<name>"            # delta specs → main specs
+openspec archive "<name>"                  # move to archive/YYYY-MM-DD-<name>/
+
+# Cargo / pnpm — verification gate
+cargo check && cargo test && cargo fmt -- --check && cargo clippy
+pnpm --dir frontend build
 ```
 
 ## Document Convention
 
+OpenSpec owns the spec & decision artifacts. Superpowers is invoked for execution but does not own any document.
+
 ```
-docs/superpowers/
-├── specs/                          # Design documents (from brainstorming)
-│   └── YYYY-MM-DD-feature-name.md  # Preserved as permanent record after archive
-└── plans/                          # Implementation plans (from writing-plans)
-    └── YYYY-MM-DD-feature-name.md  # Preserved as permanent record after archive
+openspec/
+├── config.yaml                                # OpenSpec project config (schema: spec-driven)
+├── specs/                                     # Canonical capability specs (synced source of truth)
+│   └── <capability>/
+│       └── spec.md                            # Synced from delta specs after archive
+├── changes/                                   # Active and archived changes
+│   ├── <change-name>/                         # Active change
+│   │   ├── proposal.md                        # Why + What Changes + Capabilities + Impact
+│   │   ├── design.md                          # Context, Goals/Non-Goals, Decisions
+│   │   ├── specs/
+│   │   │   └── <capability>/spec.md           # Delta spec (ADDED/MODIFIED/REMOVED/RENAMED)
+│   │   └── tasks.md                           # Numbered `- [ ]` implementation checklist
+│   └── archive/
+│       └── YYYY-MM-DD-<change-name>/          # Archived change — permanent record
 ```
 
-After Phase 4 (Archive), the spec and plan are retained in `docs/superpowers/` for future reference by other agents and developers.
+**Lifecycle of a change:**
+
+```
+openspec new change "<name>"            ──▶  openspec/changes/<name>/
+openspec-ff-change / -propose / -continue   │  proposal.md → specs/ → design.md → tasks.md
+                                            │
+executing-plans (Superpowers)           ──▶  │  tasks.md checkboxes ticked off
+                                            │
+openspec-verify-change                   ──▶  │  Completeness + Correctness + Coherence report
+openspec-sync-specs                      ──▶  │  delta specs → openspec/specs/<capability>/
+openspec-archive-change                  ──▶  openspec/changes/archive/YYYY-MM-DD-<name>/
+```
+
+> **Legacy `docs/superpowers/`** holds pre-OpenSpec historical artifacts. New work uses `openspec/` only. Do not add new files under `docs/superpowers/`.
 
 ---
 
@@ -138,9 +222,10 @@ my-cms/
 │       ├── auth/                      # Auth context + Supabase client
 │       ├── config/                    # Runtime config, API utilities
 │       └── infrastructure/            # GraphQL client, auth utilities
-├── docs/superpowers/                  # Design docs + implementation plans
-│   ├── specs/                         # Feature specifications
-│   └── plans/                         # Implementation plans
+├── openspec/                          # Spec & change management (OpenSpec)
+│   ├── config.yaml
+│   ├── specs/                         # Canonical capability specs (synced)
+│   └── changes/                       # Active changes + archive
 ├── docker-compose.yml                 # Local dev stack (Supabase + API + Frontend + Jaeger)
 └── AGENTS.md                          # This file — SDLC workflow + conventions
 ```
@@ -269,7 +354,7 @@ cargo check                 # verify compilation
 cargo test                  # verify tests pass
 cargo fmt -- --check        # verify formatting
 cargo clippy                # verify lint
-pnpm build                  # verify frontend builds (in frontend/)
+pnpm --dir frontend build   # verify frontend builds
 ```
 
 ## Tech Stack Reference
@@ -284,4 +369,6 @@ pnpm build                  # verify frontend builds (in frontend/)
 | Media | Supabase Storage (S3-compatible) |
 | Auth | Supabase GoTrue JWT (custom middleware) |
 | Observability | OpenTelemetry + Jaeger |
+| Spec Management | OpenSpec 1.4+ (capability specs + change workflow) |
+| SDLC Skills | Superpowers (brainstorming, executing-plans, subagent-driven-development, test-driven-development, requesting-code-review, verification-before-completion, finishing-a-development-branch) |
 | Infra | Docker Compose (local), Helm (prod) |
