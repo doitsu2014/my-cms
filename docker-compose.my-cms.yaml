@@ -1,35 +1,44 @@
-# docker-compose.test.yml
-# Minimal test stack: init-wait + migrate + my-cms-api.
-# No Supabase services declared — tests assume the Supabase stack is already
-# running on the shared external `supabase_network`.
+# docker-compose.my-cms.yaml
+# my-cms apps stack for local development.
+# This file does NOT include any Supabase services. It assumes the Supabase
+# stack is already running on the shared external `supabase_network`.
 #
 # Usage:
 #   # 1. (one-time) create the shared network
 #   docker network create supabase_network
 #   # 2. start the Supabase stack first
 #   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase up -d
-#   # 3. then bring up the test stack
-#   docker compose -f docker-compose.test.yml --env-file .env.test up -d
+#   # 3. then start this apps stack
+#   docker compose -f docker-compose.my-cms.yaml --env-file .env.my-cms up -d
 #
 # Access:
-#   my-cms API: http://localhost:8989
+#   my-cms API:        http://localhost:8989
+#   Frontend Admin:    http://localhost:3002
+#   Jaeger UI:         http://localhost:16686
 #
-# Services excluded vs full compose: db, auth, rest, storage, imgproxy, meta,
-# studio, kong, mailpit, jaeger, my-cms-frontend
+# Reset:
+#   ./reset-apps.sh
+#
+# Startup order:
+#   init-wait        → polls db:5432 until TCP connection succeeds
+#   migrate          → one-shot sea-orm migrate up; gated on init-wait
+#   my-cms-api       → boots only after migrate succeeds
+#   my-cms-frontend  → boots only after my-cms-api is started
+#   jaeger           → independent; my-cms-api waits for it to start
 
 services:
   # ========================================
   # init-wait: poll db:5432 until TCP accepts a connection
-  # (db lives in docker-compose.supabase.yaml, so cross-file depends_on is
-  # not possible; we gate on a TCP port instead)
+  # (db lives in docker-compose.supabase.yaml, so cross-file depends_on
+  # is not possible; we gate on a TCP port instead)
   # ========================================
   init-wait:
-    container_name: my-cms-init-wait-test
+    container_name: my-cms-init-wait
     image: alpine:3.20
     restart: "no"
     networks:
       - supabase_network
-    depends_on: []
+    depends_on: []   # no internal deps; gated by the network + db
     entrypoint: ["sh", "-c"]
     command:
       - |
@@ -45,7 +54,7 @@ services:
   # Project: Database migrations (sea-orm-cli one-shot)
   # ========================================
   migrate:
-    container_name: my-cms-migrate-test
+    container_name: my-cms-migrate
     build:
       context: ./services
       dockerfile: Dockerfile
@@ -61,10 +70,27 @@ services:
       - supabase_network
 
   # ========================================
+  # Project: Jaeger Tracing
+  # ========================================
+  jaeger:
+    container_name: my-cms-jaeger
+    image: jaegertracing/all-in-one:1.53
+    restart: unless-stopped
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      LOG_LEVEL: debug
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP gRPC receiver
+      - "4318:4318"     # OTLP HTTP receiver
+    networks:
+      - supabase_network
+
+  # ========================================
   # Project: my-cms API (Rust)
   # ========================================
   my-cms-api:
-    container_name: my-cms-api-test
+    container_name: my-cms-api
     build:
       context: ./services
       dockerfile: Dockerfile
@@ -88,15 +114,44 @@ services:
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
-      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
       SUPABASE_STORAGE_BUCKET: ${SUPABASE_STORAGE_BUCKET}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
       AUTHORIZATION_AUDIENCE: ${AUTHORIZATION_AUDIENCE}
     depends_on:
       migrate:
         condition: service_completed_successfully
+      jaeger:
+        condition: service_started
     networks:
       - supabase_network
 
+  # ========================================
+  # Project: Frontend Admin Panel (React)
+  # ========================================
+  my-cms-frontend:
+    container_name: my-cms-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      PUBLIC_GRAPHQL_API_URL: ${PUBLIC_GRAPHQL_API_URL}
+      PUBLIC_GRAPHQL_CACHE_API_URL: ${PUBLIC_GRAPHQL_CACHE_API_URL}
+      PUBLIC_REST_API_URL: ${PUBLIC_REST_API_URL}
+      PUBLIC_MEDIA_UPLOAD_API_URL: ${PUBLIC_MEDIA_UPLOAD_API_URL}
+    volumes:
+      - ./frontend/src:/app/src:ro
+    depends_on:
+      my-cms-api:
+        condition: service_started
+    networks:
+      - supabase_network
+
+# ========================================
+# Networks
+# ========================================
 networks:
   supabase_network:
     external: true

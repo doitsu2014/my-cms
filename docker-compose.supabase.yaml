@@ -1,0 +1,440 @@
+# docker-compose.supabase.yaml
+# Supabase self-hosted stack for local development.
+#
+# Derived from upstream supabase/supabase master/docker/docker-compose.yml
+# (https://github.com/supabase/supabase) with my-cms-specific adjustments:
+#   - Image tags pinned to the versions the project already uses (see tasks.md)
+#   - Mailpit added (not in upstream) for local email testing
+#   - Supabase service connection strings use direct host:port/db
+#     (db:5432/postgres) instead of upstream's ${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+#   - Edge functions (supabase/edge-runtime) excluded — my-cms doesn't use them
+#   - Analytics/Logflare (docker-compose.logs.yml) excluded
+#   - S3/MinIO (docker-compose.s3.yml) excluded
+#   - Port mappings preserve my-cms dev workflow (Studio on :8000, Kong on :8001)
+#
+# Usage (one-time, then per-session):
+#   docker network create supabase_network
+#   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase up -d
+#   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase ps
+#
+# Access:
+#   Supabase Studio:   http://localhost:8000      (admin / admin)
+#   Kong gateway:      http://localhost:8001
+#   Mailpit (email):   http://localhost:8025
+#
+# Reset (wipes named volumes):
+#   ./reset-supabase.sh
+#
+# Bring up the apps on the same network:
+#   docker compose -f docker-compose.my-cms.yaml --env-file .env.my-cms up -d
+
+name: supabase
+
+services:
+  # ========================================
+  # Supabase: PostgreSQL Database
+  # ========================================
+  db:
+    container_name: supabase-db
+    image: supabase/postgres:15.14.1.132
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
+      - -c
+      - log_min_messages=fatal
+    environment:
+      # my-cms-specific: the db service uses a Unix socket for its own connection,
+      # distinct from the ${POSTGRES_HOST}=db hostname used by other services.
+      POSTGRES_HOST: /var/run/postgresql
+      PGPORT: ${POSTGRES_PORT}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      POSTGRES_DB: ${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXP: ${JWT_EXPIRY}
+    volumes:
+      # Upstream init scripts (vendored verbatim from supabase/supabase master)
+      - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
+      - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
+      - ./volumes/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql:Z
+      # Upstream migrations (vendored verbatim from supabase/supabase master)
+      - ./volumes/db/_supabase.sql:/docker-entrypoint-initdb.d/migrations/97-_supabase.sql:Z
+      - ./volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
+      - ./volumes/db/logs.sql:/docker-entrypoint-initdb.d/migrations/99-logs.sql:Z
+      - ./volumes/db/pooler.sql:/docker-entrypoint-initdb.d/migrations/99-pooler.sql:Z
+      # my-cms-specific defensive grants (idempotent)
+      - ./volumes/db/99-my-cms-grants.sql:/docker-entrypoint-initdb.d/migrations/99-my-cms-grants.sql:Z
+      # PGDATA directory is persisted between restarts
+      - ./volumes/db/data:/var/lib/postgresql/data:Z
+      # Use named volume to persist pgsodium decryption key between restarts
+      - db-config:/etc/postgresql-custom
+    networks:
+      - supabase_network
+
+  # ========================================
+  # Supabase: Connection Pooler
+  # ========================================
+  supavisor:
+    container_name: supabase-supavisor
+    image: supabase/supavisor:2.7.4
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "supavisor", "healthcheck"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    environment:
+      PORT: 4000
+      REGION: local
+      ERL_AFLAGS: -proto_dist inet_tcp
+      POOLER_TENANT_ID: ${POOLER_TENANT_ID}
+      POOLER_DEFAULT_POOL_SIZE: ${POOLER_DEFAULT_POOL_SIZE}
+      POOLER_MAX_CLIENT_CONN: ${POOLER_MAX_CLIENT_CONN}
+      POOLER_POOL_MODE: transaction
+      DB_POOL_SIZE: ${POOLER_DB_POOL_SIZE:-5}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      VAULT_ENC_KEY: ${VAULT_ENC_KEY}
+      API_JWT_SECRET: ${JWT_SECRET}
+      METRICS_JWT_SECRET: ${JWT_SECRET}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_URL: ecto://supabase_admin:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/_supabase
+      CLUSTER_POSTGRES: "true"
+    command:
+      - /bin/sh
+      - -c
+      - "/app/bin/migrate && /app/bin/supavisor eval \"$$(cat /etc/pooler/pooler.exs)\" && /app/bin/server"
+    volumes:
+      - ./volumes/pooler/pooler.exs:/etc/pooler/pooler.exs:ro,z
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - supabase_network
+
+  # ========================================
+  # Supabase: GoTrue Authentication
+  # ========================================
+  auth:
+    container_name: supabase-auth
+    image: supabase/gotrue:v2.179.0
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9999/health",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL}
+      # my-cms-specific: direct host:port/db (not upstream's ${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB})
+      GOTRUE_DB_DATABASE_URL: postgresql://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      # Required by GoTrue v2.x — picks the postgres driver explicitly
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_SITE_URL: ${SITE_URL}
+      GOTRUE_URI_ALLOW_LIST: ""
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: ${JWT_EXPIRY}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: true
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: false
+      GOTRUE_MAILER_AUTOCONFIRM: true
+      GOTRUE_MAILER_SUBJECTS_CONFIRMATION: "Confirm your email"
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_ADMIN_EMAIL}
+      GOTRUE_SMTP_HOST: ${SMTP_HOST}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT}
+      GOTRUE_SMTP_USER: ${SMTP_USER}
+      GOTRUE_SMTP_PASS: ${SMTP_PASS}
+      GOTRUE_SMTP_SENDER_NAME: ${SMTP_SENDER_NAME}
+      GOTRUE_LOG_LEVEL: warn
+      GOTRUE_DISABLE_SIGNUP: false
+      GOTRUE_PASSWORD_MIN_LENGTH: 8
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - supabase_network
+
+  # ========================================
+  # Supabase: PostgREST (Auto REST API)
+  # ========================================
+  rest:
+    container_name: supabase-rest
+    image: postgrest/postgrest:v14.1
+    restart: unless-stopped
+    environment:
+      # my-cms-specific: direct host:port/db
+      PGRST_DB_URI: postgresql://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: ${PGRST_DB_SCHEMAS}
+      PGRST_DB_MAX_ROWS: ${PGRST_DB_MAX_ROWS}
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_DB_PLAN_ENABLED: false
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: false
+      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
+      PGRST_APP_SETTINGS_JWT_EXP: ${JWT_EXPIRY}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - supabase_network
+
+  # ========================================
+  # Supabase: Realtime (WebSocket)
+  # ========================================
+  realtime:
+    container_name: supabase-realtime
+    image: supabase/realtime:v2.67.1
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: supabase_admin
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: postgres
+      DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
+      DB_ENC_KEY: supabaserealtime
+      API_JWT_SECRET: ${JWT_SECRET}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      ERL_AFLAGS: -proto_dist inet_tcp
+      DNS_NODES: "''"
+      RLIMIT_NOFILE: "10000"
+      APP_NAME: realtime
+      SEED_SELF_HOST: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - supabase_network
+
+  # ========================================
+  # Supabase: Storage (S3-Compatible)
+  # ========================================
+  storage:
+    container_name: supabase-storage
+    image: supabase/storage-api:v1.60.2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/status"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      # my-cms-specific: direct host:port/db
+      DATABASE_URL: postgresql://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: ${STORAGE_TENANT_ID}
+      REGION: ${REGION}
+      GLOBAL_S3_BUCKET: ${GLOBAL_S3_BUCKET}
+      ENABLE_IMAGE_TRANSFORMATION: "true"
+      IMGPROXY_URL: http://imgproxy:5001
+      IMGPROXY_REQUEST_TIMEOUT: 15
+      DATABASE_SEARCH_PATH: storage
+      REQUEST_ALLOWED_CONTENT_TYPES: "*"
+      S3_PROTOCOL_ACCESS_KEY_ID: ${S3_PROTOCOL_ACCESS_KEY_ID:-}
+      S3_PROTOCOL_ACCESS_KEY_SECRET: ${S3_PROTOCOL_ACCESS_KEY_SECRET:-}
+    volumes:
+      # my-cms-specific: named volume preserves existing data through migration
+      - supabase_storage_data:/var/lib/storage:z
+    depends_on:
+      db:
+        condition: service_healthy
+      rest:
+        condition: service_started
+      imgproxy:
+        condition: service_started
+    networks:
+      - supabase_network
+
+  # ========================================
+  # Supabase: Image Proxy (imgproxy)
+  # ========================================
+  imgproxy:
+    container_name: supabase-imgproxy
+    image: darthsim/imgproxy:v4.0.3
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "imgproxy", "health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    environment:
+      IMGPROXY_BIND: ":5001"
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
+      IMGPROXY_USE_ETAG: "true"
+      IMGPROXY_ENABLE_WEBP_DETECTION: "true"
+    volumes:
+      - supabase_storage_data:/var/lib/storage:ro
+    networks:
+      - supabase_network
+
+  # ========================================
+  # Supabase: Postgres Meta (for Studio)
+  # ========================================
+  meta:
+    container_name: supabase-meta
+    image: supabase/postgres-meta:v0.96.6
+    restart: unless-stopped
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: postgres
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      PG_META_DB_SSL_MODE: disable
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - supabase_network
+
+  # ========================================
+  # Supabase: Studio Dashboard
+  # ========================================
+  studio:
+    container_name: supabase-studio
+    image: supabase/studio:2026.05.25-sha-65c570e
+    restart: unless-stopped
+    environment:
+      STUDIO_PG_META_URL: http://meta:8080
+      STUDIO_DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION}
+      STUDIO_DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      AUTH_JWT_SECRET: ${JWT_SECRET}
+      LOGIN_MESSAGE: "Welcome to My CMS"
+    depends_on:
+      db:
+        condition: service_healthy
+      rest:
+        condition: service_started
+      auth:
+        condition: service_started
+      storage:
+        condition: service_started
+      realtime:
+        condition: service_started
+    ports:
+      - "8000:3000"
+    networks:
+      - supabase_network
+
+  # ========================================
+  # Supabase: Kong API Gateway
+  # ========================================
+  kong:
+    container_name: supabase-kong
+    image: kong:2.8.1
+    restart: unless-stopped
+    ports:
+      # my-cms-specific: Kong on 8001 to avoid conflict with Studio on 8000
+      - "8001:8000/tcp"
+      - "8443:8443/tcp"
+    environment:
+      KONG_DATABASE: "off"
+      # The custom entrypoint script reads /home/kong/temp.yml, substitutes
+      # environment variables, and writes the result to KONG_DECLARATIVE_CONFIG.
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-termination,cors,key-auth,acl,basic-auth,request-transformer
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+      KONG_LOG_LEVEL: warn
+      KONG_PLUGINSERVER_NAMES: js
+      KONG_PLUGINSERVER_JS_SOCKET: /usr/local/kong/js_pluginserver.sock
+      KONG_PLUGINSERVER_JS_START_CMD: /usr/local/kong-js-pluginserver --dump-all-plugins
+      KONG_PLUGINSERVER_JS_QUERY_CMD: /usr/local/kong-js-pluginserver --dump-all-plugins
+    volumes:
+      # kong:2.8.1 reads KONG_DECLARATIVE_CONFIG directly. Our volumes/api/kong.yml
+      # contains zero $VAR references, so no env-substitution entrypoint is needed.
+      # (The upstream Supabase entrypoint script is for Kong 3.x and calls
+      # `exec /entrypoint.sh`, which does not exist in kong:2.8.1.)
+      - ./volumes/api/kong.yml:/var/lib/kong/kong.yml:ro,z
+    depends_on:
+      auth:
+        condition: service_started
+      rest:
+        condition: service_started
+      realtime:
+        condition: service_started
+      storage:
+        condition: service_started
+    networks:
+      - supabase_network
+
+  # ========================================
+  # Supabase: Mailpit (Email Testing)
+  # ========================================
+  mailpit:
+    container_name: supabase-mailpit
+    image: axllent/mailpit:v1.23
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailpit.db
+      # my-cms-specific: relaxed SMTP auth for local dev convenience
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+    volumes:
+      - mailpit_data:/data
+    networks:
+      - supabase_network
+
+# ========================================
+# Networks
+# ========================================
+networks:
+  supabase_network:
+    external: true
+    name: supabase_network
+
+# ========================================
+# Volumes
+# ========================================
+# The db data directory is a bind mount to ./volumes/db/data (not declared here).
+# The mailpit_data and supabase_storage_data named volumes are reused from the
+# pre-split docker-compose.yml so existing data survives the migration.
+volumes:
+  db-config:
+  supabase_storage_data:
+    name: supabase_storage_data
+  mailpit_data:
+    name: mailpit_data

@@ -32,3 +32,9 @@ dist
 .env
 docker-compose.override.yml
 .pnpm-store
+
+# Local dev env files (split per compose file, see openspec/changes/split-supabase-and-apps-compose/)
+.env.supabase
+.env.my-cms
+
+volumes/db/data/*
