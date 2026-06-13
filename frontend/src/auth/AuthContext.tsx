@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Session, User } from "@supabase/supabase-js";
 import { getSupabaseClient } from "./supabase";
 
@@ -18,13 +19,14 @@ interface AuthContextType {
     username?: string;
     picture?: string;
   } | null;
-  login: () => Promise<void>;
+  login: () => void;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,10 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     : null;
 
-  const login = async () => {
-    await getSupabaseClient().auth.signInWithOAuth({
-      provider: "keycloak",
-    });
+  const login = () => {
+    navigate("/admin/login");
   };
 
   const logout = async () => {
