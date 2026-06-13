@@ -6,6 +6,7 @@
     "noEmit": true,
     "skipLibCheck": true,
     "useDefineForClassFields": true,
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
 
     /* modules */
     "module": "ESNext",

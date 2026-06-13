@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
             Enter your email and password to access the admin panel.
           </p>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
             <div className="form-control">
               <label className="label" htmlFor="email">
                 <span className="label-text">Email</span>
