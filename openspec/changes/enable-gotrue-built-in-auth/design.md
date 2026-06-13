@@ -63,6 +63,28 @@ This replaces both (a) the OAuth redirect that did not work and (b) the implicit
 
 **Alternative considered:** Have `AuthContext.login(email, password)` perform `signInWithPassword` and return a result. Rejected — mixes the auth provider with form state and forces the form page to thread `setError` through context, which is more code and less testable.
 
+### D6. Repair the Kong gateway as part of this change (discovered during implementation)
+
+During the implementation of tasks 3.3 (verify signup is closed) and 4.1–4.4 (add the admin seeder), an independent failure mode was discovered that is **not** part of the originally scoped change but is a prerequisite for the change to be testable end-to-end.
+
+**The bug:** `volumes/api/kong.yml` enables the `key-auth` plugin on every authenticated route (`auth-v1`, `rest`, `rest-graphql`, `realtime`, `meta`, `analytics`) but is missing the top-level `consumers:` section. Without registered consumers, Kong's `key-auth` plugin rejects every API call with `401 Invalid authentication credentials` before the request reaches the upstream service (GoTrue, PostgREST, etc.). The stack has been running in this broken state — every authenticated Supabase API call has been silently returning 401. The only reason any of the Supabase tooling appeared to work is that the `*-open*` routes (`/auth/v1/verify`, `/auth/v1/callback`, `/auth/v1/authorize`, `/auth/v1/sso/saml`) intentionally have no `key-auth` and have been the only path Kong actually forwards.
+
+**This is the real root cause of the original problem report** ("`{"code":400,"error_code":"validation_failed","msg":"Unsupported provider: provider is not enabled"}`"). The frontend was sending `apikey: devkey` to `/auth/v1/authorize`; Kong's `auth-v1-open-authorize` route has no `key-auth`, so Kong forwarded the request to GoTrue, which then rejected it because Keycloak was never configured as a provider. After this change moves sign-in to `signInWithPassword` (which hits `/auth/v1/token?grant_type=password`, routed by the *authenticated* `auth-v1` service), the call would have failed at Kong with 401 instead of at GoTrue with 400 — same broken end state, different layer.
+
+**Decision:** Fix the Kong config in this change, not in a separate one.
+
+**Rationale:**
+- The Kong fix and the email+password migration are operationally inseparable: the seeder (4.1–4.4), the signup-disable verification (3.3), and the end-to-end smoke test (5.3) all depend on a working authenticated path through Kong. Without the Kong fix, none of those tasks can pass.
+- The bug has been latent for the lifetime of the local stack (the stack has been up 6+ hours; it is not a regression from this change), but it is also a **hard blocker** for the change to be verifiable. Shipping a change whose tasks 3.3, 4.x, and 5.3 cannot be verified is a worse outcome than expanding scope.
+- The fix is mechanical and vendor-from-upstream: copy the upstream Supabase `kong.yml` `consumers` block + `request-transformer` plugin, vendor the `kong-entrypoint.sh` env-substitution script, and update the Kong service in `docker-compose.supabase.yaml` to use the entrypoint. The local stack is already using upstream's `kong:2.8.1` image and the same env-var names, so the upstream pattern drops in with minimal change.
+
+**Alternative considered:** Punt the Kong fix to a separate change. Rejected because the email+password migration's verification gate (5.3) is the most important end-to-end test in the whole change, and it cannot pass without the Kong fix. Shipping two changes serially doubles the round-trip cost (two PRs, two CI runs, two deploys) for what is functionally one user-visible fix ("the admin login flow works end-to-end").
+
+**Scope of the fix (see tasks 6.1–6.4):**
+- Vendor upstream `volumes/api/kong-entrypoint.sh` and update `volumes/api/kong.yml` to add `consumers` + `request-transformer` (keeping the local slim set of routes — no edge functions, MCP, analytics-to-logflare, oauth-authorization-server, JWKS, or SSO-SAML).
+- Update the Kong service in `docker-compose.supabase.yaml` to mount `temp.yml` + `kong-entrypoint.sh`, set `entrypoint: [/home/kong/kong-entrypoint.sh]`, and add `SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_KEY` env vars.
+- One-line spec correction: scenario for "Public sign-up returns 403" becomes "returns 422 with `error_code: signup_disabled`" (the actual GoTrue v2.179.0 response).
+
 ## Risks / Trade-offs
 
 - **Forgotten admin password on first reset** → The seeder prints the generated password to stdout and also writes it to `volumes/secrets/admin-password.txt`. The reset script's summary line explicitly calls out the file path. If both are missed, re-running `reset-supabase.sh` after deleting the user (or the script supports a `--rotate` flag) regenerates a new password.
@@ -71,3 +93,4 @@ This replaces both (a) the OAuth redirect that did not work and (b) the implicit
 - **OAuth callback detection code in `ProtectedRoute` becomes dead code** → Removed entirely. If we ever add another OAuth provider, the detection logic can come back. YAGNI for now.
 - **`_keycloak?: unknown` field in `api.config.ts` is removed** → Verified by grep that nothing else references it. If a stale reference slips through, `tsc` will flag it.
 - **Race between `seed-admin.sh` and `auth` service becoming healthy** → `reset-supabase.sh` already waits for `auth` to respond on `/auth/v1/health` before declaring Supabase ready. The seeder is invoked after that wait, so GoTrue is up by the time `createUser` is called.
+- **Kong fix scope expansion** → The Kong repair adds ~3 new files (`kong-entrypoint.sh`, modified `kong.yml`, modified `docker-compose.supabase.yaml`) and one new test step. It is bigger than a "just add a seeder" change, but it is the smallest end-to-end-correct outcome. The alternative — shipping the email+password code with broken verification — is worse.

@@ -41,12 +41,13 @@ The React admin SHALL use `@supabase/supabase-js` for authentication. A `getSupa
 
 ### Requirement: Public sign-up is closed in local dev
 
-GoTrue SHALL be configured with `GOTRUE_DISABLE_SIGNUP=true` in the local Supabase compose file. The public `POST /auth/v1/signup` endpoint SHALL return HTTP 403. The admin `POST /auth/v1/admin/users` endpoint SHALL remain authorized for the `SERVICE_ROLE_KEY`.
+GoTrue SHALL be configured with `GOTRUE_DISABLE_SIGNUP=true` in the local Supabase compose file. The public `POST /auth/v1/signup` endpoint SHALL reject requests with HTTP 422 and a response body containing `error_code: "signup_disabled"`. The admin `POST /auth/v1/admin/users` endpoint SHALL remain authorized for the `SERVICE_ROLE_KEY`.
 
-#### Scenario: Public sign-up returns 403
+#### Scenario: Public sign-up returns 422 with signup_disabled
 
 - **WHEN** an unauthenticated client calls `POST /auth/v1/signup` with a new email and password
-- **THEN** GoTrue returns HTTP 403
+- **THEN** GoTrue returns HTTP 422
+- **AND** the response body contains `error_code: "signup_disabled"`
 
 #### Scenario: Admin user creation still works
 
@@ -88,3 +89,35 @@ A one-shot seeder SHALL create a single administrator user in GoTrue on a fresh 
 ### Requirement: ProtectedRoute auto-redirects to a sign-in flow with callback handling
 **Reason**: The auto-redirect, `sessionStorage` callback flag, and `loginTriggered` ref existed solely to survive the OAuth round-trip (where the user briefly lands back on the SPA with `?code=...&state=...` in the URL hash). With email+password there is no round-trip — the user submits credentials and the SPA stays put.
 **Migration**: `ProtectedRoute` now renders a `<Navigate to="/admin/login?from=..." />` when unauthenticated. The `sessionStorage` flag, `loginTriggered` ref, and OAuth-callback detection (hash inspection for `state=` / `code=` / `session_state=`) are removed.
+
+## ADDED Requirements
+
+### Requirement: Kong gateway forwards authenticated Supabase API calls
+
+The Kong gateway in front of the local Supabase stack SHALL forward authenticated API calls (carrying `apikey` and `Authorization` headers) to the upstream GoTrue, PostgREST, and other Supabase services, instead of rejecting them with HTTP 401. Kong's `key-auth` plugin SHALL be configured with two registered consumers — `anon` (ACL group `anon`) and `service_role` (ACL group `admin`) — whose credentials match the `ANON_KEY` and `SERVICE_ROLE_KEY` env vars. A `request-transformer` plugin on each authenticated route SHALL rewrite the `apikey: $SUPABASE_ANON_KEY|SERVICE_KEY` request into a GoTrue-mintable `Authorization: Bearer <jwt>` header signed with the project's `JWT_SECRET`. The Kong service in `docker-compose.supabase.yaml` SHALL use a vendored `kong-entrypoint.sh` (env-substituting `$VAR` references and computing the `$LUA_AUTH_EXPR` template) mounted as the container's `entrypoint`, with the declarative config mounted as `temp.yml` and written to `/home/kong/kong.yml` after substitution.
+
+#### Scenario: Admin user list reaches GoTrue through Kong
+
+- **WHEN** the seeder or an operator calls `GET /auth/v1/admin/users` with the `apikey: <SERVICE_ROLE_KEY>` header
+- **THEN** Kong forwards the request to GoTrue (does not return 401)
+- **AND** GoTrue returns the user list (200 with a JSON array)
+
+#### Scenario: Anonymous PostgREST query reaches the database through Kong
+
+- **WHEN** a client calls `GET /rest/v1/<table>?select=*&limit=1` with the `apikey: <ANON_KEY>` header
+- **THEN** Kong forwards the request to PostgREST (does not return 401)
+- **AND** PostgREST returns the query result (200)
+
+#### Scenario: Public sign-up still rejected
+
+- **WHEN** an unauthenticated client calls `POST /auth/v1/signup`
+- **THEN** Kong forwards the request to GoTrue
+- **AND** GoTrue returns 422 with `error_code: signup_disabled` (see "Public sign-up is closed in local dev" requirement)
+
+#### Scenario: Supabase JS client sign-in round-trip
+
+- **WHEN** the React admin calls `supabase.auth.signInWithPassword({ email, password })`
+- **THEN** the Supabase JS client POSTs to `/auth/v1/token?grant_type=password` through Kong
+- **AND** Kong forwards the request to GoTrue
+- **AND** GoTrue validates the credentials, mints a JWT, and returns it
+- **AND** the JS client receives the session and updates `AuthContext`
