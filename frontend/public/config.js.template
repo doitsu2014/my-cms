@@ -1,0 +1,10 @@
+// Runtime Configuration — generated from environment variables at container startup.
+// Do not edit directly; edit config.js for local dev without Docker.
+window.__APP_CONFIG__ = {
+  supabaseUrl: '${PUBLIC_SUPABASE_URL}',
+  supabaseAnonKey: '${PUBLIC_SUPABASE_ANON_KEY}',
+  graphqlApiUrl: '${PUBLIC_GRAPHQL_API_URL}',
+  graphqlCacheApiUrl: '${PUBLIC_GRAPHQL_CACHE_API_URL}',
+  restApiUrl: '${PUBLIC_REST_API_URL}',
+  mediaUploadApiUrl: '${PUBLIC_MEDIA_UPLOAD_API_URL}',
+};

@@ -34,7 +34,7 @@ services:
   # ========================================
   init-wait:
     container_name: my-cms-init-wait
-    image: alpine:3.20
+    image: postgres:15-alpine
     restart: "no"
     networks:
       - supabase_network
@@ -42,9 +42,7 @@ services:
     entrypoint: ["sh", "-c"]
     command:
       - |
-        apk add --no-cache netcat-openbsd >/dev/null 2>&1 \
-          || { echo 'init-wait: failed to install netcat-openbsd'; exit 1; }
-        until nc -z db 5432; do
+        until pg_isready -h db -p 5432; do
           echo 'init-wait: waiting for db:5432...';
           sleep 2;
         done
@@ -132,17 +130,17 @@ services:
     container_name: my-cms-frontend
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "3002:3002"
     environment:
+      PUBLIC_SUPABASE_URL: ${PUBLIC_SUPABASE_URL}
+      PUBLIC_SUPABASE_ANON_KEY: ${PUBLIC_SUPABASE_ANON_KEY}
       PUBLIC_GRAPHQL_API_URL: ${PUBLIC_GRAPHQL_API_URL}
       PUBLIC_GRAPHQL_CACHE_API_URL: ${PUBLIC_GRAPHQL_CACHE_API_URL}
       PUBLIC_REST_API_URL: ${PUBLIC_REST_API_URL}
       PUBLIC_MEDIA_UPLOAD_API_URL: ${PUBLIC_MEDIA_UPLOAD_API_URL}
-    volumes:
-      - ./frontend/src:/app/src:ro
     depends_on:
       my-cms-api:
         condition: service_started

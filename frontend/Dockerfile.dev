@@ -11,6 +11,9 @@ RUN corepack enable && pnpm install --frozen-lockfile
 
 COPY . .
 
+# gettext provides envsubst for runtime config generation
+RUN apk add --no-cache gettext && chmod +x /app/entrypoint.dev.sh
+
 EXPOSE 3002
 
-CMD ["pnpm", "run", "dev", "--port", "3002", "--host", "0.0.0.0"]
+ENTRYPOINT ["/app/entrypoint.dev.sh"]
