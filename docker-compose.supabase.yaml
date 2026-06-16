@@ -89,10 +89,13 @@ services:
     image: supabase/supavisor:2.7.4
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "supavisor", "healthcheck"]
+      # supavisor:2.7.4 does not ship a `supavisor healthcheck` subcommand —
+      # hit the in-process HTTP /api/health endpoint (204 No Content when up).
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null --max-time 3 http://localhost:4000/api/health"]
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
     environment:
       PORT: 4000
       REGION: local
@@ -362,30 +365,34 @@ services:
     container_name: supabase-kong
     image: kong:2.8.1
     restart: unless-stopped
+    # The vendored kong-entrypoint.sh mounts /home/kong/temp.yml, env-substitutes
+    # $SUPABASE_ANON_KEY / $SUPABASE_SERVICE_KEY / $LUA_AUTH_EXPR / $LUA_RT_WS_EXPR
+    # references, writes the resolved config to /home/kong/kong.yml, and execs
+    # kong:2.8.1's stock /docker-entrypoint.sh. Without the entrypoint, the
+    # declarative config cannot reference runtime env vars; without registered
+    # consumers, key-auth rejects every authenticated call with 401.
+    entrypoint: ["/bin/sh", "/home/kong/kong-entrypoint.sh"]
     ports:
       # my-cms-specific: Kong on 8001 to avoid conflict with Studio on 8000
       - "8001:8000/tcp"
       - "8443:8443/tcp"
     environment:
       KONG_DATABASE: "off"
-      # The custom entrypoint script reads /home/kong/temp.yml, substitutes
-      # environment variables, and writes the result to KONG_DECLARATIVE_CONFIG.
-      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      # The entrypoint writes the resolved config here.
+      KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
       KONG_DNS_ORDER: LAST,A,CNAME
       KONG_PLUGINS: request-termination,cors,key-auth,acl,basic-auth,request-transformer
       KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
       KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
       KONG_LOG_LEVEL: warn
-      KONG_PLUGINSERVER_NAMES: js
-      KONG_PLUGINSERVER_JS_SOCKET: /usr/local/kong/js_pluginserver.sock
-      KONG_PLUGINSERVER_JS_START_CMD: /usr/local/kong-js-pluginserver --dump-all-plugins
-      KONG_PLUGINSERVER_JS_QUERY_CMD: /usr/local/kong-js-pluginserver --dump-all-plugins
+      # Env-substituted by kong-entrypoint.sh into the consumer keyauth_credentials
+      # and the LUA_AUTH_EXPR Lua expression. Names are the upstream Supabase names
+      # so the entrypoint logic is unchanged.
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
     volumes:
-      # kong:2.8.1 reads KONG_DECLARATIVE_CONFIG directly. Our volumes/api/kong.yml
-      # contains zero $VAR references, so no env-substitution entrypoint is needed.
-      # (The upstream Supabase entrypoint script is for Kong 3.x and calls
-      # `exec /entrypoint.sh`, which does not exist in kong:2.8.1.)
-      - ./volumes/api/kong.yml:/var/lib/kong/kong.yml:ro,z
+      - ./volumes/api/kong.yml:/home/kong/temp.yml:ro,z
+      - ./volumes/api/kong-entrypoint.sh:/home/kong/kong-entrypoint.sh:ro,z
     depends_on:
       auth:
         condition: service_started

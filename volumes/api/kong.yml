@@ -1,10 +1,49 @@
 # volumes/api/kong.yml
-# Kong declarative configuration for Supabase self-hosted
+# Kong declarative configuration for the local Supabase self-hosted stack.
+#
+# Derived from upstream supabase/supabase (docker/volumes/api/kong.yml) with
+# my-cms-specific adjustments:
+#   - Slim route set: no edge functions, MCP, analytics-to-logflare,
+#     oauth-authorization-server, JWKS, or SSO-SAML. Only the routes the local
+#     stack actually uses.
+#   - Pin to kong:2.8.1 plugin set (request-transformer is part of the
+#     pre-installed plugin set; post-function is not loaded).
+#   - Use legacy HS256 key flow: $LUA_AUTH_EXPR forwards apikey as
+#     "Bearer <apikey>" so GoTrue accepts the credential. (Upstream also
+#     supports asymmetric sb_ keys, but the local stack does not generate
+#     them.)
+#   - The custom kong-entrypoint.sh env-substitutes $SUPABASE_ANON_KEY and
+#     $SUPABASE_SERVICE_KEY into the consumer keyauth_credentials below.
 
 _format_version: "2.1"
 _transform: true
 
+###
+### Consumers
+###
+consumers:
+  - username: anon
+    keyauth_credentials:
+      - key: $SUPABASE_ANON_KEY
+  - username: service_role
+    keyauth_credentials:
+      - key: $SUPABASE_SERVICE_KEY
+
+###
+### Access Control List
+###
+acls:
+  - consumer: anon
+    group: anon
+  - consumer: service_role
+    group: admin
+
+###
+### API Routes
+###
 services:
+  ## Open Auth routes (no key-auth — these are the OAuth-flow entry points
+  ## that GoTrue redirects browsers to. They never carry an apikey.)
   - name: auth-v1-open
     url: http://auth:9999/verify
     routes:
@@ -32,15 +71,22 @@ services:
           - /auth/v1/authorize
     plugins:
       - name: cors
-  - name: auth-v1-sso-saml
+  - name: auth-v1-open-sso-saml
     url: http://auth:9999/sso/saml
     routes:
-      - name: auth-v1-sso-saml
+      - name: auth-v1-open-sso-saml
         strip_path: true
         paths:
           - /auth/v1/sso/saml
     plugins:
       - name: cors
+
+  ## Authenticated GoTrue API (/auth/v1/signup, /auth/v1/token, /auth/v1/admin/*)
+  ## Uses key-auth + request-transformer to mint a Bearer JWT from the apikey
+  ## header. ACL restricts the admin paths to the service_role group — but
+  ## because GoTrue itself enforces its own role checks on /admin/*, the
+  ## service-level ACL also needs to permit anon (for the public /token,
+  ## /signup, etc. endpoints that an anonymous client hits).
   - name: auth-v1
     url: http://auth:9999/
     routes:
@@ -53,15 +99,26 @@ services:
       - name: key-auth
         config:
           hide_credentials: false
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
+          replace:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
       - name: acl
         config:
           hide_groups_header: true
           allow:
             - admin
+            - anon
+
+  ## PostgREST (/rest/v1/*)
   - name: rest
     url: http://rest:3000/
     routes:
-      - name: rest
+      - name: rest-all
         strip_path: true
         paths:
           - /rest/v1/
@@ -69,17 +126,27 @@ services:
       - name: cors
       - name: key-auth
         config:
-          hide_credentials: true
+          hide_credentials: false
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
+          replace:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
       - name: acl
         config:
           hide_groups_header: true
           allow:
             - admin
             - anon
+
+  ## PostgREST GraphQL (/graphql/v1)
   - name: rest-graphql
     url: http://rest:3000/rpc/graphql
     routes:
-      - name: rest-graphql
+      - name: rest-graphql-all
         strip_path: true
         paths:
           - /graphql/v1
@@ -87,17 +154,31 @@ services:
       - name: cors
       - name: key-auth
         config:
-          hide_credentials: true
+          hide_credentials: false
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Content-Profile: graphql_public"
+              - "Authorization: $LUA_AUTH_EXPR"
+          replace:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
       - name: acl
         config:
           hide_groups_header: true
           allow:
             - admin
             - anon
+
+  ## Realtime WebSocket (/realtime/v1/*)
+  ## The supabase-js client sends apikey in the query string on the WS upgrade.
+  ## We rewrite it to x-api-key so Realtime (which checks x-api-key first)
+  ## accepts it.
   - name: realtime
     url: http://realtime:4000/socket/
     routes:
-      - name: realtime
+      - name: realtime-all
         strip_path: true
         paths:
           - /realtime/v1/
@@ -106,12 +187,25 @@ services:
       - name: key-auth
         config:
           hide_credentials: false
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "x-api-key: $LUA_RT_WS_EXPR"
+          replace:
+            querystring:
+              - "apikey: $LUA_RT_WS_EXPR"
       - name: acl
         config:
           hide_groups_header: true
           allow:
             - admin
             - anon
+
+  ## Storage (/storage/v1/*)
+  ## No key-auth — Storage accepts either an apikey as Bearer or an S3
+  ## signed request. The request-transformer forwards the apikey as Bearer
+  ## for the typical upload/download flow.
   - name: storage
     url: http://storage:5000/
     routes:
@@ -121,10 +215,20 @@ services:
           - /storage/v1/
     plugins:
       - name: cors
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
+          replace:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
+
+  ## pg-meta (/pg/* — used by Studio)
   - name: meta
     url: http://meta:8080/
     routes:
-      - name: meta
+      - name: meta-all
         strip_path: true
         paths:
           - /pg/
@@ -132,23 +236,6 @@ services:
       - name: key-auth
         config:
           hide_credentials: false
-      - name: acl
-        config:
-          hide_groups_header: true
-          allow:
-            - admin
-  - name: analytics
-    url: http://analytics:4000/
-    routes:
-      - name: analytics-v1
-        strip_path: true
-        paths:
-          - /analytics/v1/
-    plugins:
-      - name: cors
-      - name: key-auth
-        config:
-          hide_credentials: true
       - name: acl
         config:
           hide_groups_header: true
