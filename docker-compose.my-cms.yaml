@@ -133,7 +133,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "3002:3002"
+      - "3002:80"
     environment:
       PUBLIC_SUPABASE_URL: ${PUBLIC_SUPABASE_URL}
       PUBLIC_SUPABASE_ANON_KEY: ${PUBLIC_SUPABASE_ANON_KEY}
