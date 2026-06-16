@@ -17,23 +17,23 @@ import AdminLoginPage from './app/admin/login/page';
 const App = () => {
   return (
     <ToastProvider>
-      <AuthProvider>
-        <BrowserRouter>
-        <Routes>
-          {/* All admin routes are protected */}
-          <Route path="/admin" element={<ProtectedRoute><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
-          <Route path="/admin/categories" element={<ProtectedRoute><AdminLayout><AdminCategoriesListPage /></AdminLayout></ProtectedRoute>} />
-          <Route path="/admin/categories/create" element={<ProtectedRoute><AdminLayout><AdminCreateCategoryPage /></AdminLayout></ProtectedRoute>} />
-          <Route path="/admin/categories/edit/:id" element={<ProtectedRoute><AdminLayout><AdminEditCategoryPage /></AdminLayout></ProtectedRoute>} />
-          <Route path="/admin/blogs" element={<ProtectedRoute><AdminLayout><AdminBlogsPage /></AdminLayout></ProtectedRoute>} />
-          <Route path="/admin/blogs/create" element={<ProtectedRoute><AdminLayout><AdminCreateBlogPage /></AdminLayout></ProtectedRoute>} />
-          <Route path="/admin/blogs/edit/:id" element={<ProtectedRoute><AdminLayout><AdminEditBlogPage /></AdminLayout></ProtectedRoute>} />
-          <Route path="/admin/media" element={<ProtectedRoute><AdminLayout><AdminMediaPage /></AdminLayout></ProtectedRoute>} />
-          <Route path="/admin/login" element={<AdminLoginPage />} />
-          <Route path="/" element={<Navigate to="/admin" replace />} />
-        </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            {/* All admin routes are protected */}
+            <Route path="/admin" element={<ProtectedRoute><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/categories" element={<ProtectedRoute><AdminLayout><AdminCategoriesListPage /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/categories/create" element={<ProtectedRoute><AdminLayout><AdminCreateCategoryPage /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/categories/edit/:id" element={<ProtectedRoute><AdminLayout><AdminEditCategoryPage /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/blogs" element={<ProtectedRoute><AdminLayout><AdminBlogsPage /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/blogs/create" element={<ProtectedRoute><AdminLayout><AdminCreateBlogPage /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/blogs/edit/:id" element={<ProtectedRoute><AdminLayout><AdminEditBlogPage /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/media" element={<ProtectedRoute><AdminLayout><AdminMediaPage /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route path="/" element={<Navigate to="/admin" replace />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
     </ToastProvider>
   );
 };
