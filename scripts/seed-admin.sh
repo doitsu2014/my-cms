@@ -83,7 +83,7 @@ if echo "$EXISTING_RESPONSE" | grep -q "\"email\":\"$SEED_ADMIN_EMAIL\""; then
 fi
 
 # Generate a 24-character alphanumeric password.
-PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24)"
+PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24 || true)"
 
 CREATE_URL="$SUPABASE_PUBLIC_URL/auth/v1/admin/users"
 CREATE_BODY="$(cat <<EOF
