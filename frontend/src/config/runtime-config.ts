@@ -37,7 +37,7 @@ export const getConfig = (): AppConfig => {
 
   // Fall back to build-time env vars (development)
   return {
-    supabaseUrl: import.meta.env.PUBLIC_SUPABASE_URL || 'http://localhost:8000',
+    supabaseUrl: import.meta.env.PUBLIC_SUPABASE_URL || 'http://localhost:8001',
     supabaseAnonKey: import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '',
     graphqlApiUrl: import.meta.env.PUBLIC_GRAPHQL_API_URL || 'http://localhost:4000/graphql',
     graphqlCacheApiUrl: import.meta.env.PUBLIC_GRAPHQL_CACHE_API_URL,

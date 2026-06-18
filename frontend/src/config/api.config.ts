@@ -92,8 +92,7 @@ export const createAuthHeaders = (
 export const authenticatedFetch = async (
   url: string,
   token: string | null,
-  options?: RequestInit,
-  _keycloak?: unknown
+  options?: RequestInit
 ): Promise<Response> => {
   const headers = createAuthHeaders(token, options?.headers);
 

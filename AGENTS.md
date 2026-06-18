@@ -54,15 +54,17 @@ The SDLC combines two complementary toolchains:
 ## Phase Details
 
 ### Phase 1: Explore Requirements
-**Agent:** `product-owner`
+**Agents:** `product-owner` (requirements & user intent) + `software-architect` (technical & architecture feasibility)
 **Primary skill:** `openspec-explore` (+ optional `brainstorming` for free-form idea capture)
 
 - Enter explore mode and investigate the problem space
 - Read the codebase, map integration points, surface hidden complexity
 - Check `openspec list --json` for any active change that may be relevant
 - Optionally use `brainstorming` (Superpowers) for unstructured idea generation
+- **`product-owner`** focuses on *what* the user needs — requirements, user stories, scope, success criteria, impact
+- **`software-architect`** focuses on *how feasible it is* — current architecture, affected layers (API/Application Core/DB), library & framework fit, perf/security/data-model implications, alternative approaches
 - **No code is written in this phase.** Specs may be drafted in conversation but not saved
-- When thinking crystallizes, offer to create a change
+- When thinking crystallizes, offer to create a change. The proposing agent (product-owner for product changes, software-architect for technical/architecture changes such as refactors, cross-cutting concerns, platform upgrades, or pattern shifts) drafts the proposal in Phase 2
 
 ### Phase 2: Propose & Design (OpenSpec-driven)
 **Agents:** `product-owner` (proposal) + `software-architect` (specs, design, tasks)
@@ -115,7 +117,7 @@ The SDLC combines two complementary toolchains:
 | Agent                | Phase      | Primary tool | Primary skills                                                              | Responsibility                                      |
 |----------------------|------------|--------------|-----------------------------------------------------------------------------|-----------------------------------------------------|
 | `product-owner`      | 1, 2, 4    | OpenSpec     | `openspec-explore`, `openspec-propose`, `brainstorming` (optional)          | Requirements, user stories, proposal, final sign-off |
-| `software-architect` | 2          | OpenSpec     | `openspec-new`, `openspec-continue`, `openspec-ff-change`                   | Capability specs, design, task breakdown            |
+| `software-architect` | 1, 2        | OpenSpec     | `openspec-explore`, `openspec-new`, `openspec-continue`, `openspec-ff-change` | Technical/architecture feasibility, capability specs, design, task breakdown |
 | `coder`              | 3, 4       | Superpowers  | `executing-plans`, `subagent-driven-development`, `test-driven-development`, `requesting-code-review`, `verification-before-completion`, `finishing-a-development-branch` | Implementation, tests, verification, branch wrap-up  |
 
 ## Key Commands / Workflow

@@ -1,15 +1,10 @@
-// Runtime Configuration for Development
-// This file is loaded before the app to provide runtime configuration.
-// In production, this file is generated from config.json by the entrypoint script.
+// Runtime Configuration for local development (without Docker).
+// When running in Docker, this file is overwritten at startup from config.js.template.
 window.__APP_CONFIG__ = {
-  supabaseUrl: 'http://localhost:8000',
+  supabaseUrl: 'http://localhost:8001',
   supabaseAnonKey: 'your-anon-key-here',
   graphqlApiUrl: 'http://localhost:8989/graphql',
   graphqlCacheApiUrl: '',
-  restApiUrl: 'http://localhost:8989',
-  mediaUploadApiUrl: 'http://localhost:8989',
-  // graphqlApiUrl: 'https://my-cms-api.ducth.dev/graphql',
-  // graphqlCacheApiUrl: '',
-  // restApiUrl: 'https://my-cms-api.ducth.dev',
-  // mediaUploadApiUrl: 'https://my-cms-api.ducth.dev/media',
+  restApiUrl: 'http://localhost:8989/api',
+  mediaUploadApiUrl: 'http://localhost:8989/api/media/upload',
 };

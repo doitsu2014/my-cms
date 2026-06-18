@@ -206,6 +206,10 @@ mod tests {
         )
     }
 
+    fn valid_token_with_roles(roles: &[&str]) -> String {
+        make_token(json!({"roles": roles}), 3600)
+    }
+
     fn valid_token_without_roles() -> String {
         make_token(json!({}), 3600)
     }
@@ -336,6 +340,146 @@ mod tests {
             .layer(SupabaseAuthLayer::new(config));
 
         let token = valid_token_without_roles();
+
+        let response = app
+            .oneshot(
+                Request::get("/")
+                    .header("Authorization", format!("Bearer {}", token))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_status(response, StatusCode::OK).await;
+    }
+
+    fn app_with_required_roles(required_roles: Vec<String>) -> Router {
+        let config = SupabaseAuthConfig {
+            supabase_url: TEST_SUPABASE_URL.to_string(),
+            jwt_secret: TEST_JWT_SECRET.to_string(),
+            expected_audience: "authenticated".to_string(),
+            required_roles,
+        };
+
+        Router::new()
+            .route("/", get(|| async { "ok" }))
+            .layer(SupabaseAuthLayer::new(config))
+    }
+
+    #[tokio::test]
+    async fn or_semantics_user_with_first_required_role_passes() {
+        let app = app_with_required_roles(vec![
+            "my-headless-cms-writer".to_string(),
+            "my-headless-cms-administrator".to_string(),
+        ]);
+        let token = valid_token_with_role("my-headless-cms-writer");
+
+        let response = app
+            .oneshot(
+                Request::get("/")
+                    .header("Authorization", format!("Bearer {}", token))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_status(response, StatusCode::OK).await;
+    }
+
+    #[tokio::test]
+    async fn or_semantics_user_with_second_required_role_passes() {
+        let app = app_with_required_roles(vec![
+            "my-headless-cms-writer".to_string(),
+            "my-headless-cms-administrator".to_string(),
+        ]);
+        let token = valid_token_with_role("my-headless-cms-administrator");
+
+        let response = app
+            .oneshot(
+                Request::get("/")
+                    .header("Authorization", format!("Bearer {}", token))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_status(response, StatusCode::OK).await;
+    }
+
+    #[tokio::test]
+    async fn or_semantics_user_with_both_required_roles_passes() {
+        let app = app_with_required_roles(vec![
+            "my-headless-cms-writer".to_string(),
+            "my-headless-cms-administrator".to_string(),
+        ]);
+        let token =
+            valid_token_with_roles(&["my-headless-cms-writer", "my-headless-cms-administrator"]);
+
+        let response = app
+            .oneshot(
+                Request::get("/")
+                    .header("Authorization", format!("Bearer {}", token))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_status(response, StatusCode::OK).await;
+    }
+
+    #[tokio::test]
+    async fn or_semantics_user_with_unrelated_role_fails() {
+        let app = app_with_required_roles(vec![
+            "my-headless-cms-writer".to_string(),
+            "my-headless-cms-administrator".to_string(),
+        ]);
+        let token = valid_token_with_role("my-headless-cms-editor");
+
+        let response = app
+            .oneshot(
+                Request::get("/")
+                    .header("Authorization", format!("Bearer {}", token))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_status(response, StatusCode::FORBIDDEN).await;
+    }
+
+    #[tokio::test]
+    async fn or_semantics_user_with_no_roles_fails() {
+        let app = app_with_required_roles(vec![
+            "my-headless-cms-writer".to_string(),
+            "my-headless-cms-administrator".to_string(),
+        ]);
+        let token = valid_token_without_roles();
+
+        let response = app
+            .oneshot(
+                Request::get("/")
+                    .header("Authorization", format!("Bearer {}", token))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_status(response, StatusCode::FORBIDDEN).await;
+    }
+
+    #[tokio::test]
+    async fn or_semantics_extra_user_role_does_not_block_when_one_matches() {
+        let app = app_with_required_roles(vec![
+            "my-headless-cms-writer".to_string(),
+            "my-headless-cms-administrator".to_string(),
+        ]);
+        let token = valid_token_with_roles(&["my-headless-cms-writer", "my-headless-cms-editor"]);
 
         let response = app
             .oneshot(

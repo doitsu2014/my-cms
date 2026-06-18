@@ -23,13 +23,15 @@ COPY . .
 RUN corepack enable pnpm && pnpm run build
 
 # ============================================
-# Stage 3: Production (nginx)
+# Stage 3: Production (nginx + runtime config)
 # ============================================
 FROM nginx:alpine AS runner
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/entrypoint.sh"]
