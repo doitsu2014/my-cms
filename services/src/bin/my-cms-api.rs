@@ -183,7 +183,7 @@ pub async fn protected_router() -> Router {
         )
         .layer(construct_supabase_auth_layer(
             env::var("AUTHORIZATION_AUDIENCE").unwrap_or("authenticated".to_string()),
-            vec![String::from("my-headless-cms-writer")],
+            vec![String::from("my-headless-cms-writer"), String::from("my-headless-cms-administrator")],
         ))
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())

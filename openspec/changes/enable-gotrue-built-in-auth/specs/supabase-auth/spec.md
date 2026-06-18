@@ -121,3 +121,42 @@ The Kong gateway in front of the local Supabase stack SHALL forward authenticate
 - **AND** Kong forwards the request to GoTrue
 - **AND** GoTrue validates the credentials, mints a JWT, and returns it
 - **AND** the JS client receives the session and updates `AuthContext`
+
+### Requirement: SupabaseAuthLayer required_roles uses OR semantics
+
+The `SupabaseAuthLayer` SHALL evaluate the `required_roles` vector as a **disjunction (OR)**: a request is authorized when the JWT's `app_metadata.roles` JSON array contains **at least one** string that case-sensitively equals an entry in `required_roles`. The role match SHALL be a case-sensitive string equality check against the elements of the `app_metadata.roles` JSON array. An empty `required_roles` vec SHALL mean "no role requirement" — the role check is skipped entirely and the request proceeds as long as the JWT is valid.
+
+#### Scenario: User holds a single required role
+
+- **WHEN** a request carries a valid JWT whose `app_metadata.roles` is `["my-headless-cms-writer"]`
+- **AND** the `SupabaseAuthLayer` is configured with `required_roles = ["my-headless-cms-writer", "my-headless-cms-administrator"]`
+- **THEN** the middleware allows the request (HTTP 200)
+- **AND** a `SupabaseToken` extension is available via `Extension<SupabaseToken>`
+
+#### Scenario: User holds a different role
+
+- **WHEN** a request carries a valid JWT whose `app_metadata.roles` is `["my-headless-cms-editor"]`
+- **AND** the `SupabaseAuthLayer` is configured with `required_roles = ["my-headless-cms-writer", "my-headless-cms-administrator"]`
+- **THEN** the middleware returns HTTP 403
+- **AND** the response body is `{"error":"Insufficient permissions"}`
+
+#### Scenario: User has no app_metadata.roles
+
+- **WHEN** a request carries a valid JWT whose `app_metadata` is `{}` (no `roles` key) or whose `app_metadata` field is absent
+- **AND** the `SupabaseAuthLayer` is configured with `required_roles = ["my-headless-cms-writer", "my-headless-cms-administrator"]`
+- **THEN** the middleware returns HTTP 403
+- **AND** the response body is `{"error":"Insufficient permissions"}`
+
+#### Scenario: User holds multiple roles and at least one matches
+
+- **WHEN** a request carries a valid JWT whose `app_metadata.roles` is `["my-headless-cms-editor", "my-headless-cms-writer"]`
+- **AND** the `SupabaseAuthLayer` is configured with `required_roles = ["my-headless-cms-writer", "my-headless-cms-administrator"]`
+- **THEN** the middleware allows the request (HTTP 200)
+- **AND** a `SupabaseToken` extension is available via `Extension<SupabaseToken>`
+
+#### Scenario: Empty required_roles disables role enforcement
+
+- **WHEN** a request carries a valid JWT whose `app_metadata` is `{}` (no roles at all)
+- **AND** the `SupabaseAuthLayer` is configured with `required_roles = []`
+- **THEN** the middleware allows the request (HTTP 200)
+- **AND** a `SupabaseToken` extension is available via `Extension<SupabaseToken>`
