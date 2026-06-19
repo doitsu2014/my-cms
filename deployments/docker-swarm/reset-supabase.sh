@@ -67,13 +67,12 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-# Source SUPABASE_PUBLIC_URL from .env.supabase so the health-poll loop can
-# reach GoTrue via Kong (the same URL the seeder uses).
+# Source .env.supabase so downstream scripts (seed-admin.sh) and docker compose
+# can resolve shared secrets (JWT_SECRET, ANON_KEY, etc.).
 set -a
 # shellcheck disable=SC1090
 . "$ENV_FILE"
 set +a
-: "${SUPABASE_PUBLIC_URL:?SUPABASE_PUBLIC_URL must be set in .env.supabase}"
 
 # Both compose files declare supabase_network as external, so it must exist
 # before `up` runs. Create it idempotently here so a fresh checkout (or a
@@ -101,12 +100,12 @@ else
   docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d
 
   echo "Waiting for GoTrue to become healthy..."
-  # Poll GoTrue through Kong: a 401 from /auth/v1/admin/users means Kong
-  # forwarded and GoTrue is up (the endpoint requires an apikey, which we
-  # don't send). Anything else (5xx, connection refused) means the stack is
-  # still starting.
-  for i in $(seq 1 60); do
-    PROBE_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 2 "$SUPABASE_PUBLIC_URL/auth/v1/admin/users" 2>/dev/null || echo 000)"
+    # Poll GoTrue through Traefik → Kong: a 401 from /auth/v1/admin/users means Kong
+    # forwarded and GoTrue is up (the endpoint requires an apikey, which we
+    # don't send). Anything else (5xx, connection refused) means the stack is
+    # still starting.
+    for i in $(seq 1 60); do
+      PROBE_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 2 -H "Host: ${SUPABASE_API_HOST}" http://localhost/auth/v1/admin/users 2>/dev/null || echo 000)"
     if [ "$PROBE_CODE" = "401" ]; then
       break
     fi
@@ -122,9 +121,12 @@ else
   bash "$REPO_ROOT/scripts/seed-admin.sh"
 fi
 
+echo "Ensuring Traefik is running..."
+docker compose -f docker-compose.traefik.yaml up -d
+
 echo ""
 echo "Supabase stack starting. Check status with:"
 echo "  docker compose -f $COMPOSE_FILE ps"
-echo "Supabase Studio:  http://localhost:8000"
-echo "Kong gateway:     http://localhost:8001"
-echo "Mailpit UI:       http://localhost:8025"
+echo "Supabase Studio:  https://supabase.ducth.dev       (Basic Auth + Studio login)"
+echo "Kong gateway:     https://supabase-api.ducth.dev    (JWT via GoTrue)"
+echo "Mailpit UI:       internal Docker network only"

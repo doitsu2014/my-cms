@@ -4,8 +4,8 @@
 # Supabase reset. Idempotent — if the user already exists, exits 0.
 #
 # Required env (sourced from .env.supabase):
-#   SERVICE_ROLE_KEY   admin API key (GoTrue admin endpoints)
-#   SUPABASE_PUBLIC_URL  base URL of the Kong gateway (e.g. http://localhost:8001)
+#   SERVICE_ROLE_KEY    admin API key (GoTrue admin endpoints)
+#   SUPABASE_API_HOST   Traefik Host header for Kong (e.g. supabase-api.ducth.dev)
 #
 # Optional env:
 #   SEED_ADMIN_EMAIL   admin email (default: admin@my-cms.local)
@@ -34,7 +34,12 @@ set -a
 set +a
 
 : "${SERVICE_ROLE_KEY:?SERVICE_ROLE_KEY must be set in .env.supabase}"
-: "${SUPABASE_PUBLIC_URL:?SUPABASE_PUBLIC_URL must be set in .env.supabase}"
+: "${SUPABASE_API_HOST:?SUPABASE_API_HOST must be set in .env.supabase}"
+
+# All API calls route through Traefik on localhost so no direct Kong port is needed.
+# The Host header tells Traefik which backend to forward to.
+API_BASE="http://localhost"
+HOST_HEADER="Host: ${SUPABASE_API_HOST}"
 
 SEED_ADMIN_EMAIL="${SEED_ADMIN_EMAIL:-admin@my-cms.local}"
 SECRETS_DIR="$REPO_ROOT/deployments/docker-swarm/volumes/secrets"
@@ -47,9 +52,9 @@ mkdir -p "$SECRETS_DIR"
 # 401 from Kong (no API key found). If GoTrue is not up, the request times out
 # or Kong returns 502/503. Either way we can distinguish "stack is up" from
 # "stack is still starting" without requiring an open /health route.
-AUTH_PROBE_URL="$SUPABASE_PUBLIC_URL/auth/v1/admin/users"
-if ! curl -fsS -o /dev/null --max-time 5 "$AUTH_PROBE_URL" 2>/dev/null; then
-  PROBE_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 5 "$AUTH_PROBE_URL" 2>/dev/null || echo 000)"
+AUTH_PROBE_URL="$API_BASE/auth/v1/admin/users"
+if ! curl -fsS -o /dev/null --max-time 5 -H "$HOST_HEADER" "$AUTH_PROBE_URL" 2>/dev/null; then
+  PROBE_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 5 -H "$HOST_HEADER" "$AUTH_PROBE_URL" 2>/dev/null || echo 000)"
   # 401 is the expected "no API key" response — it means Kong forwarded to
   # GoTrue and GoTrue is up. 5xx / 000 means the stack is still starting.
   if [ "$PROBE_CODE" != "401" ]; then
@@ -60,8 +65,9 @@ if ! curl -fsS -o /dev/null --max-time 5 "$AUTH_PROBE_URL" 2>/dev/null; then
 fi
 
 # Check if the user already exists.
-LIST_URL="$SUPABASE_PUBLIC_URL/auth/v1/admin/users?email=$SEED_ADMIN_EMAIL"
+LIST_URL="$API_BASE/auth/v1/admin/users?email=$SEED_ADMIN_EMAIL"
 EXISTING_RESPONSE="$(curl -fsS -G \
+  -H "$HOST_HEADER" \
   -H "apikey: $SERVICE_ROLE_KEY" \
   -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
   "$LIST_URL" 2>/dev/null || true)"
@@ -85,7 +91,7 @@ fi
 # Generate a 24-character alphanumeric password.
 PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24 || true)"
 
-CREATE_URL="$SUPABASE_PUBLIC_URL/auth/v1/admin/users"
+CREATE_URL="$API_BASE/auth/v1/admin/users"
 CREATE_BODY="$(cat <<EOF
 {
   "email": "$SEED_ADMIN_EMAIL",
@@ -97,6 +103,7 @@ EOF
 )"
 
 CREATE_RESPONSE="$(curl -fsS -X POST \
+  -H "$HOST_HEADER" \
   -H "apikey: $SERVICE_ROLE_KEY" \
   -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
   -H "Content-Type: application/json" \

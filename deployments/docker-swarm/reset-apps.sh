@@ -118,6 +118,9 @@ fi
 echo ""
 echo "Apps stack starting. Check status with:"
 echo "  docker compose -f $COMPOSE_FILE ps"
-echo "my-cms API:       http://localhost:8989"
-echo "Frontend admin:   http://localhost:3002"
+echo "my-cms API:       http://localhost:8989            (or https://cms-api.ducth.dev)"
+echo "Frontend admin:   http://localhost:3002            (or https://cms-admin.ducth.dev)"
 echo "Jaeger UI:        http://localhost:16686"
+
+echo "Ensuring Traefik is running..."
+docker compose -f docker-compose.traefik.yaml up -d
