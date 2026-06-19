@@ -89,6 +89,8 @@ http:
           - Authorization
           - Content-Type
           - apikey
+          - x-supabase-api-version
+          - x-client-info
         accessControlAllowCredentials: true
 
     api-buff:
@@ -98,7 +100,7 @@ http:
     studio-basic-auth:
       basicAuth:
         users:
-          - '{{ env "STUDIO_BASIC_AUTH_USERS" }}'
+          - 'doitsu2014:$2y$10$9OmNo/ImHIjRKWDClOzkD.gR.1dV1VZ2MUtQU9S9ED.5qEf8eAQse'
 
     studio-headers:
       headers:
@@ -123,5 +125,8 @@ http:
           - Authorization
           - Content-Type
           - apikey
+          - x-supabase-api-version
           - x-client-info
+          - range
+          - x-range
         accessControlAllowCredentials: true

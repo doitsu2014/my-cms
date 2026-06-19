@@ -19,4 +19,9 @@ sed \
   /usr/share/nginx/html/config.js.template \
   > /usr/share/nginx/html/config.js
 
+# Cache-bust: inject a fresh version query on config.js in every HTML file
+# so browsers and CDNs always fetch the latest config after a deploy
+CONFIG_VERSION=$(date +%s)
+find /usr/share/nginx/html -name "*.html" -exec sed -i "s|src=\"/config.js\"|src=\"/config.js?v=${CONFIG_VERSION}\"|g" {} \;
+
 exec nginx -g "daemon off;"
