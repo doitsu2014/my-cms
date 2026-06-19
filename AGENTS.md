@@ -229,8 +229,23 @@ my-cms/
 │   ├── config.yaml
 │   ├── specs/                         # Canonical capability specs (synced)
 │   └── changes/                       # Active changes + archive
-├── docker-compose.my-cms.yaml         # Local dev apps stack (API + Web + Jaeger)
-├── docker-compose.supabase.yaml       # Local dev Supabase stack
+├── deployments/                        # Deployment configs (isolated from app source)
+│   ├── docker-swarm/                   # Docker Compose local dev stack
+│   │   ├── docker-compose.my-cms.yaml  # Apps stack (API + Web + Jaeger)
+│   │   ├── docker-compose.supabase.yaml# Supabase stack
+│   │   ├── .env.supabase               # Supabase env (gitignored, from .example)
+│   │   ├── .env.supabase.example       # Supabase env template
+│   │   ├── .env.my-cms                  # Apps env (gitignored, from .example)
+│   │   ├── .env.my-cms.example          # Apps env template
+│   │   ├── volumes/                     # Mounted configs (SQL, kong, pooler)
+│   │   │   ├── db/                      # Postgres init scripts + data
+│   │   │   ├── api/                     # Kong gateway config
+│   │   │   ├── pooler/                  # Supavisor config
+│   │   │   └── secrets/                 # Generated secrets (admin password)
+│   │   ├── bootstrap.sh                # One-time network setup
+│   │   ├── reset-apps.sh               # Reset / restart / rebuild apps
+│   │   └── reset-supabase.sh           # Reset / restart Supabase
+│   └── k8s/                            # Helm charts (production)
 └── AGENTS.md                          # This file — SDLC workflow + conventions
 ```
 

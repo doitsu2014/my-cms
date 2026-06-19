@@ -22,7 +22,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # Load env vars from .env.supabase (gitignored). It must exist by this point —
 # reset-supabase.sh is the entry point and the operator is expected to have
 # copied .env.supabase.example to .env.supabase.
-ENV_FILE="$REPO_ROOT/.env.supabase"
+ENV_FILE="$REPO_ROOT/deployments/docker-swarm/.env.supabase"
 if [ ! -f "$ENV_FILE" ]; then
   echo "ERROR: $ENV_FILE not found. Copy .env.supabase.example to .env.supabase and try again." >&2
   exit 1
@@ -37,7 +37,7 @@ set +a
 : "${SUPABASE_PUBLIC_URL:?SUPABASE_PUBLIC_URL must be set in .env.supabase}"
 
 SEED_ADMIN_EMAIL="${SEED_ADMIN_EMAIL:-admin@my-cms.local}"
-SECRETS_DIR="$REPO_ROOT/volumes/secrets"
+SECRETS_DIR="$REPO_ROOT/deployments/docker-swarm/volumes/secrets"
 PASSWORD_FILE="$SECRETS_DIR/admin-password.txt"
 
 mkdir -p "$SECRETS_DIR"

@@ -3,6 +3,11 @@
 # Stops the my-cms apps stack and starts fresh.
 # Does NOT touch the Supabase stack.
 #
+# Lives under deployments/docker-swarm/ so the deployment surface stays
+# isolated from the application source tree. Paths in this script are
+# relative to the script's own directory; the script can be invoked from
+# anywhere.
+#
 # Usage:
 #   ./reset-apps.sh                       # Full reset: stop, wipe volumes, start
 #   ./reset-apps.sh --restart             # Restart only: stop + start, keep volumes
@@ -10,6 +15,11 @@
 #   ./reset-apps.sh -h | --help           # Show this help
 
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Always run docker compose from the script's own directory so the relative
+# volume mounts and build contexts in docker-compose.my-cms.yaml resolve.
+cd "$SCRIPT_DIR"
 
 COMPOSE_FILE="docker-compose.my-cms.yaml"
 ENV_FILE=".env.my-cms"

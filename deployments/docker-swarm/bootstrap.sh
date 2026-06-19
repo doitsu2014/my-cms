@@ -3,14 +3,17 @@
 # One-time setup: creates the external supabase_network that both Compose
 # files join. Idempotent — safe to run multiple times.
 #
+# Lives under deployments/docker-swarm/ so the deployment surface stays
+# isolated from the application source tree.
+#
 # Usage:
 #   ./bootstrap.sh
 #
-# The reset scripts (reset-supabase.sh, reset-apps.sh) call this implicitly
-# (they ensure the network exists before `up`), so you only need to run
-# bootstrap.sh explicitly if you intend to bring the stack up by hand
-# (e.g. `docker compose -f docker-compose.supabase.yaml up -d` without
-# using a reset script).
+# The reset scripts (reset-supabase.sh, reset-apps.sh) already ensure the
+# network exists before `up`, so you only need to run bootstrap.sh
+# explicitly if you intend to bring the stack up by hand (e.g.
+# `docker compose -f docker-compose.supabase.yaml up -d` without using a
+# reset script).
 
 set -euo pipefail
 

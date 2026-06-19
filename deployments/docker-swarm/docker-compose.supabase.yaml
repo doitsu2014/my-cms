@@ -1,5 +1,7 @@
 # docker-compose.supabase.yaml
-# Supabase self-hosted stack for local development.
+# Supabase self-hosted stack for local development. Lives under
+# deployments/docker-swarm/ so the deployment surface stays isolated from
+# the application source tree.
 #
 # Derived from upstream supabase/supabase master/docker/docker-compose.yml
 # (https://github.com/supabase/supabase) with my-cms-specific adjustments:
@@ -12,7 +14,7 @@
 #   - S3/MinIO (docker-compose.s3.yml) excluded
 #   - Port mappings preserve my-cms dev workflow (Studio on :8000, Kong on :8001)
 #
-# Usage (one-time, then per-session):
+# Usage (from this directory, one-time setup then per-session):
 #   docker network create supabase_network
 #   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase up -d
 #   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase ps
@@ -66,7 +68,7 @@ services:
       JWT_EXP: ${JWT_EXPIRY}
     volumes:
       # Upstream init scripts (vendored verbatim from supabase/supabase master)
-      - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
+      -   ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
       - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
       - ./volumes/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql:Z
       # Upstream migrations (vendored verbatim from supabase/supabase master)
@@ -438,7 +440,9 @@ networks:
 # ========================================
 # Volumes
 # ========================================
-# The db data directory is a bind mount to ./volumes/db/data (not declared here).
+# The db data directory is a bind mount to ./volumes/db/data (not declared
+# here). The volumes/ directory lives alongside this compose file under
+# deployments/docker-swarm/.
 # The mailpit_data and supabase_storage_data named volumes are reused from the
 # pre-split docker-compose.yml so existing data survives the migration.
 volumes:

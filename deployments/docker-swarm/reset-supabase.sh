@@ -3,6 +3,11 @@
 # Stops the Supabase stack, wipes its named volumes, and starts fresh.
 # Does NOT touch my-cms apps stack. Does NOT remove the supabase_network.
 #
+# Lives under deployments/docker-swarm/ so the deployment surface stays
+# isolated from the application source tree. Paths in this script are
+# relative to the script's own directory; the project root is resolved
+# dynamically so the script can be invoked from anywhere.
+#
 # Usage:
 #   ./reset-supabase.sh                # Full reset: stop, wipe volumes, start, seed
 #   ./reset-supabase.sh --restart      # Restart only: stop + start, keep volumes
@@ -10,7 +15,13 @@
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Project root is the parent of deployments/, two levels up from this script.
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# Always run docker compose from the script's own directory so the relative
+# volume mounts and build contexts in docker-compose.supabase.yaml resolve.
+cd "$SCRIPT_DIR"
+
 COMPOSE_FILE="docker-compose.supabase.yaml"
 ENV_FILE=".env.supabase"
 
@@ -60,7 +71,7 @@ done
 # reach GoTrue via Kong (the same URL the seeder uses).
 set -a
 # shellcheck disable=SC1090
-. "$REPO_ROOT/$ENV_FILE"
+. "$ENV_FILE"
 set +a
 : "${SUPABASE_PUBLIC_URL:?SUPABASE_PUBLIC_URL must be set in .env.supabase}"
 
