@@ -9,6 +9,7 @@ services:
     image: traefik:v3.3
     container_name: traefik
     restart: unless-stopped
+    env_file: .env.my-cms
     command:
       - "--api.dashboard=true"
       - "--api.insecure=true"

@@ -31,6 +31,7 @@ http:
         - web
       service: studio-service
       middlewares:
+        - studio-basic-auth
         - studio-headers
 
     # --- supabase-api.ducth.dev → Kong / Supabase API ---
@@ -93,6 +94,11 @@ http:
     api-buff:
       buffering:
         maxRequestBodyBytes: 52428800  # 50MB for media uploads
+
+    studio-basic-auth:
+      basicAuth:
+        users:
+          - '{{ env "STUDIO_BASIC_AUTH_USERS" }}'
 
     studio-headers:
       headers:

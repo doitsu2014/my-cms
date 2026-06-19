@@ -12,17 +12,17 @@
 #   - Edge functions (supabase/edge-runtime) excluded — my-cms doesn't use them
 #   - Analytics/Logflare (docker-compose.logs.yml) excluded
 #   - S3/MinIO (docker-compose.s3.yml) excluded
-#   - Port mappings preserve my-cms dev workflow (Studio on :8000, Kong on :8001)
+#   - No direct host ports exposed — all access through Traefik reverse proxy
 #
 # Usage (from this directory, one-time setup then per-session):
 #   docker network create supabase_network
 #   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase up -d
 #   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase ps
 #
-# Access:
-#   Supabase Studio:   http://localhost:8000      (admin / admin)
-#   Kong gateway:      http://localhost:8001
-#   Mailpit (email):   http://localhost:8025
+# Access (all through Traefik on port 80, Cloudflare terminates SSL):
+#   Supabase Studio:   https://supabase.ducth.dev       (Basic Auth + Studio login)
+#   Kong gateway:      https://supabase-api.ducth.dev    (JWT via GoTrue)
+#   Mailpit (email):   internal Docker network only
 #
 # Reset (wipes named volumes):
 #   ./reset-supabase.sh
@@ -46,8 +46,7 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
-    ports:
-      - "5432:5432"
+    # ports: removed — db accessed via Docker network only (no direct host exposure)
     command:
       - postgres
       - -c
@@ -357,8 +356,7 @@ services:
         condition: service_started
       realtime:
         condition: service_started
-    ports:
-      - "8000:3000"
+    # ports: removed — Studio routed through Traefik at supabase.ducth.dev
     networks:
       - supabase_network
 
@@ -376,10 +374,7 @@ services:
     # declarative config cannot reference runtime env vars; without registered
     # consumers, key-auth rejects every authenticated call with 401.
     entrypoint: ["/bin/sh", "/home/kong/kong-entrypoint.sh"]
-    ports:
-      # my-cms-specific: Kong on 8001 to avoid conflict with Studio on 8000
-      - "8001:8000/tcp"
-      - "8443:8443/tcp"
+    # ports: removed — Kong routed through Traefik at supabase-api.ducth.dev
     environment:
       KONG_DATABASE: "off"
       # The entrypoint writes the resolved config here.
@@ -416,8 +411,7 @@ services:
     container_name: supabase-mailpit
     image: axllent/mailpit:v1.23
     restart: unless-stopped
-    ports:
-      - "8025:8025"
+    # ports: removed — Mailpit for local dev, no direct host exposure needed
     environment:
       MP_MAX_MESSAGES: 5000
       MP_DATABASE: /data/mailpit.db
