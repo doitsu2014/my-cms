@@ -6,9 +6,9 @@ on:
     branches:
       - main
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
     paths:
-      - 'apps/web/**'
+      - "apps/web/**"
 
 jobs:
   build_push_image:
@@ -51,8 +51,8 @@ jobs:
       - name: Build and push Docker images
         uses: docker/build-push-action@v6
         with:
-          context: './apps/web'
-          file: './apps/web/Dockerfile'
+          context: "./apps/web"
+          file: "./apps/web/Dockerfile"
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -60,8 +60,9 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
 
-  deploy:
-    needs: build_push_image
-    if: github.event_name != 'pull_request'
-    uses: ./.github/workflows/deploy-my-cms-admin.yml
-    secrets: inherit
+# Disable auto deploy
+# deploy:
+#   needs: build_push_image
+#   if: github.event_name != 'pull_request'
+#   uses: ./.github/workflows/deploy-my-cms-admin.yml
+#   secrets: inherit

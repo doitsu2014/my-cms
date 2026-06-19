@@ -6,9 +6,9 @@ on:
     branches:
       - main
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
     paths:
-      - 'apps/api/**'
+      - "apps/api/**"
 
 env:
   CARGO_TERM_COLOR: always
@@ -62,8 +62,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  deploy:
-    needs: build_push_image
-    if: github.event_name != 'pull_request'
-    uses: ./.github/workflows/deploy-my-cms.yml
-    secrets: inherit
+# Disable auto deploy
+# deploy:
+#   needs: build_push_image
+#   if: github.event_name != 'pull_request'
+#   uses: ./.github/workflows/deploy-my-cms.yml
+#   secrets: inherit
