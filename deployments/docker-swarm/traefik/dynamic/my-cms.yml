@@ -100,7 +100,7 @@ http:
     studio-basic-auth:
       basicAuth:
         users:
-          - 'doitsu2014:$2y$10$9OmNo/ImHIjRKWDClOzkD.gR.1dV1VZ2MUtQU9S9ED.5qEf8eAQse'
+          - '{{ env "STUDIO_BASIC_AUTH_USERS" }}'
 
     studio-headers:
       headers:
