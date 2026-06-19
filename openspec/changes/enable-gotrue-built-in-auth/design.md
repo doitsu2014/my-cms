@@ -2,7 +2,7 @@
 
 The Supabase GoTrue instance in local dev (exposed via Kong at `http://localhost:8001/auth/v1`) does not have Keycloak enabled as an external OAuth provider. The frontend's `AuthContext.login()` therefore fails with `{"code":400,"error_code":"validation_failed","msg":"Unsupported provider: provider is not enabled"}` before any redirect happens. The product does not want to operate a Keycloak server.
 
-The codebase has already migrated away from Keycloak on the backend: `SupabaseAuthLayer` (`services/src/common/supabase_auth.rs:52-162`) validates GoTrue-issued JWTs (HS256 with `JWT_SECRET`, RS256 fallback via JWKS) and exposes the user identity as `Extension<SupabaseToken>`. The frontend migrated the auth client from `keycloak-js` to `@supabase/supabase-js` in commit history. What is left is the *sign-in trigger* on the frontend: a stray `signInWithOAuth({ provider: "keycloak" })` call that was never finished.
+The codebase has already migrated away from Keycloak on the backend: `SupabaseAuthLayer` (`apps/api/src/common/supabase_auth.rs:52-162`) validates GoTrue-issued JWTs (HS256 with `JWT_SECRET`, RS256 fallback via JWKS) and exposes the user identity as `Extension<SupabaseToken>`. The frontend migrated the auth client from `keycloak-js` to `@supabase/supabase-js` in commit history. What is left is the *sign-in trigger* on the frontend: a stray `signInWithOAuth({ provider: "keycloak" })` call that was never finished.
 
 This change finishes that migration by switching the sign-in trigger from OAuth-Keycloak to GoTrue's built-in email+password path, closing public sign-up (the product is a personal CMS — only the operator should be able to log in), and adding a one-shot admin seeder so a fresh reset always has a usable account.
 
@@ -29,7 +29,7 @@ This change finishes that migration by switching the sign-in trigger from OAuth-
 
 GoTrue stores users in the `auth.users` table inside a schema whose internal layout changes between Supabase versions. Inserting rows directly via SQL is fragile (column additions, trigger expectations, the `encrypted_password` bcrypt format). The supported path is the **admin REST endpoint** `POST /auth/v1/admin/users` with the `SERVICE_ROLE_KEY` and `{ email, password, email_confirm: true, app_metadata: { roles: ["my-headless-cms-administrator"] } }`. GoTrue does the bcrypt hash, fires any triggers correctly, and returns the new `user.id` (which doubles as `auth.uid()` in RLS policies).
 
-**Alternative considered:** Seed via SeaORM migration in `services/migration/`. Rejected because (a) it bypasses the bcrypt path, (b) it ties admin creation to a database migration (a one-shot concern, not a schema concern), and (c) it breaks against Supabase minor upgrades if the internal schema changes.
+**Alternative considered:** Seed via SeaORM migration in `apps/api/migration/`. Rejected because (a) it bypasses the bcrypt path, (b) it ties admin creation to a database migration (a one-shot concern, not a schema concern), and (c) it breaks against Supabase minor upgrades if the internal schema changes.
 
 ### D2. Random password generated on first reset, persisted to `volumes/secrets/admin-password.txt`
 
@@ -49,7 +49,7 @@ GoTrue reads `GOTRUE_DISABLE_SIGNUP` at boot; when set, `POST /auth/v1/signup` r
 
 **Alternative considered:** Filter sign-up by email domain in a GoTrue hook. Rejected — adds GoTrue runtime complexity for no benefit; the disable-signup switch already exists and is the documented path.
 
-### D4. New `frontend/src/app/admin/login/page.tsx` as a real form, not a redirect page
+### D4. New `apps/web/src/app/admin/login/page.tsx` as a real form, not a redirect page
 
 The login page is a controlled React Hook Form with Zod validation (`email` is a valid email; `password` is at least 8 chars), renders a DaisyUI `<input>` pair and a `<button type="submit" className="btn btn-primary">`, and calls `supabase.auth.signInWithPassword` on submit. On success it navigates to the original `from` location (read from `?from=` query string, default `/admin`). On failure it toasts the GoTrue error message via Sonner.
 

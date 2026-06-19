@@ -48,22 +48,22 @@ The system SHALL insert a `SupabaseToken { claims: SupabaseClaims }` extension o
 
 ### Requirement: All handlers stop using KeycloakToken
 
-The system SHALL NOT use `KeycloakToken<String>`, `axum-keycloak-auth`, `KeycloakAuthLayer`, or `keycloak_extension` anywhere in `services/src/api/**`. Every protected handler SHALL use `SupabaseToken` instead.
+The system SHALL NOT use `KeycloakToken<String>`, `axum-keycloak-auth`, `KeycloakAuthLayer`, or `keycloak_extension` anywhere in `apps/api/src/api/**`. Every protected handler SHALL use `SupabaseToken` instead.
 
 #### Scenario: Search for Keycloak references
 
-- **WHEN** a developer greps `services/src` for `KeycloakToken` and `axum_keycloak_auth`
+- **WHEN** a developer greps `apps/api/src` for `KeycloakToken` and `axum_keycloak_auth`
 - **THEN** no matches are found (other than the git history)
 
 #### Scenario: Build succeeds without Keycloak crates
 
-- **WHEN** `cargo build` is run with `axum-keycloak-auth` removed from `services/Cargo.toml`
+- **WHEN** `cargo build` is run with `axum-keycloak-auth` removed from `apps/api/Cargo.toml`
 - **THEN** the build succeeds
 - **AND** the API responds to health checks on `/health`
 
 ### Requirement: React admin uses Supabase auth
 
-The React admin SHALL use `@supabase/supabase-js` for authentication. A `getSupabaseClient()` singleton SHALL be created in `frontend/src/auth/supabase.ts`, configured with `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`, with `autoRefreshToken`, `persistSession`, and `detectSessionInUrl` enabled.
+The React admin SHALL use `@supabase/supabase-js` for authentication. A `getSupabaseClient()` singleton SHALL be created in `apps/web/src/auth/supabase.ts`, configured with `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`, with `autoRefreshToken`, `persistSession`, and `detectSessionInUrl` enabled.
 
 #### Scenario: Session restored on page load
 

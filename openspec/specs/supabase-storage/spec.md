@@ -82,7 +82,7 @@ The system SHALL support deleting a single object via `DELETE {SUPABASE_URL}/sto
 
 ### Requirement: AppState and MediaConfig carry SupabaseStorage
 
-`AppState` SHALL include a `media_config: Arc<MediaConfig>` whose `storage` field is a `SupabaseStorage`. The construction site (`services/src/bin/my-cms-api.rs`) SHALL read `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (optional), and `SUPABASE_STORAGE_BUCKET` (default `media`) from env and SHALL NOT reference any S3 env var.
+`AppState` SHALL include a `media_config: Arc<MediaConfig>` whose `storage` field is a `SupabaseStorage`. The construction site (`apps/api/src/bin/my-cms-api.rs`) SHALL read `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (optional), and `SUPABASE_STORAGE_BUCKET` (default `media`) from env and SHALL NOT reference any S3 env var.
 
 #### Scenario: Boot with valid env
 

@@ -6,7 +6,7 @@ TBD - created by archiving change enable-gotrue-built-in-auth. Update Purpose af
 
 ### Requirement: React admin uses Supabase auth
 
-The React admin SHALL use `@supabase/supabase-js` for authentication. A `getSupabaseClient()` singleton SHALL be created in `frontend/src/auth/supabase.ts`, configured with `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`, with `autoRefreshToken`, `persistSession`, and `detectSessionInUrl` enabled. Sign-in SHALL be performed via GoTrue's built-in `signInWithPassword` flow (email + password); the admin SHALL NOT use `signInWithOAuth` for the Keycloak provider or any other external OAuth provider.
+The React admin SHALL use `@supabase/supabase-js` for authentication. A `getSupabaseClient()` singleton SHALL be created in `apps/web/src/auth/supabase.ts`, configured with `PUBLIC_SUPABASE_URL` and `PUBLIC_SUPABASE_ANON_KEY`, with `autoRefreshToken`, `persistSession`, and `detectSessionInUrl` enabled. Sign-in SHALL be performed via GoTrue's built-in `signInWithPassword` flow (email + password); the admin SHALL NOT use `signInWithOAuth` for the Keycloak provider or any other external OAuth provider.
 
 #### Scenario: Session restored on page load
 

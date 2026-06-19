@@ -130,17 +130,17 @@ flowchart TD
     click API_Admin "https://github.com/doitsu2014/my-cms/tree/main/src/api/administrator"
 
     %% Click Events for Application Core
-    click Core_Module "https://github.com/doitsu2014/my-cms/tree/main/application_core"
-    click CMD_Category "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/category"
-    click CMD_Post "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/post"
-    click CMD_AI "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/ai"
-    click CMD_Media "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/media"
-    click CMD_Tag "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/commands/tag"
-    click Common_Domain "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/common"
+    click Core_Module "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core"
+    click CMD_Category "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/commands/category"
+    click CMD_Post "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/commands/post"
+    click CMD_AI "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/commands/ai"
+    click CMD_Media "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/commands/media"
+    click CMD_Tag "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/commands/tag"
+    click Common_Domain "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/common"
 
     %% Click Events for Database & ORM Layer
-    click Entities "https://github.com/doitsu2014/my-cms/tree/main/application_core/src/entities"
-    click Migrations "https://github.com/doitsu2014/my-cms/tree/main/migration"
+    click Entities "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/entities"
+    click Migrations "https://github.com/doitsu2014/my-cms/tree/main/apps/api/migration"
 
     %% Click Events for Deployment & Infrastructure
     click Docker "https://github.com/doitsu2014/my-cms/tree/main/Dockerfile"
@@ -151,7 +151,7 @@ flowchart TD
     click Config "https://github.com/doitsu2014/my-cms/blob/main/.env"
 
     %% Click Event for Testing
-    click Testing "https://github.com/doitsu2014/my-cms/tree/main/test_helpers"
+    click Testing "https://github.com/doitsu2014/my-cms/tree/main/apps/api/test_helpers"
 
     %% Styles
     classDef api fill:#a6cee3,stroke:#1f78b4,stroke-width:2px;
@@ -268,7 +268,7 @@ Intelligent post translation powered by OpenAI with advanced features and backgr
 }
 ```
 
-See [AI Translation Documentation](application_core/src/commands/ai/README.md) for implementation details.
+See [AI Translation Documentation](apps/api/application_core/src/commands/ai/README.md) for implementation details.
 
 ## Development Guidelines
 
@@ -292,7 +292,7 @@ sea-orm-cli migrate --database-url connection_string up
 - Command to generate entities (scaffold from latest on database to source code)
 
 ```sh
-sea-orm-cli generate entity --database-url postgres://postgres:1234567890@localhost:5432/my-cms -o application_core/src/entities --with-serde both --model-extra-attributes 'serde(rename_all = "camelCase")' --seaography
+sea-orm-cli generate entity --database-url postgres://postgres:1234567890@localhost:5432/my-cms -o apps/api/application_core/src/entities --with-serde both --model-extra-attributes 'serde(rename_all = "camelCase")' --seaography
 ```
 
 ### 2. Unit Tests and Integration Tests

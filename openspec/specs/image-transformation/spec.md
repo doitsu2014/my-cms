@@ -48,13 +48,13 @@ The `application_core/src/commands/media/read/read_handler.rs` module SHALL NOT 
 
 #### Scenario: `image` crate absent
 
-- **WHEN** a developer greps `services/application_core/src` for `use image::`
+- **WHEN** a developer greps `apps/api/application_core/src` for `use image::`
 - **THEN** no matches are found
-- **AND** `services/application_core/Cargo.toml` does not list the `image` crate
+- **AND** `apps/api/application_core/Cargo.toml` does not list the `image` crate
 
 #### Scenario: `image` crate absent in workspace
 
-- **WHEN** `cargo build` is run with `image` removed from both `services/Cargo.toml` and `services/application_core/Cargo.toml`
+- **WHEN** `cargo build` is run with `image` removed from both `apps/api/Cargo.toml` and `apps/api/application_core/Cargo.toml`
 - **THEN** the build succeeds
 - **AND** the API serves `/media/images/{*path}` requests as documented
 

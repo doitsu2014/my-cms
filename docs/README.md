@@ -18,7 +18,7 @@ For comprehensive coding guidelines and best practices, see the [.github directo
 
 - **[Main README](../README.md)** - Project setup and overview
 - **[Postman Collection](./postman_collection/)** - API testing collection
-- **[AI Translation Documentation](../services/application_core/src/commands/ai/README.md)** - Detailed AI service documentation
+- **[AI Translation Documentation](../apps/api/application_core/src/commands/ai/README.md)** - Detailed AI service documentation
 
 ## Key Features
 
@@ -51,7 +51,7 @@ For comprehensive coding guidelines and best practices, see the [.github directo
 ```bash
 # Clone repository
 git clone https://github.com/doitsu2014/my-cms.git
-cd my-cms/services
+cd my-cms/apps/api
 
 # Set up environment
 cp .env.example .env
@@ -68,7 +68,7 @@ cargo run
 ### Frontend Setup
 
 ```bash
-cd frontend
+cd apps/web
 
 # Install dependencies
 pnpm install
@@ -106,18 +106,18 @@ See the comprehensive guides in [.github/](../.github/README.md) for:
 
 ```bash
 # Backend tests
-cd services
+cd apps/api
 cargo test
 
 # Frontend tests
-cd frontend
+cd apps/web
 pnpm test
 ```
 
 ### Code Coverage
 
 ```bash
-cd services
+cd apps/api
 ./take-coverage.sh
 ```
 
@@ -145,7 +145,7 @@ Intelligent post translation with cost optimization:
 - **Parallel Processing**: Concurrent chunk translation with Tokio JoinSet
 - **Background Jobs**: Non-blocking translation for large content
 
-[Learn more](../services/application_core/src/commands/ai/README.md)
+[Learn more](../apps/api/application_core/src/commands/ai/README.md)
 
 ### Media Management
 

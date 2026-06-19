@@ -61,8 +61,8 @@ You own **Phase 3 (Implement)**. Read the plan, execute it, verify it, finish it
 
 ## Layered Architecture
 ```
-API Layer (services/src/api/)        — thin: extract, call handler, return
-Application Core (application_core/) — Command Pattern: trait + struct
+API Layer (apps/api/src/api/)        — thin: extract, call handler, return
+Application Core (apps/api/application_core/) — Command Pattern: trait + struct
 Database Layer (entities/)           — SeaORM auto-generated, never edit
 ```
 

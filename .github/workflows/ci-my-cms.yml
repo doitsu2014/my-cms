@@ -9,7 +9,7 @@ name: Automation Test my-cms-api
 env:
   CARGO_TERM_COLOR: always
 
-# Please run test in folder services from repository
+# Please run test in folder apps/api from repository
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -28,14 +28,14 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all --all-features --no-fail-fast --manifest-path services/Cargo.toml # Customize args for your own needs
+          args: --all --all-features --no-fail-fast --manifest-path apps/api/Cargo.toml # Customize args for your own needs
         env:
           CARGO_INCREMENTAL: "0"
           RUSTFLAGS: "-Cinstrument-coverage -Ccodegen-units=1 -Cllvm-args=--inline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
           LLVM_PROFILE_FILE: "test-llvm-reports/my-cms-%p-%m.profraw"
       # Take Coverage Reports
       - name: Run Coverage Report with grcov
-        run: grcov . --binary-path services/target/debug/deps/ -s services -t lcov --ignore-not-existing --ignore '../**' --ignore '/*' -o ./lcov.info
+        run: grcov . --binary-path apps/api/target/debug/deps/ -s apps/api -t lcov --ignore-not-existing --ignore '../**' --ignore '/*' -o ./lcov.info
       # Upload Coverage Reports to Third Party
       - name: Upload coverage reports to Coveralls
         uses: coverallsapp/github-action@master

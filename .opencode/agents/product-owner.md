@@ -45,11 +45,11 @@ You own **Phase 1 (Explore)**. You produce the design document. The Architect th
 4. **Hand off**: "Design doc ready. Handing off to Architect for writing-plans."
 
 ## Domain Knowledge
-- Backend: Command Pattern in `application_core/src/commands/`, API handlers in `services/src/api/`
-- DB: SeaORM entities (auto-generated from schema), migrations in `services/migration/src/`
-- Frontend: Pages in `frontend/src/app/admin/`, components in `frontend/src/components/`
-- Auth: Supabase GoTrue JWT middleware in `services/src/common/supabase_auth.rs`
-- AI: 3-tier lookup (DB → pgvector → OpenAI) in `application_core/src/commands/ai/`
-- Media: Supabase Storage REST client in `application_core/src/commands/media/supabase_storage.rs`
+- Backend: Command Pattern in `apps/api/application_core/src/commands/`, API handlers in `apps/api/src/api/`
+- DB: SeaORM entities (auto-generated from schema), migrations in `apps/api/migration/src/`
+- Frontend: Pages in `apps/web/src/app/admin/`, components in `apps/web/src/components/`
+- Auth: Supabase GoTrue JWT middleware in `apps/api/src/common/supabase_auth.rs`
+- AI: 3-tier lookup (DB → pgvector → OpenAI) in `apps/api/application_core/src/commands/ai/`
+- Media: Supabase Storage REST client in `apps/api/application_core/src/commands/media/supabase_storage.rs`
 
 Be concise. Lean SDLC for a startup/pet project — don't over-specify.

@@ -96,7 +96,7 @@ The SDLC combines two complementary toolchains:
   - `cargo test`
   - `cargo fmt -- --check`
   - `cargo clippy`
-  - `pnpm build` (in `frontend/`)
+  - `pnpm build` (in `apps/web/`)
 - Mark each task complete in `tasks.md` (`- [ ]` → `- [x]`) immediately after it passes verification
 
 > **Note:** The OpenSpec `openspec-apply-change` skill is available as a fallback if you want OpenSpec to drive task execution. By default, the project prefers Superpowers `executing-plans` for the actual coding loop.
@@ -144,7 +144,7 @@ openspec archive "<name>"                  # move to archive/YYYY-MM-DD-<name>/
 
 # Cargo / pnpm — verification gate
 cargo check && cargo test && cargo fmt -- --check && cargo clippy
-pnpm --dir frontend build
+pnpm --dir apps/web build
 ```
 
 ## Document Convention
@@ -189,46 +189,48 @@ openspec-archive-change                  ──▶  openspec/changes/archive/YYY
 
 ```
 my-cms/
-├── services/                          # Rust backend
-│   ├── src/
-│   │   ├── api/                       # API layer (Axum routes + handlers)
-│   │   │   ├── category/              # Category CRUD
-│   │   │   ├── post/                  # Post CRUD + AI translate
-│   │   │   ├── tag/                   # Tag management
-│   │   │   ├── media/                 # Media upload/serve
-│   │   │   ├── public/                # Public endpoints
-│   │   │   ├── graphql/               # GraphQL endpoint
-│   │   │   └── administrator/         # Admin operations
-│   │   ├── common/                    # Shared utilities, auth middleware
-│   │   ├── presentation_models/       # API request/response DTOs
-│   │   └── lib.rs                     # AppState definition
-│   ├── application_core/              # Business logic layer
-│   │   └── src/
-│   │       ├── commands/              # Command handlers (business logic)
-│   │       │   ├── category/
-│   │       │   ├── post/
-│   │       │   ├── tag/
-│   │       │   ├── media/
-│   │       │   └── ai/               # AI translation (3-tier lookup)
-│   │       ├── entities/              # SeaORM entities (auto-generated)
-│   │       └── common/               # AppError, domain utils
-│   ├── migration/                     # Database migrations (SeaORM)
-│   └── test_helpers/                  # Test utilities
-├── frontend/                          # React frontend
-│   └── src/
-│       ├── app/admin/                 # Admin pages (layout, dashboard, CRUD)
-│       ├── components/                # Reusable UI components
-│       ├── domains/                   # Domain type definitions
-│       ├── models/                    # API request/response models
-│       ├── schemas/                   # Zod validation schemas
-│       ├── auth/                      # Auth context + Supabase client
-│       ├── config/                    # Runtime config, API utilities
-│       └── infrastructure/            # GraphQL client, auth utilities
+├── apps/
+│   ├── api/                           # Rust backend
+│   │   ├── src/
+│   │   │   ├── api/                   # API layer (Axum routes + handlers)
+│   │   │   │   ├── category/          # Category CRUD
+│   │   │   │   ├── post/              # Post CRUD + AI translate
+│   │   │   │   ├── tag/               # Tag management
+│   │   │   │   ├── media/             # Media upload/serve
+│   │   │   │   ├── public/            # Public endpoints
+│   │   │   │   ├── graphql/           # GraphQL endpoint
+│   │   │   │   └── administrator/     # Admin operations
+│   │   │   ├── common/                # Shared utilities, auth middleware
+│   │   │   ├── presentation_models/   # API request/response DTOs
+│   │   │   └── lib.rs                 # AppState definition
+│   │   ├── application_core/          # Business logic layer
+│   │   │   └── src/
+│   │   │       ├── commands/          # Command handlers (business logic)
+│   │   │       │   ├── category/
+│   │   │       │   ├── post/
+│   │   │       │   ├── tag/
+│   │   │       │   ├── media/
+│   │   │       │   └── ai/            # AI translation (3-tier lookup)
+│   │   │       ├── entities/          # SeaORM entities (auto-generated)
+│   │   │       └── common/            # AppError, domain utils
+│   │   ├── migration/                 # Database migrations (SeaORM)
+│   │   └── test_helpers/              # Test utilities
+│   └── web/                           # React frontend
+│       └── src/
+│           ├── app/admin/             # Admin pages (layout, dashboard, CRUD)
+│           ├── components/            # Reusable UI components
+│           ├── domains/               # Domain type definitions
+│           ├── models/                # API request/response models
+│           ├── schemas/               # Zod validation schemas
+│           ├── auth/                  # Auth context + Supabase client
+│           ├── config/                # Runtime config, API utilities
+│           └── infrastructure/        # GraphQL client, auth utilities
 ├── openspec/                          # Spec & change management (OpenSpec)
 │   ├── config.yaml
 │   ├── specs/                         # Canonical capability specs (synced)
 │   └── changes/                       # Active changes + archive
-├── docker-compose.yml                 # Local dev stack (Supabase + API + Frontend + Jaeger)
+├── docker-compose.my-cms.yaml         # Local dev apps stack (API + Web + Jaeger)
+├── docker-compose.supabase.yaml       # Local dev Supabase stack
 └── AGENTS.md                          # This file — SDLC workflow + conventions
 ```
 
@@ -239,10 +241,10 @@ my-cms/
 ### Architecture: Strictly Layered
 
 ```
-API Layer (services/src/api/)        — HTTP routing, serialization, auth extraction
+API Layer (apps/api/src/api/)        — HTTP routing, serialization, auth extraction
         │
         ▼
-Application Core (application_core/) — Business logic, command handlers
+Application Core (apps/api/application_core/) — Business logic, command handlers
         │
         ▼
 Database Layer (entities/)           — SeaORM entities (auto-generated)
@@ -276,7 +278,7 @@ impl CreateFooHandlerTrait for CreateFooHandler {
 
 ### Database (SeaORM)
 - **Schema-first**: Create migrations → run them → generate entities from DB
-- **Never manually edit** entity files in `application_core/src/entities/`
+- **Never manually edit** entity files in `apps/api/application_core/src/entities/`
 - Use `Arc<DatabaseConnection>` for shared DB access
 - For transactions: `let txn = db.begin().await?; ... txn.commit().await?;`
 
@@ -356,7 +358,7 @@ cargo check                 # verify compilation
 cargo test                  # verify tests pass
 cargo fmt -- --check        # verify formatting
 cargo clippy                # verify lint
-pnpm --dir frontend build   # verify frontend builds
+pnpm --dir apps/web build   # verify frontend builds
 ```
 
 ## Tech Stack Reference

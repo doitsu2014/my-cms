@@ -36,7 +36,7 @@ You own **Phase 2 (Design + Tasks)**. You read the PO's design doc and produce a
 
 1. **Load skill**: Invoke `writing-plans`
 2. **Read the design doc**: `docs/superpowers/specs/` — understand the requirements
-3. **Study existing code**: Read affected files, follow patterns in `services/` and `frontend/`
+3. **Study existing code**: Read affected files, follow patterns in `apps/api/` and `apps/web/`
 4. **Design the architecture**: Component design, API contracts, data flow, DB schema
 5. **Write the plan**: `docs/superpowers/plans/YYYY-MM-DD-feature-name.md` with:
    - Each task is a small, testable unit (2-5 min per step, max 2 hrs per task)
@@ -59,7 +59,7 @@ You own **Phase 2 (Design + Tasks)**. You read the PO's design doc and produce a
 
 ### Task 1: Database Migration
 **Files:**
-- Create: `services/migration/src/m{date}_001_{name}.rs`
+- Create: `apps/api/migration/src/m{date}_001_{name}.rs`
 
 - [ ] **Step 1: Create migration file**
   (exact code or detailed instructions)
@@ -73,8 +73,8 @@ You own **Phase 2 (Design + Tasks)**. You read the PO's design doc and produce a
   ```
 
 ### Task 2: Command Handler + Unit Tests
-- [ ] **Step 1: Create handler file**
-  File: `services/application_core/src/commands/foo/create/create_handler.rs`
+  - [ ] **Step 1: Create handler file**
+  File: `apps/api/application_core/src/commands/foo/create/create_handler.rs`
 - [ ] **Step 2: Write unit tests**
   (use MockDatabase, test happy path + errors)
 - [ ] **Step 3: Verify**
@@ -84,7 +84,7 @@ You own **Phase 2 (Design + Tasks)**. You read the PO's design doc and produce a
 
 ### Task 3: API Handler
 - [ ] **Step 1: Create API handler**
-  File: `services/src/api/foo/create/create_handler.rs`
+  File: `apps/api/src/api/foo/create/create_handler.rs`
 - [ ] **Step 2: Register route**
 - [ ] **Step 3: Verify**
   ```bash
@@ -93,7 +93,7 @@ You own **Phase 2 (Design + Tasks)**. You read the PO's design doc and produce a
 
 ### Task 4: Frontend
 - [ ] **Step 1: Create page**
-  File: `frontend/src/app/admin/foo/page.tsx`
+  File: `apps/web/src/app/admin/foo/page.tsx`
 - [ ] **Step 2: Create components + schema**
 - [ ] **Step 3: Verify**
   ```bash
@@ -109,8 +109,8 @@ You own **Phase 2 (Design + Tasks)**. You read the PO's design doc and produce a
 ## Architecture Principles
 
 ```
-API Layer (services/src/api/)        — thin: extract request, call handler, return response
-Application Core (application_core/) — Command Pattern: trait + struct per operation
+API Layer (apps/api/src/api/)        — thin: extract request, call handler, return response
+Application Core (apps/api/application_core/) — Command Pattern: trait + struct per operation
 Database Layer (entities/)           — SeaORM auto-generated, schema-first via migrations
 ```
 
@@ -123,14 +123,14 @@ Database Layer (entities/)           — SeaORM auto-generated, schema-first via
 
 | What | Where |
 |------|-------|
-| API handlers | `services/src/api/{domain}/{action}/` |
-| Command handlers | `services/application_core/src/commands/{domain}/{action}/` |
-| Entities (auto-gen) | `services/application_core/src/entities/` |
-| Migrations | `services/migration/src/` |
-| AppState | `services/src/lib.rs` |
-| Auth middleware | `services/src/common/supabase_auth.rs` |
-| Frontend pages | `frontend/src/app/admin/` |
-| Frontend schemas | `frontend/src/schemas/` |
-| Frontend components | `frontend/src/components/` |
+| API handlers | `apps/api/src/api/{domain}/{action}/` |
+| Command handlers | `apps/api/application_core/src/commands/{domain}/{action}/` |
+| Entities (auto-gen) | `apps/api/application_core/src/entities/` |
+| Migrations | `apps/api/migration/src/` |
+| AppState | `apps/api/src/lib.rs` |
+| Auth middleware | `apps/api/src/common/supabase_auth.rs` |
+| Frontend pages | `apps/web/src/app/admin/` |
+| Frontend schemas | `apps/web/src/schemas/` |
+| Frontend components | `apps/web/src/components/` |
 
 Keep plans detailed and actionable. The Coder should be able to follow them without asking questions.

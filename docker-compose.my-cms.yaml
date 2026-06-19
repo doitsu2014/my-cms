@@ -54,7 +54,7 @@ services:
   migrate:
     container_name: my-cms-migrate
     build:
-      context: ./services
+      context: ./apps/api
       dockerfile: Dockerfile
     restart: "no"
     depends_on:
@@ -90,7 +90,7 @@ services:
   my-cms-api:
     container_name: my-cms-api
     build:
-      context: ./services
+      context: ./apps/api
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
@@ -129,7 +129,7 @@ services:
   my-cms-frontend:
     container_name: my-cms-frontend
     build:
-      context: ./frontend
+      context: ./apps/web
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:

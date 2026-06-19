@@ -21,7 +21,7 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/apps/api"
         },
         {
             "type": "lldb",
@@ -40,7 +40,7 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/apps/api"
         },
         {
             "type": "lldb",
@@ -58,7 +58,7 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/apps/api"
         },
         {
             "type": "lldb",
@@ -77,7 +77,7 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/apps/api"
         },
         {
             "type": "lldb",
@@ -96,7 +96,7 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/apps/api"
         },
         {
             "type": "lldb",
@@ -115,7 +115,7 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/apps/api"
         },
         {
             "type": "lldb",
@@ -133,7 +133,7 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/apps/api"
         },
         {
             "type": "lldb",
@@ -152,7 +152,7 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/apps/api"
         }
     ]
 }

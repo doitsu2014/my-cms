@@ -8,7 +8,7 @@ on:
     tags:
       - 'v*.*.*'
     paths:
-      - 'frontend/**'
+      - 'apps/web/**'
 
 jobs:
   build_push_image:
@@ -51,8 +51,8 @@ jobs:
       - name: Build and push Docker images
         uses: docker/build-push-action@v6
         with:
-          context: './frontend'
-          file: './frontend/Dockerfile'
+          context: './apps/web'
+          file: './apps/web/Dockerfile'
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

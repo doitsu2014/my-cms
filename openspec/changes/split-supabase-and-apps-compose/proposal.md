@@ -38,5 +38,5 @@ This change splits the monolithic compose into two standalone files joined only 
   - Reset Apps only: `./reset-apps.sh`
 - **Out of scope (handled elsewhere or by follow-up changes):**
   - Production deployment (uses Helm; compose is local-dev only).
-  - Application code changes in `services/` or `frontend/` — the existing `my-cms-api` connects to `db:5432` over Docker DNS, which still resolves.
+  - Application code changes in `apps/api/` or `apps/web/` — the existing `my-cms-api` connects to `db:5432` over Docker DNS, which still resolves.
   - The pre-existing `permission denied for database postgres` storage-admin bug is fixed as a side effect of switching to upstream `roles.sql` + the defensive grant in `99-my-cms-grants.sql`.
