@@ -1,0 +1,121 @@
+# Traefik dynamic config — routes for my-cms + supabase
+# File provider, no Docker socket needed
+
+http:
+  routers:
+    # --- cms-admin.ducth.dev → frontend ---
+    admin:
+      rule: "Host(`cms-admin.ducth.dev`)"
+      entryPoints:
+        - web
+      service: admin-service
+      middlewares:
+        - admin-compress
+        - security-headers
+
+    # --- cms-api.ducth.dev → API ---
+    api:
+      rule: "Host(`cms-api.ducth.dev`)"
+      entryPoints:
+        - web
+      service: api-service
+      middlewares:
+        - api-cors
+        - api-buff
+        - security-headers
+
+    # --- supabase.ducth.dev → Studio ---
+    studio:
+      rule: "Host(`supabase.ducth.dev`)"
+      entryPoints:
+        - web
+      service: studio-service
+      middlewares:
+        - studio-headers
+
+    # --- supabase-api.ducth.dev → Kong / Supabase API ---
+    supabase-api:
+      rule: "Host(`supabase-api.ducth.dev`)"
+      entryPoints:
+        - web
+      service: kong-service
+      middlewares:
+        - cors-everything
+
+  services:
+    admin-service:
+      loadBalancer:
+        servers:
+          - url: "http://my-cms-frontend:80"
+
+    api-service:
+      loadBalancer:
+        servers:
+          - url: "http://my-cms-api:8989"
+
+    studio-service:
+      loadBalancer:
+        servers:
+          - url: "http://supabase-studio:3000"
+
+    kong-service:
+      loadBalancer:
+        servers:
+          - url: "http://supabase-kong:8000"
+
+  middlewares:
+    admin-compress:
+      compress: {}
+
+    security-headers:
+      headers:
+        customFrameOptionsValue: "SAMEORIGIN"
+        contentTypeNosniff: true
+        browserXssFilter: true
+
+    api-cors:
+      headers:
+        accessControlAllowOriginList:
+          - "https://cms-admin.ducth.dev"
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - PATCH
+          - OPTIONS
+        accessControlAllowHeaders:
+          - Authorization
+          - Content-Type
+          - apikey
+        accessControlAllowCredentials: true
+
+    api-buff:
+      buffering:
+        maxRequestBodyBytes: 52428800  # 50MB for media uploads
+
+    studio-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          X-Frame-Options: "SAMEORIGIN"
+
+    cors-everything:
+      headers:
+        accessControlAllowOriginList:
+          - "https://cms-admin.ducth.dev"
+          - "https://supabase.ducth.dev"
+        accessControlAllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - PATCH
+          - OPTIONS
+        accessControlAllowHeaders:
+          - Authorization
+          - Content-Type
+          - apikey
+          - x-client-info
+        accessControlAllowCredentials: true

@@ -1,0 +1,31 @@
+# docker-compose.traefik.yaml
+# Traefik reverse proxy with file-based routing (no Docker socket needed).
+# Cloudflare terminates SSL, so HTTP-only on port 80.
+#
+# Usage: docker compose -f docker-compose.traefik.yaml up -d
+
+services:
+  traefik:
+    image: traefik:v3.3
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--entrypoints.web.address=:80"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.file.watch=true"
+      - "--log.level=INFO"
+      - "--accesslog=true"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+    networks:
+      - supabase_network
+
+networks:
+  supabase_network:
+    external: true
+    name: supabase_network
