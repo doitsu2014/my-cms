@@ -114,11 +114,16 @@ The SDLC combines two complementary toolchains:
 
 ## Agent Quick Reference
 
-| Agent                | Phase      | Primary tool | Primary skills                                                              | Responsibility                                      |
-|----------------------|------------|--------------|-----------------------------------------------------------------------------|-----------------------------------------------------|
-| `product-owner`      | 1, 2, 4    | OpenSpec     | `openspec-explore`, `openspec-propose`, `brainstorming` (optional)          | Requirements, user stories, proposal, final sign-off |
-| `software-architect` | 1, 2        | OpenSpec     | `openspec-explore`, `openspec-new`, `openspec-continue`, `openspec-ff-change` | Technical/architecture feasibility, capability specs, design, task breakdown |
-| `coder`              | 3, 4       | Superpowers  | `executing-plans`, `subagent-driven-development`, `test-driven-development`, `requesting-code-review`, `verification-before-completion`, `finishing-a-development-branch` | Implementation, tests, verification, branch wrap-up  |
+| Agent                | Phase      | Mode(s)      | Primary skills                                                              | Outputs (under `openspec/changes/<name>/`)                                            |
+|----------------------|------------|--------------|-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| `product-owner`      | 1, 2, 4    | Always OpenSpec | `openspec-explore`, `openspec-propose`, `openspec-new-change`, `brainstorming` (optional) | Explored result + **`proposal.md`** (Why, What Changes, Capabilities, Impact) — final sign-off |
+| `software-architect` | 1, 2        | Always OpenSpec | `openspec-new-change`, `openspec-continue-change`, `openspec-ff-change`      | **`specs/<capability>/spec.md`** (Requirement/Spec), **`design.md`** (Architecture Design), **`tasks.md`** (implementation checklist) |
+| `coder`              | 3, 4        | **Normal** + **Fast Fix/Fast Implement** (see below) | Normal → `executing-plans`, `subagent-driven-development`, `test-driven-development`, `requesting-code-review`, `verification-before-completion`, `finishing-a-development-branch` · Fast Fix → `verification-before-completion`, `systematic-debugging`, `test-driven-development` (only if behavioral) | Implementation, tests, verification, branch wrap-up; Normal mode also drives `openspec-verify-change` → `openspec-sync-specs` → `openspec-archive-change` |
+
+### Coder modes
+
+- **Normal** — default when an active OpenSpec change has `tasks.md` ready. Read `openspec/changes/<name>/`, load `executing-plans`, execute with TDD, request code review, verify, finish.
+- **Fast Fix / Fast Implement** — for small changes (typos, config tweaks, single-file refactors, hot-fixes). No `brainstorming`, no OpenSpec scaffolding, no plan. Follow existing patterns, verify, report. Triggered by an explicit "fast" / "fast fix" / "fast implement" cue, OR inferred when the change is clearly trivial.
 
 ## Key Commands / Workflow
 
