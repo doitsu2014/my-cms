@@ -1,34 +1,35 @@
 #!/usr/bin/env bash
-# reset-supabase.sh
+# reset.sh (Supabase stack)
 # Stops the Supabase stack, wipes its named volumes, and starts fresh.
 # Does NOT touch my-cms apps stack. Does NOT remove the supabase_network.
 #
-# Lives under deployments/docker-swarm/ so the deployment surface stays
-# isolated from the application source tree. Paths in this script are
+# Lives under deployments/docker-swarm/supabase/ so the Supabase deployment
+# surface stays isolated from the apps stack. Paths in this script are
 # relative to the script's own directory; the project root is resolved
 # dynamically so the script can be invoked from anywhere.
 #
 # Usage:
-#   ./reset-supabase.sh                # Full reset: stop, wipe volumes, start, seed
-#   ./reset-supabase.sh --restart      # Restart only: stop + start, keep volumes
-#   ./reset-supabase.sh -h | --help    # Show this help
+#   ./reset.sh                # Full reset: stop, wipe volumes, start, seed
+#   ./reset.sh --restart      # Restart only: stop + start, keep volumes
+#   ./reset.sh -h | --help    # Show this help
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Project root is the parent of deployments/, two levels up from this script.
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# Project root is the parent of deployments/, three levels up from this script:
+#   supabase/ → docker-swarm/ → deployments/ → <repo>
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 # Always run docker compose from the script's own directory so the relative
-# volume mounts and build contexts in docker-compose.supabase.yaml resolve.
+# volume mounts and build contexts in docker-compose.yaml resolve.
 cd "$SCRIPT_DIR"
 
-COMPOSE_FILE="docker-compose.supabase.yaml"
-EXPOSE_FILE="docker-compose.supabase.expose.yaml"
-ENV_FILE=".env.supabase"
+COMPOSE_FILE="docker-compose.yaml"
+EXPOSE_FILE="docker-compose.expose.yaml"
+ENV_FILE=".env"
 
-# Source .env.supabase BEFORE the override-detection block below, so the
+# Source .env BEFORE the override-detection block below, so the
 # EXPOSE_*_PORT variables are populated in the shell when this script
-# decides whether to include docker-compose.supabase.expose.yaml. Sourcing
+# decides whether to include docker-compose.expose.yaml. Sourcing
 # here also makes shared secrets (JWT_SECRET, ANON_KEY, etc.) available to
 # `docker compose --env-file` resolution and downstream scripts (seed-admin.sh).
 set -a
@@ -37,9 +38,9 @@ set -a
 set +a
 
 # Build the optional override-file flag. When any EXPOSE_*_PORT is set in
-# .env.supabase, include docker-compose.supabase.expose.yaml so that those
-# services are reachable directly on the Docker host (in addition to the
-# Traefik routes). When all are empty (default), no override is included.
+# .env, include docker-compose.expose.yaml so that those services are
+# reachable directly on the Docker host (in addition to the Traefik routes).
+# When all are empty (default), no override is included.
 COMPOSE_FILES=("-f" "$COMPOSE_FILE")
 if [ -n "${EXPOSE_STUDIO_PORT:-}${EXPOSE_DB_PORT:-}${EXPOSE_KONG_PORT:-}${EXPOSE_AUTH_PORT:-}" ]; then
   COMPOSE_FILES+=("-f" "$EXPOSE_FILE")
@@ -51,15 +52,15 @@ RESTART_ONLY=0
 
 usage() {
   cat <<'EOF'
-reset-supabase.sh — Reset or restart the Supabase Docker stack
+reset.sh — Reset or restart the Supabase Docker stack
 
 Usage:
-  ./reset-supabase.sh                Full reset: stop, wipe named volumes, start,
-                                     wait for GoTrue, seed administrator user.
-  ./reset-supabase.sh --restart      Restart only: stop + start. Named volumes and
-                                     bind mounts are preserved, and the
-                                     administrator user is NOT re-seeded.
-  ./reset-supabase.sh -h | --help    Show this help.
+  ./reset.sh                Full reset: stop, wipe named volumes, start,
+                            wait for GoTrue, seed administrator user.
+  ./reset.sh --restart      Restart only: stop + start. Named volumes and
+                            bind mounts are preserved, and the
+                            administrator user is NOT re-seeded.
+  ./reset.sh -h | --help    Show this help.
 
 By default this script wipes the Supabase named volumes (e.g. mailpit_data) and
 re-seeds the administrator user. Pass --restart to skip both: data and
@@ -118,7 +119,7 @@ else
   # If Traefik is started only at the end of the script, the probe never
   # succeeds even when every Supabase container is healthy.
   echo "Ensuring Traefik is running..."
-  docker compose -f docker-compose.traefik.yaml up -d
+  docker compose -f ../traefik/docker-compose.yaml up -d
 
   echo "Waiting for GoTrue to become healthy..."
     # Poll GoTrue through Kong. A 401 from /auth/v1/admin/users means Kong
@@ -155,7 +156,7 @@ else
 fi
 
 echo "Ensuring Traefik is running (final)..."
-docker compose -f docker-compose.traefik.yaml up -d
+docker compose -f ../traefik/docker-compose.yaml up -d
 
 echo ""
 echo "Supabase stack starting. Check status with:"

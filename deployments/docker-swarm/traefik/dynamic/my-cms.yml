@@ -1,7 +1,7 @@
 # Traefik dynamic config — routes for my-cms + supabase
 # File provider, no Docker socket needed
 #
-# Consumes env vars (loaded from .env.my-cms via docker-compose.traefik.yaml):
+# Consumes env vars (loaded from ../.env via docker-compose.yaml):
 #   CMS_HOST            — Host() rule for all four routers (default: localhost)
 #   CMS_ADMIN_ORIGIN    — CORS origin for admin frontend (default: http://localhost:3002)
 #   CMS_SUPABASE_ORIGIN — CORS origin for supabase-api / Kong (default: http://localhost)

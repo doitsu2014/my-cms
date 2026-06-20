@@ -1,28 +1,28 @@
-# docker-compose.supabase.expose.yaml
+# docker-compose.expose.yaml (Supabase stack)
 # Override file that exposes Supabase services directly on host ports,
-# bypassing Traefik. Activated by reset-supabase.sh when ANY of the
-# EXPOSE_*_PORT env vars in .env.supabase is set to a non-empty value.
+# bypassing Traefik. Activated by ./reset.sh when ANY of the EXPOSE_*_PORT
+# env vars in .env is set to a non-empty value.
 #
 # Usage (from this directory):
 #   # Default (no direct exposure; Traefik-only):
-#   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase up -d
+#   docker compose --env-file .env up -d
 #
 #   # With direct port exposure (adds to the Traefik routes, doesn't replace them):
-#   docker compose -f docker-compose.supabase.yaml \
-#                  -f docker-compose.supabase.expose.yaml \
-#                  --env-file .env.supabase up -d
+#   docker compose -f docker-compose.yaml \
+#                  -f docker-compose.expose.yaml \
+#                  --env-file .env up -d
 #
-# Env vars consumed (from .env.supabase):
+# Env vars consumed (from .env):
 #   EXPOSE_DB_PORT     — host port for PostgreSQL (db:5432)
 #   EXPOSE_AUTH_PORT   — host port for GoTrue auth (auth:9999)
 #   EXPOSE_KONG_PORT   — host port for Kong gateway (kong:8000)
 #   EXPOSE_STUDIO_PORT — host port for Supabase Studio (studio:3000)
 #
-# Set ALL to empty in .env.supabase to keep services internal-only (default).
+# Set ALL to empty in .env to keep services internal-only (default).
 #
 # This file uses `${VAR:?error}` syntax so that docker compose fails fast with
 # a clear message if the override is included without the corresponding env var
-# being set. reset-supabase.sh auto-includes this file only when at least one
+# being set. ./reset.sh auto-includes this file only when at least one
 # EXPOSE_*_PORT is non-empty.
 
 services:

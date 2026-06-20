@@ -1,7 +1,7 @@
-# docker-compose.supabase.yaml
+# docker-compose.yaml (Supabase stack)
 # Supabase self-hosted stack for local development. Lives under
-# deployments/docker-swarm/ so the deployment surface stays isolated from
-# the application source tree.
+# deployments/docker-swarm/supabase/ so the Supabase deployment surface
+# stays isolated from the my-cms apps stack.
 #
 # Derived from upstream supabase/supabase master/docker/docker-compose.yml
 # (https://github.com/supabase/supabase) with my-cms-specific adjustments:
@@ -16,8 +16,8 @@
 #
 # Usage (from this directory, one-time setup then per-session):
 #   docker network create supabase_network
-#   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase up -d
-#   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase ps
+#   docker compose --env-file .env up -d
+#   docker compose --env-file .env ps
 #
 # Access (all through Traefik on port 80, Cloudflare terminates SSL):
 #   Supabase Studio:   https://supabase.ducth.dev       (Basic Auth + Studio login)
@@ -25,10 +25,10 @@
 #   Mailpit (email):   internal Docker network only
 #
 # Reset (wipes named volumes):
-#   ./reset-supabase.sh
+#   ./reset.sh
 #
 # Bring up the apps on the same network:
-#   docker compose -f docker-compose.my-cms.yaml --env-file .env.my-cms up -d
+#   docker compose -f ../apps/docker-compose.yaml --env-file ../apps/.env up -d
 
 name: supabase
 

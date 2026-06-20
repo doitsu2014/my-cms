@@ -236,20 +236,23 @@ my-cms/
 │   └── changes/                       # Active changes + archive
 ├── deployments/                        # Deployment configs (isolated from app source)
 │   ├── docker-swarm/                   # Docker Compose local dev stack
-│   │   ├── docker-compose.my-cms.yaml  # Apps stack (API + Web + Jaeger)
-│   │   ├── docker-compose.supabase.yaml# Supabase stack
-│   │   ├── .env.supabase               # Supabase env (gitignored, from .example)
-│   │   ├── .env.supabase.example       # Supabase env template
-│   │   ├── .env.my-cms                  # Apps env (gitignored, from .example)
-│   │   ├── .env.my-cms.example          # Apps env template
-│   │   ├── volumes/                     # Mounted configs (SQL, kong, pooler)
-│   │   │   ├── db/                      # Postgres init scripts + data
-│   │   │   ├── api/                     # Kong gateway config
-│   │   │   ├── pooler/                  # Supavisor config
-│   │   │   └── secrets/                 # Generated secrets (admin password)
 │   │   ├── bootstrap.sh                # One-time network setup
-│   │   ├── reset-apps.sh               # Reset / restart / rebuild apps
-│   │   └── reset-supabase.sh           # Reset / restart Supabase
+│   │   ├── README.md                   # Quickstart + per-component entry points
+│   │   ├── supabase/                   # Supabase stack (compose + env + reset + volumes)
+│   │   │   ├── docker-compose.yaml
+│   │   │   ├── docker-compose.expose.yaml   # optional override: expose ports directly
+│   │   │   ├── .env / .env.example
+│   │   │   ├── reset.sh
+│   │   │   └── volumes/                # SQL init, Kong, Supavisor, secrets
+│   │   ├── apps/                       # my-cms apps (API + Web + Jaeger)
+│   │   │   ├── docker-compose.yaml
+│   │   │   ├── .env / .env.example
+│   │   │   └── reset.sh
+│   │   └── traefik/                    # Reverse proxy (file-based routing)
+│   │       ├── docker-compose.yaml
+│   │       ├── .env.example            # CMS_HOST, CORS origins, Basic Auth
+│   │       ├── reset.sh
+│   │       └── dynamic/my-cms.yml      # Router/middleware/service definitions
 │   └── k8s/                            # Helm charts (production)
 └── AGENTS.md                          # This file — SDLC workflow + conventions
 ```

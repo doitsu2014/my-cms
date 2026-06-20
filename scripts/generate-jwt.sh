@@ -7,15 +7,16 @@
 #
 # Usage: bash scripts/generate-jwt.sh
 # Writes ANON_KEY and SERVICE_ROLE_KEY to stdout, one per line, in the form
-# `KEY=value`. Pipe into `.env.supabase` and `.env.my-cms` to update both.
+# `KEY=value`. Pipe into `deployments/docker-swarm/supabase/.env` and
+# `deployments/docker-swarm/apps/.env` to update both.
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Load JWT_SECRET from .env.supabase (or .env.my-cms — they share the value).
-for f in .env.supabase .env.my-cms; do
+# Load JWT_SECRET from supabase/.env (or apps/.env — they share the value).
+for f in deployments/docker-swarm/supabase/.env deployments/docker-swarm/apps/.env; do
   if [ -f "$REPO_ROOT/$f" ]; then
     JWT_SECRET="$(grep -E '^JWT_SECRET=' "$REPO_ROOT/$f" | head -1 | cut -d= -f2-)"
     if [ -n "$JWT_SECRET" ]; then break; fi
@@ -23,7 +24,7 @@ for f in .env.supabase .env.my-cms; do
 done
 
 if [ -z "${JWT_SECRET:-}" ]; then
-  echo "ERROR: JWT_SECRET not found in .env.supabase or .env.my-cms" >&2
+  echo "ERROR: JWT_SECRET not found in deployments/docker-swarm/supabase/.env or deployments/docker-swarm/apps/.env" >&2
   exit 1
 fi
 

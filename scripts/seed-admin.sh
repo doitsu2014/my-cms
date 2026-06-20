@@ -19,12 +19,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Load env vars from .env.supabase (gitignored). It must exist by this point —
-# reset-supabase.sh is the entry point and the operator is expected to have
-# copied .env.supabase.example to .env.supabase.
-ENV_FILE="$REPO_ROOT/deployments/docker-swarm/.env.supabase"
+# Load env vars from supabase/.env (gitignored). It must exist by this point —
+# supabase/reset.sh is the entry point and the operator is expected to have
+# copied supabase/.env.example to supabase/.env.
+ENV_FILE="$REPO_ROOT/deployments/docker-swarm/supabase/.env"
 if [ ! -f "$ENV_FILE" ]; then
-  echo "ERROR: $ENV_FILE not found. Copy .env.supabase.example to .env.supabase and try again." >&2
+  echo "ERROR: $ENV_FILE not found. Copy supabase/.env.example to supabase/.env and try again." >&2
   exit 1
 fi
 
@@ -33,8 +33,8 @@ set -a
 . "$ENV_FILE"
 set +a
 
-: "${SERVICE_ROLE_KEY:?SERVICE_ROLE_KEY must be set in .env.supabase}"
-: "${SUPABASE_API_HOST:?SUPABASE_API_HOST must be set in .env.supabase}"
+: "${SERVICE_ROLE_KEY:?SERVICE_ROLE_KEY must be set in deployments/docker-swarm/supabase/.env}"
+: "${SUPABASE_API_HOST:?SUPABASE_API_HOST must be set in deployments/docker-swarm/supabase/.env}"
 
 # When EXPOSE_KONG_PORT is set, the docker-compose.supabase.expose.yaml override
 # binds Kong directly to the host. Use that direct binding so we don't depend on
@@ -53,7 +53,7 @@ else
 fi
 
 SEED_ADMIN_EMAIL="${SEED_ADMIN_EMAIL:-admin@my-cms.local}"
-SECRETS_DIR="$REPO_ROOT/deployments/docker-swarm/volumes/secrets"
+SECRETS_DIR="$REPO_ROOT/deployments/docker-swarm/supabase/volumes/secrets"
 PASSWORD_FILE="$SECRETS_DIR/admin-password.txt"
 
 mkdir -p "$SECRETS_DIR"

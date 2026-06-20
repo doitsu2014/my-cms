@@ -9,10 +9,10 @@
 # Usage:
 #   ./bootstrap.sh
 #
-# The reset scripts (reset-supabase.sh, reset-apps.sh) already ensure the
+# The reset scripts (supabase/reset.sh, apps/reset.sh) already ensure the
 # network exists before `up`, so you only need to run bootstrap.sh
 # explicitly if you intend to bring the stack up by hand (e.g.
-# `docker compose -f docker-compose.supabase.yaml up -d` without using a
+# `docker compose -f supabase/docker-compose.yaml up -d` without using a
 # reset script).
 
 set -euo pipefail
@@ -29,10 +29,10 @@ docker network create "$NETWORK"
 
 echo ""
 echo "Done. Next steps:"
-echo "  cp .env.supabase.example .env.supabase"
-echo "  cp .env.my-cms.example   .env.my-cms"
-echo "  # edit secrets in both .env files"
-echo "  rm -rf volumes/db/data   # only on first boot — let init SQL run fresh"
-echo "  docker compose -f docker-compose.supabase.yaml --env-file .env.supabase up -d"
-echo "  docker compose -f docker-compose.my-cms.yaml   --env-file .env.my-cms   up -d"
-echo "  docker compose -f docker-compose.traefik.yaml  up -d"
+echo "  cp supabase/.env.example supabase/.env"
+echo "  cp apps/.env.example     apps/.env"
+echo "  cp traefik/.env.example  traefik/.env    # optional — defaults work for local dev"
+echo "  # edit secrets in supabase/.env and apps/.env"
+echo "  rm -rf supabase/volumes/db/data   # only on first boot — let init SQL run fresh"
+echo "  ./supabase/reset.sh    # starts Supabase + Traefik + seeds admin"
+echo "  ./apps/reset.sh        # starts my-cms API + frontend + Jaeger"
