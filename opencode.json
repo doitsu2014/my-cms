@@ -7,8 +7,6 @@
     "paths": [".opencode/skills"]
   },
   "permission": {
-    "*": "allow",
-    "bash": "allow",
-    "edit": "allow"
+    "*": "allow"
   }
 }

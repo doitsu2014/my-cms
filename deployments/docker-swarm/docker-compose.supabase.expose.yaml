@@ -1,0 +1,43 @@
+# docker-compose.supabase.expose.yaml
+# Override file that exposes Supabase services directly on host ports,
+# bypassing Traefik. Activated by reset-supabase.sh when ANY of the
+# EXPOSE_*_PORT env vars in .env.supabase is set to a non-empty value.
+#
+# Usage (from this directory):
+#   # Default (no direct exposure; Traefik-only):
+#   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase up -d
+#
+#   # With direct port exposure (adds to the Traefik routes, doesn't replace them):
+#   docker compose -f docker-compose.supabase.yaml \
+#                  -f docker-compose.supabase.expose.yaml \
+#                  --env-file .env.supabase up -d
+#
+# Env vars consumed (from .env.supabase):
+#   EXPOSE_DB_PORT     — host port for PostgreSQL (db:5432)
+#   EXPOSE_AUTH_PORT   — host port for GoTrue auth (auth:9999)
+#   EXPOSE_KONG_PORT   — host port for Kong gateway (kong:8000)
+#   EXPOSE_STUDIO_PORT — host port for Supabase Studio (studio:3000)
+#
+# Set ALL to empty in .env.supabase to keep services internal-only (default).
+#
+# This file uses `${VAR:?error}` syntax so that docker compose fails fast with
+# a clear message if the override is included without the corresponding env var
+# being set. reset-supabase.sh auto-includes this file only when at least one
+# EXPOSE_*_PORT is non-empty.
+
+services:
+  db:
+    ports:
+      - "${EXPOSE_DB_PORT:?EXPOSE_DB_PORT must be set to include docker-compose.supabase.expose.yaml}:5432"
+
+  auth:
+    ports:
+      - "${EXPOSE_AUTH_PORT:?EXPOSE_AUTH_PORT must be set to include docker-compose.supabase.expose.yaml}:9999"
+
+  kong:
+    ports:
+      - "${EXPOSE_KONG_PORT:?EXPOSE_KONG_PORT must be set to include docker-compose.supabase.expose.yaml}:8000"
+
+  studio:
+    ports:
+      - "${EXPOSE_STUDIO_PORT:?EXPOSE_STUDIO_PORT must be set to include docker-compose.supabase.expose.yaml}:3000"

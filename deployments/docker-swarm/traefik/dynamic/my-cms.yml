@@ -1,11 +1,16 @@
 # Traefik dynamic config — routes for my-cms + supabase
 # File provider, no Docker socket needed
+#
+# Consumes env vars (loaded from .env.my-cms via docker-compose.traefik.yaml):
+#   CMS_HOST            — Host() rule for all four routers (default: localhost)
+#   CMS_ADMIN_ORIGIN    — CORS origin for admin frontend (default: http://localhost:3002)
+#   CMS_SUPABASE_ORIGIN — CORS origin for supabase-api / Kong (default: http://localhost)
 
 http:
   routers:
-    # --- cms-admin.ducth.dev → frontend ---
+    # --- cms-admin (frontend) → http://${CMS_HOST}:3002 ---
     admin:
-      rule: "Host(`cms-admin.ducth.dev`)"
+      rule: "Host(`{{ env "CMS_HOST" | default "localhost" }}`)"
       entryPoints:
         - web
       service: admin-service
@@ -13,9 +18,9 @@ http:
         - admin-compress
         - security-headers
 
-    # --- cms-api.ducth.dev → API ---
+    # --- cms-api (API) → http://${CMS_HOST}:8989 ---
     api:
-      rule: "Host(`cms-api.ducth.dev`)"
+      rule: "Host(`{{ env "CMS_HOST" | default "localhost" }}`)"
       entryPoints:
         - web
       service: api-service
@@ -24,9 +29,9 @@ http:
         - api-buff
         - security-headers
 
-    # --- supabase.ducth.dev → Studio ---
+    # --- supabase (Studio) → http://${CMS_HOST}:3000 (via Kong :8000) ---
     studio:
-      rule: "Host(`supabase.ducth.dev`)"
+      rule: "Host(`{{ env "CMS_HOST" | default "localhost" }}`)"
       entryPoints:
         - web
       service: studio-service
@@ -34,9 +39,9 @@ http:
         - studio-basic-auth
         - studio-headers
 
-    # --- supabase-api.ducth.dev → Kong / Supabase API ---
+    # --- supabase-api (Kong / Supabase API) → http://${CMS_HOST}:8000 ---
     supabase-api:
-      rule: "Host(`supabase-api.ducth.dev`)"
+      rule: "Host(`{{ env "CMS_HOST" | default "localhost" }}`)"
       entryPoints:
         - web
       service: kong-service
@@ -77,7 +82,7 @@ http:
     api-cors:
       headers:
         accessControlAllowOriginList:
-          - "https://cms-admin.ducth.dev"
+          - "{{ env "CMS_ADMIN_ORIGIN" | default "http://localhost:3002" }}"
         accessControlAllowMethods:
           - GET
           - POST
@@ -112,8 +117,8 @@ http:
     cors-everything:
       headers:
         accessControlAllowOriginList:
-          - "https://cms-admin.ducth.dev"
-          - "https://supabase.ducth.dev"
+          - "{{ env "CMS_ADMIN_ORIGIN" | default "http://localhost:3002" }}"
+          - "{{ env "CMS_SUPABASE_ORIGIN" | default "http://localhost" }}"
         accessControlAllowMethods:
           - GET
           - POST
