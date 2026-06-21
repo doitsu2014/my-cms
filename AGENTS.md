@@ -114,11 +114,16 @@ The SDLC combines two complementary toolchains:
 
 ## Agent Quick Reference
 
-| Agent                | Phase      | Primary tool | Primary skills                                                              | Responsibility                                      |
-|----------------------|------------|--------------|-----------------------------------------------------------------------------|-----------------------------------------------------|
-| `product-owner`      | 1, 2, 4    | OpenSpec     | `openspec-explore`, `openspec-propose`, `brainstorming` (optional)          | Requirements, user stories, proposal, final sign-off |
-| `software-architect` | 1, 2        | OpenSpec     | `openspec-explore`, `openspec-new`, `openspec-continue`, `openspec-ff-change` | Technical/architecture feasibility, capability specs, design, task breakdown |
-| `coder`              | 3, 4       | Superpowers  | `executing-plans`, `subagent-driven-development`, `test-driven-development`, `requesting-code-review`, `verification-before-completion`, `finishing-a-development-branch` | Implementation, tests, verification, branch wrap-up  |
+| Agent                | Phase      | Mode(s)      | Primary skills                                                              | Outputs (under `openspec/changes/<name>/`)                                            |
+|----------------------|------------|--------------|-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| `product-owner`      | 1, 2, 4    | Always OpenSpec | `openspec-explore`, `openspec-propose`, `openspec-new-change`, `brainstorming` (optional) | Explored result + **`proposal.md`** (Why, What Changes, Capabilities, Impact) — final sign-off |
+| `software-architect` | 1, 2        | Always OpenSpec | `openspec-new-change`, `openspec-continue-change`, `openspec-ff-change`      | **`specs/<capability>/spec.md`** (Requirement/Spec), **`design.md`** (Architecture Design), **`tasks.md`** (implementation checklist) |
+| `coder`              | 3, 4        | **Normal** + **Fast Fix/Fast Implement** (see below) | Normal → `executing-plans`, `subagent-driven-development`, `test-driven-development`, `requesting-code-review`, `verification-before-completion`, `finishing-a-development-branch` · Fast Fix → `verification-before-completion`, `systematic-debugging`, `test-driven-development` (only if behavioral) | Implementation, tests, verification, branch wrap-up; Normal mode also drives `openspec-verify-change` → `openspec-sync-specs` → `openspec-archive-change` |
+
+### Coder modes
+
+- **Normal** — default when an active OpenSpec change has `tasks.md` ready. Read `openspec/changes/<name>/`, load `executing-plans`, execute with TDD, request code review, verify, finish.
+- **Fast Fix / Fast Implement** — for small changes (typos, config tweaks, single-file refactors, hot-fixes). No `brainstorming`, no OpenSpec scaffolding, no plan. Follow existing patterns, verify, report. Triggered by an explicit "fast" / "fast fix" / "fast implement" cue, OR inferred when the change is clearly trivial.
 
 ## Key Commands / Workflow
 
@@ -231,20 +236,23 @@ my-cms/
 │   └── changes/                       # Active changes + archive
 ├── deployments/                        # Deployment configs (isolated from app source)
 │   ├── docker-swarm/                   # Docker Compose local dev stack
-│   │   ├── docker-compose.my-cms.yaml  # Apps stack (API + Web + Jaeger)
-│   │   ├── docker-compose.supabase.yaml# Supabase stack
-│   │   ├── .env.supabase               # Supabase env (gitignored, from .example)
-│   │   ├── .env.supabase.example       # Supabase env template
-│   │   ├── .env.my-cms                  # Apps env (gitignored, from .example)
-│   │   ├── .env.my-cms.example          # Apps env template
-│   │   ├── volumes/                     # Mounted configs (SQL, kong, pooler)
-│   │   │   ├── db/                      # Postgres init scripts + data
-│   │   │   ├── api/                     # Kong gateway config
-│   │   │   ├── pooler/                  # Supavisor config
-│   │   │   └── secrets/                 # Generated secrets (admin password)
 │   │   ├── bootstrap.sh                # One-time network setup
-│   │   ├── reset-apps.sh               # Reset / restart / rebuild apps
-│   │   └── reset-supabase.sh           # Reset / restart Supabase
+│   │   ├── README.md                   # Quickstart + per-component entry points
+│   │   ├── supabase/                   # Supabase stack (compose + env + reset + volumes)
+│   │   │   ├── docker-compose.yaml
+│   │   │   ├── docker-compose.expose.yaml   # optional override: expose ports directly
+│   │   │   ├── .env / .env.example
+│   │   │   ├── reset.sh
+│   │   │   └── volumes/                # SQL init, Kong, Supavisor, secrets
+│   │   ├── apps/                       # my-cms apps (API + Web + Jaeger)
+│   │   │   ├── docker-compose.yaml
+│   │   │   ├── .env / .env.example
+│   │   │   └── reset.sh
+│   │   └── traefik/                    # Reverse proxy (file-based routing)
+│   │       ├── docker-compose.yaml
+│   │       ├── .env.example            # CMS_HOST, CORS origins, Basic Auth
+│   │       ├── reset.sh
+│   │       └── dynamic/my-cms.yml      # Router/middleware/service definitions
 │   └── k8s/                            # Helm charts (production)
 └── AGENTS.md                          # This file — SDLC workflow + conventions
 ```

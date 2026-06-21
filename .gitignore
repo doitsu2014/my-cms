@@ -33,8 +33,11 @@ dist
 docker-compose.override.yml
 .pnpm-store
 
-# Local dev env files (split per compose file, see openspec/changes/split-supabase-and-apps-compose/)
-deployments/docker-swarm/.env.supabase
-deployments/docker-swarm/.env.my-cms
+# Local dev env files (split per compose folder, see deployments/docker-swarm/README.md)
+deployments/docker-swarm/*/.env
 
-deployments/docker-swarm/volumes/db/data/*
+deployments/docker-swarm/supabase/volumes/db/data/*
+deployments/docker-swarm/supabase/volumes/secrets/*
+
+# Allow the example env files (one per component folder)
+!deployments/docker-swarm/*/.env.example

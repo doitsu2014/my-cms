@@ -127,6 +127,7 @@ impl SupabaseStorage {
             .client
             .post(&url)
             .bearer_auth(self.auth_key())
+            .header("apikey", self.auth_key())
             .header("x-upsert", "true")
             .multipart(form)
             .send()
@@ -152,6 +153,7 @@ impl SupabaseStorage {
             .client
             .get(&url)
             .bearer_auth(self.auth_key())
+            .header("apikey", self.auth_key())
             .send()
             .await
             .map_err(|e| AppError::StorageError(format!("Download request failed: {}", e)))?;
@@ -191,6 +193,7 @@ impl SupabaseStorage {
             .client
             .get(&url)
             .bearer_auth(self.auth_key())
+            .header("apikey", self.auth_key())
             .send()
             .await
             .map_err(|e| AppError::StorageError(format!("Get info request failed: {}", e)))?;
@@ -256,6 +259,7 @@ impl SupabaseStorage {
             .client
             .post(&url)
             .bearer_auth(self.auth_key())
+            .header("apikey", self.auth_key())
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(body.to_string())
             .send()
@@ -323,6 +327,7 @@ impl SupabaseStorage {
             .client
             .delete(&url)
             .bearer_auth(self.auth_key())
+            .header("apikey", self.auth_key())
             .send()
             .await
             .map_err(|e| AppError::StorageError(format!("Delete request failed: {}", e)))?;
@@ -350,6 +355,7 @@ impl SupabaseStorage {
             .client
             .delete(&url)
             .bearer_auth(self.auth_key())
+            .header("apikey", self.auth_key())
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(body.to_string())
             .send()
@@ -488,6 +494,7 @@ mod tests {
         Mock::given(method("POST"))
             .and(path("/storage/v1/object/media/some/path.png"))
             .and(header("authorization", "Bearer service-role-test-key"))
+            .and(header("apikey", "service-role-test-key"))
             .and(header("x-upsert", "true"))
             .respond_with(ResponseTemplate::new(200).set_body_string(""))
             .expect(1)
@@ -528,6 +535,7 @@ mod tests {
         Mock::given(method("GET"))
             .and(path("/storage/v1/object/public/media/foo.png"))
             .and(header("authorization", "Bearer anon-test-key"))
+            .and(header("apikey", "anon-test-key"))
             .respond_with(
                 ResponseTemplate::new(200)
                     .insert_header("content-type", "image/png")
@@ -678,6 +686,7 @@ mod tests {
         Mock::given(method("DELETE"))
             .and(path("/storage/v1/object/media/foo.png"))
             .and(header("authorization", "Bearer service-role-test-key"))
+            .and(header("apikey", "service-role-test-key"))
             .respond_with(ResponseTemplate::new(200))
             .expect(1)
             .mount(&server)
@@ -700,6 +709,7 @@ mod tests {
         Mock::given(method("DELETE"))
             .and(path("/storage/v1/object/media/delete"))
             .and(header("authorization", "Bearer service-role-test-key"))
+            .and(header("apikey", "service-role-test-key"))
             .and(header("content-type", "application/json"))
             .respond_with(ResponseTemplate::new(200).set_body_json(body))
             .mount(&server)

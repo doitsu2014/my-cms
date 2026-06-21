@@ -1,16 +1,17 @@
-# docker-compose.my-cms.yaml
-# my-cms apps stack for local development. Lives under deployments/docker-swarm/
-# so the deployment surface stays isolated from the application source tree.
-# This file does NOT include any Supabase services. It assumes the Supabase
-# stack is already running on the shared external `supabase_network`.
+# docker-compose.yaml (my-cms apps stack)
+# my-cms apps stack for local development. Lives under
+# deployments/docker-swarm/apps/ so the apps deployment surface stays
+# isolated from the Supabase stack. This file does NOT include any
+# Supabase services. It assumes the Supabase stack is already running on
+# the shared external `supabase_network`.
 #
 # Usage (from this directory):
 #   # 1. (one-time) create the shared network
 #   docker network create supabase_network
-#   # 2. start the Supabase stack first
-#   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase up -d
+#   # 2. start the Supabase stack first (from ../supabase)
+#   docker compose -f ../supabase/docker-compose.yaml --env-file ../supabase/.env up -d
 #   # 3. then start this apps stack
-#   docker compose -f docker-compose.my-cms.yaml --env-file .env.my-cms up -d
+#   docker compose --env-file .env up -d
 #
 # Access:
 #   my-cms API:        http://localhost:8989
@@ -18,7 +19,7 @@
 #   Jaeger UI:         http://localhost:16686
 #
 # Reset:
-#   ./reset-apps.sh
+#   ./reset.sh
 #
 # Startup order:
 #   init-wait        → polls db:5432 until TCP connection succeeds
@@ -30,7 +31,7 @@
 services:
   # ========================================
   # init-wait: poll db:5432 until TCP accepts a connection
-  # (db lives in docker-compose.supabase.yaml, so cross-file depends_on
+  # (db lives in ../supabase/docker-compose.yaml, so cross-file depends_on
   # is not possible; we gate on a TCP port instead)
   # ========================================
   init-wait:
@@ -125,11 +126,11 @@ services:
       - supabase_network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`cms-api.ducth.dev`)"
+      - "traefik.http.routers.api.rule=Host(`${CMS_HOST:-localhost}`)"
       - "traefik.http.routers.api.entrypoints=web"
       - "traefik.http.services.api.loadbalancer.server.port=8989"
       # Middleware: CORS headers
-      - "traefik.http.middlewares.api-cors.headers.accesscontrol.alloworiginlist=https://cms-admin.ducth.dev"
+      - "traefik.http.middlewares.api-cors.headers.accesscontrol.alloworiginlist=${CMS_ADMIN_ORIGIN:-http://localhost:3002}"
       - "traefik.http.middlewares.api-cors.headers.accesscontrol.allowmethods=GET,POST,PUT,DELETE,PATCH,OPTIONS"
       - "traefik.http.middlewares.api-cors.headers.accesscontrol.allowheaders=Authorization,Content-Type,apikey"
       - "traefik.http.middlewares.api-cors.headers.accesscontrol.allowcredentials=true"
@@ -159,7 +160,7 @@ services:
       - supabase_network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.admin.rule=Host(`cms-admin.ducth.dev`)"
+      - "traefik.http.routers.admin.rule=Host(`${CMS_HOST:-localhost}`)"
       - "traefik.http.routers.admin.entrypoints=web"
       - "traefik.http.services.admin.loadbalancer.server.port=80"
       # Middleware: gzip compression

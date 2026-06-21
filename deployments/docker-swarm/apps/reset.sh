@@ -1,28 +1,27 @@
 #!/usr/bin/env bash
-# reset-apps.sh
+# reset.sh (my-cms apps stack)
 # Stops the my-cms apps stack and starts fresh.
 # Does NOT touch the Supabase stack.
 #
-# Lives under deployments/docker-swarm/ so the deployment surface stays
-# isolated from the application source tree. Paths in this script are
-# relative to the script's own directory; the script can be invoked from
-# anywhere.
+# Lives under deployments/docker-swarm/apps/ so the apps deployment surface
+# stays isolated from the Supabase stack. Paths in this script are relative
+# to the script's own directory; the script can be invoked from anywhere.
 #
 # Usage:
-#   ./reset-apps.sh                       # Full reset: stop, wipe volumes, start
-#   ./reset-apps.sh --restart             # Restart only: stop + start, keep volumes
-#   ./reset-apps.sh --rebuild [SVC ...]   # Rebuild target services, keep volumes
-#   ./reset-apps.sh -h | --help           # Show this help
+#   ./reset.sh                       # Full reset: stop, wipe volumes, start
+#   ./reset.sh --restart             # Restart only: stop + start, keep volumes
+#   ./reset.sh --rebuild [SVC ...]   # Rebuild target services, keep volumes
+#   ./reset.sh -h | --help           # Show this help
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Always run docker compose from the script's own directory so the relative
-# volume mounts and build contexts in docker-compose.my-cms.yaml resolve.
+# volume mounts and build contexts in docker-compose.yaml resolve.
 cd "$SCRIPT_DIR"
 
-COMPOSE_FILE="docker-compose.my-cms.yaml"
-ENV_FILE=".env.my-cms"
+COMPOSE_FILE="docker-compose.yaml"
+ENV_FILE=".env"
 
 # Mode flags. At most one of these is honored; the order of precedence is
 # --rebuild > --restart > default (full reset).
@@ -32,23 +31,23 @@ REBUILD_SERVICES=()
 
 usage() {
   cat <<'EOF'
-reset-apps.sh — Reset, restart, or rebuild the my-cms apps Docker stack
+reset.sh — Reset, restart, or rebuild the my-cms apps Docker stack
 
 Usage:
-  ./reset-apps.sh                       Full reset: stop, wipe named volumes, start.
-  ./reset-apps.sh --restart             Restart only: stop + start. Named volumes
-                                        and bind mounts are preserved.
-  ./reset-apps.sh --rebuild [SVC ...]   Rebuild the image(s) for the given
-                                        services (or all services if none are
-                                        listed) and (re)start the stack. Named
-                                        volumes and bind mounts are preserved.
-  ./reset-apps.sh -h | --help           Show this help.
+  ./reset.sh                       Full reset: stop, wipe named volumes, start.
+  ./reset.sh --restart             Restart only: stop + start. Named volumes
+                                   and bind mounts are preserved.
+  ./reset.sh --rebuild [SVC ...]   Rebuild the image(s) for the given
+                                   services (or all services if none are
+                                   listed) and (re)start the stack. Named
+                                   volumes and bind mounts are preserved.
+  ./reset.sh -h | --help           Show this help.
 
 Examples:
-  ./reset-apps.sh --restart
-  ./reset-apps.sh --rebuild                       # rebuild every service image
-  ./reset-apps.sh --rebuild api frontend          # rebuild only api and frontend
-  ./reset-apps.sh --rebuild api --restart         # rebuild api, then restart stack
+  ./reset.sh --restart
+  ./reset.sh --rebuild                       # rebuild every service image
+  ./reset.sh --rebuild my-cms-api my-cms-frontend   # rebuild only api and frontend
+  ./reset.sh --rebuild my-cms-api --restart         # rebuild api, then restart stack
 
 By default this script wipes the apps stack's named volumes. Pass --restart to
 recycle containers without losing data, or --rebuild to rebuild one or more
@@ -123,4 +122,4 @@ echo "Frontend admin:   http://localhost:3002            (or https://cms-admin.d
 echo "Jaeger UI:        http://localhost:16686"
 
 echo "Ensuring Traefik is running..."
-docker compose -f docker-compose.traefik.yaml up -d
+docker compose -f ../traefik/docker-compose.yaml up -d

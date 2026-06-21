@@ -1,7 +1,7 @@
-# docker-compose.supabase.yaml
+# docker-compose.yaml (Supabase stack)
 # Supabase self-hosted stack for local development. Lives under
-# deployments/docker-swarm/ so the deployment surface stays isolated from
-# the application source tree.
+# deployments/docker-swarm/supabase/ so the Supabase deployment surface
+# stays isolated from the my-cms apps stack.
 #
 # Derived from upstream supabase/supabase master/docker/docker-compose.yml
 # (https://github.com/supabase/supabase) with my-cms-specific adjustments:
@@ -16,8 +16,8 @@
 #
 # Usage (from this directory, one-time setup then per-session):
 #   docker network create supabase_network
-#   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase up -d
-#   docker compose -f docker-compose.supabase.yaml --env-file .env.supabase ps
+#   docker compose --env-file .env up -d
+#   docker compose --env-file .env ps
 #
 # Access (all through Traefik on port 80, Cloudflare terminates SSL):
 #   Supabase Studio:   https://supabase.ducth.dev       (Basic Auth + Studio login)
@@ -25,10 +25,10 @@
 #   Mailpit (email):   internal Docker network only
 #
 # Reset (wipes named volumes):
-#   ./reset-supabase.sh
+#   ./reset.sh
 #
 # Bring up the apps on the same network:
-#   docker compose -f docker-compose.my-cms.yaml --env-file .env.my-cms up -d
+#   docker compose -f ../apps/docker-compose.yaml --env-file ../apps/.env up -d
 
 name: supabase
 
@@ -40,6 +40,9 @@ services:
     container_name: supabase-db
     image: supabase/postgres:15.14.1.132
     restart: unless-stopped
+    # Memory budget — db is the largest consumer (pgvector + PostgREST + GoTrue schemas)
+    mem_limit: 1536M
+    mem_reservation: 768M
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
       interval: 5s
@@ -91,6 +94,9 @@ services:
     container_name: supabase-supavisor
     image: supabase/supavisor:2.7.4
     restart: unless-stopped
+    # Memory budget — Erlang connection pooler (Supavisor)
+    mem_limit: 256M
+    mem_reservation: 128M
     healthcheck:
       # supavisor:2.7.4 does not ship a `supavisor healthcheck` subcommand —
       # hit the in-process HTTP /api/health endpoint (204 No Content when up).
@@ -137,6 +143,9 @@ services:
     container_name: supabase-auth
     image: supabase/gotrue:v2.179.0
     restart: unless-stopped
+    # Memory budget — GoTrue auth service
+    mem_limit: 256M
+    mem_reservation: 128M
     healthcheck:
       test:
         [
@@ -192,6 +201,9 @@ services:
     container_name: supabase-rest
     image: postgrest/postgrest:v14.1
     restart: unless-stopped
+    # Memory budget — PostgREST auto REST API
+    mem_limit: 256M
+    mem_reservation: 128M
     environment:
       # my-cms-specific: direct host:port/db
       PGRST_DB_URI: postgresql://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
@@ -216,6 +228,9 @@ services:
     container_name: supabase-realtime
     image: supabase/realtime:v2.67.1
     restart: unless-stopped
+    # Memory budget — Realtime WebSocket service (Erlang)
+    mem_limit: 256M
+    mem_reservation: 128M
     environment:
       PORT: 4000
       DB_HOST: db
@@ -245,6 +260,9 @@ services:
     container_name: supabase-storage
     image: supabase/storage-api:v1.60.2
     restart: unless-stopped
+    # Memory budget — Storage API (S3-compatible)
+    mem_limit: 256M
+    mem_reservation: 128M
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/status"]
       interval: 5s
@@ -291,6 +309,9 @@ services:
     container_name: supabase-imgproxy
     image: darthsim/imgproxy:v4.0.3
     restart: unless-stopped
+    # Memory budget — image proxy (lightweight Go binary)
+    mem_limit: 128M
+    mem_reservation: 64M
     healthcheck:
       test: ["CMD", "imgproxy", "health"]
       interval: 5s
@@ -313,6 +334,9 @@ services:
     container_name: supabase-meta
     image: supabase/postgres-meta:v0.96.6
     restart: unless-stopped
+    # Memory budget — postgres-meta (Studio backend, lightweight)
+    mem_limit: 128M
+    mem_reservation: 64M
     environment:
       PG_META_PORT: 8080
       PG_META_DB_HOST: db
@@ -334,6 +358,9 @@ services:
     container_name: supabase-studio
     image: supabase/studio:2026.05.25-sha-65c570e
     restart: unless-stopped
+    # Memory budget — Studio dashboard (Next.js)
+    mem_limit: 256M
+    mem_reservation: 128M
     environment:
       STUDIO_PG_META_URL: http://meta:8080
       STUDIO_DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION}
@@ -367,6 +394,11 @@ services:
     container_name: supabase-kong
     image: kong:2.8.1
     restart: unless-stopped
+    # Memory budget — Kong API gateway (Lua + nginx workers). 512 MB is the
+# minimum Kong 2.8 with default plugins + 2 nginx workers can run without
+# hitting the OOM killer; 128 MB reliably OOM-kills during plugin compile.
+    mem_limit: 512M
+    mem_reservation: 256M
     # The vendored kong-entrypoint.sh mounts /home/kong/temp.yml, env-substitutes
     # $SUPABASE_ANON_KEY / $SUPABASE_SERVICE_KEY / $LUA_AUTH_EXPR / $LUA_RT_WS_EXPR
     # references, writes the resolved config to /home/kong/kong.yml, and execs
@@ -411,6 +443,9 @@ services:
     container_name: supabase-mailpit
     image: axllent/mailpit:v1.23
     restart: unless-stopped
+    # Memory budget — Mailpit SMTP capture (tiny Go binary)
+    mem_limit: 64M
+    mem_reservation: 32M
     # ports: removed — Mailpit for local dev, no direct host exposure needed
     environment:
       MP_MAX_MESSAGES: 5000
