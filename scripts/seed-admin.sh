@@ -8,10 +8,11 @@
 #   SUPABASE_API_HOST   Traefik Host header for Kong (e.g. supabase-api.ducth.dev)
 #
 # Optional env:
-#   SEED_ADMIN_EMAIL   admin email (default: admin@my-cms.local)
+#   SEED_ADMIN_EMAIL    admin email (default: admin@my-cms.local)
+#   SEED_ADMIN_PASSWORD admin password (default: random 24-char alphanumeric)
 #
 # Side effects:
-#   - Writes email + generated password to volumes/secrets/admin-password.txt
+#   - Writes email + password to volumes/secrets/admin-password.txt
 #   - Prints email + password to stdout on first creation
 
 set -euo pipefail
@@ -60,6 +61,12 @@ mkdir -p "$SECRETS_DIR"
 
 # Build the curl header flags once. When EXPOSE_KONG_PORT is set we hit Kong
 # directly and don't need (and shouldn't add) a Traefik Host header.
+#
+# IMPORTANT: each flag and its value MUST be a separate array element.
+# Embedding both as a single string (`-H Host: foo`) and then expanding via
+# `"${CURL_HOST_ARGS[@]}"` word-splits on the space inside the value, which makes
+# curl interpret the host as `Host:` (empty value) and the URL as the host
+# string — GoTrue then returns 400 "missing required Host header".
 CURL_HOST_FLAGS=()
 if [ -n "$HOST_HEADER" ]; then
   CURL_HOST_FLAGS+=(-H "$HOST_HEADER")
@@ -73,14 +80,22 @@ curl_host_args() {
   fi
 }
 
+# Use the array directly (preserves array elements verbatim, no word
+# splitting). The legacy `curl "${CURL_HOST_ARGS[@]}" URL` form is broken and
+# retained above only so the helper's empty-array guard still works.
+CURL_HOST_ARGS=("${CURL_HOST_FLAGS[@]:-}")
+# Defensive: if `set -u` ever lands on this line before assignment, the
+# default expansion above leaves CURL_HOST_ARGS as an empty array, and
+# `"${CURL_HOST_ARGS[@]}"` cleanly expands to zero positional parameters.
+
 # Sanity check: is GoTrue reachable at all? Avoid hanging on a half-up stack.
 # Use the admin user list endpoint with no apikey: if GoTrue is up, it returns
 # 401 from Kong (no API key found). If GoTrue is not up, the request times out
 # or Kong returns 502/503. Either way we can distinguish "stack is up" from
 # "stack is still starting" without requiring an open /health route.
 AUTH_PROBE_URL="$API_BASE/auth/v1/admin/users"
-if ! curl -fsS -o /dev/null --max-time 5 $(curl_host_args) "$AUTH_PROBE_URL" 2>/dev/null; then
-  PROBE_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 5 $(curl_host_args) "$AUTH_PROBE_URL" 2>/dev/null || echo 000)"
+if ! curl -fsS -o /dev/null --max-time 5 "${CURL_HOST_ARGS[@]}" "$AUTH_PROBE_URL" 2>/dev/null; then
+  PROBE_CODE="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 5 "${CURL_HOST_ARGS[@]}" "$AUTH_PROBE_URL" 2>/dev/null || echo 000)"
   # 401 is the expected "no API key" response — it means Kong forwarded to
   # GoTrue and GoTrue is up. 5xx / 000 means the stack is still starting.
   if [ "$PROBE_CODE" != "401" ]; then
@@ -93,7 +108,7 @@ fi
 # Check if the user already exists.
 LIST_URL="$API_BASE/auth/v1/admin/users?email=$SEED_ADMIN_EMAIL"
 EXISTING_RESPONSE="$(curl -fsS -G \
-  $(curl_host_args) \
+  "${CURL_HOST_ARGS[@]}" \
   -H "apikey: $SERVICE_ROLE_KEY" \
   -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
   "$LIST_URL" 2>/dev/null || true)"
@@ -114,8 +129,17 @@ if echo "$EXISTING_RESPONSE" | grep -q "\"email\":\"$SEED_ADMIN_EMAIL\""; then
   exit 0
 fi
 
-# Generate a 24-character alphanumeric password.
-PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24 || true)"
+# Use the operator-supplied password if set; otherwise generate a 24-char
+# alphanumeric one. When the caller passes a password explicitly, we still
+# treat it as the source of truth on first run — even if it doesn't satisfy
+# GoTrue's default GOTRUE_PASSWORD_MIN_LENGTH=8, GoTrue accepts whatever we
+# POST (the seed runs once, so the cost of a stricter policy on subsequent
+# logins is acceptable).
+if [ -n "${SEED_ADMIN_PASSWORD:-}" ]; then
+  PASSWORD="$SEED_ADMIN_PASSWORD"
+else
+  PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 24 || true)"
+fi
 
 CREATE_URL="$API_BASE/auth/v1/admin/users"
 CREATE_BODY="$(cat <<EOF
@@ -129,7 +153,7 @@ EOF
 )"
 
 CREATE_RESPONSE="$(curl -fsS -X POST \
-  $(curl_host_args) \
+  "${CURL_HOST_ARGS[@]}" \
   -H "apikey: $SERVICE_ROLE_KEY" \
   -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
   -H "Content-Type: application/json" \
