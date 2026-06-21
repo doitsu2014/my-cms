@@ -2,15 +2,19 @@
 # File provider, no Docker socket needed
 #
 # Consumes env vars (loaded from ../.env via docker-compose.yaml):
-#   CMS_HOST            — Host() rule for all four routers (default: localhost)
-#   CMS_ADMIN_ORIGIN    — CORS origin for admin frontend (default: http://localhost:3002)
-#   CMS_SUPABASE_ORIGIN — CORS origin for supabase-api / Kong (default: http://localhost)
+#   CMS_ADMIN_HOST     — Host() rule for the admin frontend router
+#   CMS_API_HOST       — Host() rule for the my-cms API router
+#   CMS_STUDIO_HOST    — Host() rule for the Supabase Studio router (Basic Auth protected)
+#   CMS_SUPABASE_HOST  — Host() rule for the Kong / Supabase API router
+#   CMS_ADMIN_ORIGIN   — CORS origin allowed for the admin frontend
+#   CMS_SUPABASE_ORIGIN— CORS origin allowed for supabase-api / Kong
+#   STUDIO_BASIC_AUTH_USERS — bcrypt user:hash entries for the Studio basic-auth middleware
 
 http:
   routers:
-    # --- cms-admin (frontend) → http://${CMS_HOST}:3002 ---
+    # --- cms-admin (frontend) → http://${CMS_ADMIN_HOST} → my-cms-frontend:80 ---
     admin:
-      rule: "Host(`{{ env "CMS_HOST" | default "localhost" }}`)"
+      rule: "Host(`{{ env "CMS_ADMIN_HOST" | default "cms-admin.ducth.dev" }}`)"
       entryPoints:
         - web
       service: admin-service
@@ -18,9 +22,9 @@ http:
         - admin-compress
         - security-headers
 
-    # --- cms-api (API) → http://${CMS_HOST}:8989 ---
+    # --- cms-api (API) → http://${CMS_API_HOST} → my-cms-api:8989 ---
     api:
-      rule: "Host(`{{ env "CMS_HOST" | default "localhost" }}`)"
+      rule: "Host(`{{ env "CMS_API_HOST" | default "cms-api.ducth.dev" }}`)"
       entryPoints:
         - web
       service: api-service
@@ -29,9 +33,11 @@ http:
         - api-buff
         - security-headers
 
-    # --- supabase (Studio) → http://${CMS_HOST}:3000 (via Kong :8000) ---
+    # --- supabase Studio → http://${CMS_STUDIO_HOST} → supabase-studio:3000 ---
+    # NOTE: Kong (`8000`) and Studio (`3000`) are distinct services with
+    # distinct Host rules; this router is the Studio, the next one is Kong.
     studio:
-      rule: "Host(`{{ env "CMS_HOST" | default "localhost" }}`)"
+      rule: "Host(`{{ env "CMS_STUDIO_HOST" | default "supabase.ducth.dev" }}`)"
       entryPoints:
         - web
       service: studio-service
@@ -39,9 +45,9 @@ http:
         - studio-basic-auth
         - studio-headers
 
-    # --- supabase-api (Kong / Supabase API) → http://${CMS_HOST}:8000 ---
+    # --- supabase-api (Kong / Supabase API) → http://${CMS_SUPABASE_HOST} → supabase-kong:8000 ---
     supabase-api:
-      rule: "Host(`{{ env "CMS_HOST" | default "localhost" }}`)"
+      rule: "Host(`{{ env "CMS_SUPABASE_HOST" | default "supabase-api.ducth.dev" }}`)"
       entryPoints:
         - web
       service: kong-service
@@ -82,7 +88,7 @@ http:
     api-cors:
       headers:
         accessControlAllowOriginList:
-          - "{{ env "CMS_ADMIN_ORIGIN" | default "http://localhost:3002" }}"
+          - "{{ env "CMS_ADMIN_ORIGIN" | default "https://cms-admin.ducth.dev" }}"
         accessControlAllowMethods:
           - GET
           - POST
@@ -117,8 +123,8 @@ http:
     cors-everything:
       headers:
         accessControlAllowOriginList:
-          - "{{ env "CMS_ADMIN_ORIGIN" | default "http://localhost:3002" }}"
-          - "{{ env "CMS_SUPABASE_ORIGIN" | default "http://localhost" }}"
+          - "{{ env "CMS_ADMIN_ORIGIN" | default "https://cms-admin.ducth.dev" }}"
+          - "{{ env "CMS_SUPABASE_ORIGIN" | default "https://supabase-api.ducth.dev" }}"
         accessControlAllowMethods:
           - GET
           - POST
