@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use application_core::{
     commands::media::{read::read_handler::create_media_cache, MediaConfig, SupabaseStorage},
+    commands::user::supabase_admin_client::SupabaseAdminClient,
     graphql::query_root::schema,
 };
 use async_graphql_axum::GraphQL;
@@ -223,7 +224,8 @@ async fn construct_app_state() -> AppState {
 
     let supabase_url = env::var("SUPABASE_URL").expect("SUPABASE_URL must be set");
     let supabase_anon_key = env::var("SUPABASE_ANON_KEY").expect("SUPABASE_ANON_KEY must be set");
-    let supabase_service_role_key = env::var("SUPABASE_SERVICE_ROLE_KEY").ok();
+    let supabase_service_role_key =
+        env::var("SUPABASE_SERVICE_ROLE_KEY").expect("SUPABASE_SERVICE_ROLE_KEY must be set");
     let supabase_storage_bucket =
         env::var("SUPABASE_STORAGE_BUCKET").unwrap_or_else(|_| "media".to_string());
 
@@ -232,11 +234,14 @@ async fn construct_app_state() -> AppState {
     let media_base_url = env::var("MEDIA_BASE_URL").unwrap_or(format!("http://{}:{}", host, port));
 
     let storage = SupabaseStorage::new(
-        supabase_url,
+        supabase_url.clone(),
         supabase_anon_key,
-        supabase_service_role_key,
+        Some(supabase_service_role_key.clone()),
         supabase_storage_bucket,
     );
+
+    let supabase_admin_client =
+        Arc::new(SupabaseAdminClient::new(supabase_url, supabase_service_role_key));
 
     let graphql_immutable_schema = schema(conn.clone(), None, None, false).unwrap();
     let graphql_mutable_schema = schema(conn.clone(), None, None, true).unwrap();
@@ -250,6 +255,7 @@ async fn construct_app_state() -> AppState {
         media_cache: Arc::new(create_media_cache()),
         graphql_immutable_schema: Arc::new(graphql_immutable_schema),
         graphql_mutable_schema: Arc::new(graphql_mutable_schema),
+        supabase_admin_client,
     }
 }
 
