@@ -24,13 +24,25 @@ export const getGraphQLApiUrl = (): string => {
 
 /**
  * Get the Media Upload API URL from runtime config
+ *
+ * The backend's media upload route is `POST /media` (see
+ * apps/api/src/bin/my-cms-api.rs → protected_router()). The frontend
+ * submits a multipart/form-data POST with a field named `file` or `image`.
+ *
+ *   - Mode A (subdomain):  return `${restApiUrl}/media`
+ *   - Mode B (single-domain, no restApiUrl): return `/media`
+ *
+ * (Note: do NOT return `/media/images` — that's the GET read route, not
+ * the POST create route. Earlier versions of this helper used
+ * `baseUrl + '/media/images'`, which silently 405'd on upload for anyone
+ * who deployed without explicitly setting `mediaUploadApiUrl`.)
  */
 export const getMediaUploadApiUrl = (): string => {
   const baseUrl = getRestApiBaseUrl();
   if (config().mediaUploadApiUrl) {
     return config().mediaUploadApiUrl!;
   }
-  return baseUrl ? `${baseUrl.replace(/\/$/, '')}/media/images` : '/media/images';
+  return baseUrl ? `${baseUrl.replace(/\/$/, '')}/media` : '/media';
 };
 
 /**

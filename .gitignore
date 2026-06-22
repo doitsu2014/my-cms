@@ -36,6 +36,9 @@ docker-compose.override.yml
 # Local dev env files (split per compose folder, see deployments/docker-swarm/README.md)
 deployments/docker-swarm/*/.env
 
+# Docker volumes (db data, secrets, runtime mounts) — created by containers
+deployments/docker-swarm/volumes/
+deployments/docker-swarm/supabase/volumes/
 deployments/docker-swarm/supabase/volumes/db/data/*
 deployments/docker-swarm/supabase/volumes/secrets/*
 
