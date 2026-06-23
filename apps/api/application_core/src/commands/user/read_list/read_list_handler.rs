@@ -39,7 +39,7 @@ impl ReadListUserHandlerTrait for ReadListUserHandler {
                 "Page must be >= 1".to_string(),
             ));
         }
-        if per_page < 1 || per_page > 200 {
+        if !(1..=200).contains(&per_page) {
             return Err(AppError::Validation(
                 "perPage".to_string(),
                 "perPage must be between 1 and 200".to_string(),

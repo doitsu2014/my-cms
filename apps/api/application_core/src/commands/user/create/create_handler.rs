@@ -4,8 +4,7 @@ use crate::{
     commands::user::{
         create::create_request::CreateUserRequest,
         dto::{
-            is_recognised_role, sanitise_email, AppUserModel, CreateUserResponse,
-            RECOGNISED_ROLES,
+            is_recognised_role, sanitise_email, AppUserModel, CreateUserResponse, RECOGNISED_ROLES,
         },
         supabase_admin_client::SupabaseAdminClient,
     },
@@ -49,10 +48,7 @@ impl CreateUserHandlerTrait for CreateUserHandler {
         if !is_recognised_role(&req.role) {
             return Err(AppError::Validation(
                 "role".to_string(),
-                format!(
-                    "Role must be one of: {}",
-                    RECOGNISED_ROLES.join(", ")
-                ),
+                format!("Role must be one of: {}", RECOGNISED_ROLES.join(", ")),
             ));
         }
 

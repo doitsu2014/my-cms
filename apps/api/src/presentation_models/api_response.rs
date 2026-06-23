@@ -141,7 +141,9 @@ impl From<AppError> for ApiResponseError {
                 .with_error_code(ErrorCode::ValidationError)
                 .add_error(format!("{}: {}", field, message)),
             AppError::Logical(m) => Self::new().with_error_code(ErrorCode::Logical).add_error(m),
-            AppError::Conflict(m) => Self::new().with_error_code(ErrorCode::Conflict).add_error(m),
+            AppError::Conflict(m) => Self::new()
+                .with_error_code(ErrorCode::Conflict)
+                .add_error(m),
             AppError::ConcurrencyOptimistic(m) => Self::new()
                 .with_error_code(ErrorCode::ConcurrencyOptimistic)
                 .add_error(m),
@@ -189,9 +191,8 @@ mod tests {
 
     #[test]
     fn test_case_conflict_from_app_error() {
-        let app_error = application_core::common::app_error::AppError::Conflict(
-            "duplicate email".to_string(),
-        );
+        let app_error =
+            application_core::common::app_error::AppError::Conflict("duplicate email".to_string());
         let response_error = ApiResponseError::from(app_error);
         assert_eq!(ErrorCode::Conflict, response_error.error_code);
         assert_eq!(1, response_error.errors.len());

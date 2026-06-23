@@ -68,21 +68,22 @@
 
 ## Backend — API layer
 
-- [ ] **11. Five thin handlers in `apps/api/src/api/user/`**
+- [x] **11. Five thin handlers in `apps/api/src/api/user/`**
     - **Files:** `apps/api/src/api/user/mod.rs` (new), `apps/api/src/api/user/create/create_handler.rs` (new), `apps/api/src/api/user/read_list/read_list_handler.rs` (new), `apps/api/src/api/user/read_one/read_one_handler.rs` (new), `apps/api/src/api/user/modify/modify_handler.rs` (new), `apps/api/src/api/user/delete/delete_handler.rs` (new)
     - Each handler extracts request, builds command handler, calls trait method, returns `ApiResponseWith<T>` or `ApiResponseError`. Mirror `category/*` handlers exactly.
     - **Verify:** `cargo check`
 
-- [ ] **12. Wire routes into `protected_administrator_router()`**
+- [x] **12. Wire routes into `protected_administrator_router()`**
     - **Files:** `apps/api/src/bin/my-cms-api.rs` (modify — add `/users` chain and `/users/{user_id}` GET)
     - **Verify:** `cargo check`
 
-- [ ] **13. Add `ErrorCode::Conflict = "409"` and map it to HTTP 409**
+- [x] **13. Add `ErrorCode::Conflict = "409"` and map it to HTTP 409**
     - **Files:** `apps/api/src/presentation_models/api_response.rs` (modify — add variant, map in `to_axum_response`, add unit test)
     - **Verify:** `cargo test -p cms presentation_models`
 
-- [ ] **14. Cargo check + clippy + fmt clean**
+- [x] **14. Cargo check + clippy + fmt clean** (partial — see notes)
     - **Verify:** `cargo check && cargo clippy --all-targets -- -D warnings && cargo fmt -- --check`
+    - **Status:** `cargo check` ✅ green, `cargo test` ✅ 26/26 pass, `cargo fmt -- --check` ✅ green. `cargo clippy --all-targets -- -D warnings` ❌ fails with **15 PRE-EXISTING errors in 8 unrelated files** (`apps/api/application_core/src/common/app_error.rs`, `commands/ai/*`, `commands/category/modify`, `commands/post/*`). The user-management code itself is clippy-clean. These pre-existing errors are out of scope for this change and can be addressed in a separate "fix clippy tech-debt" change.
 
 ## Backend — error mapping
 
@@ -93,65 +94,65 @@
 
 ## Frontend — foundation
 
-- [ ] **16. Domain types in `apps/web/src/domains/user.ts`**
+- [x] **16. Domain types in `apps/web/src/domains/user.ts`**
     - **Files:** `apps/web/src/domains/user.ts` (new), `apps/web/src/domains/index.ts` (modify — export)
     - Export `UserRoleEnum`, `AppUserModel`, `CreateUserResponse`.
     - **Verify:** `pnpm --dir apps/web tsc --noEmit`
 
-- [ ] **17. Zod schemas in `apps/web/src/schemas/user.schema.ts`**
+- [x] **17. Zod schemas in `apps/web/src/schemas/user.schema.ts`**
     - **Files:** `apps/web/src/schemas/user.schema.ts` (new)
     - `userFormSchema` (create: email, password ≥ 8, role, banned default false; edit: email, role, banned). `CreateUserFormData` + `ModifyUserFormData`.
     - **Verify:** `pnpm --dir apps/web tsc --noEmit`
 
-- [ ] **18. Request/response models in `apps/web/src/models/`**
+- [x] **18. Request/response models in `apps/web/src/models/`**
     - **Files:** `apps/web/src/models/CreateUserModel.ts` (new), `apps/web/src/models/ModifyUserModel.ts` (new)
     - Mirror `CreateCategoryModel.ts` / `UpdateCategoryModel.ts` shape.
     - **Verify:** `pnpm --dir apps/web tsc --noEmit`
 
-- [ ] **19. Extend `AuthContext.userInfo` with `id`**
+- [x] **19. Extend `AuthContext.userInfo` with `id`**
     - **Files:** `apps/web/src/auth/AuthContext.tsx` (modify — add `id: user.id` to `userInfo` and the `AuthContextType` interface)
     - **Verify:** `pnpm --dir apps/web tsc --noEmit`
 
 ## Frontend — pages
 
-- [ ] **20. `AdminOnlyRoute` wrapper component**
+- [x] **20. `AdminOnlyRoute` wrapper component**
     - **Files:** `apps/web/src/app/admin/components/admin-only-route.tsx` (new)
     - Reads `app_metadata.roles` from the Supabase `user` (already exposed by `useAuth()`), renders children if `my-headless-cms-administrator` is present, otherwise renders a "Forbidden" DaisyUI alert + link back to `/admin`.
     - **Verify:** `pnpm --dir apps/web tsc --noEmit`
 
-- [ ] **21. `/admin/users` list page (table + filter + pagination + delete modal)**
+- [x] **21. `/admin/users` list page (table + filter + pagination + delete modal)**
     - **Files:** `apps/web/src/app/admin/users/page.tsx` (new)
     - Mirror `apps/web/src/app/admin/categories/page.tsx` structure. Disable the delete button (with tooltip) when `row.id === currentUser.id`. Fetch `GET /users?page=&perPage=&role=&email=`. Show role as a badge.
     - **Verify:** `pnpm --dir apps/web tsc --noEmit`
 
-- [ ] **22. Shared `user-form.tsx`**
+- [x] **22. Shared `user-form.tsx`**
     - **Files:** `apps/web/src/app/admin/users/user-form.tsx` (new)
     - Accepts `id?: string`. Renders password field only when `id` is undefined. On submit-create, show long-duration toast with the password. FAB pattern mirrors `category-form.tsx`.
     - **Verify:** `pnpm --dir apps/web tsc --noEmit`
 
-- [ ] **23. `/admin/users/create` page**
+- [x] **23. `/admin/users/create` page**
     - **Files:** `apps/web/src/app/admin/users/create/page.tsx` (new)
     - Wraps `<UserForm id={undefined} />`. Breadcrumbs Admin → Users → Create User.
     - **Verify:** `pnpm --dir apps/web tsc --noEmit`
 
-- [ ] **24. `/admin/users/edit/[id]` page**
+- [x] **24. `/admin/users/edit/[id]` page**
     - **Files:** `apps/web/src/app/admin/users/edit/[id]/page.tsx` (new)
     - Reads `id` from `useParams`. Wraps `<UserForm id={id} />`. Breadcrumbs Admin → Users → Edit User.
     - **Verify:** `pnpm --dir apps/web tsc --noEmit`
 
-- [ ] **25. Register all three routes in `App.tsx`**
+- [x] **25. Register all three routes in `App.tsx`**
     - **Files:** `apps/web/src/App.tsx` (modify — add three new `<Route>` lines wrapping in `<AdminOnlyRoute>`)
     - **Verify:** `pnpm --dir apps/web build`
 
 ## Frontend — navigation
 
-- [ ] **26. Add "Administration" collapsible section + "Users" link to sidebar**
+- [x] **26. Add "Administration" collapsible section + "Users" link to sidebar**
     - **Files:** `apps/web/src/app/admin/components/left-menu.tsx` (modify — add second `<details>` after the existing "Resources" block, containing a single `<MenuItem displayName="Users" slug="/admin/users" />`)
     - **Verify:** `pnpm --dir apps/web build`
 
 ## Frontend — verification
 
-- [ ] **27. `pnpm build` clean**
+- [x] **27. `pnpm build` clean**
     - **Verify:** `pnpm --dir apps/web build`
 
 - [ ] **28. Manual smoke against local Supabase stack**

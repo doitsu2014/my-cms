@@ -2,9 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     commands::user::{
-        dto::{
-            is_recognised_role, sanitise_email, AppUserModel, RECOGNISED_ROLES,
-        },
+        dto::{is_recognised_role, sanitise_email, AppUserModel, RECOGNISED_ROLES},
         modify::modify_request::ModifyUserRequest,
         supabase_admin_client::SupabaseAdminClient,
     },
@@ -39,10 +37,7 @@ impl ModifyUserHandlerTrait for ModifyUserHandler {
             if !is_recognised_role(role) {
                 return Err(AppError::Validation(
                     "role".to_string(),
-                    format!(
-                        "Role must be one of: {}",
-                        RECOGNISED_ROLES.join(", ")
-                    ),
+                    format!("Role must be one of: {}", RECOGNISED_ROLES.join(", ")),
                 ));
             }
         }

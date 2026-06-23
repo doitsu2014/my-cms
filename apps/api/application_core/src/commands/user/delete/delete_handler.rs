@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    commands::user::supabase_admin_client::SupabaseAdminClient,
-    common::app_error::AppError,
+    commands::user::supabase_admin_client::SupabaseAdminClient, common::app_error::AppError,
 };
 use tracing::{info, instrument};
 use uuid::Uuid;
@@ -22,11 +21,7 @@ pub struct DeleteUserHandler {
 
 impl DeleteUserHandlerTrait for DeleteUserHandler {
     #[instrument(skip(self))]
-    async fn handle_delete_user(
-        &self,
-        id: Uuid,
-        actor_user_id: &str,
-    ) -> Result<(), AppError> {
+    async fn handle_delete_user(&self, id: Uuid, actor_user_id: &str) -> Result<(), AppError> {
         if id.to_string() == actor_user_id {
             return Err(AppError::Logical(
                 "Cannot delete your own account".to_string(),
@@ -90,9 +85,7 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = handler
-            .handle_delete_user(target, &actor.to_string())
-            .await;
+        let result = handler.handle_delete_user(target, &actor.to_string()).await;
         assert!(result.is_ok(), "expected Ok, got {:?}", result);
     }
 }

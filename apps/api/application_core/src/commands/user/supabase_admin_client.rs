@@ -1,10 +1,9 @@
 use crate::{
-    common::app_error::AppError,
     commands::user::{
-        create::create_request::CreateUserRequest,
-        dto::AppUserModel,
+        create::create_request::CreateUserRequest, dto::AppUserModel,
         modify::modify_request::ModifyUserRequest,
     },
+    common::app_error::AppError,
 };
 use chrono::{DateTime, Utc};
 use reqwest::{Client, StatusCode};
@@ -59,7 +58,11 @@ impl SupabaseAdminClient {
         format!("{}/auth/v1/admin", self.supabase_url)
     }
 
-    pub async fn list_users(&self, page: u32, per_page: u32) -> Result<Vec<AppUserModel>, AppError> {
+    pub async fn list_users(
+        &self,
+        page: u32,
+        per_page: u32,
+    ) -> Result<Vec<AppUserModel>, AppError> {
         let url = format!("{}/users", self.admin_base_url());
         let response = self
             .client
@@ -69,7 +72,9 @@ impl SupabaseAdminClient {
             .query(&[("page", page), ("per_page", per_page)])
             .send()
             .await
-            .map_err(|e| AppError::StorageError(format!("GoTrue list users request failed: {}", e)))?;
+            .map_err(|e| {
+                AppError::StorageError(format!("GoTrue list users request failed: {}", e))
+            })?;
 
         let status = response.status();
         if !status.is_success() {
@@ -83,7 +88,7 @@ impl SupabaseAdminClient {
         Ok(raw
             .users
             .into_iter()
-            .filter_map(|u| parse_gotrue_user(u))
+            .filter_map(parse_gotrue_user)
             .collect())
     }
 
@@ -96,7 +101,9 @@ impl SupabaseAdminClient {
             .header("apikey", self.auth_key())
             .send()
             .await
-            .map_err(|e| AppError::StorageError(format!("GoTrue get user request failed: {}", e)))?;
+            .map_err(|e| {
+                AppError::StorageError(format!("GoTrue get user request failed: {}", e))
+            })?;
 
         let status = response.status();
         if status == StatusCode::NOT_FOUND {
@@ -130,7 +137,9 @@ impl SupabaseAdminClient {
             .body(body.to_string())
             .send()
             .await
-            .map_err(|e| AppError::StorageError(format!("GoTrue create user request failed: {}", e)))?;
+            .map_err(|e| {
+                AppError::StorageError(format!("GoTrue create user request failed: {}", e))
+            })?;
 
         let status = response.status();
         if status == StatusCode::CONFLICT {
@@ -141,7 +150,10 @@ impl SupabaseAdminClient {
         }
 
         let raw: GoTrueUserResponse = response.json().await.map_err(|e| {
-            AppError::StorageError(format!("Failed to parse GoTrue create user response: {}", e))
+            AppError::StorageError(format!(
+                "Failed to parse GoTrue create user response: {}",
+                e
+            ))
         })?;
 
         parse_gotrue_user(raw).ok_or(AppError::NotFound)
@@ -171,7 +183,10 @@ impl SupabaseAdminClient {
                 );
             }
             Some(false) => {
-                body.insert("ban_duration".to_string(), Value::String("none".to_string()));
+                body.insert(
+                    "ban_duration".to_string(),
+                    Value::String("none".to_string()),
+                );
             }
             None => {}
         }
@@ -185,7 +200,9 @@ impl SupabaseAdminClient {
             .body(Value::Object(body).to_string())
             .send()
             .await
-            .map_err(|e| AppError::StorageError(format!("GoTrue update user request failed: {}", e)))?;
+            .map_err(|e| {
+                AppError::StorageError(format!("GoTrue update user request failed: {}", e))
+            })?;
 
         let status = response.status();
         if status == StatusCode::NOT_FOUND {
@@ -196,7 +213,10 @@ impl SupabaseAdminClient {
         }
 
         let raw: GoTrueUserResponse = response.json().await.map_err(|e| {
-            AppError::StorageError(format!("Failed to parse GoTrue update user response: {}", e))
+            AppError::StorageError(format!(
+                "Failed to parse GoTrue update user response: {}",
+                e
+            ))
         })?;
 
         parse_gotrue_user(raw).ok_or(AppError::NotFound)
@@ -211,7 +231,9 @@ impl SupabaseAdminClient {
             .header("apikey", self.auth_key())
             .send()
             .await
-            .map_err(|e| AppError::StorageError(format!("GoTrue delete user request failed: {}", e)))?;
+            .map_err(|e| {
+                AppError::StorageError(format!("GoTrue delete user request failed: {}", e))
+            })?;
 
         let status = response.status();
         if status == StatusCode::NOT_FOUND {
@@ -243,16 +265,16 @@ async fn map_gotrue_error(
         )),
         StatusCode::UNPROCESSABLE_ENTITY | StatusCode::BAD_REQUEST => AppError::Validation(
             "gotrue".to_string(),
-            format!("{} validation error ({}): {}", context, status, body_summary),
+            format!(
+                "{} validation error ({}): {}",
+                context, status, body_summary
+            ),
         ),
         StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => AppError::Logical(format!(
             "{} authorisation error ({}): {}",
             context, status, body_summary
         )),
-        _ => AppError::StorageError(format!(
-            "{} failed ({}): {}",
-            context, status, body_summary
-        )),
+        _ => AppError::StorageError(format!("{} failed ({}): {}", context, status, body_summary)),
     }
 }
 
@@ -347,10 +369,7 @@ mod tests {
     #[test]
     fn admin_base_url_builds_expected_path() {
         let c = make_client("http://localhost:8000", "k");
-        assert_eq!(
-            c.admin_base_url(),
-            "http://localhost:8000/auth/v1/admin"
-        );
+        assert_eq!(c.admin_base_url(), "http://localhost:8000/auth/v1/admin");
     }
 
     #[test]
@@ -408,7 +427,9 @@ mod tests {
         let client = make_client(&server.uri(), "service-role-test-key");
 
         Mock::given(method("GET"))
-            .and(path("/auth/v1/admin/users/11111111-1111-1111-1111-111111111111"))
+            .and(path(
+                "/auth/v1/admin/users/11111111-1111-1111-1111-111111111111",
+            ))
             .respond_with(ResponseTemplate::new(404).set_body_string("not found"))
             .mount(&server)
             .await;
@@ -470,7 +491,9 @@ mod tests {
         });
 
         Mock::given(method("PUT"))
-            .and(path("/auth/v1/admin/users/22222222-2222-2222-2222-222222222222"))
+            .and(path(
+                "/auth/v1/admin/users/22222222-2222-2222-2222-222222222222",
+            ))
             .and(header("content-type", "application/json"))
             .and(header("authorization", "Bearer service-role-test-key"))
             .and(header("apikey", "service-role-test-key"))
@@ -499,7 +522,9 @@ mod tests {
         let client = make_client(&server.uri(), "service-role-test-key");
 
         Mock::given(method("DELETE"))
-            .and(path("/auth/v1/admin/users/22222222-2222-2222-2222-222222222222"))
+            .and(path(
+                "/auth/v1/admin/users/22222222-2222-2222-2222-222222222222",
+            ))
             .and(header("authorization", "Bearer service-role-test-key"))
             .and(header("apikey", "service-role-test-key"))
             .respond_with(ResponseTemplate::new(200).set_body_string(""))

@@ -1,10 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    commands::user::{
-        dto::AppUserModel,
-        supabase_admin_client::SupabaseAdminClient,
-    },
+    commands::user::{dto::AppUserModel, supabase_admin_client::SupabaseAdminClient},
     common::app_error::AppError,
 };
 use tracing::instrument;
@@ -71,10 +68,7 @@ mod tests {
         let id = Uuid::parse_str("33333333-3333-3333-3333-333333333333").unwrap();
         let user = handler.handle_get_user(id).await.expect("get ok");
         assert_eq!(user.email, "alice@example.com");
-        assert_eq!(
-            user.role.as_deref(),
-            Some("my-headless-cms-administrator")
-        );
+        assert_eq!(user.role.as_deref(), Some("my-headless-cms-administrator"));
     }
 
     #[async_std::test]

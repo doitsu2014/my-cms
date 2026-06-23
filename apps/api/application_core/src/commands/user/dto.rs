@@ -2,10 +2,7 @@ use chrono::{DateTime, Utc};
 use sea_orm::prelude::Uuid;
 use serde::{Deserialize, Serialize};
 
-pub const RECOGNISED_ROLES: &[&str] = &[
-    "my-headless-cms-administrator",
-    "my-headless-cms-writer",
-];
+pub const RECOGNISED_ROLES: &[&str] = &["my-headless-cms-administrator", "my-headless-cms-writer"];
 
 pub const BAN_DURATION: &str = "876000h";
 
@@ -33,5 +30,5 @@ pub fn sanitise_email(email: &str) -> String {
 }
 
 pub fn is_recognised_role(role: &str) -> bool {
-    RECOGNISED_ROLES.iter().any(|r| *r == role)
+    RECOGNISED_ROLES.contains(&role)
 }

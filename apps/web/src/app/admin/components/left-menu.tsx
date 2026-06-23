@@ -55,6 +55,16 @@ export default function LeftMenu() {
             </ul>
           </details>
         </li>
+        <li>
+          <details open>
+            <summary className="font-semibold">Administration</summary>
+            <ul>
+              <li>
+                <MenuItem displayName="Users" slug="/admin/users" />
+              </li>
+            </ul>
+          </details>
+        </li>
       </ul>
     </aside>
   );

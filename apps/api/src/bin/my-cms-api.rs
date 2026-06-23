@@ -184,7 +184,10 @@ pub async fn protected_router() -> Router {
         )
         .layer(construct_supabase_auth_layer(
             env::var("AUTHORIZATION_AUDIENCE").unwrap_or("authenticated".to_string()),
-            vec![String::from("my-headless-cms-writer"), String::from("my-headless-cms-administrator")],
+            vec![
+                String::from("my-headless-cms-writer"),
+                String::from("my-headless-cms-administrator"),
+            ],
         ))
         .layer(OtelInResponseLayer)
         .layer(OtelAxumLayer::default())
@@ -206,6 +209,17 @@ pub async fn protected_administrator_router() -> Router {
         .route(
             "/administrator/database/migration",
             post(api::administrator::migration::migration_handler::handle_api_database_migration),
+        )
+        .route(
+            "/users",
+            get(api::user::read_list::read_list_handler::api_list_users)
+                .post(api::user::create::create_handler::api_create_user)
+                .put(api::user::modify::modify_handler::api_modify_user)
+                .delete(api::user::delete::delete_handler::api_delete_user),
+        )
+        .route(
+            "/users/{user_id}",
+            get(api::user::read_one::read_one_handler::api_get_user),
         )
         .layer(construct_supabase_auth_layer(
             env::var("AUTHORIZATION_AUDIENCE").unwrap_or("authenticated".to_string()),
@@ -240,8 +254,10 @@ async fn construct_app_state() -> AppState {
         supabase_storage_bucket,
     );
 
-    let supabase_admin_client =
-        Arc::new(SupabaseAdminClient::new(supabase_url, supabase_service_role_key));
+    let supabase_admin_client = Arc::new(SupabaseAdminClient::new(
+        supabase_url,
+        supabase_service_role_key,
+    ));
 
     let graphql_immutable_schema = schema(conn.clone(), None, None, false).unwrap();
     let graphql_mutable_schema = schema(conn.clone(), None, None, true).unwrap();
