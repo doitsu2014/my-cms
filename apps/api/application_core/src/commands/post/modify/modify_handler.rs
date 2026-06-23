@@ -13,9 +13,8 @@ use crate::{
     },
     common::{app_error::AppError, datetime_generator::generate_vietnam_now},
     entities::{
-        post_tags,
+        post_tags, post_translations,
         posts::{self, Column},
-        post_translations,
     },
 };
 

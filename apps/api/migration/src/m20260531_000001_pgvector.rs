@@ -24,7 +24,9 @@ impl MigrationTrait for Migration {
         match ext_result {
             Ok(_) => {}
             Err(DbErr::Exec(_)) => {
-                eprintln!("WARN: Could not check pgvector extension; skipping embeddings table creation");
+                eprintln!(
+                    "WARN: Could not check pgvector extension; skipping embeddings table creation"
+                );
                 return Ok(());
             }
             Err(e) => return Err(e),
@@ -51,19 +53,38 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Embeddings::Table)
                     .if_not_exists()
-                    .col(ColumnDef::new(Embeddings::Id).uuid().not_null().primary_key())
+                    .col(
+                        ColumnDef::new(Embeddings::Id)
+                            .uuid()
+                            .not_null()
+                            .primary_key(),
+                    )
                     .col(ColumnDef::new(Embeddings::PostId).uuid().not_null())
-                    .col(ColumnDef::new(Embeddings::LanguageCode).string_len(50).not_null())
+                    .col(
+                        ColumnDef::new(Embeddings::LanguageCode)
+                            .string_len(50)
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(Embeddings::TranslationId).uuid())
-                    .col(ColumnDef::new(Embeddings::Embedding).custom("vector(1536)").not_null())
+                    .col(
+                        ColumnDef::new(Embeddings::Embedding)
+                            .custom("vector(1536)")
+                            .not_null(),
+                    )
                     .col(ColumnDef::new(Embeddings::Title).string_len(512).not_null())
                     .col(ColumnDef::new(Embeddings::ContentPreview).text().not_null())
-                    .col(ColumnDef::new(Embeddings::CreatedAt)
-                        .timestamp_with_time_zone().not_null()
-                        .default(Expr::current_timestamp()))
-                    .col(ColumnDef::new(Embeddings::UpdatedAt)
-                        .timestamp_with_time_zone().not_null()
-                        .default(Expr::current_timestamp()))
+                    .col(
+                        ColumnDef::new(Embeddings::CreatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null()
+                            .default(Expr::current_timestamp()),
+                    )
+                    .col(
+                        ColumnDef::new(Embeddings::UpdatedAt)
+                            .timestamp_with_time_zone()
+                            .not_null()
+                            .default(Expr::current_timestamp()),
+                    )
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk_embeddings_post_id")

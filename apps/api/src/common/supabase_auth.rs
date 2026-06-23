@@ -1,8 +1,4 @@
-use axum::{
-    extract::Request,
-    http::StatusCode,
-    response::IntoResponse,
-};
+use axum::{extract::Request, http::StatusCode, response::IntoResponse};
 use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
 use serde::Deserialize;
 use std::sync::Arc;
@@ -87,8 +83,9 @@ where
 {
     type Response = S::Response;
     type Error = S::Error;
-    type Future =
-        std::pin::Pin<Box<dyn std::future::Future<Output = Result<Self::Response, Self::Error>> + Send>>;
+    type Future = std::pin::Pin<
+        Box<dyn std::future::Future<Output = Result<Self::Response, Self::Error>> + Send>,
+    >;
 
     fn poll_ready(
         &mut self,
@@ -122,11 +119,10 @@ where
             let claims = match validate_supabase_token(&token_str, &config).await {
                 Ok(c) => c,
                 Err(e) => {
-                    return Ok((
-                        StatusCode::UNAUTHORIZED,
-                        format!(r#"{{"error":"{}"}}"#, e),
-                    )
-                        .into_response());
+                    return Ok(
+                        (StatusCode::UNAUTHORIZED, format!(r#"{{"error":"{}"}}"#, e))
+                            .into_response(),
+                    );
                 }
             };
 
@@ -149,7 +145,8 @@ where
                     return Ok((
                         StatusCode::FORBIDDEN,
                         r#"{"error":"Insufficient permissions"}"#,
-                    ).into_response());
+                    )
+                        .into_response());
                 }
             }
 
@@ -200,10 +197,7 @@ mod tests {
     }
 
     fn valid_token_with_role(role: &str) -> String {
-        make_token(
-            json!({"roles": [role]}),
-            3600,
-        )
+        make_token(json!({"roles": [role]}), 3600)
     }
 
     fn valid_token_with_roles(roles: &[&str]) -> String {
@@ -495,7 +489,7 @@ mod tests {
     }
 }
 
-    async fn validate_supabase_token(
+async fn validate_supabase_token(
     token: &str,
     config: &SupabaseAuthConfig,
 ) -> Result<SupabaseClaims, String> {
@@ -506,7 +500,8 @@ mod tests {
     match decode::<SupabaseClaims>(token, &decoding_key, &validation) {
         Ok(token_data) => return Ok(token_data.claims),
         Err(_) => {
-            let header = decode_header(token).map_err(|e| format!("Invalid token header: {}", e))?;
+            let header =
+                decode_header(token).map_err(|e| format!("Invalid token header: {}", e))?;
 
             if header.alg == Algorithm::HS256 {
                 return Err("Invalid JWT signature".to_string());

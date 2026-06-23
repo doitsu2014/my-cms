@@ -1,13 +1,10 @@
-use crate::{
-    ApiResponseError, ApiResponseWith, AppState,
-    AxumResponse,
-};
+use crate::common::supabase_auth::SupabaseToken;
+use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
 use application_core::commands::category::create::{
     create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
     create_request::CreateCategoryRequest,
 };
 use axum::{extract::State, response::IntoResponse, Extension, Json};
-use crate::common::supabase_auth::SupabaseToken;
 use tower_cookies::Cookies;
 use tracing::instrument;
 

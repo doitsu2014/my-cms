@@ -1,5 +1,5 @@
-use axum::{extract::State, response::IntoResponse, Extension};
 use crate::common::supabase_auth::SupabaseToken;
+use axum::{extract::State, response::IntoResponse, Extension};
 use migration::{Migrator, MigratorTrait};
 use tracing::instrument;
 

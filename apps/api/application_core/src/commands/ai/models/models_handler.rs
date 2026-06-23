@@ -1,5 +1,5 @@
-use crate::common::app_error::AppError;
 use super::model_info::{ModelsListResponse, OpenAIModelInfo};
+use crate::common::app_error::AppError;
 use async_openai::{config::OpenAIConfig, Client};
 use tracing::instrument;
 

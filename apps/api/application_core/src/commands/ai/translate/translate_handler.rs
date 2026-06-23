@@ -6,17 +6,17 @@ use async_openai::{
     },
     Client,
 };
+use chrono::Utc;
 use html5ever::parse_document;
 use html5ever::tendril::TendrilSink;
 use markup5ever_rcdom::{Handle, RcDom};
-use sea_orm::{DatabaseConnection, EntityTrait, QueryFilter, ColumnTrait, Set, ActiveModelTrait};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, Set};
 use slugify::slugify;
 use std::io::Cursor;
 use std::sync::Arc;
 use tokio::task::JoinSet;
 use tracing::instrument;
 use uuid::Uuid;
-use chrono::Utc;
 
 use crate::{
     common::app_error::AppError,
@@ -53,13 +53,13 @@ const MAX_TOKENS_PER_REQUEST: u16 = 8000;
 const SIMILARITY_REUSE_THRESHOLD: f32 = 0.95;
 
 // Translation instruction for HTML content
-const TRANSLATION_INSTRUCTION_HTML: &str = 
+const TRANSLATION_INSTRUCTION_HTML: &str =
     "Preserve all HTML tags and structure exactly as they are. Only translate the text content within the tags, \
      never translate HTML tag names, attributes, or structure. Return valid HTML. Translate the ENTIRE content \
      provided, do not truncate or summarize.";
 
 // Translation instruction for plain text content
-const TRANSLATION_INSTRUCTION_TEXT: &str = 
+const TRANSLATION_INSTRUCTION_TEXT: &str =
     "Only return the translated text without any additional comments or explanations. Translate the ENTIRE \
      content provided, do not truncate or summarize.";
 
@@ -120,7 +120,9 @@ impl PostTranslateHandler {
         post_id: Uuid,
         language_code: &str,
     ) -> Result<(), AppError> {
-        if let Some(existing) = Self::lookup_existing_translation(db, post_id, language_code).await? {
+        if let Some(existing) =
+            Self::lookup_existing_translation(db, post_id, language_code).await?
+        {
             post_translations::Entity::delete_by_id(existing.id)
                 .exec(db)
                 .await
@@ -145,11 +147,21 @@ impl PostTranslateHandler {
             return Ok(None);
         };
 
-        let search_text = format!("{} {}", post.title, post.content.chars().take(500).collect::<String>());
-        let similar = match vector_store.search_similar_translations(&search_text, 5).await {
+        let search_text = format!(
+            "{} {}",
+            post.title,
+            post.content.chars().take(500).collect::<String>()
+        );
+        let similar = match vector_store
+            .search_similar_translations(&search_text, 5)
+            .await
+        {
             Ok(results) => results,
             Err(e) => {
-                tracing::warn!("Failed to search similar translations: {}. Continuing with new translation.", e);
+                tracing::warn!(
+                    "Failed to search similar translations: {}. Continuing with new translation.",
+                    e
+                );
                 return Ok(None);
             }
         };
@@ -166,10 +178,10 @@ impl PostTranslateHandler {
         let request_post_id_str = post_id.to_string();
 
         for (metadata, score) in similar.iter() {
-            if *score >= SIMILARITY_REUSE_THRESHOLD 
-                && metadata.language_code == target_language_code 
-                && metadata.post_id != request_post_id_str {
-                
+            if *score >= SIMILARITY_REUSE_THRESHOLD
+                && metadata.language_code == target_language_code
+                && metadata.post_id != request_post_id_str
+            {
                 let similar_post_id = match Uuid::parse_str(&metadata.post_id) {
                     Ok(uuid) => uuid,
                     Err(_) => {
@@ -177,7 +189,7 @@ impl PostTranslateHandler {
                         continue;
                     }
                 };
-                
+
                 if let Ok(Some(similar_translation)) = post_translations::Entity::find()
                     .filter(post_translations::Column::PostId.eq(similar_post_id))
                     .filter(post_translations::Column::LanguageCode.eq(target_language_code))
@@ -193,7 +205,7 @@ impl PostTranslateHandler {
                     tracing::info!(
                         "  Reusing translation instead of calling OpenAI API (cost savings!)"
                     );
-                    
+
                     return Ok(Some(SimilarTranslationInfo {
                         source_translation_id: similar_translation.id,
                         source_post_id: similar_post_id,
@@ -213,7 +225,11 @@ impl PostTranslateHandler {
                 metadata.post_id,
                 metadata.language_code,
                 metadata.title,
-                if *score >= SIMILARITY_REUSE_THRESHOLD { "(REUSABLE)" } else { "(below threshold)" }
+                if *score >= SIMILARITY_REUSE_THRESHOLD {
+                    "(REUSABLE)"
+                } else {
+                    "(below threshold)"
+                }
             );
         }
 
@@ -236,10 +252,12 @@ impl PostTranslateHandler {
             target_language_code,
             "title",
             model,
-        ).await?;
+        )
+        .await?;
 
         let translated_preview_content = if let Some(preview) = &post.preview_content {
-            Self::translate_text_internal(&client, preview, target_language_code, "preview", model).await?
+            Self::translate_text_internal(&client, preview, target_language_code, "preview", model)
+                .await?
         } else {
             String::new()
         };
@@ -249,9 +267,14 @@ impl PostTranslateHandler {
             &post.content,
             target_language_code,
             model,
-        ).await?;
+        )
+        .await?;
 
-        Ok((translated_title, translated_preview_content, translated_content))
+        Ok((
+            translated_title,
+            translated_preview_content,
+            translated_content,
+        ))
     }
 
     /// Save translation to database
@@ -265,7 +288,7 @@ impl PostTranslateHandler {
     ) -> Result<Uuid, AppError> {
         let post_translation_id = Uuid::new_v4();
         let slug = slugify!(title, max_length = 100);
-        
+
         let translation_model = post_translations::ActiveModel {
             id: sea_orm::Set(post_translation_id),
             post_id: sea_orm::Set(post_id),
@@ -307,7 +330,7 @@ impl PostTranslateHandler {
             post_id,
             language_code
         );
-        
+
         let content_for_embedding = format!(
             "{}\n\n{}",
             title,
@@ -371,22 +394,33 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             // until translation succeeds. If translation fails, the old one is preserved.
             // Note: There's still a small window between delete and save where data could be lost
             // if save fails. Future improvement: use UPDATE or transaction for atomicity.
-            
+
             tracing::info!(
                 "Force retranslation requested for post_id={} language={} using model={}",
                 request.post_id,
                 request.target_language_code,
                 model
             );
-            
+
             // Step 1: Translate the content using OpenAI
-            let (translated_title, translated_preview_content, translated_content) = 
-                Self::translate_from_openai(&post, &request.target_language_code, &openai_api_key, model).await?;
-            
+            let (translated_title, translated_preview_content, translated_content) =
+                Self::translate_from_openai(
+                    &post,
+                    &request.target_language_code,
+                    &openai_api_key,
+                    model,
+                )
+                .await?;
+
             // Step 2: Delete the existing translation only AFTER successful translation
             // If translation failed, old translation is preserved
-            Self::delete_existing_translation(self.db.as_ref(), request.post_id, &request.target_language_code).await?;
-            
+            Self::delete_existing_translation(
+                self.db.as_ref(),
+                request.post_id,
+                &request.target_language_code,
+            )
+            .await?;
+
             // Step 3: Save the new translation
             // Note: If this fails, old translation was already deleted (small risk window)
             let post_translation_id = Self::save_translation(
@@ -396,8 +430,9 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                 &translated_title,
                 &translated_preview_content,
                 &translated_content,
-            ).await?;
-            
+            )
+            .await?;
+
             Self::store_in_vector_db(
                 &self.vector_store,
                 request.post_id,
@@ -405,8 +440,9 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                 post_translation_id,
                 &translated_title,
                 &translated_content,
-            ).await;
-            
+            )
+            .await;
+
             return Ok(TranslatePostResponse {
                 post_translation_id,
                 post_id: request.post_id,
@@ -424,7 +460,9 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             self.db.as_ref(),
             request.post_id,
             &request.target_language_code,
-        ).await? {
+        )
+        .await?
+        {
             tracing::info!(
                 "Reusing existing translation for post_id={} language={}",
                 request.post_id,
@@ -448,13 +486,15 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             &post,
             request.post_id,
             &request.target_language_code,
-        ).await? {
+        )
+        .await?
+        {
             tracing::info!(
                 "🎯 SMART REUSE: Found highly similar translation (score={:.3}, threshold={:.2})",
                 similar_info.similarity_score,
                 SIMILARITY_REUSE_THRESHOLD
             );
-            
+
             let post_translation_id = Self::save_translation(
                 self.db.as_ref(),
                 request.post_id,
@@ -462,8 +502,9 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                 &similar_info.translated_title,
                 &similar_info.translated_preview_content,
                 &similar_info.translated_content,
-            ).await?;
-            
+            )
+            .await?;
+
             Self::store_in_vector_db(
                 &self.vector_store,
                 request.post_id,
@@ -471,8 +512,9 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                 post_translation_id,
                 &similar_info.translated_title,
                 &similar_info.translated_content,
-            ).await;
-            
+            )
+            .await;
+
             return Ok(TranslatePostResponse {
                 post_translation_id,
                 post_id: request.post_id,
@@ -495,10 +537,16 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             request.target_language_code,
             model
         );
-        
-        let (translated_title, translated_preview_content, translated_content) = 
-            Self::translate_from_openai(&post, &request.target_language_code, &openai_api_key, model).await?;
-        
+
+        let (translated_title, translated_preview_content, translated_content) =
+            Self::translate_from_openai(
+                &post,
+                &request.target_language_code,
+                &openai_api_key,
+                model,
+            )
+            .await?;
+
         let post_translation_id = Self::save_translation(
             self.db.as_ref(),
             request.post_id,
@@ -506,8 +554,9 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             &translated_title,
             &translated_preview_content,
             &translated_content,
-        ).await?;
-        
+        )
+        .await?;
+
         Self::store_in_vector_db(
             &self.vector_store,
             request.post_id,
@@ -515,8 +564,9 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             post_translation_id,
             &translated_title,
             &translated_content,
-        ).await;
-        
+        )
+        .await;
+
         Ok(TranslatePostResponse {
             post_translation_id,
             post_id: request.post_id,
@@ -536,10 +586,13 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
     ) -> Result<Uuid, AppError> {
         // Generate job ID upfront
         let job_id = Uuid::new_v4();
-        
+
         // Get model from request or use default
-        let model = request.model.clone().unwrap_or_else(|| DEFAULT_OPENAI_MODEL.to_string());
-        
+        let model = request
+            .model
+            .clone()
+            .unwrap_or_else(|| DEFAULT_OPENAI_MODEL.to_string());
+
         // Create job record in database
         let job = translation_jobs::ActiveModel {
             id: Set(job_id),
@@ -552,12 +605,12 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             created_at: Set(Utc::now().into()),
             updated_at: Set(Utc::now().into()),
         };
-        
+
         job.insert(self.db.as_ref()).await.map_err(|e| {
             tracing::error!("Failed to create translation job: {}", e);
             AppError::Db(e)
         })?;
-        
+
         tracing::info!(
             "Created translation job_id={} for post_id={} language={} model={}",
             job_id,
@@ -565,25 +618,27 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
             request.target_language_code,
             model
         );
-        
+
         // Clone necessary data for background task
         let db = self.db.clone();
         let vector_store = self.vector_store.clone();
         let post_id = request.post_id;
         let language_code = request.target_language_code.clone();
-        
+
         // Spawn background task for translation
         tokio::spawn(async move {
             // Update status to processing
-            if let Err(e) = Self::update_job_status(db.as_ref(), job_id, "processing", 10, None).await {
+            if let Err(e) =
+                Self::update_job_status(db.as_ref(), job_id, "processing", 10, None).await
+            {
                 tracing::error!("Failed to update job status to processing: {}", e);
             }
-            
-            let handler = PostTranslateHandler { 
-                db: db.clone(), 
-                vector_store 
+
+            let handler = PostTranslateHandler {
+                db: db.clone(),
+                vector_store,
             };
-            
+
             match handler.handle_translate_post(request, openai_api_key).await {
                 Ok(_) => {
                     tracing::info!(
@@ -593,7 +648,9 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                         language_code
                     );
                     // Update status to completed
-                    if let Err(e) = Self::update_job_status(db.as_ref(), job_id, "completed", 100, None).await {
+                    if let Err(e) =
+                        Self::update_job_status(db.as_ref(), job_id, "completed", 100, None).await
+                    {
                         tracing::error!("Failed to update job status to completed: {}", e);
                     }
                 }
@@ -607,13 +664,16 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
                         error_msg
                     );
                     // Update status to failed
-                    if let Err(e) = Self::update_job_status(db.as_ref(), job_id, "failed", 0, Some(error_msg)).await {
+                    if let Err(e) =
+                        Self::update_job_status(db.as_ref(), job_id, "failed", 0, Some(error_msg))
+                            .await
+                    {
                         tracing::error!("Failed to update job status to failed: {}", e);
                     }
                 }
             }
         });
-        
+
         Ok(job_id)
     }
 }
@@ -628,8 +688,12 @@ impl PostTranslateHandler {
         error_message: Option<String>,
     ) -> Result<(), AppError> {
         use translation_jobs::Entity;
-        
-        if let Some(job) = Entity::find_by_id(job_id).one(db).await.map_err(|e| AppError::Db(e))? {
+
+        if let Some(job) = Entity::find_by_id(job_id)
+            .one(db)
+            .await
+            .map_err(|e| AppError::Db(e))?
+        {
             let mut job: translation_jobs::ActiveModel = job.into();
             job.status = Set(status.to_string());
             job.progress = Set(progress);
@@ -637,29 +701,41 @@ impl PostTranslateHandler {
             job.updated_at = Set(Utc::now().into());
             job.update(db).await.map_err(|e| AppError::Db(e))?;
         }
-        
+
         Ok(())
     }
-    
+
     /// Checks if content appears to be HTML
     fn is_html_content(text: &str) -> bool {
-        text.contains('<') && text.contains('>') && 
-        (text.contains("<p") || text.contains("<div") || text.contains("<span") || 
-         text.contains("<h") || text.contains("<br") || text.contains("<li") ||
-         text.contains("<ul") || text.contains("<ol") || text.contains("<a"))
+        text.contains('<')
+            && text.contains('>')
+            && (text.contains("<p")
+                || text.contains("<div")
+                || text.contains("<span")
+                || text.contains("<h")
+                || text.contains("<br")
+                || text.contains("<li")
+                || text.contains("<ul")
+                || text.contains("<ol")
+                || text.contains("<a"))
     }
 
     /// Serializes HTML node to string
     fn serialize_node(handle: &Handle) -> String {
         use html5ever::serialize::{serialize, SerializeOpts, TraversalScope};
         use markup5ever_rcdom::SerializableHandle;
-        
+
         let mut bytes = Vec::new();
         let serializable = SerializableHandle::from(handle.clone());
-        serialize(&mut bytes, &serializable, SerializeOpts {
-            traversal_scope: TraversalScope::IncludeNode,
-            ..Default::default()
-        }).ok();
+        serialize(
+            &mut bytes,
+            &serializable,
+            SerializeOpts {
+                traversal_scope: TraversalScope::IncludeNode,
+                ..Default::default()
+            },
+        )
+        .ok();
         String::from_utf8_lossy(&bytes).to_string()
     }
 
@@ -677,14 +753,15 @@ impl PostTranslateHandler {
         // Process each top-level child node
         for child in dom.document.children.borrow().iter() {
             let serialized = Self::serialize_node(child);
-            
+
             // Skip if it's just the document type declaration or empty
             if serialized.trim().is_empty() || serialized.starts_with("<!DOCTYPE") {
                 continue;
             }
 
             // If adding this node would exceed size, start new chunk
-            if current_chunk.len() + serialized.len() > max_chunk_size && !current_chunk.is_empty() {
+            if current_chunk.len() + serialized.len() > max_chunk_size && !current_chunk.is_empty()
+            {
                 chunks.push(current_chunk.clone());
                 current_chunk.clear();
             }
@@ -699,13 +776,25 @@ impl PostTranslateHandler {
         // If no chunks were created (e.g., very large single element), fall back to simpler strategy
         if chunks.is_empty() && !html.is_empty() {
             // Try to split by block-level tags
-            let block_tags = ["</p>", "</div>", "</section>", "</article>", "</li>", "</h1>", "</h2>", "</h3>", "</h4>", "</h5>", "</h6>"];
-            
+            let block_tags = [
+                "</p>",
+                "</div>",
+                "</section>",
+                "</article>",
+                "</li>",
+                "</h1>",
+                "</h2>",
+                "</h3>",
+                "</h4>",
+                "</h5>",
+                "</h6>",
+            ];
+
             for tag in block_tags {
                 if html.contains(tag) {
                     let parts: Vec<&str> = html.split(tag).collect();
                     let mut temp_chunk = String::new();
-                    
+
                     for (i, part) in parts.iter().enumerate() {
                         let segment = if i < parts.len() - 1 {
                             format!("{}{}", part, tag)
@@ -713,7 +802,9 @@ impl PostTranslateHandler {
                             part.to_string()
                         };
 
-                        if temp_chunk.len() + segment.len() > max_chunk_size && !temp_chunk.is_empty() {
+                        if temp_chunk.len() + segment.len() > max_chunk_size
+                            && !temp_chunk.is_empty()
+                        {
                             chunks.push(temp_chunk.clone());
                             temp_chunk.clear();
                         }
@@ -723,13 +814,13 @@ impl PostTranslateHandler {
                     if !temp_chunk.is_empty() {
                         chunks.push(temp_chunk);
                     }
-                    
+
                     if !chunks.is_empty() {
                         return chunks;
                     }
                 }
             }
-            
+
             // Last resort: split into max_chunk_size pieces (may break HTML)
             for chunk in html.as_bytes().chunks(max_chunk_size) {
                 if let Ok(s) = std::str::from_utf8(chunk) {
@@ -746,10 +837,10 @@ impl PostTranslateHandler {
     fn chunk_text(text: &str, max_chunk_size: usize) -> Vec<String> {
         let mut chunks = Vec::new();
         let mut current_chunk = String::new();
-        
+
         // Split by sentences (simple approach using period, exclamation, question mark)
         let sentences: Vec<&str> = text.split_inclusive(&['.', '!', '?'][..]).collect();
-        
+
         for sentence in sentences {
             if current_chunk.len() + sentence.len() > max_chunk_size && !current_chunk.is_empty() {
                 chunks.push(current_chunk.clone());
@@ -757,11 +848,11 @@ impl PostTranslateHandler {
             }
             current_chunk.push_str(sentence);
         }
-        
+
         if !current_chunk.is_empty() {
             chunks.push(current_chunk);
         }
-        
+
         // If no chunks were created (no sentence terminators), chunk by size
         if chunks.is_empty() && !text.is_empty() {
             for chunk in text.as_bytes().chunks(max_chunk_size) {
@@ -770,7 +861,7 @@ impl PostTranslateHandler {
                 }
             }
         }
-        
+
         chunks
     }
 
@@ -783,35 +874,42 @@ impl PostTranslateHandler {
     ) -> Result<String, AppError> {
         // If content is small enough, translate directly
         if content.len() <= MAX_CHUNK_SIZE {
-            return Self::translate_text_internal(client, content, target_language, "content", model).await;
+            return Self::translate_text_internal(
+                client,
+                content,
+                target_language,
+                "content",
+                model,
+            )
+            .await;
         }
-        
+
         // Determine if content is HTML and chunk accordingly
         let chunks = if Self::is_html_content(content) {
             Self::chunk_html_content(content, MAX_CHUNK_SIZE)
         } else {
             Self::chunk_text(content, MAX_CHUNK_SIZE)
         };
-        
+
         let total_chunks = chunks.len();
-        
+
         tracing::info!(
             "Translating large content: {} characters split into {} chunks (max {} chars per chunk)",
             content.len(),
             total_chunks,
             MAX_CHUNK_SIZE
         );
-        
+
         // Translate chunks in parallel using JoinSet
         let mut join_set = JoinSet::new();
-        
+
         for (index, chunk) in chunks.into_iter().enumerate() {
             let client_clone = client.clone();
             let target_language = target_language.to_string();
             let model = model.to_string();
             let is_html = Self::is_html_content(&chunk);
             let chunk_size = chunk.len();
-            
+
             tracing::debug!(
                 "Spawning translation task for chunk {}/{} ({} characters, {})",
                 index + 1,
@@ -819,17 +917,21 @@ impl PostTranslateHandler {
                 chunk_size,
                 if is_html { "HTML" } else { "text" }
             );
-            
+
             join_set.spawn(async move {
                 let config = client_clone.config().clone();
                 let new_client = Client::with_config(config);
-                
+
                 let system_message = ChatCompletionRequestSystemMessageArgs::default()
                     .content(format!(
                         "You are a professional translator. Translate the following {} to {}. {}",
                         if is_html { "HTML content" } else { "text" },
                         target_language,
-                        if is_html { TRANSLATION_INSTRUCTION_HTML } else { TRANSLATION_INSTRUCTION_TEXT }
+                        if is_html {
+                            TRANSLATION_INSTRUCTION_HTML
+                        } else {
+                            TRANSLATION_INSTRUCTION_TEXT
+                        }
                     ))
                     .build()
                     .map_err(|e| AppError::OpenAIError(e.to_string()))?;
@@ -885,7 +987,7 @@ impl PostTranslateHandler {
                 Ok::<(usize, String), AppError>((index, translated_text))
             });
         }
-        
+
         // Collect results in order
         let mut translated_chunks: Vec<(usize, String)> = Vec::new();
         while let Some(result) = join_set.join_next().await {
@@ -898,28 +1000,28 @@ impl PostTranslateHandler {
                 Err(e) => return Err(AppError::OpenAIError(format!("Task join error: {}", e))),
             }
         }
-        
+
         // Sort by original index to maintain order
         translated_chunks.sort_by_key(|(index, _)| *index);
-        
+
         tracing::info!(
             "✓ All {} chunks translated successfully, combining results",
             translated_chunks.len()
         );
-        
+
         // Combine chunks
         let combined = translated_chunks
             .into_iter()
             .map(|(_, text)| text)
             .collect::<Vec<String>>()
-            .join("");  // For HTML, no separator needed
-        
+            .join(""); // For HTML, no separator needed
+
         tracing::info!(
             "✓ Final translation complete: {} characters (from original {} characters)",
             combined.len(),
             content.len()
         );
-        
+
         Ok(combined)
     }
 
@@ -987,13 +1089,13 @@ impl PostTranslateHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
     use std::sync::Arc;
     use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
     use wiremock::{
         matchers::{method, path},
         Mock, MockServer, ResponseTemplate,
     };
-    use serde_json::json;
 
     use crate::commands::{
         category::{
@@ -1032,7 +1134,7 @@ mod tests {
                 "total_tokens": 30
             }
         });
-        
+
         ResponseTemplate::new(200).set_body_json(response_body)
     }
 
@@ -1045,7 +1147,7 @@ mod tests {
 
         // Setup mock OpenAI server
         let mock_server = setup_mock_openai_server().await;
-        
+
         // Mock the chat completions endpoint
         Mock::given(method("POST"))
             .and(path("/chat/completions"))
@@ -1053,7 +1155,7 @@ mod tests {
             .expect(1) // Expect one call for title
             .mount(&mock_server)
             .await;
-        
+
         Mock::given(method("POST"))
             .and(path("/chat/completions"))
             .respond_with(create_mock_translation_response("Nội dung đã dịch"))
@@ -1086,13 +1188,14 @@ mod tests {
             vector_store: None,
             db: arc_conn.clone(),
         };
-        
-        let _translate_request = TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
-        
+
+        let _translate_request =
+            TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
+
         // Use mock server URL as API base (this requires modifying OpenAI client config)
         // For now, this test demonstrates the structure
         // In production, you'd need to use dependency injection for the OpenAI client
-        
+
         // Note: The actual test would require modifying the handler to accept a custom
         // OpenAI client or base URL for testing purposes
     }
@@ -1144,9 +1247,10 @@ mod tests {
             vector_store: None,
             db: arc_conn.clone(),
         };
-        
-        let translate_request = TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
-        
+
+        let translate_request =
+            TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
+
         // This should return the cached translation without calling OpenAI
         // (we can test this by not providing an API key or using a mock that expects 0 calls)
         let result = translate_handler
@@ -1168,8 +1272,12 @@ mod tests {
         assert!(PostTranslateHandler::is_html_content("<p>Test</p>"));
         assert!(PostTranslateHandler::is_html_content("<div>Content</div>"));
         assert!(PostTranslateHandler::is_html_content("<h1>Title</h1>"));
-        assert!(!PostTranslateHandler::is_html_content("Plain text without tags"));
-        assert!(!PostTranslateHandler::is_html_content("Text with < and > but not tags"));
+        assert!(!PostTranslateHandler::is_html_content(
+            "Plain text without tags"
+        ));
+        assert!(!PostTranslateHandler::is_html_content(
+            "Text with < and > but not tags"
+        ));
     }
 
     #[async_std::test]
@@ -1177,7 +1285,7 @@ mod tests {
         // Test chunking with sentence boundaries
         let text = "First sentence. Second sentence. Third sentence.";
         let chunks = PostTranslateHandler::chunk_text(text, 25);
-        
+
         assert!(chunks.len() > 1);
         for chunk in &chunks {
             assert!(chunk.len() <= 25 || !chunk.contains('.'));
@@ -1189,10 +1297,10 @@ mod tests {
         // Test HTML chunking
         let html = "<p>First paragraph.</p><div>Second paragraph.</div>";
         let chunks = PostTranslateHandler::chunk_html_content(html, 30);
-        
+
         // Should split at element boundaries
         assert!(chunks.len() >= 1);
-        
+
         // Each chunk should have complete tags
         for chunk in &chunks {
             let open_tags = chunk.matches('<').count();
@@ -1232,9 +1340,10 @@ mod tests {
             vector_store: None,
             db: arc_conn.clone(),
         };
-        
-        let translate_request = TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
-        
+
+        let translate_request =
+            TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
+
         // Test background translation (should return immediately with translation ID)
         let result = translate_handler
             .handle_translate_post_background(translate_request, "fake-api-key".to_string())
@@ -1279,15 +1388,16 @@ mod tests {
             vector_store: None,
             db: arc_conn.clone(),
         };
-        let translate_request = TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
-        
+        let translate_request =
+            TranslatePostRequest::new(created_post_id, "Vietnamese".to_string());
+
         // This requires a real API key to work
         let api_key = std::env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set");
         let result = translate_handler
             .handle_translate_post(translate_request, api_key)
             .await
             .unwrap();
-        
+
         assert_eq!(result.post_id, created_post_id);
         assert_eq!(result.language_code, "Vietnamese");
         assert!(!result.translated_title.is_empty());
@@ -1324,10 +1434,10 @@ mod tests {
             vector_store: None,
             db: arc_conn.clone(),
         };
-        
+
         let mut translate_request = TranslatePostRequest::new(created_post_id, "vi".to_string());
         translate_request = translate_request.with_model("gpt-4o-mini".to_string());
-        
+
         // Start background translation
         let job_id = translate_handler
             .handle_translate_post_background(translate_request, "fake-api-key".to_string())
@@ -1381,7 +1491,7 @@ mod tests {
         // Create a test job record
         use crate::entities::translation_jobs;
         let job_id = Uuid::new_v4();
-        
+
         let job = translation_jobs::ActiveModel {
             id: sea_orm::Set(job_id),
             post_id: sea_orm::Set(post_id),
@@ -1400,15 +1510,9 @@ mod tests {
             .unwrap();
 
         // Update job status
-        PostTranslateHandler::update_job_status(
-            arc_conn.as_ref(),
-            job_id,
-            "processing",
-            50,
-            None,
-        )
-        .await
-        .unwrap();
+        PostTranslateHandler::update_job_status(arc_conn.as_ref(), job_id, "processing", 50, None)
+            .await
+            .unwrap();
 
         // Verify status was updated
         let updated_job = translation_jobs::Entity::find_by_id(job_id)
@@ -1421,15 +1525,9 @@ mod tests {
         assert_eq!(updated_job.progress, 50);
 
         // Update to completed
-        PostTranslateHandler::update_job_status(
-            arc_conn.as_ref(),
-            job_id,
-            "completed",
-            100,
-            None,
-        )
-        .await
-        .unwrap();
+        PostTranslateHandler::update_job_status(arc_conn.as_ref(), job_id, "completed", 100, None)
+            .await
+            .unwrap();
 
         let completed_job = translation_jobs::Entity::find_by_id(job_id)
             .one(arc_conn.as_ref())
@@ -1469,7 +1567,7 @@ mod tests {
         // Create a test job record
         use crate::entities::translation_jobs;
         let job_id = Uuid::new_v4();
-        
+
         let job = translation_jobs::ActiveModel {
             id: sea_orm::Set(job_id),
             post_id: sea_orm::Set(post_id),
@@ -1540,16 +1638,17 @@ mod tests {
         // Test with different models
         let models = vec!["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"];
         let languages = vec!["vi", "ja", "ko"]; // Use short language codes (max 10 chars)
-        
+
         for (i, model) in models.iter().enumerate() {
             let translate_handler = PostTranslateHandler {
                 vector_store: None,
                 db: arc_conn.clone(),
             };
-            
-            let translate_request = TranslatePostRequest::new(created_post_id, languages[i].to_string())
-                .with_model(model.to_string());
-            
+
+            let translate_request =
+                TranslatePostRequest::new(created_post_id, languages[i].to_string())
+                    .with_model(model.to_string());
+
             // Start background translation
             let job_id = translate_handler
                 .handle_translate_post_background(translate_request, "fake-api-key".to_string())
@@ -1595,10 +1694,10 @@ mod tests {
             .handle_create_post(create_post_request, None)
             .await
             .unwrap();
-        
+
         // Create multiple jobs with different statuses
         use crate::entities::translation_jobs;
-        
+
         let jobs_data = vec![
             ("pending", 0, "vi"),
             ("processing", 50, "ja"),
@@ -1629,8 +1728,9 @@ mod tests {
         let active_jobs = translation_jobs::Entity::find()
             .filter(translation_jobs::Column::PostId.eq(post_id))
             .filter(
-                translation_jobs::Column::Status.eq("pending")
-                    .or(translation_jobs::Column::Status.eq("processing"))
+                translation_jobs::Column::Status
+                    .eq("pending")
+                    .or(translation_jobs::Column::Status.eq("processing")),
             )
             .all(arc_conn.as_ref())
             .await
@@ -1638,7 +1738,7 @@ mod tests {
 
         // Should have 2 active jobs (pending and processing)
         assert_eq!(active_jobs.len(), 2);
-        
+
         for job in active_jobs {
             assert!(job.status == "pending" || job.status == "processing");
         }
@@ -1701,11 +1801,11 @@ mod tests {
             vector_store: None,
             db: arc_conn.clone(),
         };
-        
+
         let translate_request = TranslatePostRequest::new(created_post_id, "vi".to_string())
             .with_force_retranslate(true)
             .with_model("gpt-4o".to_string());
-        
+
         let job_id = translate_handler
             .handle_translate_post_background(translate_request, "fake-api-key".to_string())
             .await

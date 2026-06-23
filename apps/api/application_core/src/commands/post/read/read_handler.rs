@@ -1,20 +1,20 @@
 use sea_orm::{
-    prelude::DateTimeWithTimeZone, sea_query::Expr, ActiveEnum, ColumnTrait, DatabaseConnection, EntityTrait, JoinType, QueryFilter, QuerySelect, QueryTrait, RelationTrait
+    prelude::DateTimeWithTimeZone, sea_query::Expr, ActiveEnum, ColumnTrait, DatabaseConnection,
+    EntityTrait, JoinType, QueryFilter, QuerySelect, QueryTrait, RelationTrait,
 };
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 use std::collections::HashMap;
+use std::sync::Arc;
 use tracing::instrument;
 use uuid::Uuid;
 
 use crate::{
     common::app_error::AppError,
     entities::{
-        categories,
+        categories, post_translations,
         posts::{self, Model},
         sea_orm_active_enums::CategoryType,
         tags,
-        post_translations,
     },
     Posts, Tags,
 };
@@ -137,18 +137,19 @@ impl PostReadHandlerTrait for PostReadHandler {
         let post_ids: Vec<Uuid> = db_result.iter().map(|(post, _)| post.id).collect();
 
         // Fetch all translations for the collected post IDs
-        let translations_map: HashMap<Uuid, Vec<post_translations::Model>> = post_translations::Entity::find()
-            .filter(post_translations::Column::PostId.is_in(post_ids.clone()))
-            .all(self.db.as_ref())
-            .await
-            .map_err(|e| e.into())?
-            .into_iter()
-            .fold(HashMap::new(), |mut acc, translation| {
-                acc.entry(translation.post_id)
-                    .or_insert_with(Vec::new)
-                    .push(translation);
-                acc
-            });
+        let translations_map: HashMap<Uuid, Vec<post_translations::Model>> =
+            post_translations::Entity::find()
+                .filter(post_translations::Column::PostId.is_in(post_ids.clone()))
+                .all(self.db.as_ref())
+                .await
+                .map_err(|e| e.into())?
+                .into_iter()
+                .fold(HashMap::new(), |mut acc, translation| {
+                    acc.entry(translation.post_id)
+                        .or_insert_with(Vec::new)
+                        .push(translation);
+                    acc
+                });
 
         // Build the response
         let response = db_result
