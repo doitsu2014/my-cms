@@ -237,6 +237,8 @@ async fn construct_app_state() -> AppState {
     let conn = Database::connect(&database_url).await.unwrap();
 
     let supabase_url = env::var("SUPABASE_URL").expect("SUPABASE_URL must be set");
+    let supabase_internal_url =
+        env::var("SUPABASE_INTERNAL_URL").unwrap_or_else(|_| supabase_url.clone());
     let supabase_anon_key = env::var("SUPABASE_ANON_KEY").expect("SUPABASE_ANON_KEY must be set");
     let supabase_service_role_key =
         env::var("SUPABASE_SERVICE_ROLE_KEY").expect("SUPABASE_SERVICE_ROLE_KEY must be set");
@@ -248,14 +250,14 @@ async fn construct_app_state() -> AppState {
     let media_base_url = env::var("MEDIA_BASE_URL").unwrap_or(format!("http://{}:{}", host, port));
 
     let storage = SupabaseStorage::new(
-        supabase_url.clone(),
+        supabase_internal_url.clone(),
         supabase_anon_key,
         Some(supabase_service_role_key.clone()),
         supabase_storage_bucket,
     );
 
     let supabase_admin_client = Arc::new(SupabaseAdminClient::new(
-        supabase_url,
+        supabase_internal_url,
         supabase_service_role_key,
     ));
 
@@ -280,10 +282,12 @@ fn construct_supabase_auth_layer(
     required_roles: Vec<String>,
 ) -> SupabaseAuthLayer {
     let supabase_url = env::var("SUPABASE_URL").expect("SUPABASE_URL must be set");
+    let supabase_internal_url =
+        env::var("SUPABASE_INTERNAL_URL").unwrap_or_else(|_| supabase_url.clone());
     let jwt_secret = env::var("SUPABASE_JWT_SECRET").expect("SUPABASE_JWT_SECRET must be set");
 
     SupabaseAuthLayer::new(SupabaseAuthConfig {
-        supabase_url,
+        supabase_url: supabase_internal_url,
         jwt_secret,
         expected_audience,
         required_roles,
