@@ -122,12 +122,23 @@ impl SupabaseAdminClient {
 
     pub async fn create_user(&self, req: &CreateUserRequest) -> Result<AppUserModel, AppError> {
         let url = format!("{}/users", self.admin_base_url());
-        let body = serde_json::json!({
+        let mut body = serde_json::json!({
             "email": req.email,
             "password": req.password,
             "email_confirm": true,
             "app_metadata": { "roles": [req.role] },
         });
+        if let Some(full_name) = req.full_name.as_deref().filter(|s| !s.is_empty()) {
+            body.as_object_mut().unwrap().insert(
+                "user_metadata".to_string(),
+                serde_json::json!({ "full_name": full_name }),
+            );
+        }
+        if let Some(phone) = req.phone.as_deref().filter(|s| !s.is_empty()) {
+            body.as_object_mut()
+                .unwrap()
+                .insert("phone".to_string(), Value::String(phone.to_string()));
+        }
         let response = self
             .client
             .post(&url)
@@ -190,6 +201,15 @@ impl SupabaseAdminClient {
             }
             None => {}
         }
+        if let Some(full_name) = req.full_name.as_deref().filter(|s| !s.is_empty()) {
+            body.insert(
+                "user_metadata".to_string(),
+                serde_json::json!({ "full_name": full_name }),
+            );
+        }
+        if let Some(phone) = req.phone.as_deref().filter(|s| !s.is_empty()) {
+            body.insert("phone".to_string(), Value::String(phone.to_string()));
+        }
 
         let response = self
             .client
@@ -241,6 +261,33 @@ impl SupabaseAdminClient {
         }
         if !status.is_success() {
             return Err(map_gotrue_error(status, response, "GoTrue delete user").await);
+        }
+
+        Ok(())
+    }
+
+    pub async fn reset_password(&self, id: Uuid, new_password: &str) -> Result<(), AppError> {
+        let url = format!("{}/users/{}", self.admin_base_url(), id);
+        let body = serde_json::json!({ "password": new_password });
+        let response = self
+            .client
+            .put(&url)
+            .bearer_auth(self.auth_key())
+            .header("apikey", self.auth_key())
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .body(body.to_string())
+            .send()
+            .await
+            .map_err(|e| {
+                AppError::StorageError(format!("GoTrue reset password request failed: {}", e))
+            })?;
+
+        let status = response.status();
+        if status == StatusCode::NOT_FOUND {
+            return Err(AppError::NotFound);
+        }
+        if !status.is_success() {
+            return Err(map_gotrue_error(status, response, "GoTrue reset password").await);
         }
 
         Ok(())
@@ -299,6 +346,10 @@ struct GoTrueUserResponse {
     #[serde(default)]
     app_metadata: Value,
     #[serde(default)]
+    user_metadata: Value,
+    #[serde(default)]
+    phone: Option<String>,
+    #[serde(default)]
     banned_until: Option<String>,
     created_at: String,
     updated_at: String,
@@ -316,6 +367,15 @@ fn parse_gotrue_user(raw: GoTrueUserResponse) -> Option<AppUserModel> {
         .and_then(|v| v.as_str())
         .filter(|r| crate::commands::user::dto::is_recognised_role(r))
         .map(|s| s.to_string());
+
+    let full_name = raw
+        .user_metadata
+        .get("full_name")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string())
+        .filter(|s| !s.is_empty());
+
+    let phone = raw.phone.filter(|s| !s.is_empty());
 
     let banned = raw
         .banned_until
@@ -339,6 +399,8 @@ fn parse_gotrue_user(raw: GoTrueUserResponse) -> Option<AppUserModel> {
     Some(AppUserModel {
         id: raw.id,
         email,
+        full_name,
+        phone,
         role,
         banned,
         created_at,
@@ -469,6 +531,8 @@ mod tests {
             email: "bob@example.com".to_string(),
             password: "supersecret".to_string(),
             role: "my-headless-cms-writer".to_string(),
+            full_name: None,
+            phone: None,
         };
         let user = client.create_user(&req).await.expect("create ok");
         assert_eq!(user.email, "bob@example.com");
@@ -568,6 +632,8 @@ mod tests {
             email: "x@example.com".to_string(),
             password: "supersecret".to_string(),
             role: "my-headless-cms-writer".to_string(),
+            full_name: None,
+            phone: None,
         };
         let err = client.create_user(&req).await.expect_err("expected error");
         let msg = format!("{}", err);

@@ -4,7 +4,8 @@ use crate::{
     commands::user::{
         create::create_request::CreateUserRequest,
         dto::{
-            is_recognised_role, sanitise_email, AppUserModel, CreateUserResponse, RECOGNISED_ROLES,
+            is_recognised_role, sanitise_email, validate_full_name, validate_phone, AppUserModel,
+            CreateUserResponse, RECOGNISED_ROLES,
         },
         supabase_admin_client::SupabaseAdminClient,
     },
@@ -51,11 +52,27 @@ impl CreateUserHandlerTrait for CreateUserHandler {
                 format!("Role must be one of: {}", RECOGNISED_ROLES.join(", ")),
             ));
         }
+        let full_name = match req.full_name.as_deref().map(str::trim) {
+            Some("") | None => None,
+            Some(value) => {
+                validate_full_name(value)?;
+                Some(value.to_string())
+            }
+        };
+        let phone = match req.phone.as_deref().map(str::trim) {
+            Some("") | None => None,
+            Some(value) => {
+                validate_phone(value)?;
+                Some(value.to_string())
+            }
+        };
 
         let normalised = CreateUserRequest {
             email,
             password: req.password.clone(),
             role: req.role.clone(),
+            full_name,
+            phone,
         };
         let user: AppUserModel = self.supabase.create_user(&normalised).await?;
 
@@ -114,6 +131,8 @@ mod tests {
             email: "ALICE@Example.com".to_string(),
             password: "supersecret".to_string(),
             role: "my-headless-cms-writer".to_string(),
+            full_name: None,
+            phone: None,
         };
         let result = handler
             .handle_create_user(req, "actor-1")
@@ -132,6 +151,8 @@ mod tests {
             email: "alice@example.com".to_string(),
             password: "short".to_string(),
             role: "my-headless-cms-writer".to_string(),
+            full_name: None,
+            phone: None,
         };
         let err = handler
             .handle_create_user(req, "actor-1")
@@ -147,6 +168,8 @@ mod tests {
             email: "alice@example.com".to_string(),
             password: "supersecret".to_string(),
             role: "made-up-role".to_string(),
+            full_name: None,
+            phone: None,
         };
         let err = handler
             .handle_create_user(req, "actor-1")
@@ -169,6 +192,8 @@ mod tests {
             email: "alice@example.com".to_string(),
             password: "supersecret".to_string(),
             role: "my-headless-cms-writer".to_string(),
+            full_name: None,
+            phone: None,
         };
         let err = handler
             .handle_create_user(req, "actor-1")

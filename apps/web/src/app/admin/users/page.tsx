@@ -311,6 +311,8 @@ export default function AdminUsersListPage() {
                     Email
                     <SortIcon columnKey="email" />
                   </th>
+                  <th>Full name</th>
+                  <th>Phone</th>
                   <th
                     className="cursor-pointer hover:bg-base-200 transition-colors"
                     onClick={() => sortBy('role')}
@@ -347,6 +349,12 @@ export default function AdminUsersListPage() {
                             <span className="badge badge-outline badge-sm">You</span>
                           )}
                         </div>
+                      </td>
+                      <td className="text-base-content/80">
+                        {user.fullName ?? <span className="text-base-content/40">—</span>}
+                      </td>
+                      <td className="text-base-content/80">
+                        {user.phone ?? <span className="text-base-content/40">—</span>}
                       </td>
                       <td>
                         <span className={`badge badge-sm ${getRoleBadgeClass(user.role)}`}>

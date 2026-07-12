@@ -6,19 +6,37 @@ import { toast } from 'sonner';
 import {
   createUserSchema,
   modifyUserSchema,
+  resetPasswordSchema,
   type CreateUserFormData,
   type ModifyUserFormData,
+  type ResetPasswordFormData,
 } from '@/schemas/user.schema';
-import { UserRoleEnum, type AppUserModel, type UserRole } from '@/domains/user';
+import {
+  UserRoleEnum,
+  type AppUserModel,
+  type UserRole,
+} from '@/domains/user';
 import { getApiUrl, authenticatedFetch } from '@/config/api.config';
 import { useAuth } from '@/auth/AuthContext';
-import { Save, X, User as UserIcon, Mail, KeyRound, Shield, ShieldOff } from 'lucide-react';
+import {
+  Save,
+  X,
+  User as UserIcon,
+  Mail,
+  KeyRound,
+  Shield,
+  ShieldOff,
+  Phone,
+  IdCard,
+} from 'lucide-react';
 
 type UserFormValues = {
   email: string;
   password: string;
   role: UserRole;
   banned: boolean;
+  fullName: string;
+  phone: string;
 };
 
 export default function UserForm({ id }: { id?: string }) {
@@ -26,6 +44,9 @@ export default function UserForm({ id }: { id?: string }) {
   const { token } = useAuth();
   const [fetchingData, setFetchingData] = useState(false);
   const [fabOpen, setFabOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetting, setResetting] = useState(false);
   const isEdit = Boolean(id);
 
   const {
@@ -43,6 +64,8 @@ export default function UserForm({ id }: { id?: string }) {
       password: '',
       role: UserRoleEnum.Writer,
       banned: false,
+      fullName: '',
+      phone: '',
     },
   });
 
@@ -67,6 +90,8 @@ export default function UserForm({ id }: { id?: string }) {
               password: '',
               role: (res.data.role ?? UserRoleEnum.Writer) as UserRole,
               banned: res.data.banned,
+              fullName: res.data.fullName ?? '',
+              phone: res.data.phone ?? '',
             });
           } else {
             toast.error('Failed to load user');
@@ -86,6 +111,8 @@ export default function UserForm({ id }: { id?: string }) {
         password: '',
         role: UserRoleEnum.Writer,
         banned: false,
+        fullName: '',
+        phone: '',
       });
     }
   }, [id, reset, token]);
@@ -97,6 +124,8 @@ export default function UserForm({ id }: { id?: string }) {
           email: data.email,
           role: data.role,
           banned: data.banned,
+          fullName: data.fullName || undefined,
+          phone: data.phone || undefined,
         };
 
         const updateResponse = await authenticatedFetch(
@@ -124,6 +153,8 @@ export default function UserForm({ id }: { id?: string }) {
           email: data.email,
           password: data.password,
           role: data.role,
+          fullName: data.fullName || undefined,
+          phone: data.phone || undefined,
         };
 
         const createResponse = await authenticatedFetch(
@@ -156,6 +187,45 @@ export default function UserForm({ id }: { id?: string }) {
     }
   };
 
+  const onResetPassword = async () => {
+    const parsed = resetPasswordSchema.safeParse({ password: resetPassword });
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? 'Invalid password');
+      return;
+    }
+    if (!id) return;
+    try {
+      setResetting(true);
+      const response = await authenticatedFetch(
+        getApiUrl(`/users/${id}/reset-password`),
+        token,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: parsed.data.password }),
+        },
+      );
+      if (response.ok) {
+        const res: { data: { temporaryPassword: string } } = await response.json();
+        toast.success(
+          `Password reset. Share this securely: ${res.data.temporaryPassword}`,
+          { duration: 30000 },
+        );
+        setResetOpen(false);
+        setResetPassword('');
+        navigate('/admin/users');
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData?.message ?? 'Failed to reset password');
+      }
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      toast.error('Network error. Please try again.');
+    } finally {
+      setResetting(false);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full">
       <div className="card bg-base-100 shadow-lg border-t-4 border-t-primary hover:shadow-xl transition-shadow duration-300">
@@ -168,8 +238,8 @@ export default function UserForm({ id }: { id?: string }) {
               <h2 className="card-title text-lg">Account Information</h2>
               <p className="text-sm text-base-content/60">
                 {isEdit
-                  ? 'Update email, role, and ban status for this user'
-                  : 'Set the email, initial password, and role for this user'}
+                  ? 'Update email, profile, role, and ban status for this user'
+                  : 'Set the email, initial password, profile, and role for this user'}
               </p>
             </div>
           </div>
@@ -223,6 +293,49 @@ export default function UserForm({ id }: { id?: string }) {
 
             <label className="form-control w-full">
               <div className="label">
+                <span className="label-text font-medium">Full name</span>
+              </div>
+              <div className="relative">
+                <IdCard className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none" />
+                <input
+                  type="text"
+                  {...register('fullName')}
+                  className={`input input-bordered w-full pl-10 focus:input-primary ${errors.fullName ? 'input-error' : ''}`}
+                  placeholder="Alice Example"
+                  disabled={isLoading}
+                  maxLength={120}
+                />
+              </div>
+              {errors.fullName && (
+                <div className="label">
+                  <span className="label-text-alt text-error">{errors.fullName.message}</span>
+                </div>
+              )}
+            </label>
+
+            <label className="form-control w-full">
+              <div className="label">
+                <span className="label-text font-medium">Phone</span>
+              </div>
+              <div className="relative">
+                <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none" />
+                <input
+                  type="tel"
+                  {...register('phone')}
+                  className={`input input-bordered w-full pl-10 focus:input-primary ${errors.phone ? 'input-error' : ''}`}
+                  placeholder="+1 555-0100"
+                  disabled={isLoading}
+                />
+              </div>
+              {errors.phone && (
+                <div className="label">
+                  <span className="label-text-alt text-error">{errors.phone.message}</span>
+                </div>
+              )}
+            </label>
+
+            <label className="form-control w-full">
+              <div className="label">
                 <span className="label-text font-medium">Role</span>
               </div>
               <select
@@ -241,7 +354,7 @@ export default function UserForm({ id }: { id?: string }) {
             </label>
 
             {isEdit && (
-              <label className="form-control w-full">
+              <div className="form-control w-full">
                 <div className="label">
                   <span className="label-text font-medium">Status</span>
                 </div>
@@ -266,11 +379,86 @@ export default function UserForm({ id }: { id?: string }) {
                     <span className="label-text-alt text-error">{errors.banned.message}</span>
                   </div>
                 )}
-              </label>
+              </div>
             )}
           </div>
+
+          {isEdit && (
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                className="btn btn-outline btn-warning gap-2"
+                onClick={() => setResetOpen(true)}
+                disabled={isLoading}
+              >
+                <KeyRound className="w-4 h-4" />
+                Reset password
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      <dialog className={`modal ${resetOpen ? 'modal-open' : ''}`}>
+        <div className="modal-box">
+          <h3 className="font-bold text-lg">Reset password</h3>
+          <p className="py-2 text-sm text-base-content/60">
+            Set a new password for this user. You will see it once after submission; share it
+            with the user out-of-band.
+          </p>
+          <label className="form-control w-full">
+            <div className="label">
+              <span className="label-text font-medium">New password</span>
+            </div>
+            <input
+              type="password"
+              className="input input-bordered w-full"
+              placeholder="At least 8 characters"
+              value={resetPassword}
+              onChange={(e) => setResetPassword(e.target.value)}
+              disabled={resetting}
+            />
+          </label>
+          <div className="modal-action">
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => {
+                setResetOpen(false);
+                setResetPassword('');
+              }}
+              disabled={resetting}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-warning"
+              onClick={onResetPassword}
+              disabled={resetting}
+            >
+              {resetting ? (
+                <>
+                  <span className="loading loading-spinner loading-sm"></span>
+                  Resetting...
+                </>
+              ) : (
+                'Reset password'
+              )}
+            </button>
+          </div>
+        </div>
+        <form
+          method="dialog"
+          className="modal-backdrop"
+          onClick={() => {
+            setResetOpen(false);
+            setResetPassword('');
+          }}
+        >
+          <button>close</button>
+        </form>
+      </dialog>
 
       <div className="fixed bottom-8 right-8 z-50 flex flex-col items-center gap-3">
         <div className={`flex flex-col items-center gap-3 transition-all duration-300 ${fabOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>

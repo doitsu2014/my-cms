@@ -7,6 +7,8 @@ export type UserRole = typeof UserRoleEnum[keyof typeof UserRoleEnum];
 export interface AppUserModel {
   id: string;
   email: string;
+  fullName: string | null;
+  phone: string | null;
   role: UserRole | null;
   banned: boolean;
   createdAt: string;
@@ -18,6 +20,8 @@ export interface CreateUserRequest {
   email: string;
   password: string;
   role: UserRole;
+  fullName?: string | null;
+  phone?: string | null;
 }
 
 export interface CreateUserResponse {
@@ -29,4 +33,14 @@ export interface ModifyUserRequest {
   email?: string;
   role?: UserRole;
   banned?: boolean;
+  fullName?: string | null;
+  phone?: string | null;
+}
+
+export interface ResetPasswordRequest {
+  password: string;
+}
+
+export interface ResetPasswordResponse {
+  temporaryPassword: string;
 }

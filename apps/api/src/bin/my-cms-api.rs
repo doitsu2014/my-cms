@@ -213,13 +213,17 @@ pub async fn protected_administrator_router() -> Router {
         .route(
             "/users",
             get(api::user::read_list::read_list_handler::api_list_users)
-                .post(api::user::create::create_handler::api_create_user)
+                .post(api::user::create::create_handler::api_create_user),
+        )
+        .route(
+            "/users/{user_id}",
+            get(api::user::read_one::read_one_handler::api_get_user)
                 .put(api::user::modify::modify_handler::api_modify_user)
                 .delete(api::user::delete::delete_handler::api_delete_user),
         )
         .route(
-            "/users/{user_id}",
-            get(api::user::read_one::read_one_handler::api_get_user),
+            "/users/{user_id}/reset-password",
+            post(api::user::reset_password::reset_password_handler::api_reset_password),
         )
         .layer(construct_supabase_auth_layer(
             env::var("AUTHORIZATION_AUDIENCE").unwrap_or("authenticated".to_string()),

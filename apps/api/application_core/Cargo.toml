@@ -46,6 +46,7 @@ moka = { version = "0.12.15", features = ["future"] }
 async-openai = "0.27"
 html5ever = "0.27"
 markup5ever_rcdom = "0.3"
+regex = "1"
 
 [dev-dependencies]
 sea-orm-migration = "1.1.20"

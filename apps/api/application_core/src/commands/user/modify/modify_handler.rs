@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use crate::{
     commands::user::{
-        dto::{is_recognised_role, sanitise_email, AppUserModel, RECOGNISED_ROLES},
+        dto::{
+            is_recognised_role, sanitise_email, validate_full_name, validate_phone, AppUserModel,
+            RECOGNISED_ROLES,
+        },
         modify::modify_request::ModifyUserRequest,
         supabase_admin_client::SupabaseAdminClient,
     },
@@ -50,11 +53,23 @@ impl ModifyUserHandlerTrait for ModifyUserHandler {
                 ));
             }
         }
+        if let Some(ref full_name) = req.full_name {
+            if !full_name.is_empty() {
+                validate_full_name(full_name)?;
+            }
+        }
+        if let Some(ref phone) = req.phone {
+            if !phone.is_empty() {
+                validate_phone(phone)?;
+            }
+        }
 
         let normalised = ModifyUserRequest {
             email: req.email.as_ref().map(|e| sanitise_email(e)),
             role: req.role.clone(),
             banned: req.banned,
+            full_name: req.full_name.clone(),
+            phone: req.phone.clone(),
         };
 
         let user = self.supabase.update_user(id, &normalised).await?;
@@ -97,6 +112,8 @@ mod tests {
             email: None,
             role: Some("made-up-role".to_string()),
             banned: None,
+            full_name: None,
+            phone: None,
         };
         let err = handler
             .handle_modify_user(id, req, "actor-1")
@@ -122,6 +139,8 @@ mod tests {
             email: None,
             role: Some("my-headless-cms-writer".to_string()),
             banned: None,
+            full_name: None,
+            phone: None,
         };
         let err = handler
             .handle_modify_user(id, req, "actor-1")
@@ -155,6 +174,8 @@ mod tests {
             email: None,
             role: None,
             banned: Some(true),
+            full_name: None,
+            phone: None,
         };
         let user = handler
             .handle_modify_user(id, req, "actor-1")
