@@ -9,7 +9,10 @@ use application_core::commands::ai::models::{ModelsHandler, ModelsHandlerTrait};
 
 pub async fn api_get_openai_models(
     State(_state): State<AppState>,
-) -> Result<Json<ApiResponseWith<application_core::commands::ai::models::ModelsListResponse>>, Json<ApiResponseError>> {
+) -> Result<
+    Json<ApiResponseWith<application_core::commands::ai::models::ModelsListResponse>>,
+    Json<ApiResponseError>,
+> {
     let openai_api_key = match env::var("OPENAI_API_KEY") {
         Ok(key) => key,
         Err(_) => {

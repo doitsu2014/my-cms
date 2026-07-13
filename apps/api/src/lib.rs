@@ -7,6 +7,7 @@ use application_core::commands::media::{
     read::read_handler::{CachedMedia, MediaCacheKey},
     MediaConfig,
 };
+use application_core::commands::user::supabase_admin_client::SupabaseAdminClient;
 use async_graphql::dynamic::*;
 pub use common::*;
 use moka::future::Cache;
@@ -22,6 +23,7 @@ pub struct AppState {
     pub media_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
     pub graphql_immutable_schema: Arc<Schema>,
     pub graphql_mutable_schema: Arc<Schema>,
+    pub supabase_admin_client: Arc<SupabaseAdminClient>,
 }
 
 impl Debug for AppState {
@@ -29,6 +31,7 @@ impl Debug for AppState {
         f.debug_struct("AppState")
             .field("media_config", &self.media_config)
             .field("media_cache", &"<Cache>")
+            .field("supabase_admin_client", &"<SupabaseAdminClient>")
             .finish_non_exhaustive()
     }
 }

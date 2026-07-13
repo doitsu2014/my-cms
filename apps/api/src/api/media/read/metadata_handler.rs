@@ -1,3 +1,4 @@
+use crate::common::supabase_auth::SupabaseToken;
 use application_core::commands::media::read::metadata_handler::{
     MetadataMediaHandler, MetadataMediaHandlerTrait,
 };
@@ -6,7 +7,6 @@ use axum::{
     response::IntoResponse,
     Extension,
 };
-use crate::common::supabase_auth::SupabaseToken;
 use tower_cookies::Cookies;
 use tracing::instrument;
 

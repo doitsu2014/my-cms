@@ -19,11 +19,7 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .primary_key(),
                     )
-                    .col(
-                        ColumnDef::new(TranslationJobs::PostId)
-                            .uuid()
-                            .not_null(),
-                    )
+                    .col(ColumnDef::new(TranslationJobs::PostId).uuid().not_null())
                     .col(
                         ColumnDef::new(TranslationJobs::TargetLanguage)
                             .string_len(10)
@@ -41,11 +37,7 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .default(0),
                     )
-                    .col(
-                        ColumnDef::new(TranslationJobs::ErrorMessage)
-                            .text()
-                            .null(),
-                    )
+                    .col(ColumnDef::new(TranslationJobs::ErrorMessage).text().null())
                     .col(
                         ColumnDef::new(TranslationJobs::AiModel)
                             .string_len(50)

@@ -65,6 +65,8 @@ pub enum ErrorCode {
     ForBidden,
     #[serde(rename = "404")]
     NotFound,
+    #[serde(rename = "409")]
+    Conflict,
     #[serde(rename = "10000")]
     ValidationError,
     #[serde(rename = "10001")]
@@ -83,6 +85,7 @@ impl AxumResponse for ApiResponseError {
             ErrorCode::UnAuthorized => StatusCode::UNAUTHORIZED,
             ErrorCode::ForBidden => StatusCode::FORBIDDEN,
             ErrorCode::NotFound => StatusCode::NOT_FOUND,
+            ErrorCode::Conflict => StatusCode::CONFLICT,
             ErrorCode::ValidationError => StatusCode::BAD_REQUEST,
             ErrorCode::Logical => StatusCode::BAD_REQUEST,
             ErrorCode::ConcurrencyOptimistic => StatusCode::BAD_REQUEST,
@@ -138,6 +141,9 @@ impl From<AppError> for ApiResponseError {
                 .with_error_code(ErrorCode::ValidationError)
                 .add_error(format!("{}: {}", field, message)),
             AppError::Logical(m) => Self::new().with_error_code(ErrorCode::Logical).add_error(m),
+            AppError::Conflict(m) => Self::new()
+                .with_error_code(ErrorCode::Conflict)
+                .add_error(m),
             AppError::ConcurrencyOptimistic(m) => Self::new()
                 .with_error_code(ErrorCode::ConcurrencyOptimistic)
                 .add_error(m),
@@ -168,5 +174,30 @@ mod tests {
 
         assert_eq!(ErrorCode::UnAuthorized, response_message.error_code);
         assert_eq!(1, response_message.errors.len());
+    }
+
+    #[test]
+    fn test_case_conflict() {
+        let response_message = ApiResponseError::new()
+            .with_error_code(ErrorCode::Conflict)
+            .add_error("Email already exists".to_string());
+
+        assert_eq!(ErrorCode::Conflict, response_message.error_code);
+        assert_eq!(1, response_message.errors.len());
+
+        let response = response_message.to_axum_response();
+        assert_eq!(response.status(), StatusCode::CONFLICT);
+    }
+
+    #[test]
+    fn test_case_conflict_from_app_error() {
+        let app_error =
+            application_core::common::app_error::AppError::Conflict("duplicate email".to_string());
+        let response_error = ApiResponseError::from(app_error);
+        assert_eq!(ErrorCode::Conflict, response_error.error_code);
+        assert_eq!(1, response_error.errors.len());
+
+        let response = response_error.to_axum_response();
+        assert_eq!(response.status(), StatusCode::CONFLICT);
     }
 }

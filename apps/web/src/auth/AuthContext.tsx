@@ -14,6 +14,7 @@ interface AuthContextType {
   loading: boolean;
   token: string | null;
   userInfo: {
+    id?: string;
     name?: string;
     email?: string;
     username?: string;
@@ -66,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const userInfo: AuthContextType["userInfo"] = user
     ? {
+        id: user.id,
         name: user.user_metadata?.name ?? user.user_metadata?.full_name ?? undefined,
         email: user.email,
         username: user.user_metadata?.preferred_username ?? user.user_metadata?.username ?? undefined,

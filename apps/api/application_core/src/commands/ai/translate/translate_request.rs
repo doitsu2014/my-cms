@@ -24,12 +24,12 @@ impl TranslatePostRequest {
             model: None,
         }
     }
-    
+
     pub fn with_force_retranslate(mut self, force: bool) -> Self {
         self.force_retranslate = force;
         self
     }
-    
+
     pub fn with_model(mut self, model: String) -> Self {
         self.model = Some(model);
         self

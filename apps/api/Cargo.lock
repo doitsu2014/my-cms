@@ -121,6 +121,7 @@ dependencies = [
  "moka",
  "nanoid",
  "rand 0.9.4",
+ "regex",
  "reqwest",
  "sea-orm",
  "sea-orm-macros",

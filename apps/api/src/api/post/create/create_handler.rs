@@ -1,16 +1,13 @@
+use crate::common::supabase_auth::SupabaseToken;
 use application_core::commands::post::create::{
     create_handler::{PostCreateHandler, PostCreateHandlerTrait},
     create_request::CreatePostRequest,
 };
 use axum::{extract::State, response::IntoResponse, Extension, Json};
-use crate::common::supabase_auth::SupabaseToken;
 use tower_cookies::Cookies;
 use tracing::instrument;
 
-use crate::{
-    ApiResponseError, ApiResponseWith, AppState,
-    AxumResponse,
-};
+use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
 
 #[instrument]
 pub async fn api_create_post(

@@ -1,9 +1,13 @@
+use crate::common::supabase_auth::SupabaseToken;
 use application_core::commands::ai::translate::{
     translate_handler::{PostTranslateHandler, PostTranslateHandlerTrait},
     translate_request::TranslatePostRequest,
 };
-use axum::{extract::{Path, State}, response::IntoResponse, Extension, Json};
-use crate::common::supabase_auth::SupabaseToken;
+use axum::{
+    extract::{Path, State},
+    response::IntoResponse,
+    Extension, Json,
+};
 use sea_orm::sqlx::types::Uuid;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
@@ -64,9 +68,9 @@ async fn initialize_vector_store(
 }
 
 /// Translate a post synchronously (waits for completion)
-/// 
+///
 /// POST /posts/{post_id}/translate
-/// 
+///
 /// Body: { "targetLanguage": "VI" }
 #[instrument]
 pub async fn api_translate_post(
@@ -94,14 +98,12 @@ pub async fn api_translate_post(
 
     let mut request = TranslatePostRequest::new(post_id, body.target_language)
         .with_force_retranslate(body.force_retranslate);
-    
+
     if let Some(model) = body.model {
         request = request.with_model(model);
     }
 
-    let result = handler
-        .handle_translate_post(request, openai_api_key)
-        .await;
+    let result = handler.handle_translate_post(request, openai_api_key).await;
 
     match result {
         Ok(response) => ApiResponseWith::new(TranslatePostResponse {
@@ -114,9 +116,9 @@ pub async fn api_translate_post(
 }
 
 /// Translate a post in background (returns immediately)
-/// 
+///
 /// POST /posts/{post_id}/translate/background
-/// 
+///
 /// Body: { "targetLanguage": "VI" }
 #[instrument]
 pub async fn api_translate_post_background(
@@ -144,7 +146,7 @@ pub async fn api_translate_post_background(
 
     let mut request = TranslatePostRequest::new(post_id, body.target_language)
         .with_force_retranslate(body.force_retranslate);
-    
+
     if let Some(model) = body.model {
         request = request.with_model(model);
     }

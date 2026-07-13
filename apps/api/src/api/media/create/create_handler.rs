@@ -1,3 +1,4 @@
+use crate::common::supabase_auth::SupabaseToken;
 use application_core::commands::media::{
     create::create_handler::{CreateMediaHandler, CreateMediaHandlerTrait},
     is_supported_content_type,
@@ -7,7 +8,6 @@ use axum::{
     response::IntoResponse,
     Extension,
 };
-use crate::common::supabase_auth::SupabaseToken;
 use tower_cookies::Cookies;
 use tracing::instrument;
 
@@ -28,7 +28,10 @@ pub async fn api_create_media(
         let field_name = field.name().unwrap_or_default();
         if field_name == "file" || field_name == "image" {
             let filename = field.file_name().unwrap_or("unknown").to_string();
-            let content_type = field.content_type().unwrap_or("application/octet-stream").to_string();
+            let content_type = field
+                .content_type()
+                .unwrap_or("application/octet-stream")
+                .to_string();
             let data = field.bytes().await.unwrap().to_owned();
 
             if is_supported_content_type(&content_type) {

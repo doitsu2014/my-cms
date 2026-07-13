@@ -1,12 +1,9 @@
-use crate::{
-    ApiResponseError, ApiResponseWith, AppState,
-    AxumResponse,
-};
+use crate::common::supabase_auth::SupabaseToken;
+use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
 use application_core::commands::post::delete::delete_handler::{
     PostDeleteHandler, PostDeleteHandlerTrait,
 };
 use axum::{extract::State, response::IntoResponse, Extension, Json};
-use crate::common::supabase_auth::SupabaseToken;
 use sea_orm::sqlx::types::Uuid;
 use tower_cookies::Cookies;
 use tracing::instrument;

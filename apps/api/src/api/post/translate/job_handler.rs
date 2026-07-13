@@ -1,7 +1,11 @@
-use axum::{extract::{Path, State}, response::IntoResponse, Extension};
 use crate::common::supabase_auth::SupabaseToken;
-use sea_orm::{EntityTrait, QueryFilter, ColumnTrait};
+use axum::{
+    extract::{Path, State},
+    response::IntoResponse,
+    Extension,
+};
 use sea_orm::sqlx::types::Uuid;
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
@@ -33,7 +37,7 @@ pub struct ActiveJobsResponse {
 }
 
 /// Get status of a specific translation job
-/// 
+///
 /// GET /posts/{post_id}/translate/jobs/{job_id}
 #[instrument]
 pub async fn api_get_job_status(
@@ -45,7 +49,7 @@ pub async fn api_get_job_status(
         .filter(translation_jobs::Column::PostId.eq(post_id))
         .one(state.conn.as_ref())
         .await;
-    
+
     let job = match job_result {
         Ok(Some(job)) => job,
         Ok(None) => {
@@ -62,7 +66,7 @@ pub async fn api_get_job_status(
                 .to_axum_response();
         }
     };
-    
+
     let response = JobStatusResponse {
         job_id: job.id.to_string(),
         post_id: job.post_id.to_string(),
@@ -74,12 +78,12 @@ pub async fn api_get_job_status(
         created_at: job.created_at.to_string(),
         updated_at: job.updated_at.to_string(),
     };
-    
+
     ApiResponseWith::new(response).to_axum_response()
 }
 
 /// Get all active translation jobs for a post (pending or processing)
-/// 
+///
 /// GET /posts/{post_id}/translate/jobs
 #[instrument]
 pub async fn api_get_active_jobs(
@@ -90,12 +94,13 @@ pub async fn api_get_active_jobs(
     let jobs_result = translation_jobs::Entity::find()
         .filter(translation_jobs::Column::PostId.eq(post_id))
         .filter(
-            translation_jobs::Column::Status.eq("pending")
-                .or(translation_jobs::Column::Status.eq("processing"))
+            translation_jobs::Column::Status
+                .eq("pending")
+                .or(translation_jobs::Column::Status.eq("processing")),
         )
         .all(state.conn.as_ref())
         .await;
-    
+
     let jobs = match jobs_result {
         Ok(jobs) => jobs,
         Err(e) => {
@@ -106,7 +111,7 @@ pub async fn api_get_active_jobs(
                 .to_axum_response();
         }
     };
-    
+
     let job_responses: Vec<JobStatusResponse> = jobs
         .into_iter()
         .map(|job| JobStatusResponse {
@@ -121,7 +126,7 @@ pub async fn api_get_active_jobs(
             updated_at: job.updated_at.to_string(),
         })
         .collect();
-    
+
     ApiResponseWith::new(ActiveJobsResponse {
         jobs: job_responses,
     })
@@ -131,15 +136,15 @@ pub async fn api_get_active_jobs(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sea_orm::DatabaseConnection;
     use std::sync::Arc;
     use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
-    use sea_orm::DatabaseConnection;
 
     async fn create_test_post(db: Arc<DatabaseConnection>) -> Uuid {
-        use application_core::entities::{posts, categories, sea_orm_active_enums::CategoryType};
-        use sea_orm::{ActiveModelTrait, Set};
+        use application_core::entities::{categories, posts, sea_orm_active_enums::CategoryType};
         use chrono::Utc;
-        
+        use sea_orm::{ActiveModelTrait, Set};
+
         // Create a category first
         let category = categories::ActiveModel {
             id: Set(Uuid::new_v4()),
@@ -154,7 +159,7 @@ mod tests {
             row_version: Set(0),
         };
         let category_id = category.insert(db.as_ref()).await.unwrap().id;
-        
+
         // Create a post
         let post = posts::ActiveModel {
             id: Set(Uuid::new_v4()),
@@ -186,7 +191,7 @@ mod tests {
         // Create a test job
         use application_core::entities::translation_jobs;
         let job_id = Uuid::new_v4();
-        
+
         let job = translation_jobs::ActiveModel {
             id: sea_orm::Set(job_id),
             post_id: sea_orm::Set(post_id),
@@ -245,10 +250,10 @@ mod tests {
 
         // Create a test post first to satisfy foreign key constraint
         let post_id = create_test_post(arc_conn.clone()).await;
-        
+
         // Create jobs with different statuses
         use application_core::entities::translation_jobs;
-        
+
         let jobs_data = vec![
             ("pending", 0, "vi"),
             ("processing", 50, "ja"),
@@ -279,8 +284,9 @@ mod tests {
         let active_jobs = translation_jobs::Entity::find()
             .filter(translation_jobs::Column::PostId.eq(post_id))
             .filter(
-                translation_jobs::Column::Status.eq("pending")
-                    .or(translation_jobs::Column::Status.eq("processing"))
+                translation_jobs::Column::Status
+                    .eq("pending")
+                    .or(translation_jobs::Column::Status.eq("processing")),
             )
             .all(arc_conn.as_ref())
             .await
@@ -288,7 +294,7 @@ mod tests {
 
         // Should have 2 active jobs
         assert_eq!(active_jobs.len(), 2);
-        
+
         let statuses: Vec<String> = active_jobs.iter().map(|j| j.status.clone()).collect();
         assert!(statuses.contains(&"pending".to_string()));
         assert!(statuses.contains(&"processing".to_string()));
@@ -305,7 +311,7 @@ mod tests {
 
         use application_core::entities::translation_jobs;
         let job_id = Uuid::new_v4();
-        
+
         // Create job at 0%
         let job = translation_jobs::ActiveModel {
             id: sea_orm::Set(job_id),
@@ -326,11 +332,17 @@ mod tests {
 
         // Simulate progress updates
         let progress_steps = vec![10, 30, 50, 75, 100];
-        let status_steps = vec!["processing", "processing", "processing", "processing", "completed"];
+        let status_steps = vec![
+            "processing",
+            "processing",
+            "processing",
+            "processing",
+            "completed",
+        ];
 
         for (progress, status) in progress_steps.iter().zip(status_steps.iter()) {
             use sea_orm::ActiveModelTrait;
-            
+
             let job = translation_jobs::Entity::find_by_id(job_id)
                 .one(arc_conn.as_ref())
                 .await
@@ -341,7 +353,7 @@ mod tests {
             active_job.progress = sea_orm::Set(*progress);
             active_job.status = sea_orm::Set(status.to_string());
             active_job.updated_at = sea_orm::Set(chrono::Utc::now().into());
-            
+
             active_job.update(arc_conn.as_ref()).await.unwrap();
 
             // Verify update
@@ -364,7 +376,7 @@ mod tests {
 
         // Create a test post first to satisfy foreign key constraint
         let post_id = create_test_post(arc_conn.clone()).await;
-        
+
         // Create jobs for different languages
         use application_core::entities::translation_jobs;
         let languages = vec!["vi", "ja", "ko", "zh", "fr"];
@@ -396,9 +408,10 @@ mod tests {
             .unwrap();
 
         assert_eq!(all_jobs.len(), languages.len());
-        
+
         // Verify each language is present
-        let job_languages: Vec<String> = all_jobs.iter().map(|j| j.target_language.clone()).collect();
+        let job_languages: Vec<String> =
+            all_jobs.iter().map(|j| j.target_language.clone()).collect();
         for lang in languages {
             assert!(job_languages.contains(&lang.to_string()));
         }

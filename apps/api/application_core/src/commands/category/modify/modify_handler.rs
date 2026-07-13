@@ -193,7 +193,8 @@ impl CategoryModifyHandlerTrait for CategoryModifyHandler {
                         for request_translation in request_translations {
                             if request_translation.id.is_some() {
                                 // If the translation ID is present, it means we are updating an existing translation
-                                let mut existing_translation = request_translation.into_active_model();
+                                let mut existing_translation =
+                                    request_translation.into_active_model();
                                 existing_translation.category_id = Set(modified_id);
                                 category_translations::Entity::update(existing_translation)
                                     .exec(tx)

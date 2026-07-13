@@ -1,13 +1,10 @@
-use crate::{
-    ApiResponseError, ApiResponseWith, AppState,
-    AxumResponse,
-};
+use crate::common::supabase_auth::SupabaseToken;
+use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
 use application_core::commands::post::modify::{
     modify_handler::{PostModifyHandler, PostModifyHandlerTrait},
     modify_request::ModifyPostRequest,
 };
 use axum::{extract::State, response::IntoResponse, Extension, Json};
-use crate::common::supabase_auth::SupabaseToken;
 use tower_cookies::Cookies;
 use tracing::instrument;
 

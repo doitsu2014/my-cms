@@ -1,3 +1,4 @@
+use crate::common::supabase_auth::SupabaseToken;
 use application_core::commands::media::delete::delete_handler::{
     DeleteMediaHandler, DeleteMediaHandlerTrait,
 };
@@ -6,7 +7,6 @@ use axum::{
     response::IntoResponse,
     Extension, Json,
 };
-use crate::common::supabase_auth::SupabaseToken;
 use tower_cookies::Cookies;
 use tracing::instrument;
 
@@ -43,12 +43,10 @@ pub async fn api_delete_media_batch(
     };
 
     match handler.delete_media_batch(paths).await {
-        Ok(deleted_count) => {
-            ApiResponseWith::new(serde_json::json!({
-                "deletedCount": deleted_count
-            }))
-            .to_axum_response()
-        }
+        Ok(deleted_count) => ApiResponseWith::new(serde_json::json!({
+            "deletedCount": deleted_count
+        }))
+        .to_axum_response(),
         Err(e) => ApiResponseError::from(e).to_axum_response(),
     }
 }

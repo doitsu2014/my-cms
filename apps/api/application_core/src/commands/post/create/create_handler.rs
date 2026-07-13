@@ -115,7 +115,6 @@ impl PostCreateHandlerTrait for PostCreateHandler {
                             .map_err(|e| e.into())?;
                     }
 
-
                     Ok(inserted_post.last_insert_id)
                 })
             })
@@ -126,7 +125,6 @@ impl PostCreateHandlerTrait for PostCreateHandler {
             Err(e) => Err(e.into()),
         }
     }
-
 }
 
 #[cfg(test)]
