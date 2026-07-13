@@ -26,6 +26,7 @@ import {
   KeyRound,
   Shield,
   ShieldOff,
+  ShieldCheck,
   Phone,
   IdCard,
 } from 'lucide-react';
@@ -228,6 +229,7 @@ export default function UserForm({ id }: { id?: string }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 w-full">
+      {/* Identity */}
       <div className="card bg-base-100 shadow-lg border-t-4 border-t-primary hover:shadow-xl transition-shadow duration-300">
         <div className="card-body">
           <div className="flex items-start gap-4">
@@ -235,11 +237,9 @@ export default function UserForm({ id }: { id?: string }) {
               <UserIcon className="w-6 h-6 text-primary" />
             </div>
             <div className="flex-1">
-              <h2 className="card-title text-lg">Account Information</h2>
+              <h2 className="card-title text-lg">Identity</h2>
               <p className="text-sm text-base-content/60">
-                {isEdit
-                  ? 'Update email, profile, role, and ban status for this user'
-                  : 'Set the email, initial password, profile, and role for this user'}
+                The user's contact details and how they'll be identified in the system
               </p>
             </div>
           </div>
@@ -248,94 +248,202 @@ export default function UserForm({ id }: { id?: string }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label className="form-control w-full">
-              <div className="label">
+              <div className="label py-1">
                 <span className="label-text font-medium">Email</span>
               </div>
-              <div className="relative">
-                <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none" />
+              <label className={`input input-bordered flex items-center gap-2 w-full focus-within:input-primary ${errors.email ? 'input-error' : ''}`}>
+                <Mail className="w-4 h-4 opacity-50 shrink-0" />
                 <input
                   type="email"
                   {...register('email')}
-                  className={`input input-bordered w-full pl-10 focus:input-primary ${errors.email ? 'input-error' : ''}`}
+                  className="grow bg-transparent border-0 outline-none focus:outline-none"
                   placeholder="user@example.com"
                   disabled={isLoading}
                 />
+              </label>
+              <div className="label py-1">
+                <span className={`label-text-alt ${errors.email ? 'text-error' : 'text-base-content/50'}`}>
+                  {errors.email?.message ?? 'Used for sign-in and notifications'}
+                </span>
               </div>
-              {errors.email && (
-                <div className="label">
-                  <span className="label-text-alt text-error">{errors.email.message}</span>
-                </div>
-              )}
             </label>
 
-            {!isEdit && (
-              <label className="form-control w-full">
-                <div className="label">
-                  <span className="label-text font-medium">Password</span>
-                </div>
-                <div className="relative">
-                  <KeyRound className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none" />
-                  <input
-                    type="password"
-                    {...register('password')}
-                    className={`input input-bordered w-full pl-10 focus:input-primary ${errors.password ? 'input-error' : ''}`}
-                    placeholder="At least 8 characters"
-                    disabled={isLoading}
-                  />
-                </div>
-                {errors.password && (
-                  <div className="label">
-                    <span className="label-text-alt text-error">{errors.password.message}</span>
-                  </div>
-                )}
-              </label>
-            )}
-
             <label className="form-control w-full">
-              <div className="label">
+              <div className="label py-1">
                 <span className="label-text font-medium">Full name</span>
               </div>
-              <div className="relative">
-                <IdCard className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none" />
+              <label className={`input input-bordered flex items-center gap-2 w-full focus-within:input-primary ${errors.fullName ? 'input-error' : ''}`}>
+                <IdCard className="w-4 h-4 opacity-50 shrink-0" />
                 <input
                   type="text"
                   {...register('fullName')}
-                  className={`input input-bordered w-full pl-10 focus:input-primary ${errors.fullName ? 'input-error' : ''}`}
+                  className="grow bg-transparent border-0 outline-none focus:outline-none"
                   placeholder="Alice Example"
                   disabled={isLoading}
                   maxLength={120}
                 />
+              </label>
+              <div className="label py-1">
+                <span className={`label-text-alt ${errors.fullName ? 'text-error' : 'text-base-content/50'}`}>
+                  {errors.fullName?.message ?? 'Up to 120 characters'}
+                </span>
               </div>
-              {errors.fullName && (
-                <div className="label">
-                  <span className="label-text-alt text-error">{errors.fullName.message}</span>
-                </div>
-              )}
             </label>
 
-            <label className="form-control w-full">
-              <div className="label">
+            <label className="form-control w-full md:col-span-2">
+              <div className="label py-1">
                 <span className="label-text font-medium">Phone</span>
               </div>
-              <div className="relative">
-                <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none" />
+              <label className={`input input-bordered flex items-center gap-2 w-full focus-within:input-primary ${errors.phone ? 'input-error' : ''}`}>
+                <Phone className="w-4 h-4 opacity-50 shrink-0" />
                 <input
                   type="tel"
                   {...register('phone')}
-                  className={`input input-bordered w-full pl-10 focus:input-primary ${errors.phone ? 'input-error' : ''}`}
-                  placeholder="+1 555-0100"
+                  className="grow bg-transparent border-0 outline-none focus:outline-none"
+                  placeholder="+14155550100"
                   disabled={isLoading}
                 />
+              </label>
+              <div className="label py-1">
+                <span className={`label-text-alt ${errors.phone ? 'text-error' : 'text-base-content/50'}`}>
+                  {errors.phone?.message ?? 'Optional · E.164 format, e.g. +14155550100'}
+                </span>
               </div>
-              {errors.phone && (
-                <div className="label">
-                  <span className="label-text-alt text-error">{errors.phone.message}</span>
-                </div>
-              )}
             </label>
+          </div>
+        </div>
+      </div>
 
+      {/* Credentials (create mode: password) / Security actions (edit mode) */}
+      <div className="card bg-base-100 shadow-lg border-t-4 border-t-warning hover:shadow-xl transition-shadow duration-300">
+        <div className="card-body">
+          <div className="flex items-start gap-4">
+            <div className="bg-warning/10 p-3 rounded-xl">
+              {isEdit ? (
+                <Shield className="w-6 h-6 text-warning" />
+              ) : (
+                <KeyRound className="w-6 h-6 text-warning" />
+              )}
+            </div>
+            <div className="flex-1">
+              <h2 className="card-title text-lg">
+                {isEdit ? 'Security actions' : 'Credentials'}
+              </h2>
+              <p className="text-sm text-base-content/60">
+                {isEdit
+                  ? 'Ban or reset password for this user. Changes take effect on their next sign-in.'
+                  : 'Set the initial password the user will use to sign in.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="divider my-2"></div>
+
+          {!isEdit ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className="form-control w-full">
+                <div className="label py-1">
+                  <span className="label-text font-medium">Password</span>
+                </div>
+                <label className={`input input-bordered flex items-center gap-2 w-full focus-within:input-primary ${errors.password ? 'input-error' : ''}`}>
+                  <KeyRound className="w-4 h-4 opacity-50 shrink-0" />
+                  <input
+                    type="password"
+                    {...register('password')}
+                    className="grow bg-transparent border-0 outline-none focus:outline-none"
+                    placeholder="At least 8 characters"
+                    disabled={isLoading}
+                  />
+                </label>
+                <div className="label py-1">
+                  <span className={`label-text-alt ${errors.password ? 'text-error' : 'text-base-content/50'}`}>
+                    {errors.password?.message ?? 'At least 8 characters · share securely after creation'}
+                  </span>
+                </div>
+              </label>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Banned toggle */}
+              <div className="form-control w-full">
+                <div className="label py-1">
+                  <span className="label-text font-medium">Account status</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-base-300 bg-base-100">
+                  <span className="flex items-center gap-2 text-sm">
+                    {bannedValue ? (
+                      <ShieldOff className="w-4 h-4 text-error" />
+                    ) : (
+                      <Shield className="w-4 h-4 text-success" />
+                    )}
+                    <span className="font-medium">{bannedValue ? 'Banned' : 'Active'}</span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    {...register('banned')}
+                    className="toggle toggle-error"
+                    disabled={isLoading}
+                    aria-label="Ban this user"
+                  />
+                </div>
+                <div className="label py-1">
+                  <span className={`label-text-alt ${errors.banned ? 'text-error' : 'text-base-content/50'}`}>
+                    {errors.banned?.message ?? 'Banned users cannot sign in until reinstated'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Reset password */}
+              <div className="form-control w-full">
+                <div className="label py-1">
+                  <span className="label-text font-medium">Reset password</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-base-300 bg-base-100">
+                  <span className="flex items-center gap-2 text-sm text-base-content/70">
+                    <KeyRound className="w-4 h-4 opacity-60" />
+                    <span>Force a new password</span>
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline btn-warning gap-2"
+                    onClick={() => setResetOpen(true)}
+                    disabled={isLoading}
+                  >
+                    <KeyRound className="w-3.5 h-3.5" />
+                    Reset
+                  </button>
+                </div>
+                <div className="label py-1">
+                  <span className="label-text-alt text-base-content/50">
+                    You'll see the new temporary password once after submission
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Authorisation */}
+      <div className="card bg-base-100 shadow-lg border-t-4 border-t-secondary hover:shadow-xl transition-shadow duration-300">
+        <div className="card-body">
+          <div className="flex items-start gap-4">
+            <div className="bg-secondary/10 p-3 rounded-xl">
+              <ShieldCheck className="w-6 h-6 text-secondary" />
+            </div>
+            <div className="flex-1">
+              <h2 className="card-title text-lg">Authorisation</h2>
+              <p className="text-sm text-base-content/60">
+                What this user is allowed to do inside the CMS
+              </p>
+            </div>
+          </div>
+
+          <div className="divider my-2"></div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label className="form-control w-full">
-              <div className="label">
+              <div className="label py-1">
                 <span className="label-text font-medium">Role</span>
               </div>
               <select
@@ -346,56 +454,13 @@ export default function UserForm({ id }: { id?: string }) {
                 <option value={UserRoleEnum.Administrator}>Administrator</option>
                 <option value={UserRoleEnum.Writer}>Writer</option>
               </select>
-              {errors.role && (
-                <div className="label">
-                  <span className="label-text-alt text-error">{errors.role.message}</span>
-                </div>
-              )}
-            </label>
-
-            {isEdit && (
-              <div className="form-control w-full">
-                <div className="label">
-                  <span className="label-text font-medium">Status</span>
-                </div>
-                <label className="label cursor-pointer justify-start gap-3 px-0">
-                  <input
-                    type="checkbox"
-                    {...register('banned')}
-                    className="toggle toggle-error"
-                    disabled={isLoading}
-                  />
-                  <span className="label-text flex items-center gap-2">
-                    {bannedValue ? (
-                      <ShieldOff className="w-4 h-4 text-error" />
-                    ) : (
-                      <Shield className="w-4 h-4 text-success" />
-                    )}
-                    Banned
-                  </span>
-                </label>
-                {errors.banned && (
-                  <div className="label">
-                    <span className="label-text-alt text-error">{errors.banned.message}</span>
-                  </div>
-                )}
+              <div className="label py-1">
+                <span className={`label-text-alt ${errors.role ? 'text-error' : 'text-base-content/50'}`}>
+                  {errors.role?.message ?? 'Administrators can manage users and all content'}
+                </span>
               </div>
-            )}
+            </label>
           </div>
-
-          {isEdit && (
-            <div className="mt-4 flex justify-end">
-              <button
-                type="button"
-                className="btn btn-outline btn-warning gap-2"
-                onClick={() => setResetOpen(true)}
-                disabled={isLoading}
-              >
-                <KeyRound className="w-4 h-4" />
-                Reset password
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
