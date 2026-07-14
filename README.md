@@ -4,10 +4,21 @@
 <br/>
 [![Coverage Status](https://coveralls.io/repos/github/doitsu2014/my-cms/badge.svg?branch=main)](https://coveralls.io/github/doitsu2014/my-cms?branch=main)
 
-# Overview
+# my-cms
 
-There is my-cms project, it is an api system to handle biz services of a headless CMS for my website. I choose Rust as the main programming language to build the system because of its performance and safety.
-Let's see how far I can go with this project.
+A self-hosted, AI-augmented headless CMS — Rust backend, React admin, Supabase platform.
+
+## Project Overview
+
+my-cms is a self-hosted, AI-augmented headless CMS built for performance, safety, and developer ergonomics. It combines a Rust backend API, a React admin web app, and a Supabase platform (PostgreSQL + pgvector + Storage + GoTrue) into one cohesive content stack.
+
+The Rust API uses Axum 0.8 and SeaORM 1.1 with a strict layered architecture (API → Application Core → Database) and schema-first migrations. The React 19 admin (DaisyUI 5 + Tailwind 4 + TipTap) provides a polished editor for categories, posts, tags, and media. Authentication is handled by Supabase GoTrue JWTs through a custom Axum middleware; media lives in Supabase Storage (S3-compatible); AI translation jobs run through OpenAI with vector similarity reuse via pgvector.
+
+Development follows an OpenSpec-driven SDLC: every change ships with a proposal, testable capability spec, design, and tasks document. Implementation work is executed with Superpowers skills (TDD, subagent-driven development, code review, verification before completion).
+
+## Architecture
+
+The diagram below maps the runtime layers and the AI translation flow. Click any node to jump to the corresponding source tree.
 
 ```mermaid
 flowchart TD
@@ -119,39 +130,39 @@ flowchart TD
     Testing ---|"validates"| CMD_AI
 
     %% Click Events for API Layer
-    click API_Module "https://github.com/doitsu2014/my-cms/tree/main/src/api"
-    click API_Category "https://github.com/doitsu2014/my-cms/tree/main/src/api/category"
-    click API_Post "https://github.com/doitsu2014/my-cms/tree/main/src/api/post"
-    click API_Translate "https://github.com/doitsu2014/my-cms/tree/main/src/api/post/translate"
-    click API_Media "https://github.com/doitsu2014/my-cms/tree/main/src/api/media"
-    click API_Tag "https://github.com/doitsu2014/my-cms/tree/main/src/api/tag"
-    click API_Public "https://github.com/doitsu2014/my-cms/tree/main/src/api/public"
-    click API_GraphQL "https://github.com/doitsu2014/my-cms/tree/main/src/api/graphql"
-    click API_Admin "https://github.com/doitsu2014/my-cms/tree/main/src/api/administrator"
+    click API_Module "apps/api/src/api"
+    click API_Category "apps/api/src/api/category"
+    click API_Post "apps/api/src/api/post"
+    click API_Translate "apps/api/src/api/post/translate"
+    click API_Media "apps/api/src/api/media"
+    click API_Tag "apps/api/src/api/tag"
+    click API_Public "apps/api/src/api/public"
+    click API_GraphQL "apps/api/src/api/graphql"
+    click API_Admin "apps/api/src/api/administrator"
 
     %% Click Events for Application Core
-    click Core_Module "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core"
-    click CMD_Category "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/commands/category"
-    click CMD_Post "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/commands/post"
-    click CMD_AI "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/commands/ai"
-    click CMD_Media "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/commands/media"
-    click CMD_Tag "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/commands/tag"
-    click Common_Domain "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/common"
+    click Core_Module "apps/api/application_core"
+    click CMD_Category "apps/api/application_core/src/commands/category"
+    click CMD_Post "apps/api/application_core/src/commands/post"
+    click CMD_AI "apps/api/application_core/src/commands/ai"
+    click CMD_Media "apps/api/application_core/src/commands/media"
+    click CMD_Tag "apps/api/application_core/src/commands/tag"
+    click Common_Domain "apps/api/application_core/src/common"
 
     %% Click Events for Database & ORM Layer
-    click Entities "https://github.com/doitsu2014/my-cms/tree/main/apps/api/application_core/src/entities"
-    click Migrations "https://github.com/doitsu2014/my-cms/tree/main/apps/api/migration"
+    click Entities "apps/api/application_core/src/entities"
+    click Migrations "apps/api/migration"
 
     %% Click Events for Deployment & Infrastructure
-    click Docker "https://github.com/doitsu2014/my-cms/tree/main/Dockerfile"
-    click Helm "https://github.com/doitsu2014/my-cms/tree/main/deployments/charts/my-cms-api"
-    click CICD "https://github.com/doitsu2014/my-cms/tree/main/.github/workflows"
+    click Docker "deployments/docker-swarm"
+    click Helm "deployments/k8s/charts"
+    click CICD ".github/workflows"
 
     %% Click Event for Configuration
-    click Config "https://github.com/doitsu2014/my-cms/blob/main/.env"
+    click Config "apps/api/.env.example"
 
     %% Click Event for Testing
-    click Testing "https://github.com/doitsu2014/my-cms/tree/main/apps/api/test_helpers"
+    click Testing "apps/api/test_helpers"
 
     %% Styles
     classDef api fill:#a6cee3,stroke:#1f78b4,stroke-width:2px;
@@ -165,6 +176,34 @@ flowchart TD
     classDef test fill:#f4cccc,stroke:#e06666,stroke-width:2px;
     classDef ext fill:#c5b0d5,stroke:#6a3d9a,stroke-width:2px;
 ```
+
+## Features
+
+- **REST + GraphQL API** — Axum 0.8 + SeaORM 1.1, schema-first migrations, GraphQL auto-generated with Seaography.
+- **React admin UI** — React 19 + DaisyUI 5 + Tailwind CSS 4 + TipTap rich-text editor.
+- **Content model** — Categories, Posts, Tags, and Media with end-to-end CRUD via REST and GraphQL.
+- **[AI Translation Platform](docs/ai-platform.md)** — 3-tier lookup (DB → vector similarity → OpenAI), background job tracking, HTML-aware processing, and smart translation reuse.
+- **Authentication** — Supabase GoTrue JWT verified by a custom Axum middleware, with role-based access.
+- **Observability** — OpenTelemetry traces exported to Jaeger for distributed tracing across the API.
+- **Deployment** — Docker Compose local stack (`deployments/docker-swarm`) and Helm charts for production (`deployments/k8s`).
+
+## Quickstart
+
+The fastest way to run my-cms locally is the Docker Compose stack — it brings up Supabase, Traefik, the API, the admin web app, and Jaeger together.
+
+```bash
+# See deployments/docker-swarm/README.md for prerequisites and one-time bootstrap
+deployments/docker-swarm/bootstrap.sh
+deployments/docker-swarm/apps/reset.sh
+```
+
+Once the stack is up, exercise the API using the Postman collection under [`docs/postman_collection/`](docs/postman_collection/). Construct your environment variables in Postman before sending requests.
+
+### Prerequisites (Linux)
+
+- `libssl-dev` (for OpenSSL)
+- `pkg-config` (for building some dependencies)
+- `build-essential` (for building some dependencies)
 
 ## Configuration
 
@@ -192,7 +231,7 @@ docker run --rm -d --name jaeger \
 
 ### 2. Environment Setup
 
-Use .env file to configure the system.
+Use the `.env` file to configure the system. The reference template lives at `apps/api/.env.example`.
 
 ```text
 DATABASE_SCHEMA=public
@@ -222,74 +261,26 @@ AWS_SECRET_ACCESS_KEY=
 MEDIA_IMG_PROXY_SERVER=https://imgproxy.doitsu.tech
 ```
 
-## Features
-
-### AI Translation Service
-
-Intelligent post translation powered by OpenAI with advanced features and background job processing:
-
-#### Core Features
-- **3-Tier Lookup Strategy**: Database → Qdrant similarity → OpenAI (minimizes API costs)
-- **HTML-Aware Processing**: Preserves structure when translating HTML content
-- **Smart Translation Reuse**: Automatically reuses highly similar translations (≥95% similarity)
-- **Background Processing**: Non-blocking execution with job tracking and progress monitoring
-- **Vector Database Integration**: Qdrant for semantic search and similarity matching
-- **Model Selection**: Choose from multiple AI models (gpt-5-nano, gpt-4o-mini, gpt-4o) with cost transparency
-
-#### Background Job Tracking (Release 3.0.0)
-
-**Database Schema:**
-- New `translation_jobs` table tracks job lifecycle (pending → processing → completed/failed)
-- Stores progress (0-100%), error messages, AI model selection, and timestamps
-- Indexed for efficient active job queries
-
-**API Endpoints:**
-- `POST /posts/{post_id}/translate/background` - Start background translation
-- `GET /posts/{post_id}/translate/jobs/{job_id}` - Get specific job status
-- `GET /posts/{post_id}/translate/jobs` - Get all active jobs for a post
-
-**Frontend Features:**
-- Real-time progress tracking with 2-second polling
-- Model selection dialog for re-translations
-- Active job detection to prevent duplicates
-- Automatic UI disabling when translations are in progress
-- Timeout handling (5 minutes) with user notifications
-
-**Job Status Response:**
-```json
-{
-  "jobId": "uuid",
-  "status": "processing",  // pending, processing, completed, failed
-  "progress": 45,          // 0-100
-  "aiModel": "gpt-5-nano",
-  "errorMessage": null,
-  "createdAt": "2026-01-26T...",
-  "updatedAt": "2026-01-26T..."
-}
-```
-
-See [AI Translation Documentation](apps/api/application_core/src/commands/ai/README.md) for implementation details.
-
 ## Development Guidelines
 
 ### 1. ORM
 
-The project using SeaORM to interact with the database. SeaORM is a modern and easy-to-use ORM for Rust.
-We use Schema First approach to design the database schema and generate the code from the schema. It helps us to keep the schema and the code in sync.
+The project uses SeaORM to interact with the database. SeaORM is a modern and easy-to-use ORM for Rust.
+We use the Schema First approach to design the database schema and generate the code from the schema. It helps us to keep the schema and the code in sync.
 
-The `entities` will be generated from the schema, and we can use them to interact with the database.
+The `entities` are generated from the schema, and we use them to interact with the database.
 
 #### Commands
 
-Please replace `connection_string` for each commands below:
+Replace `connection_string` for each command below:
 
-- Command migrate up (up latest version of migration to database)
+- Migrate up (apply latest migration to the database):
 
 ```sh
 sea-orm-cli migrate --database-url connection_string up
 ```
 
-- Command to generate entities (scaffold from latest on database to source code)
+- Generate entities (scaffold from the latest database state to source code):
 
 ```sh
 sea-orm-cli generate entity --database-url postgres://postgres:1234567890@localhost:5432/my-cms -o apps/api/application_core/src/entities --with-serde both --model-extra-attributes 'serde(rename_all = "camelCase")' --seaography
@@ -297,21 +288,36 @@ sea-orm-cli generate entity --database-url postgres://postgres:1234567890@localh
 
 ### 2. Unit Tests and Integration Tests
 
-For unit tests, we use built-in feature mock of SeaORM to test the database interaction. For integration tests, we use the test database to test the whole system.
-For integration tests, we use testcontainers to setup whole infrastructure to make sure the system is working as expected.
+For unit tests, we use SeaORM's built-in mock feature to test the database interaction. For integration tests, we use testcontainers to set up the whole infrastructure and verify the system works end-to-end.
 
 ### 3. CI/CD
 
-I use Docker to build the image and Github Actions to run the CI/CD pipeline.
+I use Docker to build the image and GitHub Actions to run the CI/CD pipeline.
 
-## Play around
+## Project Layout
 
-You can play around the project using Postman Collection in folder `postman_collection`.
+```
+my-cms/
+├── apps/
+│   ├── api/                  Rust (Axum + SeaORM) backend
+│   └── web/                  React (DaisyUI + TipTap) admin
+├── deployments/
+│   ├── docker-swarm/         Local stack (Compose: Supabase + Traefik + apps)
+│   └── k8s/                  Production Helm charts
+├── openspec/                 Spec & change management (OpenSpec)
+├── docs/                     Extended documentation
+└── AGENTS.md                 SDLC conventions and project rules
+```
 
-Construct your Environment Variable before you start playing.
+## More Documentation
 
-## Dependencies (Linux)
+- [AI Translation Platform](docs/ai-platform.md) — platform overview, 3-tier lookup, background job tracking.
+- [AI Translation deep dive](apps/api/application_core/src/commands/ai/README.md) — implementation details, architecture, troubleshooting.
+- [API playground](docs/postman_collection/) — Postman collection for the REST + GraphQL API.
+- [GoTrue access token guideline](docs/guidelines/gotrue-access-token.md) — issuing and using Supabase JWTs.
+- [OpenSpec](openspec/) — capability specs and the proposal → design → tasks → archive workflow.
+- [Local Docker stack](deployments/docker-swarm/README.md) — Docker Compose quickstart for the full platform.
 
-- libssl-dev (for OpenSSL)
-- pkg-config (for building some dependencies)
-- build-essential (for building some dependencies)
+## License
+
+Released under the terms of the [LICENSE](LICENSE) file (MIT OR Apache-2.0).
