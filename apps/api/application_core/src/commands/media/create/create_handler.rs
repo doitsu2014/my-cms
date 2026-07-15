@@ -42,16 +42,24 @@ impl CreateMediaHandlerTrait for CreateMediaHandler {
             .await?;
         info!("Uploaded media: {}", beautiful_media_name);
 
-        let url_path = if is_image_content_type(&content_type) {
-            format!(
-                "{}/media/images/{}",
-                self.media_config.media_base_url, beautiful_media_name
-            )
-        } else {
-            format!(
-                "{}/media/{}",
-                self.media_config.media_base_url, beautiful_media_name
-            )
+        let url_path = match &self.media_config.bucket_override {
+            Some(bucket) => format!(
+                "{}/storage/v1/object/{}/{}",
+                self.media_config.storage.supabase_url, bucket, beautiful_media_name
+            ),
+            None => {
+                if is_image_content_type(&content_type) {
+                    format!(
+                        "{}/media/images/{}",
+                        self.media_config.media_base_url, beautiful_media_name
+                    )
+                } else {
+                    format!(
+                        "{}/media/{}",
+                        self.media_config.media_base_url, beautiful_media_name
+                    )
+                }
+            }
         };
 
         Ok(MediaModel {

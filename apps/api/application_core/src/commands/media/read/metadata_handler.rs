@@ -22,8 +22,16 @@ impl MetadataMediaHandlerTrait for MetadataMediaHandler {
 
         let info = self.media_config.storage.get_info(&path).await?;
 
+        let url = match &self.media_config.bucket_override {
+            Some(bucket) => format!(
+                "{}/storage/v1/object/{}/{}",
+                self.media_config.storage.supabase_url, bucket, path
+            ),
+            None => format!("{}/media/{}", self.media_config.media_base_url, path),
+        };
+
         Ok(MediaMetadata {
-            url: format!("{}/media/{}", self.media_config.media_base_url, path),
+            url,
             path,
             content_type: info.content_type,
             size: info.size,

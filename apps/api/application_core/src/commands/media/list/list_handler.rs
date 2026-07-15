@@ -33,12 +33,21 @@ impl ListMediaHandlerTrait for ListMediaHandler {
 
         let media_list = objects
             .into_iter()
-            .map(|obj| MediaMetadata {
-                url: format!("{}/media/{}", self.media_config.media_base_url, obj.name),
-                path: obj.name,
-                content_type: obj.content_type,
-                size: obj.size,
-                last_modified: obj.last_modified,
+            .map(|obj| {
+                let url = match &self.media_config.bucket_override {
+                    Some(bucket) => format!(
+                        "{}/storage/v1/object/{}/{}",
+                        self.media_config.storage.supabase_url, bucket, obj.name
+                    ),
+                    None => format!("{}/media/{}", self.media_config.media_base_url, obj.name),
+                };
+                MediaMetadata {
+                    url,
+                    path: obj.name,
+                    content_type: obj.content_type,
+                    size: obj.size,
+                    last_modified: obj.last_modified,
+                }
             })
             .collect();
 

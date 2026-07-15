@@ -10,6 +10,7 @@ interface MediaPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   onDelete: (media: MediaMetadata) => void;
+  bucket?: string;
 }
 
 const getFileIcon = (_contentType: string, extension: string) => {
@@ -36,13 +37,18 @@ const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
   isOpen,
   onClose,
   onDelete,
+  bucket,
 }) => {
   if (!isOpen || !media) return null;
 
   const fileName = getFileName(media.path);
   const extension = getFileExtension(media.path);
   const isImage = isImageContentType(media.contentType);
-  const fullImageUrl = isImage ? getMediaImageUrl(media.path) : null;
+  const fullImageUrl = isImage
+    ? bucket
+      ? media.url
+      : getMediaImageUrl(media.path)
+    : null;
 
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(media.url);

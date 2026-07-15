@@ -126,6 +126,26 @@ export const getMediaImageUrl = (path: string): string => {
 };
 
 /**
+ * Get the URL for the bucket collection endpoint
+ * (GET/POST /api/media/buckets)
+ */
+export const getBucketsApiUrl = (): string => getApiUrl('/media/buckets');
+
+/**
+ * Get the URL for a single bucket endpoint
+ * (GET/PUT/DELETE /api/media/buckets/{name})
+ */
+export const getBucketApiUrl = (name: string): string =>
+  getApiUrl(`/media/buckets/${encodeURIComponent(name)}`);
+
+/**
+ * Get the URL for the empty bucket endpoint
+ * (POST /api/media/buckets/{name}/empty)
+ */
+export const getEmptyBucketApiUrl = (name: string): string =>
+  getApiUrl(`/media/buckets/${encodeURIComponent(name)}/empty`);
+
+/**
  * API Configuration object for easy access
  */
 export const API_CONFIG = {

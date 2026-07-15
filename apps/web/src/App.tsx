@@ -13,6 +13,7 @@ import AdminBlogsPage from './app/admin/blogs/page';
 import AdminCreateBlogPage from './app/admin/blogs/create/page';
 import AdminEditBlogPage from './app/admin/blogs/edit/page';
 import AdminMediaPage from './app/admin/media/page';
+import AdminBucketsPage from './app/admin/media/buckets/page';
 import AdminUsersListPage from './app/admin/users/page';
 import AdminCreateUserPage from './app/admin/users/create/page';
 import AdminEditUserPage from './app/admin/users/edit/page';
@@ -33,6 +34,7 @@ const App = () => {
             <Route path="/admin/blogs/create" element={<ProtectedRoute><AdminLayout><AdminCreateBlogPage /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/blogs/edit/:id" element={<ProtectedRoute><AdminLayout><AdminEditBlogPage /></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/media" element={<ProtectedRoute><AdminLayout><AdminMediaPage /></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/media/buckets" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminBucketsPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/users" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminUsersListPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/users/create" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminCreateUserPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/users/edit/:id" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminEditUserPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />

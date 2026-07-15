@@ -8,6 +8,7 @@ interface MediaUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUploadComplete: () => void;
+  bucket?: string;
 }
 
 interface UploadFile {
@@ -21,6 +22,7 @@ const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
   isOpen,
   onClose,
   onUploadComplete,
+  bucket,
 }) => {
   const { token } = useAuth();
   const [files, setFiles] = useState<UploadFile[]>([]);
@@ -78,7 +80,10 @@ const MediaUploadModal: React.FC<MediaUploadModalProps> = ({
     );
 
     try {
-      const response = await fetch(getApiUrl('/media'), {
+      const url = bucket
+        ? `${getApiUrl('/media')}?bucket=${encodeURIComponent(bucket)}`
+        : getApiUrl('/media');
+      const response = await fetch(url, {
         method: 'POST',
         headers: createAuthHeaders(token),
         body: formData,

@@ -11,6 +11,7 @@ interface MediaGridItemProps {
   onPreview: (media: MediaMetadata) => void;
   onCopyUrl: (url: string) => void;
   onDelete: (media: MediaMetadata) => void;
+  bucket?: string;
 }
 
 const getFileIcon = (contentType: string, extension: string) => {
@@ -43,11 +44,16 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
   onPreview,
   onCopyUrl,
   onDelete,
+  bucket,
 }) => {
   const fileName = getFileName(media.path);
   const extension = getFileExtension(media.path);
   const isImage = isImageContentType(media.contentType);
-  const thumbnailUrl = isImage ? getMediaImageUrl(media.path) + '?w=200&h=200' : null;
+  const thumbnailUrl = isImage
+    ? bucket
+      ? media.url
+      : `${getMediaImageUrl(media.path)}?w=200&h=200`
+    : null;
 
   return (
     <div

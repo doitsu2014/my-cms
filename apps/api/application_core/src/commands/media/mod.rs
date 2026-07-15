@@ -1,18 +1,21 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+pub mod bucket;
 pub mod create;
 pub mod delete;
 pub mod list;
 pub mod read;
 pub mod supabase_storage;
 
+pub use bucket::dto::{Bucket, CreateBucketRequest, UpdateBucketRequest};
 pub use supabase_storage::{DeletedObject, StorageObject, StorageObjectMetadata, SupabaseStorage};
 
 #[derive(Clone, Debug)]
 pub struct MediaConfig {
     pub storage: SupabaseStorage,
     pub media_base_url: String,
+    pub bucket_override: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

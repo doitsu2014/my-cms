@@ -1,3 +1,4 @@
+use crate::commands::media::bucket::dto::Bucket;
 use crate::common::app_error::AppError;
 use chrono::{DateTime, Utc};
 use reqwest::Client;
@@ -72,6 +73,12 @@ impl SupabaseStorage {
         self.service_role_key
             .as_deref()
             .unwrap_or(self.anon_key.as_str())
+    }
+
+    pub fn with_bucket(&self, name: &str) -> Self {
+        let mut cloned = self.clone();
+        cloned.bucket = name.to_string();
+        cloned
     }
 
     pub fn public_url(&self, path: &str) -> String {
@@ -386,6 +393,235 @@ impl SupabaseStorage {
             })
             .collect();
         Ok(deleted)
+    }
+
+    pub async fn list_buckets(&self) -> Result<Vec<Bucket>, AppError> {
+        let url = format!("{}/storage/v1/bucket", self.supabase_url);
+        let response = self
+            .client
+            .get(&url)
+            .bearer_auth(self.auth_key())
+            .header("apikey", self.auth_key())
+            .send()
+            .await
+            .map_err(|e| AppError::StorageError(format!("List buckets request failed: {}", e)))?;
+        let status = response.status();
+        if !status.is_success() {
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "<no body>".to_string());
+            return Err(AppError::StorageError(format!(
+                "List buckets failed ({}): {}",
+                status, body
+            )));
+        }
+        let raw: Vec<serde_json::Value> = response.json().await.map_err(|e| {
+            AppError::StorageError(format!("Failed to parse list buckets response: {}", e))
+        })?;
+        Ok(raw.into_iter().map(bucket_from_value).collect())
+    }
+
+    pub async fn get_bucket(&self, name: &str) -> Result<Bucket, AppError> {
+        let url = format!("{}/storage/v1/bucket/{}", self.supabase_url, name);
+        let response = self
+            .client
+            .get(&url)
+            .bearer_auth(self.auth_key())
+            .header("apikey", self.auth_key())
+            .send()
+            .await
+            .map_err(|e| AppError::StorageError(format!("Get bucket request failed: {}", e)))?;
+        let status = response.status();
+        if status.as_u16() == 404 {
+            return Err(AppError::NotFound);
+        }
+        if !status.is_success() {
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "<no body>".to_string());
+            return Err(AppError::StorageError(format!(
+                "Get bucket failed ({}): {}",
+                status, body
+            )));
+        }
+        let raw: serde_json::Value = response.json().await.map_err(|e| {
+            AppError::StorageError(format!("Failed to parse get bucket response: {}", e))
+        })?;
+        Ok(bucket_from_value(raw))
+    }
+
+    pub async fn create_bucket(&self, payload: serde_json::Value) -> Result<Bucket, AppError> {
+        let url = format!("{}/storage/v1/bucket", self.supabase_url);
+        let response = self
+            .client
+            .post(&url)
+            .bearer_auth(self.auth_key())
+            .header("apikey", self.auth_key())
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .body(payload.to_string())
+            .send()
+            .await
+            .map_err(|e| AppError::StorageError(format!("Create bucket request failed: {}", e)))?;
+        let status = response.status();
+        if status.as_u16() == 409 {
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "<no body>".to_string());
+            return Err(AppError::Conflict(format!(
+                "Bucket already exists: {}",
+                body
+            )));
+        }
+        if !status.is_success() {
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "<no body>".to_string());
+            return Err(AppError::StorageError(format!(
+                "Create bucket failed ({}): {}",
+                status, body
+            )));
+        }
+        let raw: serde_json::Value = response.json().await.map_err(|e| {
+            AppError::StorageError(format!("Failed to parse create bucket response: {}", e))
+        })?;
+        Ok(bucket_from_value(raw))
+    }
+
+    pub async fn update_bucket(
+        &self,
+        name: &str,
+        payload: serde_json::Value,
+    ) -> Result<Bucket, AppError> {
+        let url = format!("{}/storage/v1/bucket/{}", self.supabase_url, name);
+        let response = self
+            .client
+            .post(&url)
+            .bearer_auth(self.auth_key())
+            .header("apikey", self.auth_key())
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .body(payload.to_string())
+            .send()
+            .await
+            .map_err(|e| AppError::StorageError(format!("Update bucket request failed: {}", e)))?;
+        let status = response.status();
+        if status.as_u16() == 404 {
+            return Err(AppError::NotFound);
+        }
+        if !status.is_success() {
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "<no body>".to_string());
+            return Err(AppError::StorageError(format!(
+                "Update bucket failed ({}): {}",
+                status, body
+            )));
+        }
+        let raw: serde_json::Value = response.json().await.map_err(|e| {
+            AppError::StorageError(format!("Failed to parse update bucket response: {}", e))
+        })?;
+        Ok(bucket_from_value(raw))
+    }
+
+    pub async fn empty_bucket(&self, name: &str) -> Result<(), AppError> {
+        let url = format!("{}/storage/v1/bucket/{}/empty", self.supabase_url, name);
+        let response = self
+            .client
+            .post(&url)
+            .bearer_auth(self.auth_key())
+            .header("apikey", self.auth_key())
+            .send()
+            .await
+            .map_err(|e| AppError::StorageError(format!("Empty bucket request failed: {}", e)))?;
+        let status = response.status();
+        if status.as_u16() == 404 {
+            return Err(AppError::NotFound);
+        }
+        if !status.is_success() {
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "<no body>".to_string());
+            return Err(AppError::StorageError(format!(
+                "Empty bucket failed ({}): {}",
+                status, body
+            )));
+        }
+        Ok(())
+    }
+
+    pub async fn delete_bucket(&self, name: &str, purge: bool) -> Result<(), AppError> {
+        let url = format!("{}/storage/v1/bucket/{}", self.supabase_url, name);
+        let body = serde_json::json!({ "purge": purge });
+        let response = self
+            .client
+            .delete(&url)
+            .bearer_auth(self.auth_key())
+            .header("apikey", self.auth_key())
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .body(body.to_string())
+            .send()
+            .await
+            .map_err(|e| AppError::StorageError(format!("Delete bucket request failed: {}", e)))?;
+        let status = response.status();
+        if status.as_u16() == 404 {
+            return Err(AppError::NotFound);
+        }
+        if !status.is_success() {
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "<no body>".to_string());
+            return Err(AppError::StorageError(format!(
+                "Delete bucket failed ({}): {}",
+                status, body
+            )));
+        }
+        Ok(())
+    }
+}
+
+fn bucket_from_value(v: serde_json::Value) -> Bucket {
+    Bucket {
+        id: v
+            .get("id")
+            .and_then(|x| x.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        name: v
+            .get("name")
+            .and_then(|x| x.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        public: v.get("public").and_then(|x| x.as_bool()).unwrap_or(false),
+        file_size_limit: v.get("file_size_limit").and_then(|x| x.as_u64()),
+        allowed_mime_types: v.get("allowed_mime_types").and_then(|x| {
+            x.as_array().map(|arr| {
+                arr.iter()
+                    .filter_map(|i| i.as_str().map(String::from))
+                    .collect()
+            })
+        }),
+        owner: v.get("owner").and_then(|x| x.as_str()).map(String::from),
+        bucket_type: v
+            .get("type")
+            .and_then(|x| x.as_str())
+            .unwrap_or("STANDARD")
+            .to_string(),
+        created_at: v
+            .get("created_at")
+            .and_then(|x| x.as_str())
+            .unwrap_or_default()
+            .to_string(),
+        updated_at: v
+            .get("updated_at")
+            .and_then(|x| x.as_str())
+            .unwrap_or_default()
+            .to_string(),
     }
 }
 
@@ -720,5 +956,318 @@ mod tests {
         assert_eq!(result.len(), 2);
         assert_eq!(result[0].name, "a.png");
         assert_eq!(result[1].name, "b.png");
+    }
+
+    #[async_std::test]
+    async fn with_bucket_returns_clone_with_replaced_bucket() {
+        let storage = make_storage("http://localhost:8000", true);
+        let cloned = storage.with_bucket("avatars");
+        assert_eq!(storage.bucket, "media");
+        assert_eq!(cloned.bucket, "avatars");
+    }
+
+    #[async_std::test]
+    async fn list_buckets_returns_array() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), true);
+
+        let body = json!([
+            {
+                "id": "media",
+                "name": "media",
+                "public": true,
+                "file_size_limit": null,
+                "allowed_mime_types": null,
+                "owner": null,
+                "type": "STANDARD",
+                "created_at": "2026-01-01T00:00:00Z",
+                "updated_at": "2026-01-02T00:00:00Z"
+            }
+        ]);
+
+        Mock::given(method("GET"))
+            .and(path("/storage/v1/bucket"))
+            .and(header("authorization", "Bearer service-role-test-key"))
+            .and(header("apikey", "service-role-test-key"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(body))
+            .mount(&server)
+            .await;
+
+        let buckets = storage.list_buckets().await.expect("list_buckets ok");
+        assert_eq!(buckets.len(), 1);
+        assert_eq!(buckets[0].name, "media");
+        assert!(buckets[0].public);
+        assert_eq!(buckets[0].bucket_type, "STANDARD");
+        assert_eq!(buckets[0].created_at, "2026-01-01T00:00:00Z");
+    }
+
+    #[async_std::test]
+    async fn get_bucket_returns_404_as_not_found() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), true);
+
+        Mock::given(method("GET"))
+            .and(path("/storage/v1/bucket/missing"))
+            .respond_with(ResponseTemplate::new(404))
+            .mount(&server)
+            .await;
+
+        let result = storage.get_bucket("missing").await;
+        assert!(matches!(result, Err(AppError::NotFound)));
+    }
+
+    #[async_std::test]
+    async fn create_bucket_posts_body() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), true);
+
+        let response_body = json!({
+            "id": "private-docs",
+            "name": "private-docs",
+            "public": false,
+            "file_size_limit": 5242880u64,
+            "allowed_mime_types": ["application/pdf"],
+            "owner": null,
+            "type": "STANDARD",
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z"
+        });
+
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/bucket"))
+            .and(header("authorization", "Bearer service-role-test-key"))
+            .and(header("apikey", "service-role-test-key"))
+            .and(header("content-type", "application/json"))
+            .and(wiremock::matchers::body_string(
+                "{\"allowed_mime_types\":[\"application/pdf\"],\"file_size_limit\":5242880,\"name\":\"private-docs\",\"public\":false}".to_string(),
+            ))
+            .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
+            .mount(&server)
+            .await;
+
+        let payload = json!({
+            "name": "private-docs",
+            "public": false,
+            "file_size_limit": 5242880u64,
+            "allowed_mime_types": ["application/pdf"],
+        });
+        let bucket = storage
+            .create_bucket(payload)
+            .await
+            .expect("create_bucket ok");
+        assert_eq!(bucket.name, "private-docs");
+        assert!(!bucket.public);
+        assert_eq!(bucket.file_size_limit, Some(5242880));
+    }
+
+    #[async_std::test]
+    async fn create_bucket_returns_conflict_on_409() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), true);
+
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/bucket"))
+            .respond_with(ResponseTemplate::new(409).set_body_string("duplicate"))
+            .mount(&server)
+            .await;
+
+        let payload = json!({ "name": "private-docs", "public": false });
+        let result = storage.create_bucket(payload).await;
+        assert!(matches!(result, Err(AppError::Conflict(_))));
+    }
+
+    #[async_std::test]
+    async fn update_bucket_posts_to_path() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), true);
+
+        let response_body = json!({
+            "id": "private-docs",
+            "name": "private-docs",
+            "public": true,
+            "file_size_limit": null,
+            "allowed_mime_types": null,
+            "owner": null,
+            "type": "STANDARD",
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-02T00:00:00Z"
+        });
+
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/bucket/private-docs"))
+            .and(header("authorization", "Bearer service-role-test-key"))
+            .and(header("apikey", "service-role-test-key"))
+            .and(wiremock::matchers::body_string("{\"public\":true}"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(response_body))
+            .mount(&server)
+            .await;
+
+        let payload = json!({ "public": true });
+        let bucket = storage
+            .update_bucket("private-docs", payload)
+            .await
+            .expect("update_bucket ok");
+        assert_eq!(bucket.name, "private-docs");
+        assert!(bucket.public);
+    }
+
+    #[async_std::test]
+    async fn empty_bucket_posts_to_empty_path() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), true);
+
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/bucket/private-docs/empty"))
+            .and(header("authorization", "Bearer service-role-test-key"))
+            .and(header("apikey", "service-role-test-key"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&server)
+            .await;
+
+        let result = storage.empty_bucket("private-docs").await;
+        assert!(result.is_ok(), "expected Ok, got {:?}", result);
+    }
+
+    #[async_std::test]
+    async fn empty_bucket_returns_not_found_on_404() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), true);
+
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/bucket/missing/empty"))
+            .respond_with(ResponseTemplate::new(404))
+            .mount(&server)
+            .await;
+
+        let result = storage.empty_bucket("missing").await;
+        assert!(matches!(result, Err(AppError::NotFound)));
+    }
+
+    #[async_std::test]
+    async fn delete_bucket_purge_true_sends_purge_in_body() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), true);
+
+        Mock::given(method("DELETE"))
+            .and(path("/storage/v1/bucket/old-test"))
+            .and(header("authorization", "Bearer service-role-test-key"))
+            .and(header("apikey", "service-role-test-key"))
+            .and(wiremock::matchers::body_string("{\"purge\":true}"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&server)
+            .await;
+
+        let result = storage.delete_bucket("old-test", true).await;
+        assert!(result.is_ok(), "expected Ok, got {:?}", result);
+    }
+
+    #[async_std::test]
+    async fn delete_bucket_purge_false_sends_purge_false_in_body() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), true);
+
+        Mock::given(method("DELETE"))
+            .and(path("/storage/v1/bucket/old-test"))
+            .and(header("authorization", "Bearer service-role-test-key"))
+            .and(wiremock::matchers::body_string("{\"purge\":false}"))
+            .respond_with(ResponseTemplate::new(200))
+            .mount(&server)
+            .await;
+
+        let result = storage.delete_bucket("old-test", false).await;
+        assert!(result.is_ok(), "expected Ok, got {:?}", result);
+    }
+
+    #[async_std::test]
+    async fn delete_bucket_returns_not_found_on_404() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), true);
+
+        Mock::given(method("DELETE"))
+            .and(path("/storage/v1/bucket/missing"))
+            .respond_with(ResponseTemplate::new(404))
+            .mount(&server)
+            .await;
+
+        let result = storage.delete_bucket("missing", true).await;
+        assert!(matches!(result, Err(AppError::NotFound)));
+    }
+
+    #[async_std::test]
+    async fn delete_bucket_returns_storage_error_on_400() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), true);
+
+        Mock::given(method("DELETE"))
+            .and(path("/storage/v1/bucket/non-empty"))
+            .respond_with(ResponseTemplate::new(400).set_body_string("not empty"))
+            .mount(&server)
+            .await;
+
+        let result = storage.delete_bucket("non-empty", false).await;
+        match result {
+            Err(AppError::StorageError(msg)) => {
+                assert!(msg.contains("400"));
+                assert!(msg.contains("not empty"));
+            }
+            other => panic!("expected StorageError, got {:?}", other),
+        }
+    }
+
+    #[async_std::test]
+    async fn list_buckets_returns_storage_error_on_500() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), false);
+
+        Mock::given(method("GET"))
+            .and(path("/storage/v1/bucket"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("oops"))
+            .mount(&server)
+            .await;
+
+        let result = storage.list_buckets().await;
+        match result {
+            Err(AppError::StorageError(msg)) => assert!(msg.contains("500")),
+            other => panic!("expected StorageError, got {:?}", other),
+        }
+    }
+
+    #[async_std::test]
+    async fn list_buckets_returns_storage_error_on_401() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), false);
+
+        Mock::given(method("GET"))
+            .and(path("/storage/v1/bucket"))
+            .respond_with(ResponseTemplate::new(401).set_body_string("unauth"))
+            .mount(&server)
+            .await;
+
+        let result = storage.list_buckets().await;
+        match result {
+            Err(AppError::StorageError(msg)) => assert!(msg.contains("401")),
+            other => panic!("expected StorageError, got {:?}", other),
+        }
+    }
+
+    #[async_std::test]
+    async fn error_messages_never_include_service_role_key() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), true);
+
+        Mock::given(method("GET"))
+            .and(path("/storage/v1/bucket"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("internal"))
+            .mount(&server)
+            .await;
+
+        let result = storage.list_buckets().await;
+        match result {
+            Err(AppError::StorageError(msg)) => {
+                assert!(!msg.contains("service-role-test-key"));
+                assert!(!msg.contains("service_role_test_key"));
+            }
+            other => panic!("expected StorageError, got {:?}", other),
+        }
     }
 }

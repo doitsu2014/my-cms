@@ -1,5 +1,6 @@
-pub mod bucket;
 pub mod create;
 pub mod delete;
+pub mod empty;
+pub mod get;
 pub mod list;
-pub mod read;
+pub mod update;

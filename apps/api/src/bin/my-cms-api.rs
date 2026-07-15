@@ -225,6 +225,21 @@ pub async fn protected_administrator_router() -> Router {
             "/users/{user_id}/reset-password",
             post(api::user::reset_password::reset_password_handler::api_reset_password),
         )
+        .route(
+            "/media/buckets",
+            get(api::media::bucket::list::list_handler::api_list_buckets)
+                .post(api::media::bucket::create::create_handler::api_create_bucket),
+        )
+        .route(
+            "/media/buckets/{name}",
+            get(api::media::bucket::get::get_handler::api_get_bucket)
+                .put(api::media::bucket::update::update_handler::api_update_bucket)
+                .delete(api::media::bucket::delete::delete_handler::api_delete_bucket),
+        )
+        .route(
+            "/media/buckets/{name}/empty",
+            post(api::media::bucket::empty::empty_handler::api_empty_bucket),
+        )
         .layer(construct_supabase_auth_layer(
             env::var("AUTHORIZATION_AUDIENCE").unwrap_or("authenticated".to_string()),
             vec![String::from("my-headless-cms-administrator")],
@@ -260,6 +275,8 @@ async fn construct_app_state() -> AppState {
         supabase_storage_bucket,
     );
 
+    tracing::info!("Supabase service role key configured; bucket management endpoints enabled");
+
     let supabase_admin_client = Arc::new(SupabaseAdminClient::new(
         supabase_internal_url,
         supabase_service_role_key,
@@ -273,6 +290,7 @@ async fn construct_app_state() -> AppState {
         media_config: Arc::new(MediaConfig {
             storage,
             media_base_url,
+            bucket_override: None,
         }),
         media_cache: Arc::new(create_media_cache()),
         graphql_immutable_schema: Arc::new(graphql_immutable_schema),
