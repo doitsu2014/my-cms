@@ -387,21 +387,21 @@ export default function AdminBucketsPage() {
       <dialog className={`modal ${isCreateOpen ? 'modal-open' : ''}`}>
         <div className="modal-box max-w-lg">
           <h3 className="font-bold text-lg mb-2">New Bucket</h3>
-          <form onSubmit={submitCreate} className="space-y-3">
-            <label className="form-control">
-              <div className="label">
-                <span className="label-text">Name</span>
+          <form onSubmit={submitCreate} className="space-y-4">
+            <label className="form-control w-full pt-2">
+              <div className="label py-1">
+                <span className="label-text font-medium">Name</span>
               </div>
               <input
                 type="text"
-                className={`input input-bordered ${
+                className={`input input-bordered w-full ${
                   createErrors.name ? 'input-error' : ''
                 }`}
                 placeholder="my-private-bucket"
                 {...createForm.register('name')}
               />
               {createErrors.name && (
-                <div className="label">
+                <div className="label py-1">
                   <span className="label-text-alt text-error">
                     {createErrors.name.message}
                   </span>
@@ -409,28 +409,33 @@ export default function AdminBucketsPage() {
               )}
             </label>
 
-            <label className="label cursor-pointer justify-start gap-3">
-              <input
-                type="checkbox"
-                className="toggle toggle-primary"
-                {...createForm.register('public')}
-              />
-              <span className="label-text">Public bucket</span>
+            <label className="form-control w-full">
+              <span className="label-text font-medium mb-2 block">Public bucket</span>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  className="toggle toggle-primary"
+                  {...createForm.register('public')}
+                />
+                <span className="text-sm text-base-content/70">
+                  When enabled, files in this bucket are publicly readable
+                </span>
+              </div>
             </label>
 
-            <label className="form-control">
-              <div className="label">
-                <span className="label-text">File size limit (bytes, optional)</span>
+            <label className="form-control w-full">
+              <div className="label py-1">
+                <span className="label-text font-medium">File size limit (bytes, optional)</span>
               </div>
               <input
                 type="number"
                 min="1"
-                className="input input-bordered"
+                className="input input-bordered w-full"
                 placeholder="e.g. 5242880"
                 {...createForm.register('fileSizeLimit')}
               />
               {createErrors.fileSizeLimit && (
-                <div className="label">
+                <div className="label py-1">
                   <span className="label-text-alt text-error">
                     {createErrors.fileSizeLimit.message}
                   </span>
@@ -438,20 +443,20 @@ export default function AdminBucketsPage() {
               )}
             </label>
 
-            <label className="form-control">
-              <div className="label">
-                <span className="label-text">
+            <label className="form-control w-full">
+              <div className="label py-1">
+                <span className="label-text font-medium">
                   Allowed MIME types (comma-separated, optional)
                 </span>
               </div>
               <input
                 type="text"
-                className="input input-bordered"
+                className="input input-bordered w-full"
                 placeholder="image/png, image/jpeg"
                 {...createForm.register('allowedMimeTypes')}
               />
               {createErrors.allowedMimeTypes && (
-                <div className="label">
+                <div className="label py-1">
                   <span className="label-text-alt text-error">
                     {createErrors.allowedMimeTypes.message}
                   </span>
@@ -495,29 +500,34 @@ export default function AdminBucketsPage() {
               {editingBucket?.name}
             </code>
           </h3>
-          <form onSubmit={submitEdit} className="space-y-3">
-            <label className="label cursor-pointer justify-start gap-3">
-              <input
-                type="checkbox"
-                className="toggle toggle-primary"
-                {...editForm.register('public')}
-              />
-              <span className="label-text">Public bucket</span>
+          <form onSubmit={submitEdit} className="space-y-4">
+            <label className="form-control w-full pt-2">
+              <span className="label-text font-medium mb-2 block">Public bucket</span>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  className="toggle toggle-primary"
+                  {...editForm.register('public')}
+                />
+                <span className="text-sm text-base-content/70">
+                  When enabled, files in this bucket are publicly readable
+                </span>
+              </div>
             </label>
 
-            <label className="form-control">
-              <div className="label">
-                <span className="label-text">File size limit (bytes, blank to clear)</span>
+            <label className="form-control w-full">
+              <div className="label py-1">
+                <span className="label-text font-medium">File size limit (bytes, blank to clear)</span>
               </div>
               <input
                 type="number"
                 min="1"
-                className="input input-bordered"
+                className="input input-bordered w-full"
                 placeholder="e.g. 10485760"
                 {...editForm.register('fileSizeLimit')}
               />
               {editErrors.fileSizeLimit && (
-                <div className="label">
+                <div className="label py-1">
                   <span className="label-text-alt text-error">
                     {editErrors.fileSizeLimit.message}
                   </span>
@@ -525,20 +535,20 @@ export default function AdminBucketsPage() {
               )}
             </label>
 
-            <label className="form-control">
-              <div className="label">
-                <span className="label-text">
+            <label className="form-control w-full">
+              <div className="label py-1">
+                <span className="label-text font-medium">
                   Allowed MIME types (comma-separated, blank to clear)
                 </span>
               </div>
               <input
                 type="text"
-                className="input input-bordered"
+                className="input input-bordered w-full"
                 placeholder="image/png, image/jpeg"
                 {...editForm.register('allowedMimeTypes')}
               />
               {editErrors.allowedMimeTypes && (
-                <div className="label">
+                <div className="label py-1">
                   <span className="label-text-alt text-error">
                     {editErrors.allowedMimeTypes.message}
                   </span>

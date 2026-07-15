@@ -146,6 +146,9 @@ impl SupabaseStorage {
                 .text()
                 .await
                 .unwrap_or_else(|_| "<no body>".to_string());
+            if is_bucket_not_found(status, &body) {
+                return Err(AppError::NotFound);
+            }
             return Err(AppError::StorageError(format!(
                 "Upload failed ({}): {}",
                 status, body
@@ -165,14 +168,14 @@ impl SupabaseStorage {
             .await
             .map_err(|e| AppError::StorageError(format!("Download request failed: {}", e)))?;
         let status = response.status();
-        if status.as_u16() == 404 {
-            return Err(AppError::NotFound);
-        }
         if !status.is_success() {
             let body = response
                 .text()
                 .await
                 .unwrap_or_else(|_| "<no body>".to_string());
+            if is_bucket_not_found(status, &body) {
+                return Err(AppError::NotFound);
+            }
             return Err(AppError::StorageError(format!(
                 "Download failed ({}): {}",
                 status, body
@@ -205,14 +208,14 @@ impl SupabaseStorage {
             .await
             .map_err(|e| AppError::StorageError(format!("Get info request failed: {}", e)))?;
         let status = response.status();
-        if status.as_u16() == 404 {
-            return Err(AppError::NotFound);
-        }
         if !status.is_success() {
             let body = response
                 .text()
                 .await
                 .unwrap_or_else(|_| "<no body>".to_string());
+            if is_bucket_not_found(status, &body) {
+                return Err(AppError::NotFound);
+            }
             return Err(AppError::StorageError(format!(
                 "Get info failed ({}): {}",
                 status, body
@@ -278,6 +281,9 @@ impl SupabaseStorage {
                 .text()
                 .await
                 .unwrap_or_else(|_| "<no body>".to_string());
+            if is_bucket_not_found(status, &body) {
+                return Err(AppError::NotFound);
+            }
             return Err(AppError::StorageError(format!(
                 "List failed ({}): {}",
                 status, body
@@ -344,6 +350,9 @@ impl SupabaseStorage {
                 .text()
                 .await
                 .unwrap_or_else(|_| "<no body>".to_string());
+            if is_bucket_not_found(status, &body) {
+                return Err(AppError::NotFound);
+            }
             return Err(AppError::StorageError(format!(
                 "Delete failed ({}): {}",
                 status, body
@@ -374,6 +383,9 @@ impl SupabaseStorage {
                 .text()
                 .await
                 .unwrap_or_else(|_| "<no body>".to_string());
+            if is_bucket_not_found(status, &body) {
+                return Err(AppError::NotFound);
+            }
             return Err(AppError::StorageError(format!(
                 "Batch delete failed ({}): {}",
                 status, body
@@ -585,6 +597,31 @@ impl SupabaseStorage {
     }
 }
 
+fn is_bucket_not_found(status: reqwest::StatusCode, body: &str) -> bool {
+    if status.as_u16() == 404 {
+        return true;
+    }
+
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(body) else {
+        return false;
+    };
+    let status_code = value.get("statusCode");
+    let has_not_found_status = status_code.and_then(serde_json::Value::as_u64) == Some(404)
+        || status_code.and_then(serde_json::Value::as_str) == Some("404");
+    if !has_not_found_status {
+        return false;
+    }
+
+    ["error", "message"]
+        .iter()
+        .filter_map(|field| value.get(*field).and_then(serde_json::Value::as_str))
+        .any(|text| {
+            let normalized = text.to_lowercase();
+            (normalized.contains("bucket") && normalized.contains("not found"))
+                || normalized.contains("bucketnotfound")
+        })
+}
+
 fn bucket_from_value(v: serde_json::Value) -> Bucket {
     Bucket {
         id: v
@@ -650,6 +687,9 @@ mod tests {
         matchers::{header, method, path},
         Mock, MockServer, ResponseTemplate,
     };
+
+    const BUCKET_NOT_FOUND_BODY: &str =
+        r#"{"statusCode":"404","error":"Bucket not found","message":"Bucket not found"}"#;
 
     fn make_storage(base_url: &str, with_service_role: bool) -> SupabaseStorage {
         SupabaseStorage {
@@ -801,6 +841,22 @@ mod tests {
     }
 
     #[async_std::test]
+    async fn download_returns_not_found_on_supabase_400_with_statuscode_404() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+
+        Mock::given(method("GET"))
+            .and(path("/storage/v1/object/public/xx/foo.png"))
+            .respond_with(ResponseTemplate::new(400).set_body_string(BUCKET_NOT_FOUND_BODY))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let result = storage.download("foo.png").await;
+        assert!(matches!(result, Err(AppError::NotFound)));
+    }
+
+    #[async_std::test]
     async fn download_returns_storage_error_on_500() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -860,6 +916,22 @@ mod tests {
             .await;
 
         let result = storage.get_info("missing.png").await;
+        assert!(matches!(result, Err(AppError::NotFound)));
+    }
+
+    #[async_std::test]
+    async fn get_info_returns_not_found_on_supabase_400_with_statuscode_404() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+
+        Mock::given(method("GET"))
+            .and(path("/storage/v1/object/info/public/xx/foo.png"))
+            .respond_with(ResponseTemplate::new(400).set_body_string(BUCKET_NOT_FOUND_BODY))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let result = storage.get_info("foo.png").await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
@@ -956,6 +1028,140 @@ mod tests {
         assert_eq!(result.len(), 2);
         assert_eq!(result[0].name, "a.png");
         assert_eq!(result[1].name, "b.png");
+    }
+
+    #[async_std::test]
+    async fn list_objects_returns_not_found_on_supabase_400_with_statuscode_404() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/object/list/public/xx"))
+            .respond_with(ResponseTemplate::new(400).set_body_string(BUCKET_NOT_FOUND_BODY))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let result = storage.list_objects(None).await;
+        assert!(matches!(result, Err(AppError::NotFound)));
+    }
+
+    #[async_std::test]
+    async fn list_objects_returns_not_found_on_http_404() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/object/list/public/xx"))
+            .respond_with(ResponseTemplate::new(404))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let result = storage.list_objects(None).await;
+        assert!(matches!(result, Err(AppError::NotFound)));
+    }
+
+    #[async_std::test]
+    async fn upload_returns_not_found_on_supabase_400_with_statuscode_404() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/object/xx/foo.png"))
+            .respond_with(ResponseTemplate::new(400).set_body_string(BUCKET_NOT_FOUND_BODY))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let result = storage
+            .upload("foo.png", b"binary-data", "image/png", None)
+            .await;
+        assert!(matches!(result, Err(AppError::NotFound)));
+    }
+
+    #[async_std::test]
+    async fn upload_returns_not_found_on_http_404() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/object/xx/foo.png"))
+            .respond_with(ResponseTemplate::new(404))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let result = storage
+            .upload("foo.png", b"binary-data", "image/png", None)
+            .await;
+        assert!(matches!(result, Err(AppError::NotFound)));
+    }
+
+    #[async_std::test]
+    async fn delete_returns_not_found_on_supabase_400_with_statuscode_404() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+
+        Mock::given(method("DELETE"))
+            .and(path("/storage/v1/object/xx/foo.png"))
+            .respond_with(ResponseTemplate::new(400).set_body_string(BUCKET_NOT_FOUND_BODY))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let result = storage.delete("foo.png").await;
+        assert!(matches!(result, Err(AppError::NotFound)));
+    }
+
+    #[async_std::test]
+    async fn delete_returns_not_found_on_http_404() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+
+        Mock::given(method("DELETE"))
+            .and(path("/storage/v1/object/xx/foo.png"))
+            .respond_with(ResponseTemplate::new(404))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let result = storage.delete("foo.png").await;
+        assert!(matches!(result, Err(AppError::NotFound)));
+    }
+
+    #[async_std::test]
+    async fn delete_batch_returns_not_found_on_supabase_400_with_statuscode_404() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+
+        Mock::given(method("DELETE"))
+            .and(path("/storage/v1/object/xx/delete"))
+            .respond_with(ResponseTemplate::new(400).set_body_string(BUCKET_NOT_FOUND_BODY))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let paths = vec!["foo.png".to_string()];
+        let result = storage.delete_batch(&paths).await;
+        assert!(matches!(result, Err(AppError::NotFound)));
+    }
+
+    #[async_std::test]
+    async fn delete_batch_returns_not_found_on_http_404() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+
+        Mock::given(method("DELETE"))
+            .and(path("/storage/v1/object/xx/delete"))
+            .respond_with(ResponseTemplate::new(404))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let paths = vec!["foo.png".to_string()];
+        let result = storage.delete_batch(&paths).await;
+        assert!(matches!(result, Err(AppError::NotFound)));
     }
 
     #[async_std::test]
