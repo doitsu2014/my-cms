@@ -1,6 +1,7 @@
 use application_core::commands::media::read::read_handler::{
     ReadMediaHandler, ReadMediaHandlerTrait, ResizeParams,
 };
+use application_core::common::app_error::AppError;
 use axum::{
     body::Body,
     extract::{Path, Query, State},
@@ -17,6 +18,22 @@ use crate::AppState;
 pub struct ImageQueryParams {
     pub w: Option<u32>,
     pub h: Option<u32>,
+}
+
+fn error_status(e: &AppError) -> StatusCode {
+    match e {
+        AppError::NotFound => StatusCode::NOT_FOUND,
+        _ => StatusCode::BAD_GATEWAY,
+    }
+}
+
+fn error_response(e: AppError) -> Response {
+    (
+        error_status(&e),
+        [(header::CONTENT_TYPE, "application/json")],
+        format!(r#"{{"error": "{}"}}"#, e),
+    )
+        .into_response()
 }
 
 #[instrument(skip(state))]
@@ -54,12 +71,7 @@ pub async fn api_get_media_image(
 
             (StatusCode::OK, headers, Body::from(cached_media.data)).into_response()
         }
-        Err(e) => Response::builder()
-            .status(StatusCode::NOT_FOUND)
-            .header(header::CONTENT_TYPE, "application/json")
-            .body(Body::from(format!(r#"{{"error": "{}"}}"#, e)))
-            .unwrap()
-            .into_response(),
+        Err(e) => error_response(e),
     }
 }
 
@@ -84,11 +96,6 @@ pub async fn api_get_media(state: State<AppState>, Path(path): Path<String>) -> 
 
             (StatusCode::OK, headers, Body::from(cached_media.data)).into_response()
         }
-        Err(e) => Response::builder()
-            .status(StatusCode::NOT_FOUND)
-            .header(header::CONTENT_TYPE, "application/json")
-            .body(Body::from(format!(r#"{{"error": "{}"}}"#, e)))
-            .unwrap()
-            .into_response(),
+        Err(e) => error_response(e),
     }
 }

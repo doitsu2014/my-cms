@@ -35,6 +35,8 @@ pub struct UpdateBucketRequest {
 }
 
 pub const BUCKET_NAME_REGEX_STR: &str = r"^[a-z][a-z0-9_-]{2,62}$";
+pub const BUCKET_NAME_MIN_LEN: usize = 3;
+pub const BUCKET_NAME_MAX_LEN: usize = 63;
 
 lazy_static! {
     pub static ref BUCKET_NAME_REGEX: Regex =
@@ -43,6 +45,29 @@ lazy_static! {
 
 pub fn is_valid_bucket_name(name: &str) -> bool {
     BUCKET_NAME_REGEX.is_match(name)
+}
+
+pub fn bucket_name_error(name: &str) -> Option<String> {
+    if let Some(&first) = name.as_bytes().first() {
+        if !first.is_ascii_lowercase() {
+            return Some("must start with a lowercase letter".to_string());
+        }
+    }
+    if name.len() < BUCKET_NAME_MIN_LEN {
+        return Some(format!("minimum {} characters", BUCKET_NAME_MIN_LEN));
+    }
+    if name.len() > BUCKET_NAME_MAX_LEN {
+        return Some(format!("maximum {} characters", BUCKET_NAME_MAX_LEN));
+    }
+    if !name
+        .bytes()
+        .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-' || b == b'_')
+    {
+        return Some(
+            "only lowercase letters, digits, hyphens, and underscores allowed".to_string(),
+        );
+    }
+    None
 }
 
 #[cfg(test)]
@@ -95,5 +120,41 @@ mod tests {
         assert!(!is_valid_bucket_name("my bucket"));
         assert!(!is_valid_bucket_name("my.bucket"));
         assert!(!is_valid_bucket_name("my/bucket"));
+    }
+
+    #[test]
+    fn bucket_name_error_flags_short_names() {
+        let err = bucket_name_error("xx").expect("expected error for 2-char name");
+        assert_eq!(err, "minimum 3 characters");
+    }
+
+    #[test]
+    fn bucket_name_error_accepts_three_char_lowercase_name() {
+        assert!(bucket_name_error("xxx").is_none());
+    }
+
+    #[test]
+    fn bucket_name_error_flags_uppercase_lead() {
+        let err = bucket_name_error("Xx").expect("expected error for uppercase start");
+        assert_eq!(err, "must start with a lowercase letter");
+    }
+
+    #[test]
+    fn bucket_name_error_flags_invalid_charset() {
+        let err = bucket_name_error("xxx!").expect("expected error for invalid charset");
+        assert!(err.contains("only lowercase letters"));
+    }
+
+    #[test]
+    fn bucket_name_error_flags_overlong_names() {
+        let long = "x".repeat(64);
+        let err = bucket_name_error(&long).expect("expected error for 64-char name");
+        assert_eq!(err, "maximum 63 characters");
+    }
+
+    #[test]
+    fn bucket_name_error_flags_empty_string() {
+        let err = bucket_name_error("").expect("expected error for empty name");
+        assert_eq!(err, "minimum 3 characters");
     }
 }

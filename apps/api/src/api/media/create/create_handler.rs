@@ -1,5 +1,5 @@
 use crate::common::supabase_auth::SupabaseToken;
-use application_core::commands::media::bucket::dto::is_valid_bucket_name;
+use application_core::commands::media::bucket::dto::bucket_name_error;
 use application_core::commands::media::{
     create::create_handler::{CreateMediaHandler, CreateMediaHandlerTrait},
     is_supported_content_type, MediaConfig,
@@ -29,13 +29,10 @@ pub async fn api_create_media(
     mut multipart: Multipart,
 ) -> impl IntoResponse {
     if let Some(name) = &params.bucket {
-        if !is_valid_bucket_name(name) {
+        if let Some(reason) = bucket_name_error(name) {
             return ApiResponseError::new()
                 .with_error_code(ErrorCode::ValidationError)
-                .add_error(
-                    "bucket: must start with a lowercase letter; only [a-z0-9_-] allowed"
-                        .to_string(),
-                )
+                .add_error(format!("bucket: {}", reason))
                 .to_axum_response();
         }
     }

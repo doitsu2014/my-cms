@@ -259,7 +259,7 @@ impl SupabaseStorage {
             "{}/storage/v1/object/list/public/{}",
             self.supabase_url, self.bucket
         );
-        let body = serde_json::json!({
+        let req_body = serde_json::json!({
             "prefix": prefix.unwrap_or(""),
             "limit": 1000,
             "offset": 0,
@@ -271,22 +271,22 @@ impl SupabaseStorage {
             .bearer_auth(self.auth_key())
             .header("apikey", self.auth_key())
             .header(reqwest::header::CONTENT_TYPE, "application/json")
-            .body(body.to_string())
+            .body(req_body.to_string())
             .send()
             .await
             .map_err(|e| AppError::StorageError(format!("List request failed: {}", e)))?;
         let status = response.status();
         if !status.is_success() {
-            let body = response
+            let resp_body = response
                 .text()
                 .await
                 .unwrap_or_else(|_| "<no body>".to_string());
-            if is_bucket_not_found(status, &body) {
+            if is_bucket_not_found(status, &resp_body) {
                 return Err(AppError::NotFound);
             }
             return Err(AppError::StorageError(format!(
                 "List failed ({}): {}",
-                status, body
+                status, resp_body
             )));
         }
         let raw: Vec<serde_json::Value> = response
@@ -366,29 +366,29 @@ impl SupabaseStorage {
             "{}/storage/v1/object/{}/delete",
             self.supabase_url, self.bucket
         );
-        let body = serde_json::json!({ "prefixes": paths });
+        let req_body = serde_json::json!({ "prefixes": paths });
         let response = self
             .client
             .delete(&url)
             .bearer_auth(self.auth_key())
             .header("apikey", self.auth_key())
             .header(reqwest::header::CONTENT_TYPE, "application/json")
-            .body(body.to_string())
+            .body(req_body.to_string())
             .send()
             .await
             .map_err(|e| AppError::StorageError(format!("Batch delete request failed: {}", e)))?;
         let status = response.status();
         if !status.is_success() {
-            let body = response
+            let resp_body = response
                 .text()
                 .await
                 .unwrap_or_else(|_| "<no body>".to_string());
-            if is_bucket_not_found(status, &body) {
+            if is_bucket_not_found(status, &resp_body) {
                 return Err(AppError::NotFound);
             }
             return Err(AppError::StorageError(format!(
                 "Batch delete failed ({}): {}",
-                status, body
+                status, resp_body
             )));
         }
         let raw: Vec<serde_json::Value> = response.json().await.map_err(|e| {
@@ -608,17 +608,27 @@ fn is_bucket_not_found(status: reqwest::StatusCode, body: &str) -> bool {
     let status_code = value.get("statusCode");
     let has_not_found_status = status_code.and_then(serde_json::Value::as_u64) == Some(404)
         || status_code.and_then(serde_json::Value::as_str) == Some("404");
-    if !has_not_found_status {
-        return false;
+    if has_not_found_status {
+        return true;
     }
+
+    const BUCKET_NOT_FOUND_PATTERNS: &[&str] = &[
+        "does not exist",
+        "bucket missing",
+        "bucket not found",
+        "bucketnotfound",
+        "notfound",
+        "bucket_not_found",
+    ];
 
     ["error", "message"]
         .iter()
         .filter_map(|field| value.get(*field).and_then(serde_json::Value::as_str))
         .any(|text| {
             let normalized = text.to_lowercase();
-            (normalized.contains("bucket") && normalized.contains("not found"))
-                || normalized.contains("bucketnotfound")
+            BUCKET_NOT_FOUND_PATTERNS
+                .iter()
+                .any(|p| normalized.contains(p))
         })
 }
 
@@ -690,6 +700,48 @@ mod tests {
 
     const BUCKET_NOT_FOUND_BODY: &str =
         r#"{"statusCode":"404","error":"Bucket not found","message":"Bucket not found"}"#;
+
+    fn status(s: u16) -> reqwest::StatusCode {
+        reqwest::StatusCode::from_u16(s).unwrap()
+    }
+
+    #[test]
+    fn is_bucket_not_found_matches_does_not_exist_with_statuscode_404() {
+        let body = r#"{"statusCode":"404","error":"not_found","message":"Bucket does not exist"}"#;
+        assert!(is_bucket_not_found(status(400), body));
+    }
+
+    #[test]
+    fn is_bucket_not_found_matches_classic_bucket_not_found_with_statuscode_404() {
+        let body = r#"{"statusCode":"404","error":"not_found","message":"The specified bucket was not found"}"#;
+        assert!(is_bucket_not_found(status(400), body));
+    }
+
+    #[test]
+    fn is_bucket_not_found_matches_bucket_missing_and_bucket_not_found_codes() {
+        let body = r#"{"statusCode":"404","error":"bucket_not_found","message":"bucket missing"}"#;
+        assert!(is_bucket_not_found(status(400), body));
+    }
+
+    #[test]
+    fn is_bucket_not_found_matches_bucket_missing_alone() {
+        let body = r#"{"statusCode":"404","message":"bucket missing"}"#;
+        assert!(is_bucket_not_found(status(400), body));
+    }
+
+    #[test]
+    fn is_bucket_not_found_rejects_non_404_status_codes_with_unrelated_messages() {
+        let body = r#"{"statusCode":"500","message":"server error"}"#;
+        assert!(!is_bucket_not_found(status(400), body));
+    }
+
+    #[test]
+    fn is_bucket_not_found_rejects_non_json_body() {
+        assert!(!is_bucket_not_found(
+            status(400),
+            "<html><body>not json</body></html>"
+        ));
+    }
 
     fn make_storage(base_url: &str, with_service_role: bool) -> SupabaseStorage {
         SupabaseStorage {
@@ -1038,6 +1090,23 @@ mod tests {
         Mock::given(method("POST"))
             .and(path("/storage/v1/object/list/public/xx"))
             .respond_with(ResponseTemplate::new(400).set_body_string(BUCKET_NOT_FOUND_BODY))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let result = storage.list_objects(None).await;
+        assert!(matches!(result, Err(AppError::NotFound)));
+    }
+
+    #[async_std::test]
+    async fn list_objects_returns_not_found_on_does_not_exist_body() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+
+        let body = r#"{"statusCode":"404","error":"not_found","message":"Bucket does not exist"}"#;
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/object/list/public/xx"))
+            .respond_with(ResponseTemplate::new(400).set_body_string(body))
             .expect(1)
             .mount(&server)
             .await;
