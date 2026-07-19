@@ -31,7 +31,6 @@ pub struct SupabaseStorage {
     pub supabase_url: String,
     pub anon_key: String,
     pub service_role_key: Option<String>,
-    pub bucket: String,
     pub client: Client,
 }
 
@@ -44,7 +43,6 @@ impl std::fmt::Debug for SupabaseStorage {
                 "service_role_key",
                 &self.service_role_key.as_ref().map(|_| "<redacted>"),
             )
-            .field("bucket", &self.bucket)
             .finish()
     }
 }
@@ -54,7 +52,6 @@ impl SupabaseStorage {
         supabase_url: impl Into<String>,
         anon_key: impl Into<String>,
         service_role_key: Option<String>,
-        bucket: impl Into<String>,
     ) -> Self {
         let client = Client::builder()
             .timeout(Duration::from_secs(30))
@@ -64,7 +61,6 @@ impl SupabaseStorage {
             supabase_url: supabase_url.into(),
             anon_key: anon_key.into(),
             service_role_key,
-            bucket: bucket.into(),
             client,
         }
     }
@@ -75,26 +71,26 @@ impl SupabaseStorage {
             .unwrap_or(self.anon_key.as_str())
     }
 
-    pub fn with_bucket(&self, name: &str) -> Self {
-        let mut cloned = self.clone();
-        cloned.bucket = name.to_string();
-        cloned
-    }
-
-    pub fn public_url(&self, path: &str) -> String {
+    pub fn public_url(&self, bucket: &str, path: &str) -> String {
         format!(
             "{}/storage/v1/object/public/{}/{}",
-            self.supabase_url, self.bucket, path
+            self.supabase_url, bucket, path
         )
     }
 
     // Image rendering requires the legacy `/public/` segment in Supabase
     // Storage v1.60.2; the single-segment pattern returns 404 here. Re-test
     // this endpoint when upgrading storage-api.
-    pub fn render_image_url(&self, path: &str, width: Option<u32>, height: Option<u32>) -> String {
+    pub fn render_image_url(
+        &self,
+        bucket: &str,
+        path: &str,
+        width: Option<u32>,
+        height: Option<u32>,
+    ) -> String {
         let base = format!(
             "{}/storage/v1/render/image/public/{}/{}",
-            self.supabase_url, self.bucket, path
+            self.supabase_url, bucket, path
         );
         match (width, height) {
             (Some(w), Some(h)) => format!("{}?width={}&height={}", base, w, h),
@@ -106,11 +102,12 @@ impl SupabaseStorage {
 
     pub async fn download_render(
         &self,
+        bucket: &str,
         path: &str,
         width: Option<u32>,
         height: Option<u32>,
     ) -> Result<(Vec<u8>, String), AppError> {
-        let url = self.render_image_url(path, width, height);
+        let url = self.render_image_url(bucket, path, width, height);
         let response = self
             .client
             .get(&url)
@@ -148,6 +145,7 @@ impl SupabaseStorage {
 
     pub async fn upload(
         &self,
+        bucket: &str,
         file_path: &str,
         data: &[u8],
         content_type: &str,
@@ -155,7 +153,7 @@ impl SupabaseStorage {
     ) -> Result<(), AppError> {
         let url = format!(
             "{}/storage/v1/object/{}/{}",
-            self.supabase_url, self.bucket, file_path
+            self.supabase_url, bucket, file_path
         );
         let mut part = reqwest::multipart::Part::bytes(data.to_vec())
             .file_name(file_path.to_string())
@@ -202,10 +200,10 @@ impl SupabaseStorage {
         Ok(())
     }
 
-    pub async fn download(&self, path: &str) -> Result<(Vec<u8>, String), AppError> {
+    pub async fn download(&self, bucket: &str, path: &str) -> Result<(Vec<u8>, String), AppError> {
         let url = format!(
             "{}/storage/v1/object/{}/{}",
-            self.supabase_url, self.bucket, path
+            self.supabase_url, bucket, path
         );
         let response = self
             .client
@@ -242,10 +240,14 @@ impl SupabaseStorage {
         Ok((bytes.to_vec(), content_type))
     }
 
-    pub async fn get_info(&self, path: &str) -> Result<StorageObjectMetadata, AppError> {
+    pub async fn get_info(
+        &self,
+        bucket: &str,
+        path: &str,
+    ) -> Result<StorageObjectMetadata, AppError> {
         let url = format!(
             "{}/storage/v1/object/info/{}/{}",
-            self.supabase_url, self.bucket, path
+            self.supabase_url, bucket, path
         );
         let response = self
             .client
@@ -302,11 +304,12 @@ impl SupabaseStorage {
         })
     }
 
-    pub async fn list_objects(&self, prefix: Option<&str>) -> Result<Vec<StorageObject>, AppError> {
-        let url = format!(
-            "{}/storage/v1/object/list/{}",
-            self.supabase_url, self.bucket
-        );
+    pub async fn list_objects(
+        &self,
+        bucket: &str,
+        prefix: Option<&str>,
+    ) -> Result<Vec<StorageObject>, AppError> {
+        let url = format!("{}/storage/v1/object/list/{}", self.supabase_url, bucket);
         let req_body = serde_json::json!({
             "prefix": prefix.unwrap_or(""),
             "limit": 1000,
@@ -379,10 +382,10 @@ impl SupabaseStorage {
         Ok(objects)
     }
 
-    pub async fn delete(&self, path: &str) -> Result<(), AppError> {
+    pub async fn delete(&self, bucket: &str, path: &str) -> Result<(), AppError> {
         let url = format!(
             "{}/storage/v1/object/{}/{}",
-            self.supabase_url, self.bucket, path
+            self.supabase_url, bucket, path
         );
         let response = self
             .client
@@ -409,11 +412,12 @@ impl SupabaseStorage {
         Ok(())
     }
 
-    pub async fn delete_batch(&self, paths: &[String]) -> Result<Vec<DeletedObject>, AppError> {
-        let url = format!(
-            "{}/storage/v1/object/{}/delete",
-            self.supabase_url, self.bucket
-        );
+    pub async fn delete_batch(
+        &self,
+        bucket: &str,
+        paths: &[String],
+    ) -> Result<Vec<DeletedObject>, AppError> {
+        let url = format!("{}/storage/v1/object/{}/delete", self.supabase_url, bucket);
         let req_body = serde_json::json!({ "prefixes": paths });
         let response = self
             .client
@@ -800,7 +804,6 @@ mod tests {
             } else {
                 None
             },
-            bucket: "media".to_string(),
             client: Client::new(),
         }
     }
@@ -821,7 +824,7 @@ mod tests {
     fn public_url_builds_expected_path() {
         let s = make_storage("http://localhost:8000", false);
         assert_eq!(
-            s.public_url("foo/bar.png"),
+            s.public_url("media", "foo/bar.png"),
             "http://localhost:8000/storage/v1/object/public/media/foo/bar.png"
         );
     }
@@ -830,7 +833,7 @@ mod tests {
     fn render_image_url_with_both_dimensions() {
         let s = make_storage("http://localhost:8000", false);
         assert_eq!(
-            s.render_image_url("foo.webp", Some(300), Some(200)),
+            s.render_image_url("media", "foo.webp", Some(300), Some(200)),
             "http://localhost:8000/storage/v1/render/image/public/media/foo.webp?width=300&height=200"
         );
     }
@@ -839,7 +842,7 @@ mod tests {
     fn render_image_url_with_only_width() {
         let s = make_storage("http://localhost:8000", false);
         assert_eq!(
-            s.render_image_url("foo.webp", Some(300), None),
+            s.render_image_url("media", "foo.webp", Some(300), None),
             "http://localhost:8000/storage/v1/render/image/public/media/foo.webp?width=300"
         );
     }
@@ -848,7 +851,7 @@ mod tests {
     fn render_image_url_with_only_height() {
         let s = make_storage("http://localhost:8000", false);
         assert_eq!(
-            s.render_image_url("foo.webp", None, Some(200)),
+            s.render_image_url("media", "foo.webp", None, Some(200)),
             "http://localhost:8000/storage/v1/render/image/public/media/foo.webp?height=200"
         );
     }
@@ -857,7 +860,7 @@ mod tests {
     fn render_image_url_with_no_dimensions() {
         let s = make_storage("http://localhost:8000", false);
         assert_eq!(
-            s.render_image_url("foo.webp", None, None),
+            s.render_image_url("media", "foo.webp", None, None),
             "http://localhost:8000/storage/v1/render/image/public/media/foo.webp"
         );
     }
@@ -878,7 +881,7 @@ mod tests {
             .await;
 
         let result = storage
-            .upload("some/path.png", b"binary-data", "image/png", None)
+            .upload("media", "some/path.png", b"binary-data", "image/png", None)
             .await;
         assert!(result.is_ok(), "expected Ok, got {:?}", result);
     }
@@ -895,7 +898,7 @@ mod tests {
             .await;
 
         let result = storage
-            .upload("some/path.png", b"binary-data", "image/png", None)
+            .upload("media", "some/path.png", b"binary-data", "image/png", None)
             .await;
         match result {
             Err(AppError::StorageError(msg)) => assert!(msg.contains("500")),
@@ -920,7 +923,10 @@ mod tests {
             .mount(&server)
             .await;
 
-        let (bytes, content_type) = storage.download("foo.png").await.expect("download ok");
+        let (bytes, content_type) = storage
+            .download("media", "foo.png")
+            .await
+            .expect("download ok");
         assert_eq!(bytes, b"hello-bytes");
         assert_eq!(content_type, "image/png");
     }
@@ -936,14 +942,14 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.download("missing.png").await;
+        let result = storage.download("media", "missing.png").await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
     #[async_std::test]
     async fn download_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
-        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+        let storage = make_storage(&server.uri(), false);
 
         Mock::given(method("GET"))
             .and(path("/storage/v1/object/xx/foo.png"))
@@ -952,7 +958,7 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.download("foo.png").await;
+        let result = storage.download("xx", "foo.png").await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
@@ -967,7 +973,7 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.download("oops.png").await;
+        let result = storage.download("media", "oops.png").await;
         match result {
             Err(AppError::StorageError(msg)) => assert!(msg.contains("500")),
             other => panic!("expected StorageError, got {:?}", other),
@@ -998,7 +1004,10 @@ mod tests {
             .mount(&server)
             .await;
 
-        let info = storage.get_info("foo.png").await.expect("get_info ok");
+        let info = storage
+            .get_info("media", "foo.png")
+            .await
+            .expect("get_info ok");
         assert_eq!(info.content_type, "image/png");
         assert_eq!(info.size, 1234);
         assert!(info.last_modified.is_some());
@@ -1015,14 +1024,14 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.get_info("missing.png").await;
+        let result = storage.get_info("media", "missing.png").await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
     #[async_std::test]
     async fn get_info_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
-        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+        let storage = make_storage(&server.uri(), false);
 
         Mock::given(method("GET"))
             .and(path("/storage/v1/object/info/xx/foo.png"))
@@ -1031,7 +1040,7 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.get_info("foo.png").await;
+        let result = storage.get_info("xx", "foo.png").await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
@@ -1073,7 +1082,7 @@ mod tests {
             .await;
 
         let items = storage
-            .list_objects(Some("images/"))
+            .list_objects("media", Some("images/"))
             .await
             .expect("list ok");
         assert_eq!(items.len(), 2);
@@ -1100,7 +1109,7 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.delete("foo.png").await;
+        let result = storage.delete("media", "foo.png").await;
         assert!(result.is_ok(), "expected Ok, got {:?}", result);
     }
 
@@ -1124,7 +1133,10 @@ mod tests {
             .await;
 
         let paths = vec!["a.png".to_string(), "b.png".to_string()];
-        let result = storage.delete_batch(&paths).await.expect("batch delete ok");
+        let result = storage
+            .delete_batch("media", &paths)
+            .await
+            .expect("batch delete ok");
         assert_eq!(result.len(), 2);
         assert_eq!(result[0].name, "a.png");
         assert_eq!(result[1].name, "b.png");
@@ -1133,7 +1145,7 @@ mod tests {
     #[async_std::test]
     async fn list_objects_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
-        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+        let storage = make_storage(&server.uri(), false);
 
         Mock::given(method("POST"))
             .and(path("/storage/v1/object/list/xx"))
@@ -1142,14 +1154,14 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.list_objects(None).await;
+        let result = storage.list_objects("xx", None).await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
     #[async_std::test]
     async fn list_objects_returns_not_found_on_does_not_exist_body() {
         let server = MockServer::start().await;
-        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+        let storage = make_storage(&server.uri(), false);
 
         let body = r#"{"statusCode":"404","error":"not_found","message":"Bucket does not exist"}"#;
         Mock::given(method("POST"))
@@ -1159,14 +1171,14 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.list_objects(None).await;
+        let result = storage.list_objects("xx", None).await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
     #[async_std::test]
     async fn list_objects_returns_not_found_on_http_404() {
         let server = MockServer::start().await;
-        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+        let storage = make_storage(&server.uri(), false);
 
         Mock::given(method("POST"))
             .and(path("/storage/v1/object/list/xx"))
@@ -1175,15 +1187,14 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.list_objects(None).await;
+        let result = storage.list_objects("xx", None).await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
     #[async_std::test]
     async fn url_patterns_match_spec_single_segment() {
         let server = MockServer::start().await;
-        let base_storage = make_storage(&server.uri(), false).with_bucket("contract-bucket");
-        let storage = base_storage.clone();
+        let storage = make_storage(&server.uri(), false);
 
         Mock::given(method("GET"))
             .and(path("/storage/v1/object/contract-bucket/foo.png"))
@@ -1218,34 +1229,34 @@ mod tests {
             .await;
 
         let (bytes, content_type) = storage
-            .download("foo.png")
+            .download("contract-bucket", "foo.png")
             .await
             .expect("download should hit single-segment /object/{bucket}/{path}");
         assert_eq!(bytes, b"png-bytes");
         assert_eq!(content_type, "image/png");
 
         let info = storage
-            .get_info("foo.png")
+            .get_info("contract-bucket", "foo.png")
             .await
             .expect("get_info should hit single-segment /object/info/{bucket}/{path}");
         assert_eq!(info.content_type, "image/png");
         assert_eq!(info.size, 8);
 
         let listed = storage
-            .list_objects(None)
+            .list_objects("contract-bucket", None)
             .await
             .expect("list_objects should hit single-segment /object/list/{bucket}");
         assert!(listed.is_empty());
 
         assert_eq!(
-            storage.public_url("foo.png"),
+            storage.public_url("contract-bucket", "foo.png"),
             format!(
                 "{}/storage/v1/object/public/contract-bucket/foo.png",
                 server.uri()
             )
         );
         assert_eq!(
-            storage.render_image_url("foo.png", Some(300), None),
+            storage.render_image_url("contract-bucket", "foo.png", Some(300), None),
             format!(
                 "{}/storage/v1/render/image/public/contract-bucket/foo.png?width=300",
                 server.uri()
@@ -1256,7 +1267,7 @@ mod tests {
     #[async_std::test]
     async fn upload_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
-        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+        let storage = make_storage(&server.uri(), false);
 
         Mock::given(method("POST"))
             .and(path("/storage/v1/object/xx/foo.png"))
@@ -1266,7 +1277,7 @@ mod tests {
             .await;
 
         let result = storage
-            .upload("foo.png", b"binary-data", "image/png", None)
+            .upload("xx", "foo.png", b"binary-data", "image/png", None)
             .await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
@@ -1274,7 +1285,7 @@ mod tests {
     #[async_std::test]
     async fn upload_returns_not_found_on_http_404() {
         let server = MockServer::start().await;
-        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+        let storage = make_storage(&server.uri(), false);
 
         Mock::given(method("POST"))
             .and(path("/storage/v1/object/xx/foo.png"))
@@ -1284,7 +1295,7 @@ mod tests {
             .await;
 
         let result = storage
-            .upload("foo.png", b"binary-data", "image/png", None)
+            .upload("xx", "foo.png", b"binary-data", "image/png", None)
             .await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
@@ -1292,7 +1303,7 @@ mod tests {
     #[async_std::test]
     async fn delete_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
-        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+        let storage = make_storage(&server.uri(), false);
 
         Mock::given(method("DELETE"))
             .and(path("/storage/v1/object/xx/foo.png"))
@@ -1301,14 +1312,14 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.delete("foo.png").await;
+        let result = storage.delete("xx", "foo.png").await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
     #[async_std::test]
     async fn delete_returns_not_found_on_http_404() {
         let server = MockServer::start().await;
-        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+        let storage = make_storage(&server.uri(), false);
 
         Mock::given(method("DELETE"))
             .and(path("/storage/v1/object/xx/foo.png"))
@@ -1317,14 +1328,14 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.delete("foo.png").await;
+        let result = storage.delete("xx", "foo.png").await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
     #[async_std::test]
     async fn delete_batch_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
-        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+        let storage = make_storage(&server.uri(), false);
 
         Mock::given(method("DELETE"))
             .and(path("/storage/v1/object/xx/delete"))
@@ -1334,14 +1345,14 @@ mod tests {
             .await;
 
         let paths = vec!["foo.png".to_string()];
-        let result = storage.delete_batch(&paths).await;
+        let result = storage.delete_batch("xx", &paths).await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
     #[async_std::test]
     async fn delete_batch_returns_not_found_on_http_404() {
         let server = MockServer::start().await;
-        let storage = make_storage(&server.uri(), false).with_bucket("xx");
+        let storage = make_storage(&server.uri(), false);
 
         Mock::given(method("DELETE"))
             .and(path("/storage/v1/object/xx/delete"))
@@ -1351,16 +1362,41 @@ mod tests {
             .await;
 
         let paths = vec!["foo.png".to_string()];
-        let result = storage.delete_batch(&paths).await;
+        let result = storage.delete_batch("xx", &paths).await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
     #[async_std::test]
-    async fn with_bucket_returns_clone_with_replaced_bucket() {
-        let storage = make_storage("http://localhost:8000", true);
-        let cloned = storage.with_bucket("avatars");
-        assert_eq!(storage.bucket, "media");
-        assert_eq!(cloned.bucket, "avatars");
+    async fn same_storage_targets_two_buckets_via_method_argument() {
+        let server = MockServer::start().await;
+        let storage = make_storage(&server.uri(), true);
+
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/object/media/foo.png"))
+            .and(header("authorization", "Bearer service-role-test-key"))
+            .and(header("apikey", "service-role-test-key"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(""))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/object/avatars/foo.png"))
+            .and(header("authorization", "Bearer service-role-test-key"))
+            .and(header("apikey", "service-role-test-key"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(""))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        storage
+            .upload("media", "foo.png", b"bytes", "image/png", None)
+            .await
+            .expect("first upload ok");
+        storage
+            .upload("avatars", "foo.png", b"bytes", "image/png", None)
+            .await
+            .expect("second upload ok");
     }
 
     #[async_std::test]
@@ -1689,7 +1725,7 @@ mod tests {
             .await;
 
         let (bytes, content_type) = storage
-            .download_render("foo.png", Some(300), Some(200))
+            .download_render("media", "foo.png", Some(300), Some(200))
             .await
             .expect("download_render ok");
         assert_eq!(bytes, b"rendered-bytes");
@@ -1714,7 +1750,7 @@ mod tests {
             .await;
 
         let (bytes, _) = storage
-            .download_render("foo.png", Some(300), None)
+            .download_render("media", "foo.png", Some(300), None)
             .await
             .expect("download_render ok");
         assert_eq!(bytes, b"resized");
@@ -1738,7 +1774,7 @@ mod tests {
             .await;
 
         let (bytes, _) = storage
-            .download_render("foo.png", None, Some(200))
+            .download_render("media", "foo.png", None, Some(200))
             .await
             .expect("download_render ok");
         assert_eq!(bytes, b"resized");
@@ -1762,14 +1798,16 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.download_render("foo.png", Some(300), None).await;
+        let result = storage
+            .download_render("media", "foo.png", Some(300), None)
+            .await;
         assert!(result.is_ok(), "expected Ok, got {:?}", result);
     }
 
     #[async_std::test]
-    async fn download_render_uses_bucket_from_with_bucket() {
+    async fn download_render_uses_explicit_bucket_argument() {
         let server = MockServer::start().await;
-        let storage = make_storage(&server.uri(), true).with_bucket("avatars");
+        let storage = make_storage(&server.uri(), true);
 
         Mock::given(method("GET"))
             .and(path("/storage/v1/render/image/public/avatars/foo.png"))
@@ -1784,7 +1822,7 @@ mod tests {
             .await;
 
         let (bytes, _) = storage
-            .download_render("foo.png", Some(300), None)
+            .download_render("avatars", "foo.png", Some(300), None)
             .await
             .expect("download_render ok");
         assert_eq!(bytes, b"avatars-bytes");
@@ -1803,7 +1841,7 @@ mod tests {
             .await;
 
         let (_, content_type) = storage
-            .download_render("foo.png", Some(300), None)
+            .download_render("media", "foo.png", Some(300), None)
             .await
             .expect("download_render ok");
         assert_eq!(content_type, "image/png");
@@ -1821,7 +1859,7 @@ mod tests {
             .await;
 
         let result = storage
-            .download_render("missing.png", Some(300), None)
+            .download_render("media", "missing.png", Some(300), None)
             .await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
@@ -1829,7 +1867,7 @@ mod tests {
     #[async_std::test]
     async fn download_render_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
-        let storage = make_storage(&server.uri(), true).with_bucket("xx");
+        let storage = make_storage(&server.uri(), true);
 
         Mock::given(method("GET"))
             .and(path("/storage/v1/render/image/public/xx/foo.png"))
@@ -1838,7 +1876,9 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.download_render("foo.png", Some(300), None).await;
+        let result = storage
+            .download_render("xx", "foo.png", Some(300), None)
+            .await;
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
@@ -1853,7 +1893,9 @@ mod tests {
             .mount(&server)
             .await;
 
-        let result = storage.download_render("oops.png", Some(300), None).await;
+        let result = storage
+            .download_render("media", "oops.png", Some(300), None)
+            .await;
         match result {
             Err(AppError::StorageError(msg)) => assert!(msg.contains("500")),
             other => panic!("expected StorageError, got {:?}", other),

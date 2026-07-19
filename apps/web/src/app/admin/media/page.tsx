@@ -419,6 +419,7 @@ export default function AdminMediaPage() {
                   onPreview={setPreviewFile}
                   onCopyUrl={handleCopyUrl}
                   onDelete={handleDeleteClick}
+                  token={token}
                 />
               ))}
             </div>
@@ -489,6 +490,7 @@ export default function AdminMediaPage() {
         isOpen={previewFile !== null}
         onClose={() => setPreviewFile(null)}
         onDelete={handleDeleteClick}
+        token={token}
       />
 
       {/* Single Delete Confirmation Modal */}

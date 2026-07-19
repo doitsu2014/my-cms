@@ -42,10 +42,9 @@ mod tests {
                 "http://example.com",
                 "anon",
                 None,
-                "media",
             ),
+            bucket: "media".to_string(),
             media_base_url: "http://example.com".to_string(),
-            bucket_override: None,
         })
     }
 

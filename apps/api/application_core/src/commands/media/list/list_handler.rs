@@ -13,33 +13,42 @@ pub trait ListMediaHandlerTrait {
     fn list_media(
         &self,
         prefix: Option<String>,
+        include_bucket_query: bool,
     ) -> impl std::future::Future<Output = Result<Vec<MediaMetadata>, AppError>>;
 }
 
 impl ListMediaHandlerTrait for ListMediaHandler {
-    async fn list_media(&self, prefix: Option<String>) -> Result<Vec<MediaMetadata>, AppError> {
+    async fn list_media(
+        &self,
+        prefix: Option<String>,
+        include_bucket_query: bool,
+    ) -> Result<Vec<MediaMetadata>, AppError> {
         let prefix_str = prefix.unwrap_or_default();
         debug!("Listing media with prefix: {}", prefix_str);
 
         let objects = self
             .media_config
             .storage
-            .list_objects(if prefix_str.is_empty() {
-                None
-            } else {
-                Some(prefix_str.as_str())
-            })
+            .list_objects(
+                self.media_config.bucket.as_str(),
+                if prefix_str.is_empty() {
+                    None
+                } else {
+                    Some(prefix_str.as_str())
+                },
+            )
             .await?;
 
         let media_list = objects
             .into_iter()
             .map(|obj| {
-                let url = match &self.media_config.bucket_override {
-                    Some(bucket) => format!(
+                let url = if include_bucket_query {
+                    format!(
                         "{}/media/{}?bucket={}",
-                        self.media_config.media_base_url, obj.name, bucket
-                    ),
-                    None => format!("{}/media/{}", self.media_config.media_base_url, obj.name),
+                        self.media_config.media_base_url, obj.name, self.media_config.bucket
+                    )
+                } else {
+                    format!("{}/media/{}", self.media_config.media_base_url, obj.name)
                 };
                 MediaMetadata {
                     url,
@@ -66,20 +75,20 @@ mod tests {
     };
 
     fn make_config(server_uri: &str, public_url: &str, bucket: &str) -> Arc<MediaConfig> {
-        let storage = SupabaseStorage::new(server_uri, "anon", None, bucket);
+        let storage = SupabaseStorage::new(server_uri, "anon", None);
         Arc::new(MediaConfig {
             storage,
+            bucket: bucket.to_string(),
             media_base_url: public_url.to_string(),
-            bucket_override: Some(bucket.to_string()),
         })
     }
 
     fn make_default_config(server_uri: &str, public_url: &str) -> Arc<MediaConfig> {
-        let storage = SupabaseStorage::new(server_uri, "anon", None, "media");
+        let storage = SupabaseStorage::new(server_uri, "anon", None);
         Arc::new(MediaConfig {
             storage,
+            bucket: "media".to_string(),
             media_base_url: public_url.to_string(),
-            bucket_override: None,
         })
     }
 
@@ -95,7 +104,7 @@ mod tests {
     }
 
     #[async_std::test]
-    async fn response_url_uses_media_base_url_when_bucket_override_set() {
+    async fn response_url_uses_media_base_url_when_bucket_query_included() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
             .and(path("/storage/v1/object/list/hi29831"))
@@ -108,7 +117,7 @@ mod tests {
             media_config: config,
         };
 
-        let items = handler.list_media(None).await.expect("list ok");
+        let items = handler.list_media(None, true).await.expect("list ok");
         assert_eq!(items.len(), 1);
         assert!(
             items[0].url.starts_with("http://localhost:8989/media/")
@@ -119,7 +128,7 @@ mod tests {
     }
 
     #[async_std::test]
-    async fn response_url_uses_media_base_url_when_no_bucket_override() {
+    async fn response_url_uses_media_base_url_when_bucket_query_omitted() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
             .and(path("/storage/v1/object/list/media"))
@@ -132,7 +141,7 @@ mod tests {
             media_config: config,
         };
 
-        let items = handler.list_media(None).await.expect("list ok");
+        let items = handler.list_media(None, false).await.expect("list ok");
         assert_eq!(items.len(), 1);
         assert!(
             items[0].url.starts_with("http://localhost:8989/media/"),

@@ -13,21 +13,31 @@ pub trait MetadataMediaHandlerTrait {
     fn get_metadata(
         &self,
         path: String,
+        include_bucket_query: bool,
     ) -> impl std::future::Future<Output = Result<MediaMetadata, AppError>>;
 }
 
 impl MetadataMediaHandlerTrait for MetadataMediaHandler {
-    async fn get_metadata(&self, path: String) -> Result<MediaMetadata, AppError> {
+    async fn get_metadata(
+        &self,
+        path: String,
+        include_bucket_query: bool,
+    ) -> Result<MediaMetadata, AppError> {
         debug!("Getting metadata for: {}", path);
 
-        let info = self.media_config.storage.get_info(&path).await?;
+        let info = self
+            .media_config
+            .storage
+            .get_info(self.media_config.bucket.as_str(), &path)
+            .await?;
 
-        let url = match &self.media_config.bucket_override {
-            Some(bucket) => format!(
+        let url = if include_bucket_query {
+            format!(
                 "{}/media/{}?bucket={}",
-                self.media_config.media_base_url, path, bucket
-            ),
-            None => format!("{}/media/{}", self.media_config.media_base_url, path),
+                self.media_config.media_base_url, path, self.media_config.bucket
+            )
+        } else {
+            format!("{}/media/{}", self.media_config.media_base_url, path)
         };
 
         Ok(MediaMetadata {
@@ -51,20 +61,20 @@ mod tests {
     };
 
     fn make_config(server_uri: &str, public_url: &str, bucket: &str) -> Arc<MediaConfig> {
-        let storage = SupabaseStorage::new(server_uri, "anon", None, bucket);
+        let storage = SupabaseStorage::new(server_uri, "anon", None);
         Arc::new(MediaConfig {
             storage,
+            bucket: bucket.to_string(),
             media_base_url: public_url.to_string(),
-            bucket_override: Some(bucket.to_string()),
         })
     }
 
     fn make_default_config(server_uri: &str, public_url: &str) -> Arc<MediaConfig> {
-        let storage = SupabaseStorage::new(server_uri, "anon", None, "media");
+        let storage = SupabaseStorage::new(server_uri, "anon", None);
         Arc::new(MediaConfig {
             storage,
+            bucket: "media".to_string(),
             media_base_url: public_url.to_string(),
-            bucket_override: None,
         })
     }
 
@@ -79,7 +89,7 @@ mod tests {
     }
 
     #[async_std::test]
-    async fn response_url_uses_media_base_url_when_bucket_override_set() {
+    async fn response_url_uses_media_base_url_when_bucket_query_included() {
         let server = MockServer::start().await;
         Mock::given(method("GET"))
             .and(path("/storage/v1/object/info/hi29831/test.png"))
@@ -93,7 +103,7 @@ mod tests {
         };
 
         let meta = handler
-            .get_metadata("test.png".to_string())
+            .get_metadata("test.png".to_string(), true)
             .await
             .expect("get_metadata ok");
         assert!(
@@ -105,7 +115,7 @@ mod tests {
     }
 
     #[async_std::test]
-    async fn response_url_uses_media_base_url_when_no_bucket_override() {
+    async fn response_url_uses_media_base_url_when_bucket_query_omitted() {
         let server = MockServer::start().await;
         Mock::given(method("GET"))
             .and(path("/storage/v1/object/info/media/test.png"))
@@ -119,7 +129,7 @@ mod tests {
         };
 
         let meta = handler
-            .get_metadata("test.png".to_string())
+            .get_metadata("test.png".to_string(), false)
             .await
             .expect("get_metadata ok");
         assert!(

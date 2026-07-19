@@ -18,8 +18,6 @@ pub trait DeleteBucketHandlerTrait {
     ) -> impl std::future::Future<Output = Result<(), AppError>>;
 }
 
-const RESERVED_BUCKET_NAME: &str = "media";
-
 impl DeleteBucketHandlerTrait for DeleteBucketHandler {
     #[instrument(skip(self))]
     async fn delete_bucket(&self, name: &str, purge: bool) -> Result<(), AppError> {
@@ -29,12 +27,12 @@ impl DeleteBucketHandlerTrait for DeleteBucketHandler {
                 "must start with a lowercase letter; only [a-z0-9_-] allowed".to_string(),
             ));
         }
-        if name == RESERVED_BUCKET_NAME {
+        if name == self.media_config.bucket.as_str() {
             return Err(AppError::Validation(
                 "name".to_string(),
                 format!(
                     "cannot delete reserved bucket name '{}'",
-                    RESERVED_BUCKET_NAME
+                    self.media_config.bucket
                 ),
             ));
         }
@@ -67,10 +65,9 @@ mod tests {
                 "http://example.com",
                 "anon",
                 None,
-                "media",
             ),
+            bucket: "media".to_string(),
             media_base_url: "http://example.com".to_string(),
-            bucket_override: None,
         })
     }
 

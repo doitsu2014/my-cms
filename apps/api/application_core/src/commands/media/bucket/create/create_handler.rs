@@ -24,8 +24,6 @@ pub trait CreateBucketHandlerTrait {
     ) -> impl std::future::Future<Output = Result<Bucket, AppError>>;
 }
 
-const RESERVED_BUCKET_NAME: &str = "media";
-
 impl CreateBucketHandlerTrait for CreateBucketHandler {
     #[instrument(skip(self))]
     async fn create_bucket(&self, req: CreateBucketRequest) -> Result<Bucket, AppError> {
@@ -35,10 +33,13 @@ impl CreateBucketHandlerTrait for CreateBucketHandler {
                 "must start with a lowercase letter; only [a-z0-9_-] allowed".to_string(),
             ));
         }
-        if req.name == RESERVED_BUCKET_NAME {
+        if req.name == self.media_config.bucket.as_str() {
             return Err(AppError::Validation(
                 "name".to_string(),
-                format!("cannot use reserved bucket name '{}'", RESERVED_BUCKET_NAME),
+                format!(
+                    "cannot use reserved bucket name '{}'",
+                    self.media_config.bucket
+                ),
             ));
         }
 
@@ -68,10 +69,9 @@ mod tests {
                 "http://example.com",
                 "anon",
                 None,
-                "media",
             ),
+            bucket: "media".to_string(),
             media_base_url: "http://example.com".to_string(),
-            bucket_override: None,
         })
     }
 

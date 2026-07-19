@@ -36,19 +36,23 @@ pub async fn api_list_media(
         }
     }
 
-    let storage = match &params.bucket {
-        Some(name) => state.media_config.storage.with_bucket(name),
-        None => state.media_config.storage.clone(),
-    };
+    let storage = state.media_config.storage.clone();
     let media_config = std::sync::Arc::new(application_core::commands::media::MediaConfig {
         storage,
+        bucket: params
+            .bucket
+            .clone()
+            .unwrap_or_else(|| state.media_config.bucket.clone()),
         media_base_url: state.media_config.media_base_url.clone(),
-        bucket_override: params.bucket.clone(),
     });
 
+    let include_bucket_query = params.bucket.is_some();
     let handler = ListMediaHandler { media_config };
 
-    match handler.list_media(params.prefix).await {
+    match handler
+        .list_media(params.prefix, include_bucket_query)
+        .await
+    {
         Ok(media_list) => ApiResponseWith::new(media_list).to_axum_response(),
         Err(e) => ApiResponseError::from(e).to_axum_response(),
     }

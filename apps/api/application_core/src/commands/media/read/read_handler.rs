@@ -1,11 +1,11 @@
-use crate::{commands::media::SupabaseStorage, common::app_error::AppError};
+use crate::{commands::media::MediaConfig, common::app_error::AppError};
 use moka::future::Cache;
 use std::{sync::Arc, time::Duration};
 use tracing::{debug, info};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct MediaCacheKey {
-    pub bucket: Option<String>,
+    pub bucket: String,
     pub path: String,
     pub width: Option<u32>,
     pub height: Option<u32>,
@@ -22,27 +22,27 @@ pub struct CachedMedia {
 pub type CachedImage = CachedMedia;
 
 pub struct ReadMediaHandler {
-    pub storage: Arc<SupabaseStorage>,
+    pub media_config: Arc<MediaConfig>,
     pub media_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
 }
 
 impl ReadMediaHandler {
     pub fn new(
-        storage: Arc<SupabaseStorage>,
+        media_config: Arc<MediaConfig>,
         cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
     ) -> Self {
         Self {
-            storage,
+            media_config,
             media_cache: cache,
         }
     }
 
     pub fn with_image_cache(
-        storage: Arc<SupabaseStorage>,
+        media_config: Arc<MediaConfig>,
         image_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
     ) -> Self {
         Self {
-            storage,
+            media_config,
             media_cache: image_cache,
         }
     }
@@ -92,13 +92,11 @@ pub trait ReadMediaHandlerTrait {
         &self,
         path: String,
         resize_params: ResizeParams,
-        bucket: Option<String>,
     ) -> impl std::future::Future<Output = Result<CachedMedia, AppError>>;
 
     fn get_media_for_bucket(
         &self,
         path: String,
-        bucket: Option<String>,
     ) -> impl std::future::Future<Output = Result<CachedMedia, AppError>>;
 }
 
@@ -109,23 +107,22 @@ impl ReadMediaHandlerTrait for ReadMediaHandler {
         resize_params: ResizeParams,
     ) -> Result<CachedMedia, AppError> {
         if resize_params.needs_resize() {
-            return self.get_rendered_image(path, resize_params, None).await;
+            return self.get_rendered_image(path, resize_params).await;
         }
         self.get_media(path).await
     }
 
     async fn get_media(&self, path: String) -> Result<CachedMedia, AppError> {
-        self.get_media_for_bucket(path, None).await
+        self.get_media_for_bucket(path).await
     }
 
     async fn get_rendered_image(
         &self,
         path: String,
         resize_params: ResizeParams,
-        bucket: Option<String>,
     ) -> Result<CachedMedia, AppError> {
         let cache_key = MediaCacheKey {
-            bucket: bucket.clone(),
+            bucket: self.media_config.bucket.clone(),
             path: path.clone(),
             width: resize_params.width,
             height: resize_params.height,
@@ -133,70 +130,73 @@ impl ReadMediaHandlerTrait for ReadMediaHandler {
 
         if let Some(cached) = self.media_cache.get(&cache_key).await {
             debug!(
-                "Cache hit for rendered image: bucket={:?} path={} w={:?} h={:?}",
-                bucket, path, resize_params.width, resize_params.height
+                "Cache hit for rendered image: bucket={} path={} w={:?} h={:?}",
+                self.media_config.bucket, path, resize_params.width, resize_params.height
             );
             return Ok(cached);
         }
 
         debug!(
-            "Cache miss for rendered image: bucket={:?} path={} w={:?} h={:?}",
-            bucket, path, resize_params.width, resize_params.height
+            "Cache miss for rendered image: bucket={} path={} w={:?} h={:?}",
+            self.media_config.bucket, path, resize_params.width, resize_params.height
         );
 
-        let storage = match bucket.as_deref() {
-            Some(name) => Arc::new(self.storage.with_bucket(name)),
-            None => self.storage.clone(),
-        };
-
-        let (data, content_type) = storage
-            .download_render(&path, resize_params.width, resize_params.height)
+        let (data, content_type) = self
+            .media_config
+            .storage
+            .download_render(
+                self.media_config.bucket.as_str(),
+                &path,
+                resize_params.width,
+                resize_params.height,
+            )
             .await?;
 
         let result = CachedMedia { data, content_type };
 
         self.media_cache.insert(cache_key, result.clone()).await;
         info!(
-            "Cached rendered image: bucket={:?} path={} w={:?} h={:?}",
-            bucket, path, resize_params.width, resize_params.height
+            "Cached rendered image: bucket={} path={} w={:?} h={:?}",
+            self.media_config.bucket, path, resize_params.width, resize_params.height
         );
 
         Ok(result)
     }
 
-    async fn get_media_for_bucket(
-        &self,
-        path: String,
-        bucket: Option<String>,
-    ) -> Result<CachedMedia, AppError> {
+    async fn get_media_for_bucket(&self, path: String) -> Result<CachedMedia, AppError> {
         let cache_key = MediaCacheKey {
-            bucket: bucket.clone(),
+            bucket: self.media_config.bucket.clone(),
             path: path.clone(),
             width: None,
             height: None,
         };
 
         if let Some(cached) = self.media_cache.get(&cache_key).await {
-            debug!("Cache hit for media: bucket={:?} path={}", bucket, path);
+            debug!(
+                "Cache hit for media: bucket={} path={}",
+                self.media_config.bucket, path
+            );
             return Ok(cached);
         }
 
         debug!(
-            "Cache miss for media: bucket={:?} path={}, fetching from Supabase Storage",
-            bucket, path
+            "Cache miss for media: bucket={} path={}, fetching from Supabase Storage",
+            self.media_config.bucket, path
         );
 
-        let storage = match bucket.as_deref() {
-            Some(name) => Arc::new(self.storage.with_bucket(name)),
-            None => self.storage.clone(),
-        };
-
-        let (data, content_type) = storage.download(&path).await?;
+        let (data, content_type) = self
+            .media_config
+            .storage
+            .download(self.media_config.bucket.as_str(), &path)
+            .await?;
 
         let result = CachedMedia { data, content_type };
 
         self.media_cache.insert(cache_key, result.clone()).await;
-        info!("Cached media: bucket={:?} path={}", bucket, path);
+        info!(
+            "Cached media: bucket={} path={}",
+            self.media_config.bucket, path
+        );
 
         Ok(result)
     }
@@ -206,43 +206,46 @@ impl ReadMediaHandlerTrait for ReadMediaHandler {
 mod tests {
     use super::*;
     use crate::commands::media::SupabaseStorage;
-    use reqwest::Client;
     use std::sync::Arc;
     use wiremock::{
         matchers::{method, path},
         Mock, MockServer, ResponseTemplate,
     };
 
-    fn make_storage(base_url: &str, bucket: &str) -> SupabaseStorage {
-        SupabaseStorage {
-            supabase_url: base_url.to_string(),
+    fn make_config(server_uri: &str, bucket: &str) -> Arc<MediaConfig> {
+        let storage = SupabaseStorage {
+            supabase_url: server_uri.to_string(),
             anon_key: "anon-test-key".to_string(),
             service_role_key: Some("service-role-test-key".to_string()),
+            client: reqwest::Client::new(),
+        };
+        Arc::new(MediaConfig {
+            storage,
             bucket: bucket.to_string(),
-            client: Client::new(),
-        }
+            media_base_url: "http://localhost:8989".to_string(),
+        })
     }
 
     fn make_handler(
-        storage: Arc<SupabaseStorage>,
+        media_config: Arc<MediaConfig>,
         cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
     ) -> ReadMediaHandler {
         ReadMediaHandler {
-            storage,
+            media_config,
             media_cache: cache,
         }
     }
 
     #[test]
-    fn cache_key_with_same_path_in_two_buckets_are_distinct() {
+    fn cache_keys_with_different_buckets_are_distinct() {
         let a = MediaCacheKey {
-            bucket: Some("bucket-a".to_string()),
+            bucket: "bucket-a".to_string(),
             path: "shared.png".to_string(),
             width: None,
             height: None,
         };
         let b = MediaCacheKey {
-            bucket: Some("bucket-b".to_string()),
+            bucket: "bucket-b".to_string(),
             path: "shared.png".to_string(),
             width: None,
             height: None,
@@ -251,32 +254,15 @@ mod tests {
     }
 
     #[test]
-    fn cache_key_without_bucket_is_distinct_from_bucket_scoped_key() {
-        let none_key = MediaCacheKey {
-            bucket: None,
-            path: "x.png".to_string(),
-            width: None,
-            height: None,
-        };
-        let some_key = MediaCacheKey {
-            bucket: Some("media".to_string()),
-            path: "x.png".to_string(),
-            width: None,
-            height: None,
-        };
-        assert_ne!(none_key, some_key);
-    }
-
-    #[test]
     fn cache_key_with_same_bucket_path_and_dimensions_are_equal() {
         let a = MediaCacheKey {
-            bucket: Some("media".to_string()),
+            bucket: "media".to_string(),
             path: "x.png".to_string(),
             width: Some(300),
             height: Some(200),
         };
         let b = MediaCacheKey {
-            bucket: Some("media".to_string()),
+            bucket: "media".to_string(),
             path: "x.png".to_string(),
             width: Some(300),
             height: Some(200),
@@ -287,13 +273,13 @@ mod tests {
     #[test]
     fn cache_key_with_different_dimensions_are_distinct() {
         let a = MediaCacheKey {
-            bucket: Some("media".to_string()),
+            bucket: "media".to_string(),
             path: "x.png".to_string(),
             width: Some(300),
             height: Some(200),
         };
         let b = MediaCacheKey {
-            bucket: Some("media".to_string()),
+            bucket: "media".to_string(),
             path: "x.png".to_string(),
             width: Some(400),
             height: Some(200),
@@ -304,7 +290,7 @@ mod tests {
     #[async_std::test]
     async fn get_rendered_image_calls_supabase_render_and_caches_bytes() {
         let server = MockServer::start().await;
-        let storage = Arc::new(make_storage(&server.uri(), "media"));
+        let media_config = make_config(&server.uri(), "media");
 
         Mock::given(method("GET"))
             .and(path("/storage/v1/render/image/public/media/foo.png"))
@@ -320,13 +306,12 @@ mod tests {
             .await;
 
         let cache = Arc::new(create_media_cache());
-        let handler = make_handler(storage.clone(), cache.clone());
+        let handler = make_handler(media_config.clone(), cache.clone());
 
         let first = handler
             .get_rendered_image(
                 "foo.png".to_string(),
                 ResizeParams::new(Some(300), Some(200)),
-                Some("media".to_string()),
             )
             .await
             .expect("first call ok");
@@ -337,7 +322,6 @@ mod tests {
             .get_rendered_image(
                 "foo.png".to_string(),
                 ResizeParams::new(Some(300), Some(200)),
-                Some("media".to_string()),
             )
             .await
             .expect("second call ok");
@@ -347,7 +331,7 @@ mod tests {
     #[async_std::test]
     async fn get_rendered_image_returns_not_found_on_404() {
         let server = MockServer::start().await;
-        let storage = Arc::new(make_storage(&server.uri(), "media"));
+        let media_config = make_config(&server.uri(), "media");
 
         Mock::given(method("GET"))
             .and(path("/storage/v1/render/image/public/media/missing.png"))
@@ -356,13 +340,12 @@ mod tests {
             .await;
 
         let cache = Arc::new(create_media_cache());
-        let handler = make_handler(storage.clone(), cache.clone());
+        let handler = make_handler(media_config.clone(), cache.clone());
 
         let result = handler
             .get_rendered_image(
                 "missing.png".to_string(),
                 ResizeParams::new(Some(300), None),
-                Some("media".to_string()),
             )
             .await;
         assert!(matches!(result, Err(AppError::NotFound)));
@@ -371,7 +354,6 @@ mod tests {
     #[async_std::test]
     async fn get_rendered_image_with_different_buckets_does_not_share_cache() {
         let server = MockServer::start().await;
-        let storage = Arc::new(make_storage(&server.uri(), "media"));
 
         Mock::given(method("GET"))
             .and(path("/storage/v1/render/image/public/media/x.png"))
@@ -396,24 +378,21 @@ mod tests {
             .await;
 
         let cache = Arc::new(create_media_cache());
-        let handler = make_handler(storage.clone(), cache.clone());
+
+        let media_config = make_config(&server.uri(), "media");
+        let handler = make_handler(media_config.clone(), cache.clone());
 
         let media = handler
-            .get_rendered_image(
-                "x.png".to_string(),
-                ResizeParams::new(Some(300), None),
-                Some("media".to_string()),
-            )
+            .get_rendered_image("x.png".to_string(), ResizeParams::new(Some(300), None))
             .await
             .expect("media bucket ok");
         assert_eq!(media.data, b"media-bytes");
 
-        let avatars = handler
-            .get_rendered_image(
-                "x.png".to_string(),
-                ResizeParams::new(Some(300), None),
-                Some("avatars".to_string()),
-            )
+        let avatars_config = make_config(&server.uri(), "avatars");
+        let avatars_handler = make_handler(avatars_config.clone(), cache.clone());
+
+        let avatars = avatars_handler
+            .get_rendered_image("x.png".to_string(), ResizeParams::new(Some(300), None))
             .await
             .expect("avatars bucket ok");
         assert_eq!(avatars.data, b"avatar-bytes");
@@ -422,7 +401,6 @@ mod tests {
     #[async_std::test]
     async fn get_media_caches_bucket_scoped_keys_separately() {
         let server = MockServer::start().await;
-        let storage = Arc::new(make_storage(&server.uri(), "media"));
 
         Mock::given(method("GET"))
             .and(path("/storage/v1/object/media/y.png"))
@@ -445,16 +423,21 @@ mod tests {
             .await;
 
         let cache = Arc::new(create_media_cache());
-        let handler = make_handler(storage.clone(), cache.clone());
+
+        let media_config = make_config(&server.uri(), "media");
+        let handler = make_handler(media_config.clone(), cache.clone());
 
         let media = handler
-            .get_media_for_bucket("y.png".to_string(), Some("media".to_string()))
+            .get_media_for_bucket("y.png".to_string())
             .await
             .expect("media bucket ok");
         assert_eq!(media.data, b"media-original");
 
-        let avatars = handler
-            .get_media_for_bucket("y.png".to_string(), Some("avatars".to_string()))
+        let avatars_config = make_config(&server.uri(), "avatars");
+        let avatars_handler = make_handler(avatars_config.clone(), cache.clone());
+
+        let avatars = avatars_handler
+            .get_media_for_bucket("y.png".to_string())
             .await
             .expect("avatars bucket ok");
         assert_eq!(avatars.data, b"avatar-original");

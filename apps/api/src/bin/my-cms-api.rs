@@ -2,7 +2,10 @@ use std::env;
 use std::sync::Arc;
 
 use application_core::{
-    commands::media::{read::read_handler::create_media_cache, MediaConfig, SupabaseStorage},
+    commands::media::{
+        bucket::access::access_cache::create_bucket_visibility_cache,
+        read::read_handler::create_media_cache, MediaConfig, SupabaseStorage,
+    },
     commands::user::supabase_admin_client::SupabaseAdminClient,
     graphql::query_root::schema,
 };
@@ -261,8 +264,6 @@ async fn construct_app_state() -> AppState {
     let supabase_anon_key = env::var("SUPABASE_ANON_KEY").expect("SUPABASE_ANON_KEY must be set");
     let supabase_service_role_key =
         env::var("SUPABASE_SERVICE_ROLE_KEY").expect("SUPABASE_SERVICE_ROLE_KEY must be set");
-    let supabase_storage_bucket =
-        env::var("SUPABASE_STORAGE_BUCKET").unwrap_or_else(|_| "media".to_string());
 
     let host = env::var("HOST").unwrap_or("127.0.0.1".to_string());
     let port = env::var("PORT").unwrap_or("8989".to_string());
@@ -272,7 +273,6 @@ async fn construct_app_state() -> AppState {
         supabase_internal_url.clone(),
         supabase_anon_key,
         Some(supabase_service_role_key.clone()),
-        supabase_storage_bucket,
     );
 
     tracing::info!("Supabase service role key configured; bucket management endpoints enabled");
@@ -289,10 +289,11 @@ async fn construct_app_state() -> AppState {
         conn: Arc::new(conn),
         media_config: Arc::new(MediaConfig {
             storage,
+            bucket: "media".to_string(),
             media_base_url,
-            bucket_override: None,
         }),
         media_cache: Arc::new(create_media_cache()),
+        bucket_visibility_cache: Arc::new(create_bucket_visibility_cache()),
         graphql_immutable_schema: Arc::new(graphql_immutable_schema),
         graphql_mutable_schema: Arc::new(graphql_mutable_schema),
         supabase_admin_client,

@@ -3,12 +3,14 @@ import { X, Copy, Trash2, ExternalLink, FileText, FileSpreadsheet, File } from '
 import { toast } from 'sonner';
 import type { MediaMetadata } from '@/models/MediaModels';
 import { isImageContentType, formatFileSize, getFileName, getFileExtension } from '@/models/MediaModels';
+import AuthenticatedImage from './authenticated-image';
 
 interface MediaPreviewModalProps {
   media: MediaMetadata | null;
   isOpen: boolean;
   onClose: () => void;
   onDelete: (media: MediaMetadata) => void;
+  token: string | null;
 }
 
 const getFileIcon = (_contentType: string, extension: string) => {
@@ -35,6 +37,7 @@ const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
   isOpen,
   onClose,
   onDelete,
+  token,
 }) => {
   if (!isOpen || !media) return null;
 
@@ -74,8 +77,9 @@ const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
           {/* Preview */}
           <div className="flex-1 flex items-center justify-center bg-base-200 rounded-lg p-4 min-h-[300px]">
             {isImage && fullImageUrl ? (
-              <img
+              <AuthenticatedImage
                 src={fullImageUrl}
+                token={token}
                 alt={fileName}
                 className="max-w-full max-h-[400px] object-contain rounded"
               />

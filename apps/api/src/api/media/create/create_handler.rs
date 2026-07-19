@@ -55,19 +55,24 @@ pub async fn api_create_media(
                     .to_axum_response();
             }
 
-            let storage = match &bucket {
-                Some(name) => state.media_config.storage.with_bucket(name),
-                None => state.media_config.storage.clone(),
-            };
+            let storage = state.media_config.storage.clone();
             let media_config = std::sync::Arc::new(MediaConfig {
                 storage,
+                bucket: bucket
+                    .clone()
+                    .unwrap_or_else(|| state.media_config.bucket.clone()),
                 media_base_url: state.media_config.media_base_url.clone(),
-                bucket_override: bucket.clone(),
             });
+            let include_bucket_query = bucket.is_some();
             let handler = CreateMediaHandler { media_config };
 
             let result = handler
-                .create_media(filename.to_string(), data.as_ref(), content_type)
+                .create_media(
+                    filename.to_string(),
+                    data.as_ref(),
+                    content_type,
+                    include_bucket_query,
+                )
                 .await;
 
             return match result {

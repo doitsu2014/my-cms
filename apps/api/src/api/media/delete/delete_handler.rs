@@ -10,6 +10,7 @@ use axum::{
     Extension, Json,
 };
 use serde::Deserialize;
+use std::sync::Arc;
 use tower_cookies::Cookies;
 use tracing::instrument;
 
@@ -37,14 +38,13 @@ pub async fn api_delete_media(
                 .to_axum_response();
         }
     }
-    let storage = match &params.bucket {
-        Some(name) => state.media_config.storage.with_bucket(name),
-        None => state.media_config.storage.clone(),
-    };
-    let media_config = std::sync::Arc::new(MediaConfig {
+    let storage = state.media_config.storage.clone();
+    let media_config = Arc::new(MediaConfig {
         storage,
+        bucket: params
+            .bucket
+            .unwrap_or_else(|| state.media_config.bucket.clone()),
         media_base_url: state.media_config.media_base_url.clone(),
-        bucket_override: params.bucket.clone(),
     });
     let handler = DeleteMediaHandler { media_config };
 
@@ -71,14 +71,13 @@ pub async fn api_delete_media_batch(
                 .to_axum_response();
         }
     }
-    let storage = match &params.bucket {
-        Some(name) => state.media_config.storage.with_bucket(name),
-        None => state.media_config.storage.clone(),
-    };
-    let media_config = std::sync::Arc::new(MediaConfig {
+    let storage = state.media_config.storage.clone();
+    let media_config = Arc::new(MediaConfig {
         storage,
+        bucket: params
+            .bucket
+            .unwrap_or_else(|| state.media_config.bucket.clone()),
         media_base_url: state.media_config.media_base_url.clone(),
-        bucket_override: params.bucket.clone(),
     });
     let handler = DeleteMediaHandler { media_config };
 

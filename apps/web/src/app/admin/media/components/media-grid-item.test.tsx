@@ -1,7 +1,15 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import MediaGridItem from './media-grid-item';
+import { authenticatedFetch } from '@/config/api.config';
 import type { MediaMetadata } from '@/models/MediaModels';
+
+vi.mock('@/config/api.config', () => ({
+  authenticatedFetch: vi.fn(),
+}));
+
+const fetchMock = vi.mocked(authenticatedFetch);
+const createObjectUrlMock = vi.fn((blob: Blob) => `blob:${blob.size}`);
 
 const imageMedia: MediaMetadata = {
   path: 'subfolder/foo.png',
@@ -19,54 +27,61 @@ const nonImageMedia: MediaMetadata = {
   lastModified: '2026-01-01T00:00:00Z',
 };
 
-describe('MediaGridItem', () => {
-  it('uses media.url as the thumbnail src for image media (no resize query)', () => {
-    render(
-      <MediaGridItem
-        media={imageMedia}
-        isSelected={false}
-        onSelect={() => {}}
-        onPreview={() => {}}
-        onCopyUrl={() => {}}
-        onDelete={() => {}}
-      />
-    );
+const baseProps = {
+  isSelected: false,
+  onSelect: () => {},
+  onPreview: () => {},
+  onCopyUrl: () => {},
+  onDelete: () => {},
+  token: 'admin-token' as string | null,
+};
 
-    const img = screen.getByRole('img');
-    expect(img).toHaveAttribute('src', imageMedia.url);
-    expect(img.getAttribute('src')).not.toContain('?w=');
-    expect(img.getAttribute('src')).not.toContain('?h=');
+describe('MediaGridItem', () => {
+  beforeEach(() => {
+    fetchMock.mockReset();
+    createObjectUrlMock.mockClear();
+    vi.stubGlobal('URL', {
+      createObjectURL: createObjectUrlMock,
+      revokeObjectURL: vi.fn(),
+    });
   });
 
-  it('does not construct /media/images/<path>?w=&h= for image media', () => {
-    render(
-      <MediaGridItem
-        media={imageMedia}
-        isSelected={false}
-        onSelect={() => {}}
-        onPreview={() => {}}
-        onCopyUrl={() => {}}
-        onDelete={() => {}}
-      />
-    );
+  it('uses media.url as the thumbnail src for image media (no resize query)', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      blob: vi.fn().mockResolvedValue(new Blob(['image'], { type: 'image/png' })),
+    } as unknown as Response);
 
-    const img = screen.getByRole('img');
-    const src = img.getAttribute('src') ?? '';
-    expect(src).not.toMatch(/\/media\/images\/.*\?w=/);
+    render(<MediaGridItem {...baseProps} media={imageMedia} />);
+
+    await waitFor(() => expect(screen.getByRole('img')).toBeInTheDocument());
+
+    expect(fetchMock).toHaveBeenCalledWith(imageMedia.url, baseProps.token, {
+      cache: 'no-store',
+    });
+    const fetchedUrl = fetchMock.mock.calls[0]?.[0] as string;
+    expect(fetchedUrl).not.toContain('?w=');
+    expect(fetchedUrl).not.toContain('?h=');
+  });
+
+  it('does not construct /media/images/<path>?w=&h= for image media', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      blob: vi.fn().mockResolvedValue(new Blob(['image'])),
+    } as unknown as Response);
+
+    render(<MediaGridItem {...baseProps} media={imageMedia} />);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+
+    const fetchedUrl = fetchMock.mock.calls[0]?.[0] ?? '';
+    expect(fetchedUrl).not.toMatch(/\/media\/images\/.*\?w=/);
   });
 
   it('does not render an img element for non-image media', () => {
-    render(
-      <MediaGridItem
-        media={nonImageMedia}
-        isSelected={false}
-        onSelect={() => {}}
-        onPreview={() => {}}
-        onCopyUrl={() => {}}
-        onDelete={() => {}}
-      />
-    );
+    render(<MediaGridItem {...baseProps} media={nonImageMedia} />);
 
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

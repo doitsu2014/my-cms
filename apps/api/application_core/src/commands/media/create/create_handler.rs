@@ -17,6 +17,7 @@ pub trait CreateMediaHandlerTrait {
         media_name: String,
         media: &[u8],
         content_type: String,
+        include_bucket_query: bool,
     ) -> impl std::future::Future<Output = Result<MediaModel, AppError>>;
 }
 
@@ -26,6 +27,7 @@ impl CreateMediaHandlerTrait for CreateMediaHandler {
         media_name: String,
         media: &[u8],
         content_type: String,
+        include_bucket_query: bool,
     ) -> Result<MediaModel, AppError> {
         let media_extension = media_name
             .clone()
@@ -38,28 +40,31 @@ impl CreateMediaHandlerTrait for CreateMediaHandler {
 
         self.media_config
             .storage
-            .upload(&beautiful_media_name, media, content_type.as_str(), None)
+            .upload(
+                self.media_config.bucket.as_str(),
+                &beautiful_media_name,
+                media,
+                content_type.as_str(),
+                None,
+            )
             .await?;
         info!("Uploaded media: {}", beautiful_media_name);
 
-        let url_path = match &self.media_config.bucket_override {
-            Some(bucket) => format!(
+        let url_path = if include_bucket_query {
+            format!(
                 "{}/media/{}?bucket={}",
-                self.media_config.media_base_url, beautiful_media_name, bucket
-            ),
-            None => {
-                if is_image_content_type(&content_type) {
-                    format!(
-                        "{}/media/images/{}",
-                        self.media_config.media_base_url, beautiful_media_name
-                    )
-                } else {
-                    format!(
-                        "{}/media/{}",
-                        self.media_config.media_base_url, beautiful_media_name
-                    )
-                }
-            }
+                self.media_config.media_base_url, beautiful_media_name, self.media_config.bucket
+            )
+        } else if is_image_content_type(&content_type) {
+            format!(
+                "{}/media/images/{}",
+                self.media_config.media_base_url, beautiful_media_name
+            )
+        } else {
+            format!(
+                "{}/media/{}",
+                self.media_config.media_base_url, beautiful_media_name
+            )
         };
 
         Ok(MediaModel {
@@ -79,25 +84,25 @@ mod tests {
     };
 
     fn make_config(server_uri: &str, public_url: &str, bucket: &str) -> Arc<MediaConfig> {
-        let storage = SupabaseStorage::new(server_uri, "anon", None, bucket);
+        let storage = SupabaseStorage::new(server_uri, "anon", None);
         Arc::new(MediaConfig {
             storage,
+            bucket: bucket.to_string(),
             media_base_url: public_url.to_string(),
-            bucket_override: Some(bucket.to_string()),
         })
     }
 
     fn make_default_config(server_uri: &str, public_url: &str) -> Arc<MediaConfig> {
-        let storage = SupabaseStorage::new(server_uri, "anon", None, "media");
+        let storage = SupabaseStorage::new(server_uri, "anon", None);
         Arc::new(MediaConfig {
             storage,
+            bucket: "media".to_string(),
             media_base_url: public_url.to_string(),
-            bucket_override: None,
         })
     }
 
     #[async_std::test]
-    async fn response_url_uses_media_base_url_when_bucket_override_set() {
+    async fn response_url_uses_media_base_url_when_bucket_query_included() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
             .and(path_regex("/storage/v1/object/hi29831/.*\\.png"))
@@ -111,7 +116,12 @@ mod tests {
         };
 
         let media = handler
-            .create_media("anything.png".to_string(), b"data", "image/png".to_string())
+            .create_media(
+                "anything.png".to_string(),
+                b"data",
+                "image/png".to_string(),
+                true,
+            )
             .await
             .expect("create ok");
 
@@ -124,7 +134,7 @@ mod tests {
     }
 
     #[async_std::test]
-    async fn response_url_uses_media_base_url_when_no_bucket_override_for_image() {
+    async fn response_url_uses_media_base_url_when_bucket_query_omitted_for_image() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
             .and(path_regex("/storage/v1/object/media/.*\\.png"))
@@ -138,7 +148,12 @@ mod tests {
         };
 
         let media = handler
-            .create_media("anything.png".to_string(), b"data", "image/png".to_string())
+            .create_media(
+                "anything.png".to_string(),
+                b"data",
+                "image/png".to_string(),
+                false,
+            )
             .await
             .expect("create ok");
 

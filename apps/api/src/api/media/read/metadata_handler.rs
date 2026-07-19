@@ -10,6 +10,7 @@ use axum::{
     Extension,
 };
 use serde::Deserialize;
+use std::sync::Arc;
 use tower_cookies::Cookies;
 use tracing::instrument;
 
@@ -36,18 +37,18 @@ pub async fn api_get_media_metadata(
                 .to_axum_response();
         }
     }
-    let storage = match &params.bucket {
-        Some(name) => state.media_config.storage.with_bucket(name),
-        None => state.media_config.storage.clone(),
-    };
-    let media_config = std::sync::Arc::new(MediaConfig {
+    let bucket = params.bucket;
+    let include_bucket_query = bucket.is_some();
+
+    let storage = state.media_config.storage.clone();
+    let media_config = Arc::new(MediaConfig {
         storage,
+        bucket: bucket.unwrap_or_else(|| state.media_config.bucket.clone()),
         media_base_url: state.media_config.media_base_url.clone(),
-        bucket_override: params.bucket.clone(),
     });
     let handler = MetadataMediaHandler { media_config };
 
-    match handler.get_metadata(path).await {
+    match handler.get_metadata(path, include_bucket_query).await {
         Ok(metadata) => ApiResponseWith::new(metadata).to_axum_response(),
         Err(e) => ApiResponseError::from(e).to_axum_response(),
     }

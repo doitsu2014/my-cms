@@ -14,8 +14,8 @@ pub use supabase_storage::{DeletedObject, StorageObject, StorageObjectMetadata, 
 #[derive(Clone, Debug)]
 pub struct MediaConfig {
     pub storage: SupabaseStorage,
+    pub bucket: String,
     pub media_base_url: String,
-    pub bucket_override: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
