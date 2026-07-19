@@ -29,7 +29,7 @@ The repository SHALL provide the local development stack as two standalone Docke
 
 ### Requirement: Two per-stack env files with shared values synchronised
 
-The repository SHALL provide two env templates at the project root: `.env.supabase.example` (variables consumed by `docker-compose.supabase.yaml`) and `.env.my-cms.example` (variables consumed by `docker-compose.my-cms.yaml`). Variables that are consumed by both stacks — at minimum `POSTGRES_PASSWORD`, `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `SUPABASE_PUBLIC_URL`, `SITE_URL`, `API_EXTERNAL_URL` — SHALL appear in both env files with a header comment reading `KEEP IN SYNC with .env.{other}` on the value.
+The repository SHALL provide two env templates at the project root: `.env.supabase.example` (variables consumed by `docker-compose.supabase.yaml`) and `.env.my-cms.example` (variables consumed by `docker-compose.my-cms.yaml`). Variables that are consumed by both stacks — at minimum `POSTGRES_PASSWORD`, `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `SUPABASE_PUBLIC_URL`, `SITE_URL`, `API_EXTERNAL_URL` — SHALL appear in both env files with a header comment reading `KEEP IN SYNC with .env.{other}` on the value. The `SERVICE_ROLE_KEY` value SHALL be a real HS256 JWT signed with the project's `JWT_SECRET` on both sides; the literal placeholder `devkey` SHALL NOT be used in any committed env file or template.
 
 #### Scenario: New developer onboarding
 
@@ -37,11 +37,19 @@ The repository SHALL provide two env templates at the project root: `.env.supaba
 - **THEN** they only need to set `POSTGRES_PASSWORD` and `JWT_SECRET` (and any other secrets) in `.env.supabase`, and mirror those values into `.env.my-cms`
 - **AND** no other env file is required to bring either stack online
 
-#### Scenario: Shared value drift
+#### Scenario: Shared value drift on `POSTGRES_PASSWORD`
 
 - **WHEN** a developer sets `POSTGRES_PASSWORD=alpha` in `.env.supabase` and `POSTGRES_PASSWORD=beta` in `.env.my-cms`
 - **THEN** the apps compose's `migrate` or `my-cms-api` services fail to authenticate to the Supabase `db`
 - **AND** the error message in the affected service log identifies the role and password mismatch
+
+#### Scenario: Shared value drift on `SERVICE_ROLE_KEY` (GoTrue admin API rejects the API container)
+
+- **WHEN** `.env.supabase` contains a real HS256 JWT for `SERVICE_ROLE_KEY` (the value GoTrue is started with)
+- **AND** `.env.my-cms` contains the literal placeholder string `devkey` for `SERVICE_ROLE_KEY`
+- **THEN** the `my-cms-api` container's outbound call to `GET /auth/v1/admin/users` (or any other GoTrue admin endpoint) reaches GoTrue successfully
+- **AND** GoTrue returns HTTP 401 with a response body containing `{"message":"Invalid authentication credentials"}`
+- **AND** the API's `SupabaseAdminClient` surfaces this as `AppError::Logical("GoTrue list users authorisation error (401 Unauthorized): …")` (or the equivalent `GoTrue <verb> users` message for non-list endpoints)
 
 ### Requirement: Supabase services are reachable on documented ports
 
@@ -142,3 +150,46 @@ The `docker-compose.my-cms.yaml` file SHALL declare an `init-wait` service (alpi
 - **AND** `migrate` runs after `init-wait` exits 0
 - **AND** `my-cms-api` starts after `migrate` exits 0
 - **AND** the apps compose's `docker compose ps` eventually shows `init-wait: exited (0)`, `migrate: exited (0)`, `my-cms-api: running`
+
+### Requirement: Backend uses Docker-internal Supabase URL distinct from the public one
+
+The my-cms apps Compose stack SHALL expose a `SUPABASE_INTERNAL_URL` env var to the `my-cms-api` service. The value SHALL be the URL the API container uses for all outbound HTTP calls to Supabase (Kong) — typically `http://supabase-kong:8000` when running under Docker Compose on the shared `supabase_network`. When `SUPABASE_INTERNAL_URL` is unset, the API SHALL fall back to `SUPABASE_URL` (the existing host-facing value), preserving backward compatibility for non-Docker workflows such as `cargo run` and host-side scripts.
+
+The `my-cms-api` container SHALL use `SUPABASE_INTERNAL_URL` (with fallback) as the `supabase_url` for `SupabaseStorage`, `SupabaseAdminClient`, and `SupabaseAuthLayer` (JWKS fallback). The frontend, host-side scripts, and any browser-direct callers SHALL continue to use `SUPABASE_URL` / `PUBLIC_SUPABASE_URL`.
+
+#### Scenario: API container reaches GoTrue admin endpoints via Docker DNS
+
+- **WHEN** the `my-cms-api` service starts with `SUPABASE_URL=http://localhost:8000` (unreachable from inside the container) and `SUPABASE_INTERNAL_URL=http://supabase-kong:8000`
+- **AND** an authenticated administrator calls `GET /users`
+- **THEN** the API's `SupabaseAdminClient::list_users()` issues a request to `http://supabase-kong:8000/auth/v1/admin/users?page=1&per_page=200`
+- **AND** the request resolves through the shared `supabase_network` to the Kong container
+- **AND** the API returns HTTP 200 with the user list
+
+#### Scenario: Storage endpoints resolve through Docker DNS
+
+- **WHEN** the `my-cms-api` service starts with `SUPABASE_INTERNAL_URL=http://supabase-kong:8000`
+- **AND** an authenticated user calls `GET /media`
+- **THEN** the API's `SupabaseStorage::list()` issues requests to `http://supabase-kong:8000/storage/v1/...`
+- **AND** the request resolves through the shared `supabase_network` to Kong
+- **AND** the API returns the media list
+
+#### Scenario: Host-side cargo run falls back to SUPABASE_URL
+
+- **WHEN** a developer runs `cargo run` from `apps/api` on the host with `SUPABASE_URL=http://localhost:8000` and `SUPABASE_INTERNAL_URL` unset
+- **THEN** the API resolves `SUPABASE_INTERNAL_URL` to the value of `SUPABASE_URL`
+- **AND** `SupabaseStorage`, `SupabaseAdminClient`, and `SupabaseAuthLayer` use `http://localhost:8000` for outbound calls
+- **AND** the API behaves identically to the pre-change behavior (Kong is reached via the host-exposed port)
+
+#### Scenario: Frontend still uses PUBLIC_SUPABASE_URL
+
+- **WHEN** the React admin calls `supabase.auth.signInWithPassword(...)`
+- **THEN** the `@supabase/supabase-js` client uses `PUBLIC_SUPABASE_URL` (browser-direct)
+- **AND** no `SUPABASE_INTERNAL_URL` is required on the frontend
+
+#### Scenario: Misconfigured internal URL surfaces a clear connection error
+
+- **WHEN** the `my-cms-api` service starts with `SUPABASE_INTERNAL_URL=http://nonexistent-host:9999`
+- **AND** an authenticated user calls `GET /users`
+- **THEN** the API returns HTTP 500 with an `ApiResponseError` whose message indicates a connection failure
+- **AND** the error message does not include any secret value (mirroring the sanitisation property of `SupabaseAdminClient`)
+

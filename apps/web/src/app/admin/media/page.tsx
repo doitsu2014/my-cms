@@ -10,18 +10,26 @@ import {
   CheckSquare,
   Square,
   RefreshCw,
+  Database,
 } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
 import Breadcrumbs from '../components/my-breadcrumbs';
 import MediaGridItem from './components/media-grid-item';
 import MediaUploadModal from './components/media-upload-modal';
 import MediaPreviewModal from './components/media-preview-modal';
-import type { MediaMetadata } from '@/models/MediaModels';
+import type { BucketModel, MediaMetadata } from '@/models/MediaModels';
 import { getFileName } from '@/models/MediaModels';
-import { getApiUrl, authenticatedFetch } from '@/config/api.config';
+import {
+  getApiUrl,
+  authenticatedFetch,
+  getBucketsApiUrl,
+} from '@/config/api.config';
 import { useAuth } from '@/auth/AuthContext';
 
 export default function AdminMediaPage() {
   const { token } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const bucketParam = searchParams.get('bucket') || undefined;
   const [mediaFiles, setMediaFiles] = useState<MediaMetadata[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [prefixFilter, setPrefixFilter] = useState('');
@@ -33,14 +41,36 @@ export default function AdminMediaPage() {
   const [isBatchDeleteModalOpen, setIsBatchDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [buckets, setBuckets] = useState<BucketModel[]>([]);
   const itemsPerPage = 24;
+
+  const loadBuckets = async () => {
+    try {
+      const response = await authenticatedFetch(
+        getBucketsApiUrl(),
+        token,
+        { cache: 'no-store' },
+      );
+      if (!response.ok) {
+        setBuckets([]);
+        return;
+      }
+      const res = await response.json();
+      setBuckets(Array.isArray(res.data) ? res.data : []);
+    } catch (error) {
+      console.error('Failed to load buckets:', error);
+      setBuckets([]);
+    }
+  };
 
   const loadMediaFiles = async () => {
     try {
       setPageLoading(true);
-      const url = prefixFilter
-        ? getApiUrl(`/media?prefix=${encodeURIComponent(prefixFilter)}`)
-        : getApiUrl('/media');
+      const params = new URLSearchParams();
+      if (prefixFilter) params.set('prefix', prefixFilter);
+      if (bucketParam) params.set('bucket', bucketParam);
+      const qs = params.toString();
+      const url = qs ? getApiUrl(`/media?${qs}`) : getApiUrl('/media');
 
       const response = await authenticatedFetch(
         url,
@@ -64,8 +94,12 @@ export default function AdminMediaPage() {
   };
 
   useEffect(() => {
-    loadMediaFiles();
+    loadBuckets();
   }, [token]);
+
+  useEffect(() => {
+    loadMediaFiles();
+  }, [token, bucketParam]);
 
   // Filtering
   const filteredMediaFiles = useMemo(() => {
@@ -125,8 +159,9 @@ export default function AdminMediaPage() {
 
     try {
       setIsDeleting(true);
+      const qs = bucketParam ? `?bucket=${encodeURIComponent(bucketParam)}` : '';
       const response = await authenticatedFetch(
-        getApiUrl(`/media/delete/${encodeURIComponent(fileToDelete.path)}`),
+        getApiUrl(`/media/delete/${encodeURIComponent(fileToDelete.path)}${qs}`),
         token,
         { method: 'DELETE' }
       );
@@ -160,8 +195,9 @@ export default function AdminMediaPage() {
       setIsDeleting(true);
       const pathsToDelete = Array.from(selectedFiles);
 
+      const qs = bucketParam ? `?bucket=${encodeURIComponent(bucketParam)}` : '';
       const response = await authenticatedFetch(
-        getApiUrl('/media'),
+        getApiUrl(`/media${qs}`),
         token,
         {
           method: 'DELETE',
@@ -231,7 +267,38 @@ export default function AdminMediaPage() {
             Manage your images and documents
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
+          {buckets.length > 1 && (
+            <select
+              className="select select-bordered select-sm"
+              value={bucketParam ?? ''}
+              onChange={(e) => {
+                const next = e.target.value;
+                if (next) {
+                  setSearchParams((prev) => {
+                    prev.set('bucket', next);
+                    return prev;
+                  });
+                } else {
+                  setSearchParams((prev) => {
+                    prev.delete('bucket');
+                    return prev;
+                  });
+                }
+              }}
+              aria-label="Bucket"
+            >
+              {buckets.map((bucket) => (
+                <option key={bucket.id} value={bucket.name}>
+                  {bucket.name}
+                </option>
+              ))}
+            </select>
+          )}
+          <Link to="/admin/media/buckets" className="btn btn-ghost btn-sm gap-2">
+            <Database className="w-4 h-4" />
+            Buckets
+          </Link>
           <button
             className="btn btn-ghost btn-sm gap-2"
             onClick={loadMediaFiles}
@@ -352,6 +419,7 @@ export default function AdminMediaPage() {
                   onPreview={setPreviewFile}
                   onCopyUrl={handleCopyUrl}
                   onDelete={handleDeleteClick}
+                  token={token}
                 />
               ))}
             </div>
@@ -413,6 +481,7 @@ export default function AdminMediaPage() {
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onUploadComplete={loadMediaFiles}
+        bucket={bucketParam}
       />
 
       {/* Preview Modal */}
@@ -421,6 +490,7 @@ export default function AdminMediaPage() {
         isOpen={previewFile !== null}
         onClose={() => setPreviewFile(null)}
         onDelete={handleDeleteClick}
+        token={token}
       />
 
       {/* Single Delete Confirmation Modal */}

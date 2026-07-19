@@ -25,6 +25,48 @@ export interface MediaDeleteBatchResponse {
 }
 
 /**
+ * Bucket metadata returned from the Supabase bucket endpoints
+ */
+export interface BucketModel {
+  id: string;
+  name: string;
+  public: boolean;
+  fileSizeLimit: number | null;
+  allowedMimeTypes: string[] | null;
+  owner: string | null;
+  type: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Request body for creating a new bucket
+ */
+export interface CreateBucketRequest {
+  name: string;
+  public?: boolean;
+  fileSizeLimit?: number;
+  allowedMimeTypes?: string[];
+}
+
+/**
+ * Request body for updating a bucket. Field absent = "no change";
+ * field present with null = "clear the value".
+ */
+export interface UpdateBucketRequest {
+  public?: boolean;
+  fileSizeLimit?: number | null;
+  allowedMimeTypes?: string[] | null;
+}
+
+/**
+ * Response from the empty / delete bucket endpoints
+ */
+export interface BucketActionResponse {
+  message: string;
+}
+
+/**
  * Helper to check if a content type is an image
  */
 export const isImageContentType = (contentType: string): boolean => {
@@ -40,6 +82,14 @@ export const formatFileSize = (bytes: number): string => {
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+};
+
+/**
+ * Format a bucket file size limit for display.
+ */
+export const formatBucketFileSize = (limit: number | null | undefined): string => {
+  if (limit === null || limit === undefined) return '—';
+  return formatFileSize(limit);
 };
 
 /**

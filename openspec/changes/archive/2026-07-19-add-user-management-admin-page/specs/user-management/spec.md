@@ -7,7 +7,7 @@
 
 Provide administrators of My-CMS with a self-service admin surface to manage the operators who can sign in to the CMS. Backed by GoTrue's admin API; users live in `auth.users` and roles live in `app_metadata.roles`. The CMS neither creates its own user table nor duplicates user state.
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: Admin can list CMS users
 

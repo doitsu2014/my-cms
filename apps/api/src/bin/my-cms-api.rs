@@ -2,7 +2,10 @@ use std::env;
 use std::sync::Arc;
 
 use application_core::{
-    commands::media::{read::read_handler::create_media_cache, MediaConfig, SupabaseStorage},
+    commands::media::{
+        bucket::access::access_cache::create_bucket_visibility_cache,
+        read::read_handler::create_media_cache, MediaConfig, SupabaseStorage,
+    },
     commands::user::supabase_admin_client::SupabaseAdminClient,
     graphql::query_root::schema,
 };
@@ -225,6 +228,21 @@ pub async fn protected_administrator_router() -> Router {
             "/users/{user_id}/reset-password",
             post(api::user::reset_password::reset_password_handler::api_reset_password),
         )
+        .route(
+            "/media/buckets",
+            get(api::media::bucket::list::list_handler::api_list_buckets)
+                .post(api::media::bucket::create::create_handler::api_create_bucket),
+        )
+        .route(
+            "/media/buckets/{name}",
+            get(api::media::bucket::get::get_handler::api_get_bucket)
+                .put(api::media::bucket::update::update_handler::api_update_bucket)
+                .delete(api::media::bucket::delete::delete_handler::api_delete_bucket),
+        )
+        .route(
+            "/media/buckets/{name}/empty",
+            post(api::media::bucket::empty::empty_handler::api_empty_bucket),
+        )
         .layer(construct_supabase_auth_layer(
             env::var("AUTHORIZATION_AUDIENCE").unwrap_or("authenticated".to_string()),
             vec![String::from("my-headless-cms-administrator")],
@@ -246,8 +264,6 @@ async fn construct_app_state() -> AppState {
     let supabase_anon_key = env::var("SUPABASE_ANON_KEY").expect("SUPABASE_ANON_KEY must be set");
     let supabase_service_role_key =
         env::var("SUPABASE_SERVICE_ROLE_KEY").expect("SUPABASE_SERVICE_ROLE_KEY must be set");
-    let supabase_storage_bucket =
-        env::var("SUPABASE_STORAGE_BUCKET").unwrap_or_else(|_| "media".to_string());
 
     let host = env::var("HOST").unwrap_or("127.0.0.1".to_string());
     let port = env::var("PORT").unwrap_or("8989".to_string());
@@ -257,8 +273,9 @@ async fn construct_app_state() -> AppState {
         supabase_internal_url.clone(),
         supabase_anon_key,
         Some(supabase_service_role_key.clone()),
-        supabase_storage_bucket,
     );
+
+    tracing::info!("Supabase service role key configured; bucket management endpoints enabled");
 
     let supabase_admin_client = Arc::new(SupabaseAdminClient::new(
         supabase_internal_url,
@@ -272,9 +289,11 @@ async fn construct_app_state() -> AppState {
         conn: Arc::new(conn),
         media_config: Arc::new(MediaConfig {
             storage,
+            bucket: "media".to_string(),
             media_base_url,
         }),
         media_cache: Arc::new(create_media_cache()),
+        bucket_visibility_cache: Arc::new(create_bucket_visibility_cache()),
         graphql_immutable_schema: Arc::new(graphql_immutable_schema),
         graphql_mutable_schema: Arc::new(graphql_mutable_schema),
         supabase_admin_client,

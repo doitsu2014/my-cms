@@ -1,16 +1,25 @@
 use crate::common::supabase_auth::SupabaseToken;
+use application_core::commands::media::bucket::dto::bucket_name_error;
 use application_core::commands::media::read::metadata_handler::{
     MetadataMediaHandler, MetadataMediaHandlerTrait,
 };
+use application_core::commands::media::MediaConfig;
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     response::IntoResponse,
     Extension,
 };
+use serde::Deserialize;
+use std::sync::Arc;
 use tower_cookies::Cookies;
 use tracing::instrument;
 
-use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
+use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse, ErrorCode};
+
+#[derive(Debug, Deserialize)]
+pub struct MetadataQueryParams {
+    pub bucket: Option<String>,
+}
 
 #[instrument(skip(state))]
 pub async fn api_get_media_metadata(
@@ -18,12 +27,28 @@ pub async fn api_get_media_metadata(
     _cookies: Cookies,
     Extension(_token): Extension<SupabaseToken>,
     Path(path): Path<String>,
+    Query(params): Query<MetadataQueryParams>,
 ) -> impl IntoResponse {
-    let handler = MetadataMediaHandler {
-        media_config: state.media_config.clone(),
-    };
+    if let Some(name) = &params.bucket {
+        if let Some(reason) = bucket_name_error(name) {
+            return ApiResponseError::new()
+                .with_error_code(ErrorCode::ValidationError)
+                .add_error(format!("bucket: {}", reason))
+                .to_axum_response();
+        }
+    }
+    let bucket = params.bucket;
+    let include_bucket_query = bucket.is_some();
 
-    match handler.get_metadata(path).await {
+    let storage = state.media_config.storage.clone();
+    let media_config = Arc::new(MediaConfig {
+        storage,
+        bucket: bucket.unwrap_or_else(|| state.media_config.bucket.clone()),
+        media_base_url: state.media_config.media_base_url.clone(),
+    });
+    let handler = MetadataMediaHandler { media_config };
+
+    match handler.get_metadata(path, include_bucket_query).await {
         Ok(metadata) => ApiResponseWith::new(metadata).to_axum_response(),
         Err(e) => ApiResponseError::from(e).to_axum_response(),
     }

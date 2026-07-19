@@ -106,8 +106,10 @@ else
   echo "Removing Supabase named volumes..."
   docker volume rm -f mailpit_data 2>/dev/null || true
   # supabase_storage_data was already removed by `docker compose down -v` above
-  # (intentional — media bucket is reset). The db-config named volume (pgsodium
-  # decryption key) is also wiped above; it must regenerate alongside the data dir.
+  # (intentional — media bucket is reset and then auto-recreated by the
+  # `99-my-cms-media-bucket.sql` tenant migration mounted into storage-api, see
+  # docker-compose.yaml). The db-config named volume (pgsodium decryption key)
+  # is also wiped above; it must regenerate alongside the data dir.
   # Note: ./volumes/db/data is a BIND MOUNT (not a named volume) and is NOT wiped
   # by this script. Wipe it manually with: rm -rf volumes/db/data
 

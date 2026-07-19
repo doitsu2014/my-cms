@@ -1,4 +1,5 @@
 use crate::common::supabase_auth::SupabaseToken;
+use application_core::commands::media::bucket::dto::bucket_name_error;
 use application_core::commands::media::list::list_handler::{
     ListMediaHandler, ListMediaHandlerTrait,
 };
@@ -11,11 +12,12 @@ use serde::Deserialize;
 use tower_cookies::Cookies;
 use tracing::instrument;
 
-use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
+use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse, ErrorCode};
 
 #[derive(Debug, Deserialize)]
 pub struct ListQueryParams {
     pub prefix: Option<String>,
+    pub bucket: Option<String>,
 }
 
 #[instrument(skip(state))]
@@ -25,11 +27,32 @@ pub async fn api_list_media(
     Extension(_token): Extension<SupabaseToken>,
     Query(params): Query<ListQueryParams>,
 ) -> impl IntoResponse {
-    let handler = ListMediaHandler {
-        media_config: state.media_config.clone(),
-    };
+    if let Some(name) = &params.bucket {
+        if let Some(reason) = bucket_name_error(name) {
+            return ApiResponseError::new()
+                .with_error_code(ErrorCode::ValidationError)
+                .add_error(format!("bucket: {}", reason))
+                .to_axum_response();
+        }
+    }
 
-    match handler.list_media(params.prefix).await {
+    let storage = state.media_config.storage.clone();
+    let media_config = std::sync::Arc::new(application_core::commands::media::MediaConfig {
+        storage,
+        bucket: params
+            .bucket
+            .clone()
+            .unwrap_or_else(|| state.media_config.bucket.clone()),
+        media_base_url: state.media_config.media_base_url.clone(),
+    });
+
+    let include_bucket_query = params.bucket.is_some();
+    let handler = ListMediaHandler { media_config };
+
+    match handler
+        .list_media(params.prefix, include_bucket_query)
+        .await
+    {
         Ok(media_list) => ApiResponseWith::new(media_list).to_axum_response(),
         Err(e) => ApiResponseError::from(e).to_axum_response(),
     }

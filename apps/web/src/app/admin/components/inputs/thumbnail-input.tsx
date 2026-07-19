@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { getMediaUploadApiUrl, getMediaImageUrl, createAuthHeaders } from '@/config/api.config';
+import { getMediaUploadApiUrl, createAuthHeaders } from '@/config/api.config';
 import { useAuth } from '@/auth/AuthContext';
 
 interface ThumbnailsInputProps {
@@ -43,8 +43,7 @@ const ThumbnailsInput: React.FC<ThumbnailsInputProps> = ({
         }
 
         const data = await response.json();
-        // Construct the image URL from the path returned by the API
-        uploadedUrls.push(getMediaImageUrl(data.data.path));
+        uploadedUrls.push(data.data.url);
       }
 
       const newThumbnails = [...thumbnails, ...uploadedUrls];

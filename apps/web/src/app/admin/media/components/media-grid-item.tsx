@@ -2,7 +2,7 @@ import React from 'react';
 import { FileText, FileSpreadsheet, File, Image, Copy, Trash2, Eye } from 'lucide-react';
 import type { MediaMetadata } from '@/models/MediaModels';
 import { isImageContentType, formatFileSize, getFileName, getFileExtension } from '@/models/MediaModels';
-import { getMediaImageUrl } from '@/config/api.config';
+import AuthenticatedImage from './authenticated-image';
 
 interface MediaGridItemProps {
   media: MediaMetadata;
@@ -11,6 +11,8 @@ interface MediaGridItemProps {
   onPreview: (media: MediaMetadata) => void;
   onCopyUrl: (url: string) => void;
   onDelete: (media: MediaMetadata) => void;
+  bucket?: string;
+  token: string | null;
 }
 
 const getFileIcon = (contentType: string, extension: string) => {
@@ -43,11 +45,12 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
   onPreview,
   onCopyUrl,
   onDelete,
+  token,
 }) => {
   const fileName = getFileName(media.path);
   const extension = getFileExtension(media.path);
   const isImage = isImageContentType(media.contentType);
-  const thumbnailUrl = isImage ? getMediaImageUrl(media.path) + '?w=200&h=200' : null;
+  const thumbnailUrl = isImage ? media.url : null;
 
   return (
     <div
@@ -106,11 +109,11 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
         onClick={() => onPreview(media)}
       >
         {thumbnailUrl ? (
-          <img
+          <AuthenticatedImage
             src={thumbnailUrl}
+            token={token}
             alt={fileName}
             className="w-full h-full object-cover"
-            loading="lazy"
           />
         ) : (
           getFileIcon(media.contentType, extension)

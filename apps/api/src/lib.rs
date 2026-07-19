@@ -21,6 +21,7 @@ pub struct AppState {
     pub conn: Arc<DatabaseConnection>,
     pub media_config: Arc<MediaConfig>,
     pub media_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
+    pub bucket_visibility_cache: Arc<Cache<String, bool>>,
     pub graphql_immutable_schema: Arc<Schema>,
     pub graphql_mutable_schema: Arc<Schema>,
     pub supabase_admin_client: Arc<SupabaseAdminClient>,
@@ -31,6 +32,7 @@ impl Debug for AppState {
         f.debug_struct("AppState")
             .field("media_config", &self.media_config)
             .field("media_cache", &"<Cache>")
+            .field("bucket_visibility_cache", &"<Cache>")
             .field("supabase_admin_client", &"<SupabaseAdminClient>")
             .finish_non_exhaustive()
     }

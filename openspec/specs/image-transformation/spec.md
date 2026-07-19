@@ -3,27 +3,40 @@
 ## Purpose
 TBD - created by archiving change supabase-storage-and-image-transformation-migration. Update Purpose after archive.
 ## Requirements
-### Requirement: Resize requests redirect to Supabase Image Transformation
+### Requirement: Resize requests proxy image bytes from Supabase Image Transformation
 
-The API endpoint `GET /media/images/{*path}` SHALL return HTTP 302 Temporary Redirect to `{SUPABASE_URL}/storage/v1/render/image/public/{bucket}/{path}?width={w}&height={h}` when the request includes `?w=` or `?h=` query parameters. The redirect URL is built by `SupabaseStorage::render_image_url(path, width, height)`.
+The API endpoint `GET /media/images/{*path}` SHALL return HTTP 200 with the transformed image bytes when the request includes `?w=` or `?h=` query parameters. The API SHALL NOT issue an HTTP redirect (302/307) to the Supabase render URL. The browser SHALL never see the internal Supabase host.
+
+The API fetches `{SUPABASE_URL}/storage/v1/render/image/public/{bucket}/{path}?width={w}&height={h}` with service-role credentials, then streams the response body back to the caller with:
+
+- HTTP 200 status
+- `Content-Type` copied from the Supabase response (or `image/*` guessed from the path when omitted)
+- `Cache-Control: public, max-age=31536000, immutable`
+- No `Location` header
 
 #### Scenario: Resize with width only
 
 - **WHEN** the client requests `GET /media/images/foo.webp?w=300`
-- **THEN** the API returns HTTP 302
-- **AND** the `Location` header points at `{SUPABASE_URL}/storage/v1/render/image/public/media/foo.webp?width=300`
+- **THEN** the API returns HTTP 200 with the transformed image bytes
+- **AND** no `Location` header is present
+- **AND** the bytes match what Supabase Image Transformation returned for `{SUPABASE_URL}/storage/v1/render/image/public/media/foo.webp?width=300`
 
 #### Scenario: Resize with both dimensions
 
 - **WHEN** the client requests `GET /media/images/foo.webp?w=300&h=200`
-- **THEN** the API returns HTTP 302
-- **AND** the `Location` header points at `{SUPABASE_URL}/storage/v1/render/image/public/media/foo.webp?width=300&height=200`
+- **THEN** the API returns HTTP 200 with the transformed image bytes
+- **AND** the upstream call hits `{SUPABASE_URL}/storage/v1/render/image/public/media/foo.webp?width=300&height=200`
 
 #### Scenario: Resize with height only
 
 - **WHEN** the client requests `GET /media/images/foo.webp?h=200`
-- **THEN** the API returns HTTP 302
-- **AND** the `Location` header points at `{SUPABASE_URL}/storage/v1/render/image/public/media/foo.webp?height=200`
+- **THEN** the API returns HTTP 200 with the transformed image bytes
+- **AND** the upstream call hits `{SUPABASE_URL}/storage/v1/render/image/public/media/foo.webp?height=200`
+
+#### Scenario: Resize with explicit bucket
+
+- **WHEN** the client requests `GET /media/images/foo.webp?w=300&bucket=avatars`
+- **THEN** the upstream call hits `{SUPABASE_URL}/storage/v1/render/image/public/avatars/foo.webp?width=300`
 
 ### Requirement: Unresized image requests serve the original
 
@@ -77,6 +90,44 @@ The `application_core/src/commands/media/read/read_handler.rs` module SHALL NOT 
 - **WHEN** `render_image_url("foo.webp", None, None)` is called
 - **THEN** the URL has no query string
 
+### Requirement: `download_render` fetches transformed bytes from Supabase Image Transformation
+
+`SupabaseStorage::download_render(path, width, height)` SHALL call the same endpoint built by `render_image_url` with `Authorization: Bearer` and `apikey` headers (preferring `service_role_key` when set, falling back to `anon_key`). It SHALL return `(Vec<u8>, String)` where the `String` is the upstream `Content-Type` (or a guessed MIME type derived from `path` when the upstream omits it). On HTTP 404 or a Supabase 400 with `statusCode: 404`, it SHALL return `AppError::NotFound`.
+
+#### Scenario: 200 returns bytes and content-type
+
+- **WHEN** `download_render("foo.png", Some(300), Some(200))` is called and Supabase returns 200 with `content-type: image/webp` and body `b"rendered"`
+- **THEN** it returns `(b"rendered", "image/webp")`
+
+#### Scenario: 404 maps to AppError::NotFound
+
+- **WHEN** Supabase returns 404
+- **THEN** `download_render` returns `Err(AppError::NotFound)`
+
+#### Scenario: 400 with statusCode 404 maps to AppError::NotFound
+
+- **WHEN** Supabase returns 400 with body `{"statusCode":"404","error":"Bucket not found","message":"Bucket not found"}`
+- **THEN** `download_render` returns `Err(AppError::NotFound)`
+
+#### Scenario: 5xx returns AppError::StorageError
+
+- **WHEN** Supabase returns 500
+- **THEN** `download_render` returns `Err(AppError::StorageError(_))`
+
+### Requirement: Resize cache key includes bucket
+
+The `MediaCacheKey` used by `ReadMediaHandler` SHALL include `bucket: Option<String>` so that two buckets with the same path produce distinct cache entries.
+
+#### Scenario: Same path in two buckets → distinct keys
+
+- **WHEN** keys are constructed for `{bucket: Some("a"), path: "x.png", width: None, height: None}` and `{bucket: Some("b"), path: "x.png", width: None, height: None}`
+- **THEN** the keys are not equal
+
+#### Scenario: Same bucket + path + dimensions → equal keys
+
+- **WHEN** keys are constructed for `{bucket: Some("media"), path: "x.png", width: Some(300), height: Some(200)}` twice
+- **THEN** the keys are equal
+
 ### Requirement: Resize is compatible with the `media` bucket
 
 Supabase Image Transformation SHALL be configured to read from the public `media` bucket (the same bucket used by `supabase-storage`). The local dev compose stack from `unified-docker-compose-with-supabase` runs the `storage` and `imgproxy` services that back this transformation.
@@ -84,6 +135,7 @@ Supabase Image Transformation SHALL be configured to read from the public `media
 #### Scenario: Local dev resize
 
 - **WHEN** a developer starts the compose stack, creates a public `media` bucket, uploads an image, and visits `GET /media/images/foo.webp?w=300`
-- **THEN** the API returns 302 to the Supabase render URL
-- **AND** following the redirect returns a 300-px-wide image
+- **THEN** the API returns HTTP 200 with the transformed image bytes (no redirect)
+- **AND** the bytes form a 300-px-wide image
+- **AND** the internal Supabase hostname does not appear in the response (no `Location` header)
 
