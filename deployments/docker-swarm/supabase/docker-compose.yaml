@@ -292,6 +292,14 @@ services:
     volumes:
       # my-cms-specific: named volume preserves existing data through migration
       - supabase_storage_data:/var/lib/storage:z
+      # my-cms-specific: idempotent bucket seeding as a storage-api tenant
+      # migration. Sort filename (9999) > every upstream tenant migration, so
+      # it runs AFTER storage-api's own 0002-storage-schema.sql that creates
+      # the storage.buckets table. Hash-tracked by storage.migrations, so
+      # subsequent restarts skip the already-applied file cleanly. ON CONFLICT
+      # (name) DO NOTHING inside the SQL makes a fresh db reset also a no-op
+      # at the row level if storage ever rehydrates the bucket itself.
+      - ./volumes/db/99-my-cms-media-bucket.sql:/app/migrations/tenant/9999-my-cms-media-bucket.sql:Z
     depends_on:
       db:
         condition: service_healthy

@@ -36,8 +36,8 @@ impl ListMediaHandlerTrait for ListMediaHandler {
             .map(|obj| {
                 let url = match &self.media_config.bucket_override {
                     Some(bucket) => format!(
-                        "{}/storage/v1/object/{}/{}",
-                        self.media_config.storage.supabase_url, bucket, obj.name
+                        "{}/media/{}?bucket={}",
+                        self.media_config.media_base_url, obj.name, bucket
                     ),
                     None => format!("{}/media/{}", self.media_config.media_base_url, obj.name),
                 };
@@ -52,5 +52,92 @@ impl ListMediaHandlerTrait for ListMediaHandler {
             .collect();
 
         Ok(media_list)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::media::SupabaseStorage;
+    use serde_json::json;
+    use wiremock::{
+        matchers::{method, path},
+        Mock, MockServer, ResponseTemplate,
+    };
+
+    fn make_config(server_uri: &str, public_url: &str, bucket: &str) -> Arc<MediaConfig> {
+        let storage = SupabaseStorage::new(server_uri, "anon", None, bucket);
+        Arc::new(MediaConfig {
+            storage,
+            media_base_url: public_url.to_string(),
+            bucket_override: Some(bucket.to_string()),
+        })
+    }
+
+    fn make_default_config(server_uri: &str, public_url: &str) -> Arc<MediaConfig> {
+        let storage = SupabaseStorage::new(server_uri, "anon", None, "media");
+        Arc::new(MediaConfig {
+            storage,
+            media_base_url: public_url.to_string(),
+            bucket_override: None,
+        })
+    }
+
+    fn mock_list_body() -> serde_json::Value {
+        json!([
+            {
+                "name": "anything.png",
+                "id": "1",
+                "updated_at": "2026-01-01T00:00:00Z",
+                "metadata": { "size": "100", "mimetype": "image/png" }
+            }
+        ])
+    }
+
+    #[async_std::test]
+    async fn response_url_uses_media_base_url_when_bucket_override_set() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/object/list/hi29831"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(mock_list_body()))
+            .mount(&server)
+            .await;
+
+        let config = make_config(&server.uri(), "http://localhost:8989", "hi29831");
+        let handler = ListMediaHandler {
+            media_config: config,
+        };
+
+        let items = handler.list_media(None).await.expect("list ok");
+        assert_eq!(items.len(), 1);
+        assert!(
+            items[0].url.starts_with("http://localhost:8989/media/")
+                && items[0].url.contains("?bucket=hi29831"),
+            "url should use the media proxy with the requested bucket, got {}",
+            items[0].url
+        );
+    }
+
+    #[async_std::test]
+    async fn response_url_uses_media_base_url_when_no_bucket_override() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/storage/v1/object/list/media"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(mock_list_body()))
+            .mount(&server)
+            .await;
+
+        let config = make_default_config(&server.uri(), "http://localhost:8989");
+        let handler = ListMediaHandler {
+            media_config: config,
+        };
+
+        let items = handler.list_media(None).await.expect("list ok");
+        assert_eq!(items.len(), 1);
+        assert!(
+            items[0].url.starts_with("http://localhost:8989/media/"),
+            "url should use media_base_url + /media/, got {}",
+            items[0].url
+        );
     }
 }

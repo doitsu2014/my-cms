@@ -198,7 +198,7 @@ The existing object-operation endpoints (`GET /api/media`, `POST /api/media`, `G
 
 The `bucket` value SHALL be validated against `^[a-z][a-z0-9_-]{2,62}$`. An invalid value SHALL cause HTTP 400 with `AppError::Validation("bucket", ...)`. A valid but non-existent bucket SHALL cause the Supabase call to return `404`, which the API surfaces as HTTP 404 with `AppError::NotFound`.
 
-The response shape for object operations SHALL be unchanged. When a `bucket` override is in effect, the `url` field of the response SHALL be constructed as `{SUPABASE_URL}/storage/v1/object/{bucket}/{path}` (a direct Supabase object URL) so the returned URL is usable for the target bucket. When no override is in effect, the existing `{MEDIA_BASE_URL}/media/{path}` shape is preserved (for images: `{MEDIA_BASE_URL}/media/images/{path}`).
+The response shape for object operations SHALL be unchanged. When a `bucket` override is in effect, the `url` field of the response SHALL be constructed as `{MEDIA_BASE_URL}/media/{path}?bucket={bucket}` — the API public-read endpoint, which proxies the request through the API with the service-role key so the returned URL is browser-accessible for the target bucket. When no override is in effect, the existing `{MEDIA_BASE_URL}/media/{path}` shape is preserved (for images: `{MEDIA_BASE_URL}/media/images/{path}`).
 
 The public read endpoint `/media/{*path}` (and `/media/images/{*path}`) SHALL NOT honor the override; it always serves from the default `media` bucket. The image-resize redirect endpoint SHALL NOT honor the override; it always redirects to the Supabase render URL for the default `media` bucket.
 
@@ -207,13 +207,13 @@ The public read endpoint `/media/{*path}` (and `/media/images/{*path}`) SHALL NO
 - **WHEN** an authenticated user calls `GET /api/media?bucket=private-docs`
 - **THEN** the API calls `POST {SUPABASE_URL}/storage/v1/object/list/private-docs` with the standard list body
 - **AND** the API returns the objects from `private-docs`
-- **AND** each `url` field is `{SUPABASE_URL}/storage/v1/object/private-docs/{path}`
+- **AND** each `url` field is `{MEDIA_BASE_URL}/media/{path}?bucket=private-docs`
 
 #### Scenario: Upload to a non-default bucket
 
 - **WHEN** an authenticated user calls `POST /api/media?bucket=avatars` with multipart body
 - **THEN** the API issues `POST {SUPABASE_URL}/storage/v1/object/avatars/{slugified-path}` with `x-upsert: true`
-- **AND** the response `url` is `{SUPABASE_URL}/storage/v1/object/avatars/{slugified-path}`
+- **AND** the response `url` is `{MEDIA_BASE_URL}/media/{slugified-path}?bucket=avatars`
 
 #### Scenario: Delete a single object from a non-default bucket
 

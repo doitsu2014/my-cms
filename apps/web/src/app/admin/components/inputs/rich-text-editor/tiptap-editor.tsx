@@ -22,7 +22,7 @@ import { TaskItem } from '@tiptap/extension-task-item';
 import { all, createLowlight } from 'lowlight';
 import ImageResize from 'tiptap-extension-resize-image';
 import { toast } from 'sonner';
-import { getMediaUploadApiUrl, getMediaImageUrl, createAuthHeaders } from '@/config/api.config';
+import { getMediaUploadApiUrl, createAuthHeaders } from '@/config/api.config';
 import { useAuth } from '@/auth/AuthContext';
 
 import { Toolbar } from './toolbar/toolbar';
@@ -77,8 +77,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
       }
 
       const data = await response.json();
-      // Construct the image URL from the path returned by the API
-      return getMediaImageUrl(data.data.path);
+      return data.data.url;
     } catch (error) {
       console.error('Error uploading image:', error);
       toast.error('Image upload failed');

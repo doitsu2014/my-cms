@@ -2,7 +2,6 @@ import React from 'react';
 import { FileText, FileSpreadsheet, File, Image, Copy, Trash2, Eye } from 'lucide-react';
 import type { MediaMetadata } from '@/models/MediaModels';
 import { isImageContentType, formatFileSize, getFileName, getFileExtension } from '@/models/MediaModels';
-import { getMediaImageUrl } from '@/config/api.config';
 
 interface MediaGridItemProps {
   media: MediaMetadata;
@@ -44,16 +43,11 @@ const MediaGridItem: React.FC<MediaGridItemProps> = ({
   onPreview,
   onCopyUrl,
   onDelete,
-  bucket,
 }) => {
   const fileName = getFileName(media.path);
   const extension = getFileExtension(media.path);
   const isImage = isImageContentType(media.contentType);
-  const thumbnailUrl = isImage
-    ? bucket
-      ? media.url
-      : `${getMediaImageUrl(media.path)}?w=200&h=200`
-    : null;
+  const thumbnailUrl = isImage ? media.url : null;
 
   return (
     <div

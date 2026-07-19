@@ -44,8 +44,8 @@ impl CreateMediaHandlerTrait for CreateMediaHandler {
 
         let url_path = match &self.media_config.bucket_override {
             Some(bucket) => format!(
-                "{}/storage/v1/object/{}/{}",
-                self.media_config.storage.supabase_url, bucket, beautiful_media_name
+                "{}/media/{}?bucket={}",
+                self.media_config.media_base_url, beautiful_media_name, bucket
             ),
             None => {
                 if is_image_content_type(&content_type) {
@@ -66,5 +66,86 @@ impl CreateMediaHandlerTrait for CreateMediaHandler {
             path: beautiful_media_name,
             url: url_path,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::media::SupabaseStorage;
+    use wiremock::{
+        matchers::{method, path_regex},
+        Mock, MockServer, ResponseTemplate,
+    };
+
+    fn make_config(server_uri: &str, public_url: &str, bucket: &str) -> Arc<MediaConfig> {
+        let storage = SupabaseStorage::new(server_uri, "anon", None, bucket);
+        Arc::new(MediaConfig {
+            storage,
+            media_base_url: public_url.to_string(),
+            bucket_override: Some(bucket.to_string()),
+        })
+    }
+
+    fn make_default_config(server_uri: &str, public_url: &str) -> Arc<MediaConfig> {
+        let storage = SupabaseStorage::new(server_uri, "anon", None, "media");
+        Arc::new(MediaConfig {
+            storage,
+            media_base_url: public_url.to_string(),
+            bucket_override: None,
+        })
+    }
+
+    #[async_std::test]
+    async fn response_url_uses_media_base_url_when_bucket_override_set() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path_regex("/storage/v1/object/hi29831/.*\\.png"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(""))
+            .mount(&server)
+            .await;
+
+        let config = make_config(&server.uri(), "http://localhost:8989", "hi29831");
+        let handler = CreateMediaHandler {
+            media_config: config,
+        };
+
+        let media = handler
+            .create_media("anything.png".to_string(), b"data", "image/png".to_string())
+            .await
+            .expect("create ok");
+
+        assert!(
+            media.url.starts_with("http://localhost:8989/media/")
+                && media.url.contains("?bucket=hi29831"),
+            "url should use the media proxy with the requested bucket, got {}",
+            media.url
+        );
+    }
+
+    #[async_std::test]
+    async fn response_url_uses_media_base_url_when_no_bucket_override_for_image() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path_regex("/storage/v1/object/media/.*\\.png"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(""))
+            .mount(&server)
+            .await;
+
+        let config = make_default_config(&server.uri(), "http://localhost:8989");
+        let handler = CreateMediaHandler {
+            media_config: config,
+        };
+
+        let media = handler
+            .create_media("anything.png".to_string(), b"data", "image/png".to_string())
+            .await
+            .expect("create ok");
+
+        assert!(
+            media.url.starts_with("http://localhost:8989/media/images/"),
+            "url should use media_base_url + /media/images/, got {}",
+            media.url
+        );
     }
 }

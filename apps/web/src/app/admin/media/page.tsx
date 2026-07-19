@@ -419,7 +419,6 @@ export default function AdminMediaPage() {
                   onPreview={setPreviewFile}
                   onCopyUrl={handleCopyUrl}
                   onDelete={handleDeleteClick}
-                  bucket={bucketParam}
                 />
               ))}
             </div>
@@ -490,7 +489,6 @@ export default function AdminMediaPage() {
         isOpen={previewFile !== null}
         onClose={() => setPreviewFile(null)}
         onDelete={handleDeleteClick}
-        bucket={bucketParam}
       />
 
       {/* Single Delete Confirmation Modal */}

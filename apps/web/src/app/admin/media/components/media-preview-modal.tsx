@@ -3,14 +3,12 @@ import { X, Copy, Trash2, ExternalLink, FileText, FileSpreadsheet, File } from '
 import { toast } from 'sonner';
 import type { MediaMetadata } from '@/models/MediaModels';
 import { isImageContentType, formatFileSize, getFileName, getFileExtension } from '@/models/MediaModels';
-import { getMediaImageUrl } from '@/config/api.config';
 
 interface MediaPreviewModalProps {
   media: MediaMetadata | null;
   isOpen: boolean;
   onClose: () => void;
   onDelete: (media: MediaMetadata) => void;
-  bucket?: string;
 }
 
 const getFileIcon = (_contentType: string, extension: string) => {
@@ -37,18 +35,13 @@ const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
   isOpen,
   onClose,
   onDelete,
-  bucket,
 }) => {
   if (!isOpen || !media) return null;
 
   const fileName = getFileName(media.path);
   const extension = getFileExtension(media.path);
   const isImage = isImageContentType(media.contentType);
-  const fullImageUrl = isImage
-    ? bucket
-      ? media.url
-      : getMediaImageUrl(media.path)
-    : null;
+  const fullImageUrl = isImage ? media.url : null;
 
   const handleCopyUrl = () => {
     navigator.clipboard.writeText(media.url);

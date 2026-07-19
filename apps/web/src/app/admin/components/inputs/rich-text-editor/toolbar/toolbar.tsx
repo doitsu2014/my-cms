@@ -3,7 +3,7 @@ import type { Editor } from '@tiptap/react';
 import { toast } from 'sonner';
 import TurndownService from 'turndown';
 import { marked } from 'marked';
-import { getMediaUploadApiUrl, getMediaImageUrl, createAuthHeaders } from '@/config/api.config';
+import { getMediaUploadApiUrl, createAuthHeaders } from '@/config/api.config';
 import { useAuth } from '@/auth/AuthContext';
 import {
   Bold,
@@ -191,8 +191,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         }
 
         const data = await response.json();
-        // Construct the image URL from the path returned by the API
-        const uploadedUrl = getMediaImageUrl(data.data.path);
+        const uploadedUrl = data.data.url;
 
         // Insert the uploaded image into the editor
         editor.chain().focus().setImage({ src: uploadedUrl }).run();
