@@ -4,7 +4,7 @@
 
 The media feature currently treats Supabase Storage as a single fixed bucket (`media`) configured at boot. This capability gives administrators first-class lifecycle control over buckets — list, inspect, create, update, empty, and delete — and adds a per-request `?bucket=<name>` override on existing object operations so any bucket can be browsed and managed through the same admin UI. The default-bucket semantics on every existing endpoint are preserved when no override is supplied.
 
-## Requirements
+## ADDED Requirements
 
 ### Requirement: List all buckets
 
