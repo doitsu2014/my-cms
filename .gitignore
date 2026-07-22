@@ -44,3 +44,5 @@ deployments/docker-swarm/supabase/volumes/secrets/*
 
 # Allow the example env files (one per component folder)
 !deployments/docker-swarm/*/.env.example
+# Added by code-review-graph
+.code-review-graph/

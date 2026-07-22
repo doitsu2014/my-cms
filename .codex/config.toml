@@ -1,0 +1,12 @@
+# Project-scoped Codex configuration.
+# The server is also available globally in the developer's Codex config, but
+# keeping it here makes the agent team portable for trusted checkouts.
+
+[mcp_servers.code-review-graph]
+command = "uvx"
+args = ["code-review-graph", "serve"]
+type = "stdio"
+
+[agents]
+max_threads = 3
+max_depth = 1

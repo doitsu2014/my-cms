@@ -67,7 +67,7 @@ The SDLC combines two complementary toolchains:
 - When thinking crystallizes, offer to create a change. The proposing agent (product-owner for product changes, software-architect for technical/architecture changes such as refactors, cross-cutting concerns, platform upgrades, or pattern shifts) drafts the proposal in Phase 2
 
 ### Phase 2: Propose & Design (OpenSpec-driven)
-**Agents:** `product-owner` (proposal) + `software-architect` (specs, design, tasks)
+**Agents:** `product-owner` (proposal) + `software-architect` / SA (specs, design, tasks)
 **Primary skills:** `openspec-propose` *or* `openspec-new` + `openspec-continue` *or* `openspec-ff-change`
 
 - Run `openspec new change "<kebab-case-name>"` to scaffold the change under `openspec/changes/`
@@ -82,8 +82,18 @@ The SDLC combines two complementary toolchains:
 - Re-run `openspec status --change "<name>" --json` between artifacts to track `applyRequires` readiness
 - Stop when status reports all `applyRequires` artifacts `done` → ready for implementation
 
+#### Code-review graph gate (SA)
+
+The SA must inject the `code-review-graph` MCP workflow before finalizing the proposal, specs, or design:
+
+1. Start with `get_minimal_context(task="<change>")`.
+2. Inspect the affected architecture, communities, callers/callees, imports, and flows.
+3. Use those findings to validate integration points, risk, test coverage, and the task breakdown.
+
+If the graph server is unavailable, record the limitation and use repository inspection instead; never fabricate graph findings.
+
 ### Phase 3: Implement (Superpowers-driven)
-**Agent:** `coder`
+**Agent:** `coder` in OpenCode or `software-engineer` / SE in Codex
 **Primary skills:** `executing-plans` + `subagent-driven-development` + `test-driven-development` + `requesting-code-review` + `verification-before-completion`
 
 - Read the OpenSpec change artifacts from `openspec/changes/<name>/` (proposal, specs, design, **tasks.md**)
@@ -98,6 +108,16 @@ The SDLC combines two complementary toolchains:
   - `cargo clippy`
   - `pnpm build` (in `apps/web/`)
 - Mark each task complete in `tasks.md` (`- [ ]` → `- [x]`) immediately after it passes verification
+
+#### Code-review graph gate (SE)
+
+The SE must inject the `code-review-graph` MCP workflow before implementation and after each task group:
+
+1. Before editing, call `get_minimal_context(task="<change>")` and inspect affected callers, callees, imports, communities, and flows.
+2. After each task group, run `detect_changes`, `get_affected_flows`, `tests_for` for high-risk functions, and `get_impact_radius`.
+3. Resolve material findings or document why a finding is not applicable before continuing.
+
+If the graph server is unavailable, record the limitation and substitute `git diff` plus the repository verification gate.
 
 > **Note:** The OpenSpec `openspec-apply-change` skill is available as a fallback if you want OpenSpec to drive task execution. By default, the project prefers Superpowers `executing-plans` for the actual coding loop.
 
@@ -116,9 +136,16 @@ The SDLC combines two complementary toolchains:
 
 | Agent                | Phase      | Mode(s)      | Primary skills                                                              | Outputs (under `openspec/changes/<name>/`)                                            |
 |----------------------|------------|--------------|-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
-| `product-owner`      | 1, 2, 4    | Always OpenSpec | `openspec-explore`, `openspec-propose`, `openspec-new-change`, `brainstorming` (optional) | Explored result + **`proposal.md`** (Why, What Changes, Capabilities, Impact) — final sign-off |
+| `product-owner`      | 1, 2, 4    | OpenCode agent or Codex project agent (`.codex/agents/product-owner.toml`) | `openspec-explore`, `openspec-propose`, `openspec-new-change`, `brainstorming` (optional) | Explored result + **`proposal.md`** (Why, What Changes, Capabilities, Impact) — final sign-off |
 | `software-architect` | 1, 2        | Always OpenSpec | `openspec-new-change`, `openspec-continue-change`, `openspec-ff-change`      | **`specs/<capability>/spec.md`** (Requirement/Spec), **`design.md`** (Architecture Design), **`tasks.md`** (implementation checklist) |
 | `coder`              | 3, 4        | **Normal** + **Fast Fix/Fast Implement** (see below) | Normal → `executing-plans`, `subagent-driven-development`, `test-driven-development`, `requesting-code-review`, `verification-before-completion`, `finishing-a-development-branch` · Fast Fix → `verification-before-completion`, `systematic-debugging`, `test-driven-development` (only if behavioral) | Implementation, tests, verification, branch wrap-up; Normal mode also drives `openspec-verify-change` → `openspec-sync-specs` → `openspec-archive-change` |
+| `software-engineer` | 3, 4        | Codex project agent (`.codex/agents/software-engineer.toml`) | `executing-plans`, `subagent-driven-development`, `test-driven-development`, code-review-graph, `verification-before-completion` | Implementation, tests, graph impact review, verification, branch wrap-up |
+
+### Codex Agent Team Definition
+
+Codex loads the project-scoped team from `.codex/agents/` when the repository is trusted. Use `product-owner` (PO) for exploration and proposals, `software-architect` (SA) for proposal/spec/design/task review, and `software-engineer` (SE) for implementation. SA and SE are configured with the `code-review-graph` MCP server in `.codex/config.toml` and their agent files. The graph gates above are mandatory for SA and SE.
+
+Codex loads the repository OpenSpec workflow from `.agents/skills/openspec/SKILL.md`. It is the Codex-native equivalent of the `.opencode/skills/openspec-*` skills and maps multi-step tracking to `update_plan` while preserving the same OpenSpec CLI lifecycle.
 
 ### Coder modes
 
