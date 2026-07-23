@@ -22,17 +22,14 @@ The SDLC combines two complementary toolchains:
 ┌──────────────────────┐     ┌──────────────────────┐     ┌──────────────────────┐
 │ 1. EXPLORE           │ ──▶ │ 2. PROPOSE & DESIGN  │ ──▶ │ 3. IMPLEMENT         │
 │                      │     │                      │     │                      │
-│ Agent: product-owner │     │ Agents:              │     │ Agent: coder         │
-│ Skill:               │     │  product-owner       │     │ Skills (Superpowers):│
-│  openspec-explore    │     │   (proposal)         │     │  executing-plans     │
-│  (+ brainstorming    │     │  software-architect  │     │  subagent-driven-    │
-│     for free-form)   │     │   (specs, design,    │     │   development        │
-│                      │     │    tasks)            │     │  test-driven-        │
-│                      │     │ Skill:               │     │   development        │
-│                      │     │  openspec-propose    │     │  requesting-code-    │
-│                      │     │  openspec-new        │     │   review             │
-│                      │     │  openspec-continue   │     │  verification-       │
-│                      │     │  openspec-ff-change  │     │   before-completion  │
+│ Agents:              │     │ Agents (serial):     │     │ Agent:               │
+│  product-owner       │     │  product-owner       │     │  software-engineer   │
+│  product-designer    │     │   (proposal)         │     │                      │
+│  software-architect  │     │  product-designer    │     │ TDD + graph review + │
+│                      │     │   (UX brief)         │     │ focused review + full│
+│ Skill:               │     │  software-architect  │     │ verification         │
+│  openspec-explore    │     │   (specs/design/     │     │                      │
+│                      │     │    tasks)            │     │                      │
 └──────────────────────┘     └──────────────────────┘     └──────────────────────┘
                                                                      │
                                                                      ▼
@@ -51,30 +48,44 @@ The SDLC combines two complementary toolchains:
                                                             └──────────────────────┘
 ```
 
+## Team Orchestration Contract
+
+The primary agent remains the coordinator and owns the final synthesis. For every delegated task, provide **Goal**, **Context**, **Constraints**, and **Done when** so the subagent can work without inventing scope.
+
+- Use the named agents for their narrow roles; do not send implementation work to PO/PD/SA or product decisions to SE.
+- Parallelize independent read-heavy work such as discovery, code-path mapping, test-gap review, and risk analysis. Serialize write-heavy work.
+- Enforce one writer per artifact or source file at a time. In Phase 2 the default sequence is PO proposal → PD UX/design brief → SA specs/design/tasks.
+- Give each delegated agent a bounded question and expected output. Wait for all requested results, then return a distilled synthesis rather than raw logs.
+- Preserve traceability across handoffs: product outcome → UX behavior → requirement/scenario → architecture decision → task → test/verification.
+- Every handoff reports: goal, evidence inspected, decisions, artifacts changed, verification, assumptions/risks, open questions, and next owner.
+- If an agent discovers a decision outside its authority, it returns the issue to the owning role instead of silently expanding scope.
+
 ## Phase Details
 
 ### Phase 1: Explore Requirements
-**Agents:** `product-owner` (requirements & user intent) + `software-architect` (technical & architecture feasibility)
-**Primary skill:** `openspec-explore` (+ optional `brainstorming` for free-form idea capture)
+**Agents:** `product-owner` (requirements & user intent) + `product-designer` (UX & visual direction) + `software-architect` (technical & architecture feasibility)
+**Primary skills:** `openspec-explore` + `map-my-cms-api-architecture` for API work (+ optional `brainstorming` for free-form idea capture)
 
 - Enter explore mode and investigate the problem space
 - Read the codebase, map integration points, surface hidden complexity
 - Check `openspec list --json` for any active change that may be relevant
 - Optionally use `brainstorming` (Superpowers) for unstructured idea generation
 - **`product-owner`** focuses on *what* the user needs — requirements, user stories, scope, success criteria, impact
+- **`product-designer`** focuses on *how the product should feel and work* — responsive information architecture, interaction flows, accessibility, visual language, and reusable frontend patterns
 - **`software-architect`** focuses on *how feasible it is* — current architecture, affected layers (API/Application Core/DB), library & framework fit, perf/security/data-model implications, alternative approaches
 - **No code is written in this phase.** Specs may be drafted in conversation but not saved
 - When thinking crystallizes, offer to create a change. The proposing agent (product-owner for product changes, software-architect for technical/architecture changes such as refactors, cross-cutting concerns, platform upgrades, or pattern shifts) drafts the proposal in Phase 2
 
 ### Phase 2: Propose & Design (OpenSpec-driven)
-**Agents:** `product-owner` (proposal) + `software-architect` / SA (specs, design, tasks)
-**Primary skills:** `openspec-propose` *or* `openspec-new` + `openspec-continue` *or* `openspec-ff-change`
+**Agents:** `product-owner` (proposal) + `product-designer` (UX/visual design) + `software-architect` / SA (specs, design, tasks)
+**Primary skills:** `openspec-propose` *or* `openspec-new` + `openspec-continue` *or* `openspec-ff-change`; SA uses `map-my-cms-api-architecture` → `design-my-cms-api-change` for API changes
 
+- Default to a serial handoff: the PO finalizes product scope, the PD returns an implementation-ready UX/design brief, and the SA integrates it with technical decisions. Do not let multiple agents edit `design.md` concurrently.
 - Run `openspec new change "<kebab-case-name>"` to scaffold the change under `openspec/changes/`
 - A change contains four artifacts, created in dependency order:
   1. **`proposal.md`** — *product-owner* drafts Why, What Changes, Capabilities, Impact
   2. **`specs/<capability>/spec.md`** — *software-architect* writes testable `### Requirement` + `#### Scenario` blocks (WHEN/THEN/AND)
-  3. **`design.md`** — *software-architect* captures Context, Goals/Non-Goals, Decisions, architecture
+  3. **`design.md`** — *software-architect* integrates the *product-designer* brief with technical architecture, constraints, and decisions
   4. **`tasks.md`** — *software-architect* breaks work into numbered `- [ ]` checkboxes
 - Use `openspec instructions <artifact> --change "<name>" --json` to get templates & rules for each artifact
 - For small changes, `openspec-propose` or `openspec-ff-change` generates all four artifacts in one go
@@ -122,7 +133,7 @@ If the graph server is unavailable, record the limitation and substitute `git di
 > **Note:** The OpenSpec `openspec-apply-change` skill is available as a fallback if you want OpenSpec to drive task execution. By default, the project prefers Superpowers `executing-plans` for the actual coding loop.
 
 ### Phase 4: Verify & Archive
-**Agent:** `coder` (verify + sync) → `product-owner` (final archive approval)
+**Agent:** `coder` in OpenCode or `software-engineer` in Codex (verify + sync) → `product-owner` (final archive approval)
 **Primary skills (OpenSpec):** `openspec-verify-change` → `openspec-sync-specs` → `openspec-archive-change`
 **Plus (Superpowers):** `finishing-a-development-branch`
 
@@ -134,18 +145,21 @@ If the graph server is unavailable, record the limitation and substitute `git di
 
 ## Agent Quick Reference
 
-| Agent                | Phase      | Mode(s)      | Primary skills                                                              | Outputs (under `openspec/changes/<name>/`)                                            |
+| Agent                | Phase      | Mode(s)      | Primary skills                                                              | Primary outputs                                                                        |
 |----------------------|------------|--------------|-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
 | `product-owner`      | 1, 2, 4    | OpenCode agent or Codex project agent (`.codex/agents/product-owner.toml`) | `openspec-explore`, `openspec-propose`, `openspec-new-change`, `brainstorming` (optional) | Explored result + **`proposal.md`** (Why, What Changes, Capabilities, Impact) — final sign-off |
-| `software-architect` | 1, 2        | Always OpenSpec | `openspec-new-change`, `openspec-continue-change`, `openspec-ff-change`      | **`specs/<capability>/spec.md`** (Requirement/Spec), **`design.md`** (Architecture Design), **`tasks.md`** (implementation checklist) |
+| `product-designer`   | 1, 2       | Codex project agent (`.codex/agents/product-designer.toml`) | Responsive UX, information architecture, design language, accessibility, UI component guidance | Screen specifications, responsive behavior, interaction states, design tokens, and implementation-ready design guidance |
+| `software-architect` | 1, 2        | Always OpenSpec | `map-my-cms-api-architecture`, `design-my-cms-api-change`, `openspec-new-change`, `openspec-continue-change`, `openspec-ff-change` | Source-backed architecture map, **`specs/<capability>/spec.md`**, **`design.md`**, and **`tasks.md`** |
 | `coder`              | 3, 4        | **Normal** + **Fast Fix/Fast Implement** (see below) | Normal → `executing-plans`, `subagent-driven-development`, `test-driven-development`, `requesting-code-review`, `verification-before-completion`, `finishing-a-development-branch` · Fast Fix → `verification-before-completion`, `systematic-debugging`, `test-driven-development` (only if behavioral) | Implementation, tests, verification, branch wrap-up; Normal mode also drives `openspec-verify-change` → `openspec-sync-specs` → `openspec-archive-change` |
 | `software-engineer` | 3, 4        | Codex project agent (`.codex/agents/software-engineer.toml`) | `executing-plans`, `subagent-driven-development`, `test-driven-development`, code-review-graph, `verification-before-completion` | Implementation, tests, graph impact review, verification, branch wrap-up |
 
 ### Codex Agent Team Definition
 
-Codex loads the project-scoped team from `.codex/agents/` when the repository is trusted. Use `product-owner` (PO) for exploration and proposals, `software-architect` (SA) for proposal/spec/design/task review, and `software-engineer` (SE) for implementation. SA and SE are configured with the `code-review-graph` MCP server in `.codex/config.toml` and their agent files. The graph gates above are mandatory for SA and SE.
+Codex loads the project-scoped team from `.codex/agents/` when the repository is trusted. Use `product-owner` (PO) for exploration and proposals, `product-designer` (PD) for responsive UX and design language, `software-architect` (SA) for proposal/spec/design/task review, and `software-engineer` (SE) for implementation. SA and SE are configured with the `code-review-graph` MCP server in `.codex/config.toml` and their agent files. The graph gates above are mandatory for SA and SE.
 
 Codex loads the repository OpenSpec workflow from `.agents/skills/openspec/SKILL.md`. It is the Codex-native equivalent of the `.opencode/skills/openspec-*` skills and maps multi-step tracking to `update_plan` while preserving the same OpenSpec CLI lifecycle.
+
+For API architecture work, the SA loads `.agents/skills/map-my-cms-api-architecture/SKILL.md` to reconstruct current behavior from `apps/api`, then `.agents/skills/design-my-cms-api-change/SKILL.md` to turn that evidence into contracts, decisions, migrations, tasks, and verification. The source-derived references are navigation baselines and must be revalidated against current code.
 
 ### Coder modes
 
@@ -157,9 +171,13 @@ Codex loads the repository OpenSpec workflow from `.agents/skills/openspec/SKILL
 ```
 "Let's explore <feature>"          → product-owner uses openspec-explore
 "Propose <feature>"                → product-owner uses openspec-propose
+"Design UX for <change>"           → product-designer audits UI and produces a responsive design brief
+"Extract our design language"      → product-designer derives tokens, patterns, states, and usage rules
+"Map API architecture for X"       → software-architect uses map-my-cms-api-architecture
+"Design API change X"              → software-architect maps current source, then uses design-my-cms-api-change
 "Write specs/design/tasks for X"   → software-architect uses openspec-continue
-"Implement <change-name>"          → coder uses executing-plans (reads tasks.md)
-"Verify and archive <change>"      → coder uses openspec-verify-change → sync → archive
+"Implement <change-name>"          → software-engineer in Codex or coder in OpenCode executes tasks.md
+"Verify and archive <change>"      → software-engineer/coder runs verify → sync → archive
 ```
 
 **Quick CLI reference:**

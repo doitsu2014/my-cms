@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design My-CMS API Change"
+  short_description: "Design source-aligned API architecture changes"
+  default_prompt: "Use $design-my-cms-api-change to design this API change against the current My-CMS architecture."
