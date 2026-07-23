@@ -1,0 +1,4 @@
+interface:
+  display_name: "Map My-CMS API Architecture"
+  short_description: "Trace the current My-CMS API architecture"
+  default_prompt: "Use $map-my-cms-api-architecture to map this API capability and its affected layers from the current source."
