@@ -6,6 +6,13 @@
   "skills": {
     "paths": [".opencode/skills"]
   },
+  "mcp": {
+    "code-review-graph": {
+      "type": "local",
+      "command": ["uvx", "code-review-graph", "serve"],
+      "enabled": true
+    }
+  },
   "permission": {
     "*": "allow"
   }
