@@ -54,6 +54,15 @@ http:
       middlewares:
         - cors-everything
 
+    website:
+      rule: "Host(`ducth.dev`)"
+      entryPoints:
+        - web
+      service: website-service
+      middlewares:
+        - website-compress
+        - security-headers
+
   services:
     admin-service:
       loadBalancer:
@@ -75,8 +84,16 @@ http:
         servers:
           - url: "http://supabase-kong:8000"
 
+    website-service:
+      loadBalancer:
+        servers:
+          - url: "http://ducth-dev-website:3001"
+
   middlewares:
     admin-compress:
+      compress: {}
+
+    website-compress:
       compress: {}
 
     security-headers:
@@ -85,10 +102,11 @@ http:
         contentTypeNosniff: true
         browserXssFilter: true
 
-    api-cors:
-      headers:
-        accessControlAllowOriginList:
-          - "{{ env "CMS_ADMIN_ORIGIN" | default "https://cms-admin.ducth.dev" }}"
+     api-cors:
+       headers:
+         accessControlAllowOriginList:
+           - "{{ env "CMS_ADMIN_ORIGIN" | default "https://cms-admin.ducth.dev" }}"
+           - "https://ducth.dev"
         accessControlAllowMethods:
           - GET
           - POST
@@ -124,7 +142,8 @@ http:
       headers:
         accessControlAllowOriginList:
           - "{{ env "CMS_ADMIN_ORIGIN" | default "https://cms-admin.ducth.dev" }}"
-          - "{{ env "CMS_SUPABASE_ORIGIN" | default "https://supabase-api.ducth.dev" }}"
+           - "{{ env "CMS_SUPABASE_ORIGIN" | default "https://supabase-api.ducth.dev" }}"
+           - "https://ducth.dev"
         accessControlAllowMethods:
           - GET
           - POST

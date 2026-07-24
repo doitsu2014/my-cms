@@ -62,7 +62,7 @@ describe('buildGraphQLClient', () => {
       });
 
     const client = buildGraphQLClient();
-    await client.query({ query: SAMPLE_DOC });
+    await client.query({ query: SAMPLE_DOC, fetchPolicy: 'network-only' });
 
     expect(observed).toEqual(['https://example.test/graphql']);
 
