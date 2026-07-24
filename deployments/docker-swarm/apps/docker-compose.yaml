@@ -163,9 +163,33 @@ services:
       - "traefik.http.routers.admin.rule=Host(`${CMS_HOST:-localhost}`)"
       - "traefik.http.routers.admin.entrypoints=web"
       - "traefik.http.services.admin.loadbalancer.server.port=80"
-      # Middleware: gzip compression
       - "traefik.http.middlewares.admin-compress.compress=true"
       - "traefik.http.routers.admin.middlewares=admin-compress"
+  ducth-dev-website:
+    container_name: ducth-dev-website
+    build:
+      context: ../../../apps/ducth-dev-website
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      my-cms-api:
+        condition: service_started
+    networks:
+      - supabase_network
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      WEBSITE_SITE_NAME: ${WEBSITE_SITE_NAME}
+      WEBSITE_SITE_URL: ${WEBSITE_SITE_URL}
+      WEBSITE_AVATAR_URL: ${WEBSITE_AVATAR_URL}
+      WEBSITE_DEFAULT_TITLE: ${WEBSITE_DEFAULT_TITLE}
+      WEBSITE_DEFAULT_DESCRIPTION: ${WEBSITE_DEFAULT_DESCRIPTION}
+      WEBSITE_PUBLIC_GRAPHQL_API_URL: ${WEBSITE_PUBLIC_GRAPHQL_API_URL}
+      WEBSITE_PUBLIC_GRAPHQL_CACHE_API_URL: ${WEBSITE_PUBLIC_GRAPHQL_CACHE_API_URL}
+      WEBSITE_PUBLIC_MEDIA_BASE_URL: ${WEBSITE_PUBLIC_MEDIA_BASE_URL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.website.middlewares=website-compress"
 
 # ========================================
 # Networks

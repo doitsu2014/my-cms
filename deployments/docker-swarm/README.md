@@ -54,9 +54,11 @@ cd deployments/docker-swarm
 ./supabase/reset.sh                  # full reset: wipes volumes, starts Supabase + Traefik, seeds admin
 ./supabase/reset.sh --restart        # restart only (keep volumes, no re-seed)
 
-./apps/reset.sh                      # full reset: stops, wipes apps volumes, starts API + frontend + Jaeger
+./apps/reset.sh                      # full reset: stops, wipes apps volumes, starts API + frontend + Jaeger + ducth-dev-website
 ./apps/reset.sh --restart            # restart only
 ./apps/reset.sh --rebuild my-cms-api # rebuild one image and recreate its container
+
+The `ducth-dev-website` container joins the same stack once `my-cms-api` is healthy.
 
 ./traefik/reset.sh                   # ensure proxy is up (idempotent)
 ./traefik/reset.sh --restart         # restart proxy
@@ -69,6 +71,7 @@ cd deployments/docker-swarm
 | http://localhost                 | All four routes on port 80 (Host header matches) |
 | http://localhost:8989            | my-cms API (direct)                           |
 | http://localhost:3002            | Admin frontend (direct)                       |
+| https://ducth.dev                 | Public reader (via Traefik Host rule)         |
 | http://localhost:16686           | Jaeger UI (direct)                            |
 | http://localhost:8080            | Traefik dashboard                             |
 
