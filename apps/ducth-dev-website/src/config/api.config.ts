@@ -1,7 +1,7 @@
-import { readBrowserConfig } from './read-browser-config';
+import { getRuntimeConfig } from './get-runtime-config';
 
-export const getGraphqlApiUrl = (): string => readBrowserConfig().graphqlApiUrl;
-export const getMediaBaseUrl = (): string => readBrowserConfig().mediaBaseUrl;
+export const getGraphqlApiUrl = (): string => getRuntimeConfig().graphqlApiUrl;
+export const getMediaBaseUrl = (): string => getRuntimeConfig().mediaBaseUrl;
 export const API_CONFIG = {
   get graphqlApiUrl() {
     return getGraphqlApiUrl();

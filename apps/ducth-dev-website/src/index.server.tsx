@@ -5,13 +5,13 @@ import { getDataFromTree } from '@apollo/client/react/ssr';
 import { buildGraphQLClient } from './infrastructure/graphql/graphql-client';
 import AppContent from './AppContent';
 import { resolveRuntimeConfig } from './config/validate-env';
-import type { RuntimeConfig } from './config/runtime-config';
+import { setRuntimeConfigForServer } from './config/get-runtime-config';
 import './App.css';
 import './i18n/i18n';
 
 export default async function render(url: string): Promise<{ html: string; apolloState: object }> {
   const config = resolveRuntimeConfig(process.env);
-  (globalThis as typeof globalThis & { __WEBSITE_RUNTIME_CONFIG__?: RuntimeConfig }).__WEBSITE_RUNTIME_CONFIG__ = config;
+  setRuntimeConfigForServer(config);
   const client = buildGraphQLClient();
   const app = (
     <ApolloProvider client={client}>

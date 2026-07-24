@@ -6,7 +6,7 @@ import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.css';
 import { GET_BLOG_POST_BY_SLUG, GET_BLOG_POSTS } from '../infrastructure/graphql/queries';
 import { getMediaUrl } from '../config/get-media-url';
-import { readBrowserConfig } from '../config/read-browser-config';
+import { getMediaBaseUrl } from '../config/api.config';
 
 interface BlogPost {
   id: string;
@@ -61,7 +61,7 @@ const PostDetailPage = () => {
       if (path.startsWith('http://') || path.startsWith('https://')) {
         return path;
       }
-      return getMediaUrl(path, readBrowserConfig().mediaBaseUrl);
+      return getMediaUrl(path, getMediaBaseUrl());
     }
     return undefined;
   };

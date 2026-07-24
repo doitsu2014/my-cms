@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { GET_POSTS_BY_CATEGORY } from '../infrastructure/graphql/queries';
 import { getMediaUrl } from '../config/get-media-url';
-import { readBrowserConfig } from '../config/read-browser-config';
+import { getMediaBaseUrl } from '../config/api.config';
 
 interface BlogPost {
   id: string;
@@ -63,7 +63,7 @@ const CategoryDetailPage = () => {
       if (path.startsWith('http://') || path.startsWith('https://')) {
         return path;
       }
-      return getMediaUrl(path, readBrowserConfig().mediaBaseUrl);
+      return getMediaUrl(path, getMediaBaseUrl());
     }
     return undefined;
   };

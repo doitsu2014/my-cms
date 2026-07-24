@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { GET_BLOG_POSTS } from '../infrastructure/graphql/queries';
 import { SITE_CONFIG } from '../config/site.config';
 import { getMediaUrl } from '../config/get-media-url';
-import { readBrowserConfig } from '../config/read-browser-config';
+import { getMediaBaseUrl } from '../config/api.config';
 
 interface BlogPost {
   id: string;
@@ -45,7 +45,7 @@ const HomePage = () => {
       if (path.startsWith('http://') || path.startsWith('https://')) {
         return path;
       }
-      return getMediaUrl(path, readBrowserConfig().mediaBaseUrl);
+      return getMediaUrl(path, getMediaBaseUrl());
     }
     return undefined;
   };
