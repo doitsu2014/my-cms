@@ -1,14 +1,14 @@
-import { readBrowserConfig } from './read-browser-config';
+import { getRuntimeConfig } from './get-runtime-config';
 
 export const SITE_CONFIG = {
   get siteName() {
-    return readBrowserConfig().siteName;
+    return getRuntimeConfig().siteName;
   },
   get siteUrl() {
-    return readBrowserConfig().siteUrl;
+    return getRuntimeConfig().siteUrl;
   },
   get avatarUrl() {
-    return readBrowserConfig().avatarUrl;
+    return getRuntimeConfig().avatarUrl;
   },
   socialLinks: {
     github: 'https://github.com',
@@ -17,10 +17,10 @@ export const SITE_CONFIG = {
   },
   seo: {
     get defaultTitle() {
-      return readBrowserConfig().defaultTitle;
+      return getRuntimeConfig().defaultTitle;
     },
     get defaultDescription() {
-      return readBrowserConfig().defaultDescription;
+      return getRuntimeConfig().defaultDescription;
     },
   },
 };

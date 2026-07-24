@@ -4,32 +4,19 @@ import {
   createHttpLink,
   type NormalizedCacheObject,
 } from '@apollo/client';
-import { readBrowserConfig } from '../../config/read-browser-config';
-import type { RuntimeConfig } from '../../config/runtime-config';
+import { getRuntimeConfig } from '../../config/get-runtime-config';
 
 // Check if running in browser
 const isBrowser = typeof window !== 'undefined';
 
 /**
- * Resolve the GraphQL API URL from the runtime configuration.
- *
- * Server-side: uses the global `__WEBSITE_RUNTIME_CONFIG__` injected by the
- * SSR handler. Browser-side: reads `window.__APP_CONFIG__` via
- * `readBrowserConfig()`.
+ * Resolve the GraphQL API URL from the runtime configuration via the
+ * SSR-safe `getRuntimeConfig()` accessor. In the browser this reads the
+ * `<script id="app-config">` JSON; on the server it reads the validated
+ * config injected by the SSR handler.
  */
 function resolveGraphqlApiUrl(): string {
-  if (isBrowser) {
-    return readBrowserConfig().graphqlApiUrl;
-  }
-  // Server-side: the SSR handler provides the config via a global variable
-  // (set up in index.server.tsx).
-  const globalAny = globalThis as unknown as {
-    __WEBSITE_RUNTIME_CONFIG__?: RuntimeConfig;
-  };
-  if (!globalAny.__WEBSITE_RUNTIME_CONFIG__) {
-    throw new Error('graphql-client (server): __WEBSITE_RUNTIME_CONFIG__ is not set');
-  }
-  return globalAny.__WEBSITE_RUNTIME_CONFIG__.graphqlApiUrl;
+  return getRuntimeConfig().graphqlApiUrl;
 }
 
 /**
