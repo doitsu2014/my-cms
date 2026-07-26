@@ -39,6 +39,20 @@ export interface AboutPractice {
   body: string;
 }
 
+export interface AboutTimelineEntry {
+  date: string;
+  title: string;
+  eyebrow: string;
+  body: string;
+}
+
+export interface AboutTimeline {
+  eyebrow: string;
+  title: string;
+  lead: string;
+  entries: AboutTimelineEntry[];
+}
+
 export interface AboutContent {
   verified: boolean;
   hero: {
@@ -51,8 +65,16 @@ export interface AboutContent {
   pillars: AboutPillar[];
   pillarsSection: AboutSectionHeader;
   statement: { quote: string; cite: string };
+  timeline: AboutTimeline;
   practices: AboutPractice[];
-  contact: { eyebrow: string; title: string; body: string; email?: string; links: AboutLink[] };
+  contact: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    email?: string;
+    links: AboutLink[];
+    recentPost?: { label: string; date: string; url: string };
+  };
 }
 
 const enContent = (): AboutContent => ({
@@ -107,6 +129,32 @@ const enContent = (): AboutContent => ({
     title: 'Three pillars of eleven years.',
     lead: 'TODO: one or two sentences that frame the pillars. Not every lesson came from a meeting room — most came from the systems I have run, the incidents I have handled, and the people I have worked with.',
   },
+  timeline: {
+    eyebrow: 'Career timeline',
+    title: 'Eleven years, three chapters.',
+    lead:
+      'Each chapter is a lesson — from the first line of code to financial systems in production.',
+    entries: [
+      {
+        date: '2014',
+        title: 'First line of production code',
+        eyebrow: 'First line of production code',
+        body: 'TODO: write the opening entry — what you shipped, what you learned, why you stayed.',
+      },
+      {
+        date: 'Now',
+        title: 'Software Engineer at Dragon Capital',
+        eyebrow: 'Saigon · Financial systems · C#, Angular, React',
+        body: 'TODO: write the present chapter — employer, scope, and the systems you own.',
+      },
+      {
+        date: 'Recent',
+        title: 'AI-assisted development workflow',
+        eyebrow: '3–4 AI agents · Tooling around the engineering',
+        body: 'TODO: write the recent chapter — the workflow, the tools, and what changed.',
+      },
+    ],
+  },
   statement: {
     quote:
       'TODO: replace with a short, personal statement that captures how you think about engineering. Keep it under 280 characters.',
@@ -121,13 +169,18 @@ const enContent = (): AboutContent => ({
   contact: {
     eyebrow: 'Get in touch',
     title: 'If you are hiring a backend engineer.',
-    body: 'TODO: describe your hiring posture and response-time expectation. Keep it under 280 characters.',
+    body: 'TODO: write the contact body — your current hiring posture, response-time expectation, and what you are open to discussing. Keep it under 280 characters.',
     email: 'TODO: replace with your real email or remove the field',
     links: [
       { label: 'GitHub', url: 'https://github.com/ductran', handle: '@ductran' },
       { label: 'LinkedIn', url: 'https://www.linkedin.com/in/duc-tran-huu-167b1612a/', handle: 'duc-tran-huu' },
       { label: 'RSS / Atom', url: '/feed.xml', handle: '/feed.xml' },
     ],
+    recentPost: {
+      label: 'Recent post',
+      date: 'TODO: 14 / 03 / 2025',
+      url: '/en/posts',
+    },
   },
 });
 
@@ -183,6 +236,32 @@ const viContent = (): AboutContent => ({
     title: 'Ba trụ cột của mười một năm qua.',
     lead: 'Không phải tất cả đều đến từ phòng họp — phần lớn đến từ những hệ thống tôi đã chạy, những sự cố tôi đã xử lý, và những người tôi đã làm việc cùng.',
   },
+  timeline: {
+    eyebrow: 'Hành trình nghề · Career timeline',
+    title: 'Mười một năm, ba chương.',
+    lead:
+      'Mỗi chương là một bài học — từ dòng code đầu tiên đến hệ thống tài chính production. Each chapter is a lesson — from the first line of code to financial systems in production.',
+    entries: [
+      {
+        date: '2014',
+        title: 'Bắt đầu viết production code',
+        eyebrow: 'First line of production code',
+        body: 'TODO: viết entry mở đầu — bạn đã ship gì, học được gì, vì sao bạn ở lại.',
+      },
+      {
+        date: 'Now',
+        title: 'Software Engineer tại Dragon Capital',
+        eyebrow: 'Sài Gòn · Financial systems · C#, Angular, React',
+        body: 'TODO: viết entry hiện tại — nơi làm việc, phạm vi, và hệ thống bạn sở hữu.',
+      },
+      {
+        date: 'Recent',
+        title: 'AI-assisted development workflow',
+        eyebrow: '3–4 AI agents · Tooling around the engineering',
+        body: 'TODO: viết entry gần đây — workflow, công cụ, và điều gì đã thay đổi.',
+      },
+    ],
+  },
   statement: {
     quote:
       'TODO: thay bằng một câu ngắn, mang tính cá nhân, nắm bắt cách bạn nghĩ về engineering. Dưới 280 ký tự.',
@@ -195,15 +274,20 @@ const viContent = (): AboutContent => ({
     { title: '04 · Buông bỏ có chọn lọc', body: 'TODO: một hoặc hai câu cho thói quen này.' },
   ],
   contact: {
-    eyebrow: 'Giữ liên lạc',
+    eyebrow: 'Giữ liên lạc · Get in touch',
     title: 'Nếu bạn đang tìm một kỹ sư backend.',
-    body: 'TODO: mô tả quan điểm tuyển dụng và thời gian phản hồi. Dưới 280 ký tự.',
+    body: 'TODO: viết đoạn contact — quan điểm tuyển dụng, thời gian phản hồi, và những chủ đề bạn sẵn sàng nói chuyện. Dưới 280 ký tự.',
     email: 'TODO: thay bằng email thật hoặc xoá dòng này',
     links: [
       { label: 'GitHub', url: 'https://github.com/ductran', handle: '@ductran' },
       { label: 'LinkedIn', url: 'https://www.linkedin.com/in/duc-tran-huu-167b1612a/', handle: 'duc-tran-huu' },
       { label: 'RSS / Atom', url: '/feed.xml', handle: '/feed.xml' },
     ],
+    recentPost: {
+      label: 'Bài viết gần nhất',
+      date: 'TODO: 14 / 03 / 2025',
+      url: '/vi/posts',
+    },
   },
 });
 

@@ -43,6 +43,27 @@ const AboutPage = () => {
           </dl>
         </Container>
       </Section>
+      <Section className="about-timeline">
+        <Container>
+          <header className="about-timeline__header">
+            <Eyebrow>{content.timeline.eyebrow}</Eyebrow>
+            <h2 className="display-h1">{content.timeline.title}</h2>
+            <p className="about-timeline__lead">{content.timeline.lead}</p>
+          </header>
+          <ol className="about-timeline__list">
+            {content.timeline.entries.map((entry) => (
+              <li key={entry.date} className="about-timeline__entry">
+                <p className="about-timeline__date">{entry.date}</p>
+                <div className="about-timeline__content">
+                  <h3 className="about-timeline__title">{entry.title}</h3>
+                  <p className="about-timeline__eyebrow">{entry.eyebrow}</p>
+                  <p className="about-timeline__body">{entry.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </Container>
+      </Section>
       <Section tone="fresh-paper" className="about-pillars">
         <Container>
           <header className="about-pillars__header">
@@ -81,13 +102,42 @@ const AboutPage = () => {
       </Section>
       <Section className="about-contact">
         <Container>
-          <Eyebrow>{content.contact.eyebrow}</Eyebrow>
-          <h2 className="display-h2">{content.contact.title}</h2>
-          <p className="lead">{content.contact.body}</p>
-          <ul>
-            {content.contact.email && <li><a href={`mailto:${content.contact.email}`}>{content.contact.email}</a></li>}
-            {content.contact.links.filter((link) => link.url).map((link) => <li key={link.url}><a href={link.url} target="_blank" rel="noopener noreferrer">{link.label}</a></li>)}
-          </ul>
+          <div className="about-contact__grid">
+            <div className="about-contact__intro">
+              <Eyebrow>{content.contact.eyebrow}</Eyebrow>
+              <h2 className="display-h1">{content.contact.title}</h2>
+              <p className="about-contact__body">{content.contact.body}</p>
+            </div>
+            <ul className="about-contact__list">
+              {content.contact.email && (
+                <li className="about-contact__row">
+                  <a href={`mailto:${content.contact.email}`} className="about-contact__link">
+                    <span className="about-contact__label">Email</span>
+                    <span className="about-contact__handle">{content.contact.email}</span>
+                    <span className="about-contact__arrow" aria-hidden="true">→</span>
+                  </a>
+                </li>
+              )}
+              {content.contact.links.filter((link) => link.url).map((link) => (
+                <li key={link.url} className="about-contact__row">
+                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="about-contact__link">
+                    <span className="about-contact__label">{link.label}</span>
+                    <span className="about-contact__handle">{link.handle}</span>
+                    <span className="about-contact__arrow" aria-hidden="true">→</span>
+                  </a>
+                </li>
+              ))}
+              {content.contact.recentPost && (
+                <li className="about-contact__row">
+                  <a href={content.contact.recentPost.url} className="about-contact__link">
+                    <span className="about-contact__label">{content.contact.recentPost.label}</span>
+                    <span className="about-contact__handle">{content.contact.recentPost.date}</span>
+                    <span className="about-contact__arrow" aria-hidden="true">→</span>
+                  </a>
+                </li>
+              )}
+            </ul>
+          </div>
         </Container>
       </Section>
     </div>

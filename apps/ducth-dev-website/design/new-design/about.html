@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Về tôi — Đức Trần · About</title>
-<meta name="description" content="Đức Trần — Senior Software Engineer tại Hà Nội, 11 năm kinh nghiệm. Sơ yếu lý lịch nghề: backend, distributed systems, production reliability, technical leadership, và cách tôi viết." />
+<meta name="description" content="Đức Trần — Software Engineer tại Dragon Capital (Sài Gòn), 11 năm kinh nghiệm với hệ thống tài chính và quản lý quỹ. C#, Angular, React, distributed systems, AI development workflow. Sơ yếu lý lịch nghề và cách tôi viết." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
@@ -416,31 +416,128 @@
     font-weight: 500;
   }
 
-  /* ───── Identity / Career panel (moved from home) ───── */
-  .identity {
+  /* ───── Career timeline (replaces the old .identity career panel) ───── */
+  .timeline-section {
     background: var(--surface);
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
-    padding-block: clamp(48px, 7vw, 80px);
+    padding-block: clamp(64px, 9vw, 112px);
   }
-  .identity__grid {
+  .timeline {
+    list-style: none;
+    margin: var(--space-7) 0 0;
+    padding: 0;
     display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: clamp(40px, 6vw, 96px);
-    align-items: start;
+    grid-template-columns: 110px 32px 1fr;
+    gap: 0;
   }
-  @media (max-width: 800px) {
-    .identity__grid { grid-template-columns: 1fr; }
+  .timeline__entry {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 110px 32px 1fr;
+    padding-bottom: var(--space-7);
   }
-  .identity__seal {
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 4px;
-    overflow: hidden;
-    box-shadow: 0 1px 0 oklch(20% 0.04 260 / 0.06), 0 12px 30px -16px oklch(20% 0.04 260 / 0.4);
-    margin: 0;
+  .timeline__entry:last-child { padding-bottom: 0; }
+  .timeline__year {
+    grid-column: 1;
+    text-align: right;
+    font-family: var(--font-display);
+    font-size: clamp(24px, 2.6vw, 30px);
+    font-weight: 600;
+    color: var(--ink-deep);
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    padding-right: var(--space-5);
   }
-  .identity__seal img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
+  .timeline__line {
+    grid-column: 2;
+    position: relative;
+  }
+  .timeline__line::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0.7em;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+    transform: translateX(-50%);
+  }
+  .timeline__entry:last-child .timeline__line::before {
+    bottom: -100%;
+  }
+  .timeline__line::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0.4em;
+    width: 11px;
+    height: 11px;
+    background: var(--accent);
+    border-radius: 50%;
+    border: 3px solid var(--surface);
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+  .timeline__body {
+    grid-column: 3;
+    padding-left: var(--space-3);
+  }
+  .timeline__role {
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--ink-deep);
+    line-height: 1.3;
+  }
+  .timeline__company {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .timeline__description {
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--fg);
+    margin-top: var(--space-3);
+    max-width: 56ch;
+  }
+  @media (max-width: 720px) {
+    .timeline,
+    .timeline__entry {
+      display: block;
+    }
+    .timeline__entry {
+      padding-bottom: var(--space-6);
+    }
+    .timeline__year {
+      text-align: left;
+      font-size: 22px;
+      padding: 0 0 var(--space-2) var(--space-6);
+    }
+    .timeline__line {
+      position: absolute;
+      left: var(--space-2);
+      top: 0.5em;
+      bottom: 0;
+      width: 1px;
+      transform: none;
+    }
+    .timeline__line::before {
+      display: none;
+    }
+    .timeline__line::after {
+      left: -5.5px;
+      top: 0.5em;
+      transform: none;
+    }
+    .timeline__body {
+      padding-left: var(--space-6);
+      padding-top: var(--space-1);
+    }
+  }
 </style>
 </head>
 <body>
@@ -475,8 +572,8 @@
             <span class="hero__title-vi">Mười một năm viết phần mềm.</span>
             <span class="hero__title-en">Eleven years writing software.</span>
           </h1>
-          <p class="lead">Tôi là Đức Trần — kỹ sư backend ở Hà Nội, làm việc với distributed systems, infrastructure, và những bài toán vận hành nhiều năm. Blog này là ghi chép nghề từ hành trình đó: những kiến trúc tôi đã chọn, những sai lầm tôi đã sửa, và những bài học tôi đã trả giá.</p>
-          <p class="lead" style="color: var(--muted); font-style: italic; max-width: 52ch;">I'm Duc Tran — a backend engineer in Hanoi, working with distributed systems, infrastructure, and the long-running operational problems. This notebook collects the architecture choices, the bugs I shipped, and the lessons I paid for.</p>
+          <p class="lead">Tôi là Đức Trần — kỹ sư phần mềm tại Dragon Capital (Sài Gòn), làm việc với hệ thống tài chính và quản lý quỹ. Mười một năm viết phần mềm production — chủ yếu với C# cho backend, Angular và React cho frontend. Gần đây tôi cũng thiết lập development workflow với 3-4 AI agents để tăng tốc độ giao hàng. Blog này là ghi chép nghề từ hành trình đó: những kiến trúc tôi đã chọn, những sai lầm tôi đã sửa, và những bài học tôi đã trả giá.</p>
+          <p class="lead" style="color: var(--muted); font-style: italic; max-width: 52ch;">I'm Duc Tran — a software engineer at Dragon Capital (Saigon), working on financial systems and fund management. Eleven years writing production software — mostly C# for backend, Angular and React for frontend. Recently I've also been setting up development workflows with 3-4 AI agents to ship faster. This notebook collects the architecture choices, the bugs I shipped, and the lessons I paid for.</p>
         </div>
         <figure class="hero__art reveal" data-delay="1" aria-label="Đức Trần — ảnh chân dung tại hồ">
           <img src="assets/avatar.jpg" alt="Đức Trần ngồi trên ghế, nhìn ra hồ" />
@@ -486,37 +583,60 @@
       <div class="hero__meta reveal" data-delay="2">
         <div class="hero__meta-item">
           <span class="label">Nghề · Practice</span>
-          <span class="value">Backend · Distributed systems</span>
+          <span class="value">C# · Angular · React</span>
         </div>
         <div class="hero__meta-item">
           <span class="label">Kinh nghiệm · Experience</span>
           <span class="value">11 năm · 2014 — nay</span>
         </div>
         <div class="hero__meta-item">
-          <span class="label">Vai trò hiện tại · Current</span>
-          <span class="value">Senior Software Engineer</span>
+          <span class="label">Nơi làm việc · Current</span>
+          <span class="value">Dragon Capital · Sài Gòn</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Career panel (moved from home) -->
-  <section class="identity" data-od-id="identity">
+  <!-- Career timeline -->
+  <section class="timeline-section" data-od-id="timeline">
     <div class="container">
-      <div class="identity__grid">
-        <figure class="identity__seal reveal" aria-label="Đức Trần">
-          <img src="assets/avatar.jpg" alt="Đức Trần" />
-        </figure>
-        <div class="vstack-5 reveal" data-delay="1">
-          <p class="eyebrow"><span class="dot"></span>Hành trình · Career path</p>
-          <blockquote class="pull-quote">
-            “The strongest systems are the ones that are still running five years after the engineers who built them have moved on.”
-            <cite>— ghi chú từ một dịch vụ tôi đã vận hành 6 năm</cite>
-          </blockquote>
-          <p class="lead">Tôi bắt đầu với một dòng PHP tại một công ty nhỏ năm 2014. Mười một năm sau, tôi đã chạm vào những hệ thống phục vụ hàng triệu người dùng, debug những sự cố lúc 3 giờ sáng, và chọn những kiến trúc mà tôi sẽ phải sống cùng trong nhiều năm.</p>
-          <p class="lead" style="color: var(--muted); font-style: italic;">I started with a line of PHP at a small company in 2014. Eleven years later, I've worked on systems that serve millions of users, debugged incidents at 3am, and chosen architectures I would have to live with for years.</p>
-        </div>
-      </div>
+      <header class="vstack-3 reveal" style="max-width: 920px; margin-bottom: var(--space-8);">
+        <p class="eyebrow"><span class="dot"></span>Hành trình nghề · Career timeline</p>
+        <h2 class="h1">Mười một năm, ba chương.</h2>
+        <p class="lead" style="color: var(--muted);">Mỗi chương là một bài học — từ dòng code đầu tiên đến hệ thống tài chính production. Each chapter is a lesson — from the first line of code to financial systems in production.</p>
+      </header>
+
+      <ol class="timeline">
+        <li class="timeline__entry reveal">
+          <div class="timeline__year">2014</div>
+          <div class="timeline__line" aria-hidden="true"></div>
+          <div class="timeline__body">
+            <h3 class="timeline__role">Bắt đầu viết production code</h3>
+            <p class="timeline__company">First line of production code</p>
+            <p class="timeline__description">Dòng code production đầu tiên. Chưa biết mình sẽ đi đâu — chỉ biết mình thích xây những thứ chạy thật. The first line of production code. No idea where this was going — just knew I liked building things that actually ran.</p>
+          </div>
+        </li>
+
+        <li class="timeline__entry reveal" data-delay="1">
+          <div class="timeline__year">Now</div>
+          <div class="timeline__line" aria-hidden="true"></div>
+          <div class="timeline__body">
+            <h3 class="timeline__role">Software Engineer tại Dragon Capital</h3>
+            <p class="timeline__company">Sài Gòn · Financial systems · C#, Angular, React</p>
+            <p class="timeline__description">Xây dựng hệ thống cho giao dịch, quản lý quỹ, và tính toán NAV — backend C#, frontend Angular/React. Một lỗi rounding tốn hàng triệu; một transaction chậm làm khách hàng mất tiền thật. Building systems for trading, fund management, and NAV calculation — C# backend, Angular/React frontend. A rounding error costs millions; a slow transaction costs a client real money.</p>
+          </div>
+        </li>
+
+        <li class="timeline__entry reveal" data-delay="2">
+          <div class="timeline__year">Recent</div>
+          <div class="timeline__line" aria-hidden="true"></div>
+          <div class="timeline__body">
+            <h3 class="timeline__role">AI-assisted development workflow</h3>
+            <p class="timeline__company">3-4 AI agents · tooling around the engineering</p>
+            <p class="timeline__description">Thiết lập development workflow với 3-4 AI agents — không phải để thay thế mình, mà để tăng tốc độ giao hàng. Công cụ tăng cường phán đoán kỹ thuật, không phải ngược lại. Set up a development workflow with 3-4 AI agents — not to replace myself, but to ship faster. The tooling augments engineering judgment, not the other way around.</p>
+          </div>
+        </li>
+      </ol>
     </div>
   </section>
 
@@ -530,8 +650,8 @@
           <span style="color: var(--muted); font-style: italic; font-weight: 400;">Kỹ sư backend, mười một năm trong nghề.</span>
           <span class="small-en">I am Duc Tran. Backend engineer, eleven years in.</span>
         </h1>
-        <p class="lead" style="max-width: 64ch;">Tôi bắt đầu với một dòng PHP tại một công ty nhỏ năm 2014. Mười một năm sau, tôi đã chạm vào những hệ thống phục vụ hàng triệu người dùng, debug những sự cố lúc 3 giờ sáng, và chọn những kiến trúc mà tôi sẽ phải sống cùng trong nhiều năm. Hiện tôi làm việc với TypeScript, Go, và Python trong các hệ thống phân tán production.</p>
-        <p class="lead" style="color: var(--muted); font-style: italic; max-width: 64ch;">I started with a line of PHP at a small company in 2014. Eleven years later, I've worked on systems that serve millions of users, debugged incidents at 3am, and chosen architectures I would have to live with for years. I currently work in TypeScript, Go, and Python on distributed systems in production.</p>
+        <p class="lead" style="max-width: 64ch;">Năm 2014 tôi viết dòng code production đầu tiên. Mười một năm sau, tôi đã chạm vào hệ thống tài chính tại Dragon Capital (Sài Gòn) — backend C# cho giao dịch, quản lý quỹ, và tính toán NAV — nơi sự chính xác là yếu tố sống còn. Frontend với Angular và React. Một lỗi rounding có thể tốn hàng triệu; một transaction chậm có thể làm khách hàng mất tiền thật. Tôi vẫn chọn những kiến trúc phải sống cùng nhiều năm. Gần đây tôi cũng thiết lập development workflow với 3-4 AI agents.</p>
+        <p class="lead" style="color: var(--muted); font-style: italic; max-width: 64ch;">In 2014 I wrote my first line of production code. Eleven years later, I work on financial systems at Dragon Capital (Saigon) — C# backend for trading, fund management, and NAV calculation where correctness is non-negotiable. Angular and React on the frontend. A single rounding error can cost millions; a slow transaction can cost a client real money. I still choose architectures I have to live with for years. Recently I've also been setting up development workflows with 3-4 AI agents.</p>
         <p class="lead" style="color: var(--muted); max-width: 64ch; margin-top: var(--space-4);">Trang này là sơ yếu lý lịch nghề — những gì tôi đã làm, những gì tôi đang làm, và những bài học tôi đã trả giá. Nếu bạn đến từ trang chủ, bạn đã đọc 38 bài viết của tôi trước khi đến đây; trang này là phần tôi muốn kể về mình, về con người đứng sau những bài viết đó.</p>
       </div>
     </div>
@@ -550,11 +670,11 @@
 
         <article class="pillar reveal">
           <div class="pillar__num">01 · Kỹ sư</div>
-          <h3 class="pillar__name">Backend <span class="ch">systems</span></h3>
-          <span class="pillar__name-en">Backend engineering · 2014 — nay</span>
+          <h3 class="pillar__name">Financial <span class="ch">systems</span></h3>
+          <span class="pillar__name-en">Backend · frontend · 2014 — nay · Dragon Capital</span>
           <div class="pillar__body">
-            <p>Mười một năm viết backend — PHP, JavaScript, rồi Node.js, Go, Python. Phần lớn là distributed systems, microservices, event-driven architecture, và những bài toán vận hành ở production.</p>
-            <p>Tôi làm việc với TypeScript, Go, Python, PostgreSQL, Redis, Kafka, Kubernetes — nhưng công cụ chỉ là công cụ; vấn đề là vấn đề.</p>
+            <p>Mười một năm viết phần mềm — C# cho backend, Angular và React cho frontend. Tại Dragon Capital tôi xây dựng hệ thống cho giao dịch, quản lý quỹ, và các hệ thống tài chính production — nơi sự chính xác không phải nice-to-have.</p>
+            <p>C#, .NET, TypeScript, Angular, React, PostgreSQL, Redis, Kafka — nhưng công cụ chỉ là công cụ; vấn đề là vấn đề.</p>
           </div>
         </article>
 
@@ -656,7 +776,7 @@
         <div class="vstack-5 reveal">
           <p class="eyebrow"><span class="dot"></span>Giữ liên lạc · Get in touch</p>
           <h2 class="h1">Nếu bạn đang tìm<br/>một kỹ sư backend.</h2>
-          <p class="lead" style="color: var(--muted);">Tôi đang mở cho vị trí Senior Software Engineer / Tech Lead — remote hoặc tại Hà Nội. Tôi đọc mọi email, trả lời trong vòng 24 giờ, và sẵn sàng nói chuyện về kiến trúc, đội ngũ, hoặc cơ hội hợp tác.</p>
+          <p class="lead" style="color: var(--muted);">Tôi đang mở cho cơ hội mới — remote hoặc tại Sài Gòn. Hiện tại tôi là Software Engineer tại Dragon Capital, làm việc với hệ thống tài chính và quản lý quỹ, chủ yếu với C#, Angular, và React. Gần đây tôi cũng thiết lập development workflow với 3-4 AI agents. Tôi đọc mọi email, trả lời trong vòng 24 giờ, và sẵn sàng nói chuyện về kiến trúc, hệ thống tài chính, hoặc AI development workflow.</p>
         </div>
 
         <ul class="connect__links reveal" data-delay="1">
@@ -710,7 +830,7 @@
           <img src="assets/avatar.jpg" alt="" class="wordmark-avatar" />
           <span>Đức Trần<span class="seal">.</span></span>
         </a>
-        <p class="small" style="color: var(--muted); max-width: 36ch; margin-top: var(--space-3);">Đức Trần — Senior Software Engineer. Ghi chép nghề từ 11 năm backend engineering. Viết từ Hà Nội.</p>
+        <p class="small" style="color: var(--muted); max-width: 36ch; margin-top: var(--space-3);">Đức Trần — Software Engineer tại Dragon Capital. Ghi chép nghề từ 11 năm với C#, Angular, React, financial systems, và quản lý quỹ. Viết từ Sài Gòn.</p>
       </div>
       <div>
         <h4>Dẫn đường</h4>
