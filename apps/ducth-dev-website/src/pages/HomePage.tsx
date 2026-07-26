@@ -1,154 +1,101 @@
 import { useQuery } from '@apollo/client';
-import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
-import { GET_BLOG_POSTS } from '../infrastructure/graphql/queries';
-import { SITE_CONFIG } from '../config/site.config';
-import { getMediaUrl } from '../config/get-media-url';
+import { useParams, Link } from 'react-router-dom';
+import { getAboutContent } from '../config/about.config';
 import { getMediaBaseUrl } from '../config/api.config';
-
-interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  previewContent: string;
-  content?: string;
-  createdAt: string;
-  thumbnailPaths?: string[];
-  published: boolean;
-  categories?: {
-    displayName: string;
-    slug: string;
-  };
-  postTranslations?: {
-    nodes: Array<{
-      languageCode: string;
-      title: string;
-      content?: string;
-      previewContent?: string;
-    }>;
-  };
-}
+import ContentEmpty from '../components/feedback/ContentEmpty';
+import ContentError from '../components/feedback/ContentError';
+import ContentSkeleton from '../components/feedback/ContentSkeleton';
+import Container from '../components/layout/Container';
+import Section from '../components/layout/Section';
+import SectionHeader from '../components/editorial/SectionHeader';
+import PostCard from '../components/posts/PostCard';
+import { GET_BLOG_POSTS } from '../infrastructure/graphql/queries';
+import type { BlogPost } from '../types/content';
 
 const HomePage = () => {
-  const { t } = useTranslation();
-  const { lang } = useParams<{ lang: string }>();
-  const currentLang = lang || 'en';
-
-  // Fetch blog posts
-  const { loading, error, data } = useQuery(GET_BLOG_POSTS);
-
-  // Get thumbnail URL
-  const getThumbnailUrl = (post: BlogPost) => {
-    if (post.thumbnailPaths && post.thumbnailPaths.length > 0) {
-      const path = post.thumbnailPaths[0];
-      // If path is already a full URL, return it directly
-      if (path.startsWith('http://') || path.startsWith('https://')) {
-        return path;
+  const { lang = 'en' } = useParams<{ lang: string }>();
+  const currentLang = lang === 'vi' ? 'vi' : 'en';
+  const { loading, error, data, refetch } = useQuery(GET_BLOG_POSTS);
+  const posts = ((data?.posts?.nodes || []) as BlogPost[])
+    .filter((post) => post.published !== false)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const categories = Array.from(
+    posts.reduce((map, post) => {
+      const category = post.categories;
+      if (category?.slug) {
+        const current = map.get(category.slug) || { category, count: 0 };
+        current.count += 1;
+        map.set(category.slug, current);
       }
-      return getMediaUrl(path, getMediaBaseUrl());
-    }
-    return undefined;
-  };
+      return map;
+    }, new Map<string, { category: NonNullable<BlogPost['categories']>; count: number }>()),
+  ).map(([, value]) => value);
+  const mediaBaseUrl = getMediaBaseUrl();
+  const about = getAboutContent(currentLang);
 
-  // Get translated title
-  const getTranslatedTitle = (post: BlogPost) => {
-    if (currentLang !== 'en' && post.postTranslations?.nodes) {
-      const translation = post.postTranslations.nodes.find(
-        (t) => t.languageCode === currentLang
-      );
-      if (translation?.title) return translation.title;
-    }
-    return post.title;
-  };
-
-  // Get translated preview
-  const getTranslatedPreview = (post: BlogPost) => {
-    if (currentLang !== 'en' && post.postTranslations?.nodes) {
-      const translation = post.postTranslations.nodes.find(
-        (t) => t.languageCode === currentLang
-      );
-      if (translation?.previewContent) return translation.previewContent;
-    }
-    return post.previewContent;
-  };
-
-  // Filter and sort posts - published only, sorted by date (latest first)
-  const allPosts = (data?.posts?.nodes?.filter((post: BlogPost) => post.published) || [])
-    .sort((a: BlogPost, b: BlogPost) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  
-  const featuredPosts = allPosts.slice(0, 6); // Show top 6 featured posts
+  if (loading) return <ContentSkeleton variant="home" />;
+  if (error) return <ContentError lang={currentLang} onRetry={() => void refetch()} />;
 
   return (
-    <div className="space-y-8">
-      {/* Hero Section */}
-      <div className="hero min-h-[60vh] bg-base-200 rounded-lg">
-        <div className="hero-content text-center">
-          <div className="max-w-2xl">
-            <div className="avatar mb-6">
-              <div className="w-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                <img src={SITE_CONFIG.avatarUrl} alt="Duc Tran" />
-              </div>
+    <div className="home-page">
+      <Section className="home-recent">
+        <SectionHeader
+          eyebrow={currentLang === 'vi' ? 'Mục lục · Index' : 'Writing index'}
+          title={currentLang === 'vi' ? 'Bài viết gần đây' : 'Recent articles'}
+          description={currentLang === 'vi' ? 'Ghi chép về phần mềm, hệ thống và công việc phía sau chúng.' : 'Notes on software, systems, and the work around them.'}
+        />
+        <Container>
+          {posts.length === 0 ? (
+            <ContentEmpty lang={currentLang} message={currentLang === 'vi' ? 'Chưa có nội dung đã xuất bản.' : 'There is no published content here yet.'} href={`/${currentLang}/categories`} />
+          ) : (
+            <div className="home-post-grid">
+              {posts.slice(0, 6).map((post, index) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  lang={currentLang}
+                  mediaBaseUrl={mediaBaseUrl}
+                  variant={index === 0 ? 'lead' : index === 1 ? 'compact' : index === 5 ? 'wide' : 'standard'}
+                />
+              ))}
             </div>
-            <h1 className="text-5xl font-bold">{t('welcome')}</h1>
-            <p className="py-6 text-lg">{t('description')}</p>
-            <button className="btn btn-primary">{t('exploreArticles')}</button>
-          </div>
-        </div>
-      </div>
+          )}
+        </Container>
+      </Section>
 
-      {/* Featured Posts Section */}
-      <section>
-        <h2 className="text-3xl font-bold mb-6">{t('featuredPosts')}</h2>
-        {loading && (
-          <div className="flex justify-center">
-            <span className="loading loading-spinner loading-lg"></span>
-          </div>
-        )}
-        {error && (
-          <div className="alert alert-error">
-            <span>{t('error')}: {error.message}</span>
-          </div>
-        )}
-        {!loading && !error && featuredPosts.length === 0 && (
-          <div className="alert alert-info">
-            <span>{t('noDataAvailable')}</span>
-          </div>
-        )}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredPosts.map((post: BlogPost) => {
-            const thumbnailUrl = getThumbnailUrl(post);
-            const translatedTitle = getTranslatedTitle(post);
-            const translatedPreview = getTranslatedPreview(post);
-            return (
-              <div key={post.id} className="card bg-base-200 shadow-xl">
-                {thumbnailUrl && (
-                  <figure>
-                    <img
-                      src={thumbnailUrl}
-                      alt={translatedTitle}
-                      className="h-48 w-full object-cover"
-                    />
-                  </figure>
-                )}
-                <div className="card-body">
-                  <h3 className="card-title">{translatedTitle}</h3>
-                  {post.categories && (
-                    <div className="badge badge-primary">{post.categories.displayName}</div>
-                  )}
-                  <p>
-                    {translatedPreview.substring(0, 100)}...
-                  </p>
-                  <div className="card-actions justify-end">
-                    <a href={`/${currentLang}/posts/${post.slug}`} className="btn btn-primary btn-sm">
-                      {t('readMore')}
-                    </a>
-                  </div>
-                </div>
+      {categories.length > 0 && (
+        <Section tone="fresh-paper" className="category-strip">
+          <Container>
+            <div className="category-strip__header">
+              <div>
+                <p className="eyebrow"><span className="eyebrow__dot" aria-hidden="true" />{currentLang === 'vi' ? 'Mục lục' : 'Index'}</p>
+                <h2 className="display-h2">{currentLang === 'vi' ? 'Danh mục' : 'Categories'}</h2>
               </div>
-            );
-          })}
-        </div>
-      </section>
+              <Link className="text-link" to={`/${currentLang}/categories`}>{currentLang === 'vi' ? 'Xem tất cả' : 'View all'} <span aria-hidden="true">→</span></Link>
+            </div>
+            <ul className="category-strip__list">
+              {categories.map(({ category, count }) => (
+                <li key={category.slug}>
+                  <strong>{String(count).padStart(2, '0')}<span aria-hidden="true">.</span></strong>
+                  <Link to={`/${currentLang}/categories/${category.slug}`}>{category.displayName}</Link>
+                  <span>{category.slug}</span>
+                </li>
+              ))}
+            </ul>
+          </Container>
+        </Section>
+      )}
+
+      {about.verified && about.contact.email && (
+        <Section tone="ink" className="home-contact-cta">
+          <Container>
+            <p className="eyebrow">{about.contact.eyebrow}</p>
+            <h2 className="display-h2">{about.contact.title}</h2>
+            <p className="lead">{about.contact.body}</p>
+            <a className="button" href={`mailto:${about.contact.email}`}>{currentLang === 'vi' ? 'Liên hệ' : 'Get in touch'} <span aria-hidden="true">→</span></a>
+          </Container>
+        </Section>
+      )}
     </div>
   );
 };

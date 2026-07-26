@@ -1,171 +1,82 @@
 import { useQuery } from '@apollo/client';
-import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
-import { GET_CATEGORIES, GET_BLOG_POSTS } from '../infrastructure/graphql/queries';
-
-interface Category {
-  id: string;
-  displayName: string;
-  slug: string;
-  categoryType: string;
-  categoryTranslations?: {
-    nodes: Array<{
-      id: string;
-      languageCode: string;
-      displayName: string;
-      slug: string;
-    }>;
-  };
-  categoryTags?: {
-    nodes: Array<{
-      tags: {
-        id: string;
-        name: string;
-        slug: string;
-      };
-    }>;
-  };
-}
+import { Link, useParams } from 'react-router-dom';
+import { getLocalizedCategory } from '../lib/i18n/getLocalizedCategory';
+import { getMediaBaseUrl } from '../config/api.config';
+import ContentEmpty from '../components/feedback/ContentEmpty';
+import ContentError from '../components/feedback/ContentError';
+import ContentSkeleton from '../components/feedback/ContentSkeleton';
+import Container from '../components/layout/Container';
+import Section from '../components/layout/Section';
+import PostCard from '../components/posts/PostCard';
+import { GET_BLOG_POSTS, GET_CATEGORIES } from '../infrastructure/graphql/queries';
+import type { BlogPost, Category } from '../types/content';
 
 const CategoriesPage = () => {
-  const { t } = useTranslation();
-  const { lang } = useParams<{ lang: string }>();
-  const currentLang = lang || 'en';
-
-  // Fetch categories
-  const { loading, error, data } = useQuery(GET_CATEGORIES);
-
-  // Helper to get translated name
-  const getTranslatedName = (category: Category) => {
-    if (currentLang !== 'en' && category.categoryTranslations?.nodes) {
-      const translation = category.categoryTranslations.nodes.find(
-        (t) => t.languageCode === currentLang
-      );
-      if (translation?.displayName) return translation.displayName;
-    }
-    return category.displayName;
-  };
-
-  // Fetch all posts to count posts per category
-  const { data: postsData } = useQuery(GET_BLOG_POSTS);
-  
-  // Get blog categories only
-  const categories = (data?.categories?.nodes || []).filter(
-    (cat: Category) => cat.categoryType === 'Blog'
+  const { lang = 'en' } = useParams<{ lang: string }>();
+  const currentLang = lang === 'vi' ? 'vi' : 'en';
+  const categoriesQuery = useQuery(GET_CATEGORIES);
+  const postsQuery = useQuery(GET_BLOG_POSTS);
+  const loading = categoriesQuery.loading || postsQuery.loading;
+  const error = categoriesQuery.error || postsQuery.error;
+  const categories = ((categoriesQuery.data?.categories?.nodes || []) as Category[]).filter(
+    (category) => !category.categoryType || category.categoryType === 'Blog',
   );
+  const posts = ((postsQuery.data?.posts?.nodes || []) as BlogPost[])
+    .filter((post) => post.published !== false)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const mediaBaseUrl = getMediaBaseUrl();
+  const totalPosts = posts.length;
 
-  // Count posts per category
-  const getPostCount = (categorySlug: string) => {
-    if (!postsData?.posts?.nodes) return 0;
-    return postsData.posts.nodes.filter(
-      (post: { published: boolean; categories?: { slug: string } }) => post.published && post.categories?.slug === categorySlug
-    ).length;
-  };
-
-  // Color palette for categories
-  const colors = ['primary', 'secondary', 'accent', 'info', 'success', 'warning'];
+  if (loading) return <ContentSkeleton variant="categories" />;
+  if (error) return <ContentError lang={currentLang} onRetry={() => { void categoriesQuery.refetch(); void postsQuery.refetch(); }} />;
 
   return (
-    <div className="space-y-8">
-      {/* Page Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-5xl font-bold">{t('browseCategories')}</h1>
-        <p className="text-xl opacity-70">{t('categoriesDescription')}</p>
-      </div>
+    <div className="categories-page">
+      <Section className="categories-header">
+        <Container>
+          <p className="eyebrow"><span className="eyebrow__dot" aria-hidden="true" />{currentLang === 'vi' ? 'Mục lục · Index' : 'Index'}</p>
+          <h1 className="display-h1">{currentLang === 'vi' ? 'Danh mục' : 'Categories'}</h1>
+          <p className="lead">{currentLang === 'vi' ? 'Mục lục yên tĩnh của những chủ đề trong notebook này.' : 'A quiet index of the subjects covered by this notebook.'}</p>
+          <p className="page-count">{categories.length} {currentLang === 'vi' ? 'danh mục' : 'categories'} · {totalPosts} {currentLang === 'vi' ? 'bài viết đã xuất bản' : 'published posts'}</p>
+        </Container>
+      </Section>
 
-      {loading && (
-        <div className="flex justify-center">
-          <span className="loading loading-spinner loading-lg"></span>
-        </div>
-      )}
-
-      {error && (
-        <div className="alert alert-error">
-          <span>
-            {t('error')}: {error.message}
-          </span>
-        </div>
-      )}
-
-      {!loading && !error && categories.length === 0 && (
-        <div className="alert alert-info">
-          <span>{t('noDataAvailable')}</span>
-        </div>
-      )}
-
-      {/* Categories Grid */}
-      {!loading && !error && categories.length > 0 && (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-            {categories.map((category: Category, index: number) => {
-              const postCount = getPostCount(category.slug);
-              const colorClass = colors[index % colors.length];
-
+      <Section className="category-list">
+        <Container>
+          {categories.length === 0 ? (
+            <ContentEmpty lang={currentLang} message={currentLang === 'vi' ? 'Chưa có danh mục.' : 'There are no categories yet.'} />
+          ) : (
+            categories.map((category, index) => {
+              const localizedCategory = getLocalizedCategory(category, currentLang);
+              const categoryPosts = posts.filter((post) => post.categories?.slug === category.slug).slice(0, 3);
               return (
-                <div
-                  key={category.id}
-                  className="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow"
-                >
-                  <div className="card-body">
-                    <div className={`badge badge-${colorClass} mb-2`}>
-                      {postCount} {t('posts')}
-                    </div>
-                    <h2 className="card-title">{getTranslatedName(category)}</h2>
-                    <p className="opacity-80">
-                      {category.slug.replace(/-/g, ' ')}
-                    </p>
-                    <div className="card-actions justify-end mt-4">
-                      <a
-                        href={`/${currentLang}/categories/${category.slug}`}
-                        className="btn btn-primary btn-sm"
-                      >
-                        {t('viewPosts')}
-                      </a>
-                    </div>
+                <article className="category-row" key={category.id || category.slug}>
+                  <div className="category-row__ordinal">{String(index + 1).padStart(2, '0')}<span aria-hidden="true">.</span></div>
+                  <div className="category-row__intro">
+                    <Link className="category-row__name" to={`/${currentLang}/categories/${category.slug}`}>
+                      {localizedCategory.displayName}
+                    </Link>
+                    <span className="category-row__slug">/{localizedCategory.slug}</span>
+                    <Link className="text-link" to={`/${currentLang}/categories/${category.slug}`}>
+                      {currentLang === 'vi' ? 'Vào danh mục' : 'View category'} <span aria-hidden="true">→</span>
+                    </Link>
                   </div>
-                </div>
+                  <div className="category-row__posts">
+                    <p className="category-row__count">{categoryPosts.length} {currentLang === 'vi' ? 'bài mới nhất' : 'latest posts'}</p>
+                    {categoryPosts.length === 0 ? (
+                      <p className="muted-copy">{currentLang === 'vi' ? 'Chưa có bài viết.' : 'No published posts yet.'}</p>
+                    ) : (
+                      <div className="category-row__preview-grid">
+                        {categoryPosts.map((post) => <PostCard key={post.id} post={post} lang={currentLang} variant="compact" mediaBaseUrl={mediaBaseUrl} />)}
+                      </div>
+                    )}
+                  </div>
+                </article>
               );
-            })}
-          </div>
-
-          {/* Category Stats */}
-          <div className="stats stats-vertical lg:stats-horizontal shadow w-full mt-12">
-            <div className="stat">
-              <div className="stat-title">{t('totalCategories')}</div>
-              <div className="stat-value">{categories.length}</div>
-              <div className="stat-desc">{t('organizedTopics')}</div>
-            </div>
-
-            <div className="stat">
-              <div className="stat-title">{t('totalPosts')}</div>
-              <div className="stat-value">
-                {categories.reduce(
-                  (sum: number, cat: Category) =>
-                    sum + getPostCount(cat.slug),
-                  0
-                )}
-              </div>
-              <div className="stat-desc">{t('acrossAllCategories')}</div>
-            </div>
-
-            <div className="stat">
-              <div className="stat-title">{t('mostPopular')}</div>
-              <div className="stat-value text-primary">
-                {categories.length > 0
-                  ? getTranslatedName(
-                      categories.reduce((max: Category, cat: Category) =>
-                        getPostCount(cat.slug) > getPostCount(max.slug)
-                          ? cat
-                          : max
-                      )
-                    ).split(' ')[0]
-                  : '-'}
-              </div>
-              <div className="stat-desc">{t('categoryWithMostPosts')}</div>
-            </div>
-          </div>
-        </>
-      )}
+            })
+          )}
+        </Container>
+      </Section>
     </div>
   );
 };
