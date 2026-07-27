@@ -67,6 +67,30 @@ const AboutPage = () => {
       <Section tone="fresh-paper" className="about-pillars">
         <Container>
           <header className="about-pillars__header">
+            <Eyebrow>{content.domainsSection.eyebrow}</Eyebrow>
+            <h2 className="display-h1">{content.domainsSection.title}</h2>
+            <p className="lead about-pillars__lead">{content.domainsSection.lead}</p>
+          </header>
+          <div className="about-pillars__grid">
+            {content.domains.map((domain) => (
+              <article key={domain.label}>
+                <p className="about-pillar__number">{domain.label}</p>
+                <h2 className="about-pillar__title">
+                  {domain.title}
+                  {domain.titleAccent && (
+                    <span className="about-pillar__title-accent"> {domain.titleAccent}</span>
+                  )}
+                </h2>
+                <p className="about-pillar__subtitle">{domain.subtitle}</p>
+                {domain.paragraphs.map((paragraph) => <p key={paragraph} className="about-pillar__body">{paragraph}</p>)}
+              </article>
+            ))}
+          </div>
+        </Container>
+      </Section>
+      <Section tone="parchment" className="about-pillars">
+        <Container>
+          <header className="about-pillars__header">
             <Eyebrow>{content.pillarsSection.eyebrow}</Eyebrow>
             <h2 className="display-h1">{content.pillarsSection.title}</h2>
             <p className="lead about-pillars__lead">{content.pillarsSection.lead}</p>

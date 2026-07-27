@@ -64,6 +64,8 @@ export interface AboutContent {
   };
   pillars: AboutPillar[];
   pillarsSection: AboutSectionHeader;
+  domains: AboutPillar[];
+  domainsSection: AboutSectionHeader;
   statement: { quote: string; cite: string };
   timeline: AboutTimeline;
   practices: AboutPractice[];
@@ -128,6 +130,43 @@ const enContent = (): AboutContent => ({
     eyebrow: 'Career pillars',
     title: 'Three pillars of seven years.',
     lead: 'Most lessons came from running systems in production, handling incidents, and working with engineers I learned something from — not from meeting rooms.',
+  },
+  domains: [
+    {
+      label: '01 · Retail & operations',
+      title: 'Wifi Market',
+      titleAccent: 'Event · POS · CMS · CRM',
+      subtitle: 'WiSky · Reso · ExE · 2017 — 2019',
+      paragraphs: [
+        'At WiSky I built WiFi marketing platforms, attendance systems, and an internal web builder framework that accelerated site delivery. At ExE I integrated Azure Face Recognition into attendance tracking and built logistics support utilities for warehouse operations.',
+        'At Reso I led the development of CRM and POS systems for retail and F&B businesses — the operational backbone for hundreds of merchants — while managing a team of 12–15 engineers.',
+      ],
+    },
+    {
+      label: '02 · B2B payment gateway',
+      title: 'B2B Payment',
+      titleAccent: 'Gateway',
+      subtitle: 'Easy IT · eTreem · 2019 — 2024',
+      paragraphs: [
+        "At Easy IT Solution on the Amex OneAP project I shipped the CPG Gateway handling high-volume financial transaction requests, the Identity Security Service for auth, and optimized background workers for payment processing — enterprise-grade B2B payment infrastructure under Amex's engineering standards.",
+        'At eTreem I built the Payrix Gateway Service integrating enterprise payment infrastructure, designed a centralized Identity Server for the microservice ecosystem, and architected the platform on Azure Kubernetes Service with distributed observability via Elastic Stack and Jaeger.',
+      ],
+    },
+    {
+      label: '03 · Financial · fund management',
+      title: 'Financial',
+      titleAccent: '& fund management',
+      subtitle: 'Dragon Capital · 2024 — present',
+      paragraphs: [
+        'At Dragon Capital I own architecture and operational stability of IRIS — the core investment platform covering portfolio management, OMS, Portfolio Rebalancing, ISBD data pipelines, and Algo X trading integration. Real money, real reliability constraints.',
+        'The IRIS platform supports research, portfolio management, front-office trading, middle office, reporting, and data distribution — the full lifecycle of fund operations.',
+      ],
+    },
+  ],
+  domainsSection: {
+    eyebrow: 'Career domains',
+    title: 'Three industries, seven years.',
+    lead: 'From WiFi marketing tools to fund management platforms handling real money — same engineering discipline, very different problem shapes.',
   },
   timeline: {
     eyebrow: 'Career timeline',
@@ -246,6 +285,43 @@ const viContent = (): AboutContent => ({
     eyebrow: 'Hành trình nghề · Career pillars',
     title: 'Ba trụ cột của bảy năm qua.',
     lead: 'Phần lớn bài học đến từ việc vận hành hệ thống production, xử lý sự cố, và làm việc với những engineer mà mình học được điều gì đó — không phải từ phòng họp.',
+  },
+  domains: [
+    {
+      label: '01 · Bán lẻ & vận hành',
+      title: 'Wifi Market',
+      titleAccent: 'Event · POS · CMS · CRM',
+      subtitle: 'WiSky · Reso · ExE · 2017 — 2019',
+      paragraphs: [
+        'Ở WiSky mình build WiFi marketing platform, attendance system, và một internal web builder framework tăng tốc độ giao hàng site. Ở ExE tích hợp Azure Face Recognition vào attendance tracking và xây logistics support utility cho warehouse operation.',
+        'Ở Reso mình lead phát triển CRM và POS cho doanh nghiệp retail và F&B — operational backbone cho hàng trăm merchant — đồng thời quản lý team 12–15 engineer.',
+      ],
+    },
+    {
+      label: '02 · B2B payment gateway',
+      title: 'B2B Payment',
+      titleAccent: 'Gateway',
+      subtitle: 'Easy IT · eTreem · 2019 — 2024',
+      paragraphs: [
+        'Ở Easy IT Solution trong project Amex OneAP mình ship CPG Gateway xử lý financial transaction request cường độ cao, Identity Security Service cho auth, và tối ưu background worker cho payment processing — B2B payment infrastructure cấp enterprise theo chuẩn engineering của Amex.',
+        'Ở eTreem mình xây Payrix Gateway Service tích hợp enterprise payment infrastructure, thiết kế Identity Server tập trung cho microservice ecosystem, và kiến trúc platform trên Azure Kubernetes Service với distributed observability qua Elastic Stack và Jaeger.',
+      ],
+    },
+    {
+      label: '03 · Tài chính · quản lý quỹ',
+      title: 'Financial',
+      titleAccent: '& fund management',
+      subtitle: 'Dragon Capital · 2024 — nay',
+      paragraphs: [
+        'Ở Dragon Capital mình chịu trách nhiệm kiến trúc và ổn định vận hành của IRIS — investment platform cốt lõi bao gồm portfolio management, OMS, Portfolio Rebalancing, ISBD data pipeline, và Algo X trading integration. Tiền thật, reliability constraint thật.',
+        'IRIS platform hỗ trợ research, portfolio management, front-office trading, middle office, reporting, và data distribution — toàn bộ lifecycle của fund operation.',
+      ],
+    },
+  ],
+  domainsSection: {
+    eyebrow: 'Lĩnh vực nghề · Career domains',
+    title: 'Ba lĩnh vực, bảy năm.',
+    lead: 'Từ WiFi marketing tool đến fund management platform xử lý tiền thật — cùng kỷ luật engineering, hình dạng bài toán rất khác nhau.',
   },
   timeline: {
     eyebrow: 'Hành trình nghề · Career timeline',
