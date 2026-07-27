@@ -15,7 +15,6 @@ const SiteLayout = ({ children }: SiteLayoutProps) => {
 
   useEffect(() => {
     document.documentElement.lang = lang;
-    document.documentElement.dataset.theme = 'ink-tide';
   }, [lang]);
 
   return (

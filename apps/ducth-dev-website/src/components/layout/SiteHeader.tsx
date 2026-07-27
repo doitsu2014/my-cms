@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import LanguageSwitch from '../navigation/LanguageSwitch';
 import MobileNavigation from '../navigation/MobileNavigation';
+import ThemeToggle from '../navigation/ThemeToggle';
 
 const SiteHeader = () => {
   const location = useLocation();
@@ -36,6 +37,7 @@ const SiteHeader = () => {
           ))}
         </nav>
         <div className="site-header__actions">
+          <ThemeToggle />
           <LanguageSwitch />
           <MobileNavigation lang={lang} />
         </div>
