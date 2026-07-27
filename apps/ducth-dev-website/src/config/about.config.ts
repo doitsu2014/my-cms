@@ -63,7 +63,6 @@ export interface AboutContent {
     facts: [AboutFact, AboutFact, AboutFact];
   };
   pillars: AboutPillar[];
-  pillarsSection: AboutSectionHeader;
   domains: AboutPillar[];
   domainsSection: AboutSectionHeader;
   statement: { quote: string; cite: string };
@@ -97,12 +96,12 @@ const enContent = (): AboutContent => ({
   pillars: [
     {
       label: '01 · Engineering',
-      title: 'Backend',
-      titleAccent: 'systems',
-      subtitle: 'Cloud-native · C#, Rust, ASP.NET Core · 2017 — present',
+      title: 'Web App',
+      titleAccent: '& Microservices',
+      subtitle: 'Cloud-native · C#, Rust, TypeScript · 2017 — present',
       paragraphs: [
-        'I build backend systems that need to keep running when something fails — distributed services, financial data pipelines, and order-management workflows on Azure AKS and Kubernetes.',
-        'Languages and tools I reach for: C#, Rust, TypeScript, Kafka, PostgreSQL, Redis, ElasticSearch, Terraform. The shape of the system matters more than the framework.',
+        'I build web applications and microservice systems that need to keep running when something fails — distributed services, financial data pipelines, and order-management workflows on Azure AKS and Kubernetes.',
+        'Languages and tools I reach for: C#, Rust, TypeScript, Azure Service Bus, PostgreSQL, Redis, ElasticSearch, Terraform. The shape of the system matters more than the framework.',
       ],
     },
     {
@@ -126,11 +125,6 @@ const enContent = (): AboutContent => ({
       ],
     },
   ],
-  pillarsSection: {
-    eyebrow: 'Career pillars',
-    title: 'Three pillars of seven years.',
-    lead: 'Most lessons came from running systems in production, handling incidents, and working with engineers I learned something from — not from meeting rooms.',
-  },
   domains: [
     {
       label: '01 · Retail & operations',
@@ -250,14 +244,14 @@ const viContent = (): AboutContent => ({
     ],
   },
   pillars: [
-    {
-      label: '01 · Kỹ sư',
-      title: 'Backend',
-      titleAccent: 'systems',
-      subtitle: 'Cloud-native · C#, Rust, ASP.NET Core · 2017 — nay',
+{
+      label: '01 · Engineering',
+      title: 'Web App',
+      titleAccent: 'và Microservices',
+      subtitle: 'Cloud-native · C#, Rust, TypeScript · 2017 — nay',
       paragraphs: [
-        'Mình xây backend system cần chạy ổn khi có thứ gì đó fail — distributed service, financial data pipeline, và order-management workflow trên Azure AKS và Kubernetes.',
-        'Ngôn ngữ và công cụ mình dùng: C#, Rust, TypeScript, Kafka, PostgreSQL, Redis, ElasticSearch, Terraform. Shape của hệ thống quan trọng hơn framework.',
+        'Mình xây web application và microservice system cần chạy ổn khi có thứ gì đó fail — distributed service, financial data pipeline, và order-management workflow trên Azure AKS và Kubernetes.',
+        'Ngôn ngữ và công cụ mình dùng: C#, Rust, TypeScript, Azure Service Bus, PostgreSQL, Redis, ElasticSearch, Terraform. Shape của hệ thống quan trọng hơn framework.',
       ],
     },
     {
@@ -281,11 +275,6 @@ const viContent = (): AboutContent => ({
       ],
     },
   ],
-  pillarsSection: {
-    eyebrow: 'Hành trình nghề · Career pillars',
-    title: 'Ba trụ cột của bảy năm qua.',
-    lead: 'Phần lớn bài học đến từ việc vận hành hệ thống production, xử lý sự cố, và làm việc với những engineer mà mình học được điều gì đó — không phải từ phòng họp.',
-  },
   domains: [
     {
       label: '01 · Bán lẻ & vận hành',

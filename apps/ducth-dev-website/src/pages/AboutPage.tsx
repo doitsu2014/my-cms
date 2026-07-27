@@ -41,6 +41,21 @@ const AboutPage = () => {
           <dl className="about-facts">
             {content.hero.facts.map((fact) => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
           </dl>
+          <div className="about-hero__pillars">
+            {content.pillars.map((pillar) => (
+              <article key={pillar.label} className="about-hero__pillar">
+                <p className="about-pillar__number">{pillar.label}</p>
+                <h2 className="about-pillar__title">
+                  {pillar.title}
+                  {pillar.titleAccent && (
+                    <span className="about-pillar__title-accent"> {pillar.titleAccent}</span>
+                  )}
+                </h2>
+                <p className="about-pillar__subtitle">{pillar.subtitle}</p>
+                {pillar.paragraphs.map((paragraph) => <p key={paragraph} className="about-pillar__body">{paragraph}</p>)}
+              </article>
+            ))}
+          </div>
         </Container>
       </Section>
       <Section className="about-timeline">
@@ -83,30 +98,6 @@ const AboutPage = () => {
                 </h2>
                 <p className="about-pillar__subtitle">{domain.subtitle}</p>
                 {domain.paragraphs.map((paragraph) => <p key={paragraph} className="about-pillar__body">{paragraph}</p>)}
-              </article>
-            ))}
-          </div>
-        </Container>
-      </Section>
-      <Section tone="parchment" className="about-pillars">
-        <Container>
-          <header className="about-pillars__header">
-            <Eyebrow>{content.pillarsSection.eyebrow}</Eyebrow>
-            <h2 className="display-h1">{content.pillarsSection.title}</h2>
-            <p className="lead about-pillars__lead">{content.pillarsSection.lead}</p>
-          </header>
-          <div className="about-pillars__grid">
-            {content.pillars.map((pillar) => (
-              <article key={pillar.label}>
-                <p className="about-pillar__number">{pillar.label}</p>
-                <h2 className="about-pillar__title">
-                  {pillar.title}
-                  {pillar.titleAccent && (
-                    <span className="about-pillar__title-accent"> {pillar.titleAccent}</span>
-                  )}
-                </h2>
-                <p className="about-pillar__subtitle">{pillar.subtitle}</p>
-                {pillar.paragraphs.map((paragraph) => <p key={paragraph} className="about-pillar__body">{paragraph}</p>)}
               </article>
             ))}
           </div>

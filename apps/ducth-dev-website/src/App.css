@@ -255,6 +255,11 @@ a { -webkit-tap-highlight-color: transparent; }
 .about-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); margin: var(--space-7) 0 0; padding-top: var(--space-5); border-top: 1px solid var(--border); }
 .about-facts dt { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
 .about-facts dd { margin: 6px 0 0; color: var(--ink-deep); font-family: var(--font-display); }
+.about-hero__pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin: var(--space-7) 0 0; padding-top: var(--space-5); border-top: 1px solid var(--border); }
+.about-hero__pillar { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-5) var(--space-5) var(--space-5) 0; }
+.about-hero__pillar + .about-hero__pillar { padding-inline-start: var(--space-5); border-inline-start: 1px solid var(--border); }
+.about-hero__pillar .about-pillar__title { font-size: clamp(22px, 2.4vw, 28px); }
+.about-hero__pillar .about-pillar__body { font-size: 15px; line-height: 1.55; }
 .about-pillars__header { max-width: 920px; margin-bottom: var(--space-8); }
 .about-pillars__header .display-h1 { margin-block: var(--space-3) var(--space-4); }
 .about-pillars__lead { color: var(--muted); font-family: var(--font-display); font-style: italic; font-size: clamp(20px, 2.2vw, 26px); line-height: 1.45; }
@@ -373,8 +378,10 @@ a { -webkit-tap-highlight-color: transparent; }
   .about-timeline__entry::after { left: 0; }
   .about-timeline__date { text-align: left; padding-right: 0; }
   .related-posts__grid,
-  .about-pillars__grid { grid-template-columns: 1fr; }
+  .about-pillars__grid,
+  .about-hero__pillars { grid-template-columns: 1fr; }
   .about-pillars article + article { padding-inline-start: 0; border-inline-start: 0; }
+  .about-hero__pillar + .about-hero__pillar { padding-inline-start: 0; border-inline-start: 0; padding-top: var(--space-5); border-top: 1px solid var(--border); }
 }
 @media (max-width: 800px) {
   .site-nav { display: none; }
