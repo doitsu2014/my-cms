@@ -193,7 +193,7 @@ describe('redesign interaction contracts', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole('heading', { name: 'Coming soon' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Seven years of distributed systems.' })).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: 'About' })[0]).toHaveAttribute('aria-current', 'page');
   });
 

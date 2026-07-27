@@ -1,9 +1,9 @@
 // =============================================================
-// About page content. Edit the `body`, `subtitle`, `paragraphs`,
-// and `email` fields to replace the prototype draft copy with
-// your own narrative. The structural labels, pillar titles,
-// practice titles, and contact handle names follow the
-// `design/new-design/about.html` source.
+// About page content. The structural shape (pillar titles,
+// section labels, practice numbering, contact link labels) is
+// pinned by `design/new-design/about.html` — keep it stable.
+// The narrative copy, timeline entries, statement, and contact
+// details below are editable.
 //
 // Set `verified: false` to hide the page in a locale and show
 // the "Coming soon" placeholder instead.
@@ -80,16 +80,16 @@ export interface AboutContent {
 const enContent = (): AboutContent => ({
   verified: true,
   hero: {
-    eyebrow: 'Software engineer',
-    title: 'Eleven years writing software.',
+    eyebrow: 'Senior software engineer',
+    title: 'Seven years of distributed systems.',
     subtitle:
-      'TODO: write the lead paragraph that introduces you. Keep it to two or three sentences; this is the hook before the visitor scrolls into the pillars.',
+      "I build cloud-native platforms for financial workflows — the kind where reliability isn't a feature, it's the cost of admission. Currently leading architecture for IRIS at Dragon Capital.",
     body:
-      'TODO: optional second paragraph. Mention your location, current focus, and what this notebook is for.',
+      "I work mostly in C# and Rust, deploy on Azure and Kubernetes, and care about the gap between what's shipped and what actually runs well in production. Based in Ho Chi Minh City.",
     facts: [
-      { label: 'Practice', value: 'Backend · Distributed systems' },
-      { label: 'Experience', value: '11 years · 2014 — present' },
-      { label: 'Current role', value: 'Senior Software Engineer' },
+      { label: 'Practice', value: 'Cloud-native · Distributed systems' },
+      { label: 'Experience', value: '7+ years · 2017 — present' },
+      { label: 'Current role', value: 'Senior Software Engineer · Dragon Capital' },
     ],
   },
   pillars: [
@@ -97,88 +97,99 @@ const enContent = (): AboutContent => ({
       label: '01 · Engineering',
       title: 'Backend',
       titleAccent: 'systems',
-      subtitle: 'Backend engineering · 2014 — present',
+      subtitle: 'Cloud-native · C#, Rust, ASP.NET Core · 2017 — present',
       paragraphs: [
-        'TODO: describe your backend practice — languages, runtime scale, the kind of problems you solve.',
-        'TODO: list the tools you reach for (TypeScript, Go, Python, Postgres, Redis, Kafka, Kubernetes) only if you want to anchor the reader in concrete terms.',
+        'I build backend systems that need to keep running when something fails — distributed services, financial data pipelines, and order-management workflows on Azure AKS and Kubernetes.',
+        'Languages and tools I reach for: C#, Rust, TypeScript, Kafka, PostgreSQL, Redis, ElasticSearch, Terraform. The shape of the system matters more than the framework.',
       ],
     },
     {
       label: '02 · Operations',
       title: 'Reliability',
       titleAccent: '& ops',
-      subtitle: 'Production reliability · on-call · SRE',
+      subtitle: 'Production reliability · CI/CD · on-call',
       paragraphs: [
-        'TODO: describe your on-call and incident-response experience.',
-        'TODO: share the principle that guides your reliability work.',
+        "I treat reliability as a feature, not a footnote. At Dragon Capital I modernized the IRIS CI/CD pipeline, improved database architecture, and rolled out observability that catches problems before traders do.",
+        "Deploys should be boring. If a deployment is exciting, the system is telling you something.",
       ],
     },
     {
       label: '03 · Leadership',
       title: 'Mentor',
       titleAccent: '& lead',
-      subtitle: 'Tech lead · mentoring · technical writing',
+      subtitle: 'Tech lead · 12–15 engineers · AI-assisted workflow',
       paragraphs: [
-        'TODO: describe your mentoring and code-review practice.',
-        'TODO: mention team size and any concrete numbers you are comfortable sharing.',
+        "I've led teams of 12–15 engineers at Reso, owned knowledge transfer and internalization of mission-critical systems at Dragon Capital, and mentored engineers through refactors and onboarding.",
+        'Recently I rolled out GitHub Copilot Enterprise across the IRIS team — onboarding, refactoring, and code comprehension got noticeably faster.',
       ],
     },
   ],
   pillarsSection: {
     eyebrow: 'Career pillars',
-    title: 'Three pillars of eleven years.',
-    lead: 'TODO: one or two sentences that frame the pillars. Not every lesson came from a meeting room — most came from the systems I have run, the incidents I have handled, and the people I have worked with.',
+    title: 'Three pillars of seven years.',
+    lead: 'Most lessons came from running systems in production, handling incidents, and working with engineers I learned something from — not from meeting rooms.',
   },
   timeline: {
     eyebrow: 'Career timeline',
-    title: 'Eleven years, three chapters.',
-    lead:
-      'Each chapter is a lesson — from the first line of code to financial systems in production.',
+    title: 'Seven years, five chapters.',
+    lead: 'Each chapter is a lesson — different teams, different problems, one through-line: distributed systems that actually work in production.',
     entries: [
       {
-        date: '2014',
-        title: 'First line of production code',
-        eyebrow: 'First line of production code',
-        body: 'TODO: write the opening entry — what you shipped, what you learned, why you stayed.',
+        date: '2017',
+        title: 'First production code at WiSky',
+        eyebrow: 'WiSky · Junior Software Developer',
+        body: 'Started as a junior building WiFi marketing platforms, attendance systems, and an internal web builder framework. Learned the value of caching, query optimization, and shipping.',
+      },
+      {
+        date: '2019 — 2022',
+        title: 'High-volume financial microservices with Amex OneAP',
+        eyebrow: 'Easy IT Solution · Amex OneAP · Middle Software Engineer',
+        body: 'Full-time on the Amex OneAP team building enterprise financial microservices. Shipped the CPG Gateway handling high-volume transaction requests, the Identity Security Service for auth, and optimized background workers for payment processing.',
+      },
+      {
+        date: '2022 — 2024',
+        title: 'Payment gateway and Azure-native platform at eTreem',
+        eyebrow: 'eTreem · Senior Software Engineer (contractor) · Azure AKS · Payrix',
+        body: 'Built the Payrix Gateway Service integrating enterprise payment infrastructure, designed a centralized Identity Server for the microservice ecosystem, and architected the platform on Azure Kubernetes Service with distributed observability via Elastic Stack and Jaeger.',
       },
       {
         date: 'Now',
-        title: 'Software Engineer at Dragon Capital',
-        eyebrow: 'Saigon · Financial systems · C#, Angular, React',
-        body: 'TODO: write the present chapter — employer, scope, and the systems you own.',
+        title: 'Leading IRIS architecture at Dragon Capital',
+        eyebrow: 'Dragon Capital · Senior Software Engineer · IRIS · OMS · Algo X · ISBD',
+        body: 'Own architecture and operational stability of IRIS — the core investment platform — plus OMS, Portfolio Rebalancing, ISBD data pipelines, and Algo X trading integration. Real money, real reliability constraints.',
       },
       {
         date: 'Recent',
-        title: 'AI-assisted development workflow',
-        eyebrow: '3–4 AI agents · Tooling around the engineering',
-        body: 'TODO: write the recent chapter — the workflow, the tools, and what changed.',
+        title: 'AI-assisted engineering workflow',
+        eyebrow: 'GitHub Copilot Enterprise · onboarding · refactoring',
+        body: 'Introduced an AI-assisted development workflow across the IRIS team. Accelerated onboarding, code comprehension, and refactoring — and changed how I think about leverage in engineering work.',
       },
     ],
   },
   statement: {
     quote:
-      'TODO: replace with a short, personal statement that captures how you think about engineering. Keep it under 280 characters.',
-    cite: 'TODO: attribution (e.g., personal note, after six years operating a production service)',
+      "Money doesn't lie. Production either works or it doesn't — everything else is a story we tell ourselves.",
+    cite: 'Personal note, after seven years operating financial systems in production.',
   },
   practices: [
-    { title: '01 · Read before you write', body: 'TODO: one or two sentences on this habit.' },
-    { title: '02 · Write slow, delete fast', body: 'TODO: one or two sentences on this habit.' },
-    { title: '03 · Measure less, observe more', body: 'TODO: one or two sentences on this habit.' },
-    { title: '04 · Let go, selectively', body: 'TODO: one or two sentences on this habit.' },
+    { title: '01 · Read the system before changing it', body: "Understand before editing. The fastest way to break a distributed system is to change it before you understand why it's shaped that way." },
+    { title: '02 · Make deploys boring', body: 'If a deployment is exciting, something is wrong. Boring deploys are the result of good CI/CD, automation, and runbooks — not luck.' },
+    { title: '03 · Migrate vendor code, eventually', body: 'Vendor code is a starting point, not a permanent dependency. Plan the internalization early, even if it happens late.' },
+    { title: '04 · Use AI as a pair, not a crutch', body: "Engineers who use AI will replace those who don't. But the value comes from your judgment, not the autocomplete." },
   ],
   contact: {
     eyebrow: 'Get in touch',
-    title: 'If you are hiring a backend engineer.',
-    body: 'TODO: write the contact body — your current hiring posture, response-time expectation, and what you are open to discussing. Keep it under 280 characters.',
-    email: 'TODO: replace with your real email or remove the field',
+    title: 'Open to conversations.',
+    body: 'I respond to thoughtful messages about cloud-native platforms, FinTech architecture, distributed systems, and engineering team modernization. Replies usually within a couple of days.',
+    email: 'thd1152015@gmail.com',
     links: [
-      { label: 'GitHub', url: 'https://github.com/ductran', handle: '@ductran' },
+      { label: 'GitHub', url: 'https://github.com/doitsu2014', handle: '@doitsu2014' },
       { label: 'LinkedIn', url: 'https://www.linkedin.com/in/duc-tran-huu-167b1612a/', handle: 'duc-tran-huu' },
       { label: 'RSS / Atom', url: '/feed.xml', handle: '/feed.xml' },
     ],
     recentPost: {
       label: 'Recent post',
-      date: 'TODO: 14 / 03 / 2025',
+      date: 'No posts yet',
       url: '/en/posts',
     },
   },
@@ -187,16 +198,16 @@ const enContent = (): AboutContent => ({
 const viContent = (): AboutContent => ({
   verified: true,
   hero: {
-    eyebrow: 'Kỹ sư phần mềm',
-    title: 'Mười một năm viết phần mềm.',
+    eyebrow: 'Kỹ sư phần mềm cao cấp',
+    title: 'Bảy năm với distributed systems.',
     subtitle:
-      'TODO: viết đoạn mở đầu bằng tiếng Việt — hai hoặc ba câu, đây là hook trước khi người đọc cuộn xuống các trụ cột.',
+      'Mình xây cloud-native platforms cho workflow tài chính — loại hệ thống mà reliability không phải feature, mà là điều kiện tiên quyết. Hiện đang phụ trách kiến trúc IRIS tại Dragon Capital.',
     body:
-      'TODO: đoạn thứ hai (tuỳ chọn). Nêu nơi bạn sống, focus hiện tại, và mục đích của blog.',
+      'Làm chủ yếu với C# và Rust, deploy trên Azure và Kubernetes, và quan tâm đến khoảng cách giữa thứ được ship và thứ thực sự chạy ổn trên production. Mình ở TP. Hồ Chí Minh.',
     facts: [
-      { label: 'Nghề', value: 'Backend · Distributed systems' },
-      { label: 'Kinh nghiệm', value: '11 năm · 2014 — nay' },
-      { label: 'Vai trò hiện tại', value: 'Senior Software Engineer' },
+      { label: 'Nghề', value: 'Cloud-native · Distributed systems' },
+      { label: 'Kinh nghiệm', value: '7+ năm · 2017 — nay' },
+      { label: 'Vai trò hiện tại', value: 'Senior Software Engineer · Dragon Capital' },
     ],
   },
   pillars: [
@@ -204,88 +215,99 @@ const viContent = (): AboutContent => ({
       label: '01 · Kỹ sư',
       title: 'Backend',
       titleAccent: 'systems',
-      subtitle: 'Backend engineering · 2014 — nay',
+      subtitle: 'Cloud-native · C#, Rust, ASP.NET Core · 2017 — nay',
       paragraphs: [
-        'TODO: mô tả practice backend của bạn — ngôn ngữ, quy mô hệ thống, loại bài toán bạn giải.',
-        'TODO: liệt kê công cụ (TypeScript, Go, Python, Postgres, Redis, Kafka, Kubernetes) nếu muốn neo người đọc vào cụ thể.',
+        'Mình xây backend system cần chạy ổn khi có thứ gì đó fail — distributed service, financial data pipeline, và order-management workflow trên Azure AKS và Kubernetes.',
+        'Ngôn ngữ và công cụ mình dùng: C#, Rust, TypeScript, Kafka, PostgreSQL, Redis, ElasticSearch, Terraform. Shape của hệ thống quan trọng hơn framework.',
       ],
     },
     {
       label: '02 · Vận hành',
       title: 'Reliability',
       titleAccent: '& ops',
-      subtitle: 'Production reliability · on-call · SRE',
+      subtitle: 'Production reliability · CI/CD · on-call',
       paragraphs: [
-        'TODO: mô tả kinh nghiệm on-call và incident response.',
-        'TODO: chia sẻ nguyên tắc dẫn dắt reliability work của bạn.',
+        'Mình coi reliability là feature, không phải footnote. Ở Dragon Capital, mình modernize CI/CD pipeline của IRIS, cải thiện database architecture, và triển khai observability để bắt vấn đề trước khi trader kịp nhận ra.',
+        'Deploy nên nhàm chán. Nếu một deployment gây hào hứng, hệ thống đang nói với bạn điều gì đó.',
       ],
     },
     {
       label: '03 · Dẫn dắt',
       title: 'Mentor',
       titleAccent: '& lead',
-      subtitle: 'Tech lead · mentoring · technical writing',
+      subtitle: 'Tech lead · 12–15 engineers · AI-assisted workflow',
       paragraphs: [
-        'TODO: mô tả practice mentoring và code review.',
-        'TODO: nêu quy mô team và các con số cụ thể bạn muốn chia sẻ.',
+        'Mình từng lead team 12–15 người ở Reso, chịu trách nhiệm knowledge transfer và internalization cho các hệ thống mission-critical tại Dragon Capital, và mentor engineer qua các đợt refactor cùng onboarding.',
+        'Gần đây mình rollout GitHub Copilot Enterprise cho cả team IRIS — onboarding, refactoring, và code comprehension nhanh hơn rõ rệt.',
       ],
     },
   ],
   pillarsSection: {
     eyebrow: 'Hành trình nghề · Career pillars',
-    title: 'Ba trụ cột của mười một năm qua.',
-    lead: 'Không phải tất cả đều đến từ phòng họp — phần lớn đến từ những hệ thống tôi đã chạy, những sự cố tôi đã xử lý, và những người tôi đã làm việc cùng.',
+    title: 'Ba trụ cột của bảy năm qua.',
+    lead: 'Phần lớn bài học đến từ việc vận hành hệ thống production, xử lý sự cố, và làm việc với những engineer mà mình học được điều gì đó — không phải từ phòng họp.',
   },
   timeline: {
     eyebrow: 'Hành trình nghề · Career timeline',
-    title: 'Mười một năm, ba chương.',
-    lead:
-      'Mỗi chương là một bài học — từ dòng code đầu tiên đến hệ thống tài chính production. Each chapter is a lesson — from the first line of code to financial systems in production.',
+    title: 'Bảy năm, năm chương.',
+    lead: 'Mỗi chương là một bài học — team khác nhau, bài toán khác nhau, một đường thẳng xuyên suốt: distributed system thực sự chạy ổn trên production.',
     entries: [
       {
-        date: '2014',
-        title: 'Bắt đầu viết production code',
-        eyebrow: 'First line of production code',
-        body: 'TODO: viết entry mở đầu — bạn đã ship gì, học được gì, vì sao bạn ở lại.',
+        date: '2017',
+        title: 'Production code đầu tiên tại WiSky',
+        eyebrow: 'WiSky · Junior Software Developer',
+        body: 'Bắt đầu với vai trò junior, build WiFi marketing platform, attendance system, và một internal web builder framework. Học được giá trị của caching, query optimization, và việc ship thật nhanh.',
       },
       {
-        date: 'Now',
-        title: 'Software Engineer tại Dragon Capital',
-        eyebrow: 'Sài Gòn · Financial systems · C#, Angular, React',
-        body: 'TODO: viết entry hiện tại — nơi làm việc, phạm vi, và hệ thống bạn sở hữu.',
+        date: '2019 — 2022',
+        title: 'Financial microservices cường độ cao với Amex OneAP',
+        eyebrow: 'Easy IT Solution · Amex OneAP · Middle Software Engineer',
+        body: 'Full-time trong team Amex OneAP xây financial microservices cấp enterprise. Ship CPG Gateway xử lý transaction request cường độ cao, Identity Security Service cho auth, và tối ưu background worker cho payment processing.',
       },
       {
-        date: 'Recent',
-        title: 'AI-assisted development workflow',
-        eyebrow: '3–4 AI agents · Tooling around the engineering',
-        body: 'TODO: viết entry gần đây — workflow, công cụ, và điều gì đã thay đổi.',
+        date: '2022 — 2024',
+        title: 'Payment gateway và Azure-native platform tại eTreem',
+        eyebrow: 'eTreem · Senior Software Engineer (contractor) · Azure AKS · Payrix',
+        body: 'Xây Payrix Gateway Service tích hợp enterprise payment infrastructure, thiết kế Identity Server tập trung cho microservice ecosystem, và kiến trúc platform trên Azure Kubernetes Service với distributed observability qua Elastic Stack và Jaeger.',
+      },
+      {
+        date: 'Hiện tại',
+        title: 'Phụ trách kiến trúc IRIS tại Dragon Capital',
+        eyebrow: 'Dragon Capital · Senior Software Engineer · IRIS · OMS · Algo X · ISBD',
+        body: 'Chịu trách nhiệm kiến trúc và ổn định vận hành của IRIS — investment platform cốt lõi — cùng OMS, Portfolio Rebalancing, ISBD data pipeline, và Algo X trading integration. Tiền thật, reliability constraint thật.',
+      },
+      {
+        date: 'Gần đây',
+        title: 'AI-assisted engineering workflow',
+        eyebrow: 'GitHub Copilot Enterprise · onboarding · refactoring',
+        body: 'Giới thiệu AI-assisted development workflow cho cả team IRIS. Onboarding, code comprehension, và refactoring nhanh hơn — và thay đổi cách mình nghĩ về đòn bẩy trong engineering work.',
       },
     ],
   },
   statement: {
     quote:
-      'TODO: thay bằng một câu ngắn, mang tính cá nhân, nắm bắt cách bạn nghĩ về engineering. Dưới 280 ký tự.',
-    cite: 'TODO: nguồn trích dẫn (vd: ghi chép cá nhân, sau 6 năm vận hành một dịch vụ production)',
+      'Tiền không nói dối. Production hoặc chạy hoặc không — mọi thứ khác chỉ là câu chuyện ta tự kể với nhau.',
+    cite: 'Ghi chép cá nhân, sau bảy năm vận hành hệ thống tài chính production.',
   },
   practices: [
-    { title: '01 · Đọc trước khi viết', body: 'TODO: một hoặc hai câu cho thói quen này.' },
-    { title: '02 · Viết chậm, xoá nhanh', body: 'TODO: một hoặc hai câu cho thói quen này.' },
-    { title: '03 · Đo ít, quan sát nhiều', body: 'TODO: một hoặc hai câu cho thói quen này.' },
-    { title: '04 · Buông bỏ có chọn lọc', body: 'TODO: một hoặc hai câu cho thói quen này.' },
+    { title: '01 · Đọc hệ thống trước khi thay đổi', body: 'Hiểu trước khi sửa. Cách nhanh nhất để break một distributed system là thay đổi nó trước khi hiểu vì sao nó có shape như vậy.' },
+    { title: '02 · Làm cho deploy nhàm chán', body: 'Nếu một deployment gây hào hứng, có gì đó đang sai. Deploy nhàm chán là kết quả của CI/CD tốt, automation, và runbook — không phải may mắn.' },
+    { title: '03 · Migrate code vendor, sớm hay muộn', body: 'Code vendor là điểm khởi đầu, không phải dependency vĩnh viễn. Plan internalization sớm, dù nó có xảy ra muộn.' },
+    { title: '04 · Dùng AI như pair, không phải nạng', body: 'Engineer biết dùng AI sẽ thay thế engineer không biết dùng. Nhưng giá trị đến từ phán đoán của bạn, không phải từ autocomplete.' },
   ],
   contact: {
     eyebrow: 'Giữ liên lạc · Get in touch',
-    title: 'Nếu bạn đang tìm một kỹ sư backend.',
-    body: 'TODO: viết đoạn contact — quan điểm tuyển dụng, thời gian phản hồi, và những chủ đề bạn sẵn sàng nói chuyện. Dưới 280 ký tự.',
-    email: 'TODO: thay bằng email thật hoặc xoá dòng này',
+    title: 'Sẵn sàng cho các cuộc trò chuyện.',
+    body: 'Mình phản hồi những email có nội dung về cloud-native platforms, FinTech architecture, distributed systems, và engineering team modernization. Thường trong vòng vài ngày.',
+    email: 'thd1152015@gmail.com',
     links: [
-      { label: 'GitHub', url: 'https://github.com/ductran', handle: '@ductran' },
+      { label: 'GitHub', url: 'https://github.com/doitsu2014', handle: '@doitsu2014' },
       { label: 'LinkedIn', url: 'https://www.linkedin.com/in/duc-tran-huu-167b1612a/', handle: 'duc-tran-huu' },
       { label: 'RSS / Atom', url: '/feed.xml', handle: '/feed.xml' },
     ],
     recentPost: {
       label: 'Bài viết gần nhất',
-      date: 'TODO: 14 / 03 / 2025',
+      date: 'Chưa có bài viết',
       url: '/vi/posts',
     },
   },
