@@ -303,10 +303,18 @@ a { -webkit-tap-highlight-color: transparent; }
 .about-timeline__title { margin: 0; color: var(--ink-deep); font-family: var(--font-display); font-size: clamp(22px, 2.4vw, 28px); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; }
 .about-timeline__eyebrow { margin: 0; color: var(--muted); font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
 .about-timeline__body { margin: 0; color: var(--ink-deep); font-family: var(--font-display); font-size: 17px; line-height: 1.65; }
-.about-practice ul { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; margin: var(--space-7) 0 0; padding: 0; list-style: none; border-top: 1px solid var(--border); }
-.about-practice li { padding: var(--space-6) var(--space-5) var(--space-6) 0; border-bottom: 1px solid var(--border); }
-.about-practice li:nth-child(even) { padding-inline-start: var(--space-5); border-inline-start: 1px solid var(--border); }
-.about-practice h3 { margin: 0; color: var(--ink-deep); font-family: var(--font-display); }
+.about-practice__head { display: grid; grid-template-columns: 1fr 2fr; gap: clamp(32px, 5vw, 80px); align-items: end; margin-bottom: var(--space-7); }
+.about-practice__intro { display: flex; flex-direction: column; gap: var(--space-3); }
+.about-practice__intro .display-h1 { margin: 0; }
+.about-practice__lead { margin: 0; color: var(--muted); }
+.about-practice__list { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--border); }
+.about-practice__list li { padding: var(--space-6) var(--space-5) var(--space-6) 0; border-bottom: 1px solid var(--border); }
+@media (min-width: 721px) {
+  .about-practice__list li:nth-child(odd) { border-right: 1px solid var(--border); padding-right: var(--space-5); }
+  .about-practice__list li:nth-child(even) { padding-left: var(--space-5); }
+}
+.about-practice__title { margin: 0 0 8px; color: var(--ink-deep); font-family: var(--font-display); font-weight: 600; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; }
+.about-practice__body { margin: 0; color: var(--fg); font-size: 16px; line-height: 1.6; }
 .about-contact__grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 96px); align-items: start; }
 .about-contact__intro { display: flex; flex-direction: column; gap: var(--space-4); }
 .about-contact__intro .display-h1 { margin-block: var(--space-3) var(--space-4); }
@@ -406,8 +414,12 @@ a { -webkit-tap-highlight-color: transparent; }
   .mobile-navigation { display: block; }
   .site-header__inner { gap: var(--space-3); }
   .category-detail-intro__grid { grid-template-columns: 1fr; }
-  .about-practice ul { grid-template-columns: 1fr; }
-  .about-practice li:nth-child(even) { padding-inline-start: 0; border-inline-start: 0; }
+  .about-practice__head { grid-template-columns: 1fr; gap: var(--space-4); }
+}
+@media (max-width: 720px) {
+  .about-practice__list { grid-template-columns: 1fr; }
+  .about-practice__list li:nth-child(odd) { border-right: 0; padding-right: 0; }
+  .about-practice__list li:nth-child(even) { padding-left: 0; }
 }
 @media (max-width: 720px) {
   .category-row__preview-grid { grid-template-columns: 1fr; }
