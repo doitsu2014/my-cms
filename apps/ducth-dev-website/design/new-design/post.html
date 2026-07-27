@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Về sự tĩnh lặng trong hệ thống phân tán — Đức Trần</title>
+<meta name="description" content="Một hệ thống tốt là hệ thống không đòi hỏi bạn phải để ý đến nó. Bài học backend engineering từ 11 năm vận hành production." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: oklch(92% 0.032 70);
+    --surface: oklch(97% 0.015 70);
+    --fg: oklch(18% 0.055 260);
+    --muted: oklch(42% 0.022 260);
+    --border: oklch(82% 0.022 78);
+    --accent: oklch(50% 0.22 28);
+    --accent-ink: oklch(95% 0.05 30);
+    --ink-deep: oklch(12% 0.055 260);
+    --font-display: "Noto Serif Display", Georgia, "Times New Roman", serif;
+    --font-body: "Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+    --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px; --space-9: 96px;
+    --container: 1240px;
+    --gutter: clamp(20px, 4vw, 48px);
+    --measure: 68ch;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: oklch(13% 0.028 260);
+      --surface: oklch(17% 0.032 260);
+      --fg: oklch(95% 0.018 85);
+      --muted: oklch(68% 0.015 252);
+      --border: oklch(28% 0.022 252);
+      --accent: oklch(66% 0.19 28);
+      --accent-ink: oklch(25% 0.075 28);
+      --ink-deep: oklch(98% 0.012 85);
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 17px; line-height: 1.65; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+  img, svg { display: block; max-width: 100%; }
+  .container { width: 100%; max-width: var(--container); margin: 0 auto; padding-inline: var(--gutter); }
+  .eyebrow { font-family: var(--font-body); font-size: 12px; font-weight: 600; line-height: 1.4; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .eyebrow .dot { display: inline-block; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; margin-right: 10px; vertical-align: middle; transform: translateY(-1px); }
+  .display-l { font-family: var(--font-display); font-weight: 700; font-size: clamp(36px, 5vw, 64px); line-height: 1.08; letter-spacing: -0.02em; color: var(--ink-deep); }
+  .h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 4vw, 48px); line-height: 1.12; letter-spacing: -0.018em; color: var(--ink-deep); }
+  .h2 { font-family: var(--font-display); font-weight: 600; font-size: 28px; line-height: 1.18; letter-spacing: -0.01em; color: var(--ink-deep); }
+  .h3 { font-family: var(--font-display); font-weight: 600; font-size: 22px; line-height: 1.25; letter-spacing: -0.005em; color: var(--ink-deep); }
+  .lead { font-size: 19px; line-height: 1.6; color: var(--fg); max-width: 56ch; }
+  .small { font-size: 14px; line-height: 1.5; letter-spacing: 0.01em; }
+  .vstack-2 > * + * { margin-top: var(--space-2); }
+  .vstack-3 > * + * { margin-top: var(--space-3); }
+  .vstack-4 > * + * { margin-top: var(--space-4); }
+  .vstack-5 > * + * { margin-top: var(--space-5); }
+  .vstack-6 > * + * { margin-top: var(--space-6); }
+  .vstack-7 > * + * { margin-top: var(--space-7); }
+
+  .site-header { border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(140%) blur(8px); }
+  .site-header__inner { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); padding-block: var(--space-4); }
+  .wordmark { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: var(--ink-deep); }
+  .wordmark-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; object-position: center 40%; border: 1px solid var(--border); }
+  .wordmark .seal { color: var(--accent); font-style: italic; font-weight: 600; }
+  .site-nav { display: flex; align-items: center; gap: var(--space-6); }
+  .site-nav__link { font-size: 14px; font-weight: 500; letter-spacing: 0.02em; color: var(--fg); padding-block: 6px; border-bottom: 1px solid transparent; transition: border-color 160ms ease-out, color 160ms ease-out; }
+  .site-nav__link:hover, .site-nav__link[aria-current="page"] { color: var(--ink-deep); border-bottom-color: var(--accent); }
+  .lang-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: 3px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; }
+  .lang-toggle a { padding: 4px 10px; border-radius: 999px; color: var(--muted); }
+  .lang-toggle a[aria-current="true"] { background: var(--ink-deep); color: var(--bg); }
+  @media (max-width: 720px) { .site-nav__link { display: none; } }
+
+  /* Breadcrumb */
+  .crumbs { padding-block: var(--space-5); border-bottom: 1px solid var(--border); }
+  .crumbs ol { list-style: none; display: flex; gap: var(--space-3); padding: 0; margin: 0; font-size: 12px; letter-spacing: 0.04em; color: var(--muted); flex-wrap: wrap; }
+  .crumbs li { display: inline-flex; align-items: center; gap: var(--space-3); }
+  .crumbs li + li::before { content: "/"; color: var(--border); }
+  .crumbs a:hover { color: var(--accent); }
+
+  /* Article header */
+  .post-head { padding-block: clamp(48px, 7vw, 96px); }
+  .post-head__inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    max-width: 920px;
+  }
+  .post-head__meta {
+    display: flex;
+    gap: 14px;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .post-head__meta .sep { color: var(--border); }
+  .post-head__meta .pill {
+    background: var(--accent-ink);
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 2px;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  .post-head__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(36px, 5.5vw, 72px);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: var(--ink-deep);
+  }
+  .post-head__dek {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(20px, 2.4vw, 26px);
+    line-height: 1.45;
+    color: var(--muted);
+    max-width: var(--measure);
+  }
+  .post-head__byline {
+    display: flex;
+    gap: var(--space-4);
+    align-items: center;
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .post-head__byline .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center 40%;
+    background: var(--ink-deep);
+    border: 1px solid var(--border);
+  }
+  .post-head__byline .name { color: var(--ink-deep); font-weight: 500; }
+
+  /* Featured image */
+  .featured-image {
+    margin-block: var(--space-6) var(--space-7);
+    aspect-ratio: 21 / 9;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    position: relative;
+  }
+  .featured-image img { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; }
+  .featured-image figcaption {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: var(--space-3);
+    max-width: var(--measure);
+  }
+
+  /* Article body */
+  .article {
+    padding-block: var(--space-6) var(--space-8);
+    max-width: var(--measure);
+  }
+  .article > * { max-width: var(--measure); }
+  .article > figure { max-width: 100%; }
+  .article p {
+    font-size: 18px;
+    line-height: 1.7;
+    margin-block: var(--space-5);
+    color: var(--fg);
+  }
+  .article p:first-of-type::first-line {
+    font-variant: small-caps;
+    letter-spacing: 0.04em;
+    font-weight: 500;
+  }
+  .article h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(26px, 3vw, 34px);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--ink-deep);
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-4);
+    scroll-margin-top: 100px;
+  }
+  .article h2::before {
+    content: "§";
+    color: var(--accent);
+    margin-right: 14px;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 0.7em;
+    vertical-align: 0.2em;
+  }
+  .article h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.25;
+    color: var(--ink-deep);
+    margin-top: var(--space-7);
+    margin-bottom: var(--space-3);
+  }
+  .article a:not(.btn) {
+    color: var(--ink-deep);
+    border-bottom: 1px solid var(--accent);
+    transition: color 160ms ease-out;
+  }
+  .article a:not(.btn):hover { color: var(--accent); }
+  .article blockquote {
+    border-left: 3px solid var(--accent);
+    padding: var(--space-3) 0 var(--space-3) var(--space-6);
+    margin-block: var(--space-6);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(22px, 2.4vw, 28px);
+    line-height: 1.4;
+    color: var(--ink-deep);
+    letter-spacing: -0.005em;
+  }
+  .article blockquote cite {
+    display: block;
+    font-style: normal;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-top: var(--space-3);
+  }
+  .article ul, .article ol {
+    margin-block: var(--space-5);
+    padding-left: var(--space-6);
+  }
+  .article li {
+    font-size: 18px;
+    line-height: 1.7;
+    margin-block: var(--space-3);
+    padding-left: var(--space-3);
+  }
+  .article li::marker { color: var(--accent); }
+  .article code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: oklch(92% 0.012 85);
+    padding: 2px 6px;
+    border-radius: 2px;
+    color: var(--ink-deep);
+  }
+  .article pre {
+    background: var(--ink-deep);
+    color: oklch(94% 0.015 85);
+    padding: var(--space-5);
+    border-radius: 4px;
+    overflow-x: auto;
+    margin-block: var(--space-6);
+    font-size: 14px;
+    line-height: 1.55;
+    border: 1px solid var(--ink-deep);
+  }
+  .article pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+  .article hr {
+    border: 0;
+    text-align: center;
+    margin-block: var(--space-7);
+    color: var(--border);
+  }
+  .article hr::before {
+    content: "✦  ✦  ✦";
+    letter-spacing: 0.6em;
+    color: var(--accent);
+    font-size: 12px;
+  }
+  .article figure {
+    margin-block: var(--space-7);
+  }
+  .article figure figcaption {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: var(--space-3);
+  }
+  .article .pull {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 3.5vw, 38px);
+    line-height: 1.25;
+    color: var(--ink-deep);
+    letter-spacing: -0.015em;
+    font-weight: 600;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding-block: var(--space-5);
+    margin-block: var(--space-7);
+    max-width: 32ch;
+  }
+
+  /* Share row */
+  .share {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    padding-block: var(--space-7);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-top: var(--space-8);
+  }
+  .share .label {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin-right: var(--space-3);
+  }
+  .share a {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 160ms ease-out, color 160ms ease-out;
+    color: var(--ink-deep);
+  }
+  .share a:hover { border-color: var(--accent); color: var(--accent); }
+  .share svg { width: 18px; height: 18px; }
+
+  /* Related */
+  .related { padding-block: var(--space-8) var(--space-7); }
+  .related__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-5);
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--border);
+  }
+  .related__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(20px, 3vw, 40px);
+  }
+  @media (max-width: 800px) { .related__grid { grid-template-columns: 1fr; } }
+  .related-card .art {
+    aspect-ratio: 4 / 3;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    margin-bottom: var(--space-4);
+    overflow: hidden;
+  }
+  .related-card .art svg { width: 100%; height: 100%; }
+  .related-card .meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+  .related-card .ttl {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 19px;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--ink-deep);
+    transition: color 160ms ease-out;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .related-card a:hover .ttl { color: var(--accent); }
+  .related-card .excerpt {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Footer */
+  .site-footer { border-top: 1px solid var(--border); padding-block: var(--space-7); }
+  .site-footer__grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: clamp(32px, 5vw, 64px); margin-bottom: var(--space-7); }
+  @media (max-width: 720px) { .site-footer__grid { grid-template-columns: 1fr; } }
+  .site-footer h4 { font-family: var(--font-body); font-weight: 600; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin: 0 0 var(--space-4); }
+  .site-footer ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .site-footer a { font-size: 14px; color: var(--fg); }
+  .site-footer a:hover { color: var(--accent); }
+  .site-footer__bottom { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); padding-top: var(--space-5); border-top: 1px solid var(--border); font-size: 12px; letter-spacing: 0.04em; color: var(--muted); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(8px); animation: revealUp 700ms ease-out forwards; }
+    .reveal[data-delay="1"] { animation-delay: 80ms; }
+    .reveal[data-delay="2"] { animation-delay: 160ms; }
+    @keyframes revealUp { to { opacity: 1; transform: none; } }
+  }
+
+  /* Reading progress dot */
+  .progress {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 30;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--ink-deep);
+    color: var(--bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    box-shadow: 0 6px 16px -6px oklch(20% 0.04 260 / 0.4);
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header" data-od-id="header">
+  <div class="container site-header__inner">
+    <a href="index.html" class="wordmark">
+      <img src="assets/avatar.jpg" alt="" class="wordmark-avatar" />
+      <span>Đức Trần<span class="seal">.</span></span>
+    </a>
+    <nav class="site-nav" aria-label="Chính">
+      <a class="site-nav__link" href="index.html">Trang chủ</a>
+      <a class="site-nav__link" href="categories.html">Danh mục</a>
+      <a class="site-nav__link" href="about.html">Về tôi</a>
+    </nav>
+    <div class="lang-toggle" role="group" aria-label="Ngôn ngữ">
+      <a href="post.html" aria-current="true">VI</a>
+      <a href="post.html">EN</a>
+    </div>
+  </div>
+</header>
+
+<nav class="crumbs" aria-label="Breadcrumb" data-od-id="breadcrumb">
+  <div class="container">
+    <ol>
+      <li><a href="index.html">Trang chủ</a></li>
+      <li><a href="categories.html">Danh mục</a></li>
+      <li><a href="category.html">Hệ thống</a></li>
+      <li>Về sự tĩnh lặng trong hệ thống phân tán</li>
+    </ol>
+  </div>
+</nav>
+
+<main>
+
+  <article>
+    <header class="post-head" data-od-id="post-head">
+      <div class="container">
+        <div class="post-head__inner">
+          <div class="post-head__meta">
+            <span class="pill">Hệ thống</span>
+            <span>14 tháng 3, 2025</span>
+            <span class="sep">·</span>
+            <span>9 phút đọc</span>
+          </div>
+          <h1 class="post-head__title">Về sự tĩnh lặng<br/>trong hệ thống phân tán</h1>
+          <p class="post-head__dek">Một hệ thống tốt là hệ thống không đòi hỏi bạn phải để ý đến nó. Bài học backend engineering tôi đã học qua sáu năm vận hành một dịch vụ production.</p>
+          <div class="post-head__byline">
+            <img src="assets/avatar.jpg" alt="" class="avatar" />
+            <span>bởi <span class="name">Đức Trần</span> · Senior Software Engineer · 11 năm kinh nghiệm</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <figure class="featured-image" data-od-id="featured-image">
+      <img src="assets/coast.jpg" alt="Bờ biển đá — coastal view with calm sea and distant mountains" />
+    </figure>
+
+    <div class="container">
+      <div class="article">
+
+        <p>Có một buổi sáng — tôi nhớ là thứ Tư — khi đồng nghiệp ở bên kia thế giới gửi một dòng tin nhắn duy nhất: <em>“Hệ thống chạy ổn.”</em> Không có dấu chấm than, không có emoji, không có lời giải thích. Đó là báo cáo hoàn hảo. Hệ thống đang chạy, và cả thế giới đều không cần phải biết.</p>
+
+        <p>Hôm đó tôi nghĩ: <strong>một hệ thống tốt là hệ thống không đòi hỏi bạn phải để ý đến nó</strong>. Và từ đó, tôi bắt đầu nghĩ về sự tĩnh lặng như một dấu hiệu của sự trưởng thành kỹ thuật — không phải thước đo của hệ thống, nhưng là dấu hiệu cho thấy những quyết định kiến trúc đã đi đúng hướng.</p>
+
+        <h2 id="im-luc">Im lặng như một thuộc tính</h2>
+
+        <p>Khi mới bắt đầu, tôi thường nghĩ về hệ thống tốt theo cách đếm được: bao nhiêu request mỗi giây, bao nhiêu phần trăm uptime, bao nhiêu mili-giây latency. Những con số này quan trọng — nhưng chúng không phải là điều khiến tôi yên tâm khi đi ngủ. Điều khiến tôi yên tâm là khi cả tuần không có cảnh báo nào hiện lên, không có trang dashboard nào cần mở, và đồng nghiệp ở múi giờ khác không nhắn cho tôi vì hệ thống.</p>
+
+        <blockquote>
+          “A distributed system is not a collection of services that talk to each other — it is a collection of silences that hold.”
+          <cite>— ghi chú cá nhân, 2023</cite>
+        </blockquote>
+
+        <p>Sự im lặng trong hệ thống phân tán không phải là sự vắng mặt của lỗi. Lỗi luôn xảy ra — và đó là điều hiển nhiên. Sự im lặng là kết quả của việc lỗi được xử lý tại chỗ, được phục hồi mà không cần con người can thiệp, được giải thích qua log mà không cần ai đọc log để hiểu chuyện gì đang xảy ra.</p>
+
+        <h2 id="nguon-im-lang">Nguồn của sự yên lặng</h2>
+
+        <p>Trong sáu năm qua, tôi đã quan sát nhiều hệ thống ở nhiều quy mô khác nhau — từ một dịch vụ đơn lẻ chạy trên một máy ảo, đến những hệ thống phức tạp với hàng trăm microservices. Một điều tôi nhận ra: hệ thống càng yên lặng, càng có ít dòng code được viết vội vàng. Và điều đó có nghĩa là: hệ thống càng yên lặng, càng có nhiều thời gian đã được dành cho việc <em>không</em> viết code.</p>
+
+        <ul>
+          <li><strong>Thời gian để hiểu.</strong> Hệ thống yên lặng là hệ thống mà người thiết kế đã dành đủ thời gian để hiểu vấn đề trước khi viết giải pháp. Không phải không có giải pháp — mà là giải pháp được sinh ra từ sự hiểu biết, không phải từ áp lực deadline.</li>
+          <li><strong>Thời gian để từ chối.</strong> Yên lặng cũng đến từ việc từ chối thêm tính năng, queue, layer — từ chối giải pháp “hay” vì nó tạo ra tiếng ồn. Tôi đã học được rằng sự từ chối tốt thường là sự từ chối xảy ra trong đầu, trước khi codebase phải chịu đựng nó.</li>
+          <li><strong>Thời gian để quan sát.</strong> Hệ thống yên lặng là hệ thống đã được nhìn — thật sự nhìn — qua nhiều ngày hoạt động bình thường. Observability không phải là việc thêm metric; nó là việc để mắt đến những gì đang chạy đúng.</li>
+        </ul>
+
+        <h3>Về “chạy đúng”</h3>
+
+        <p>Một hệ thống chạy đúng không phải là một hệ thống không có lỗi. Một hệ thống chạy đúng là một hệ thống mà những lỗi xảy ra được xử lý như một phần tự nhiên của hoạt động — không phải như một sự kiện cần được kể lại trong báo cáo tuần.</p>
+
+        <p>Tôi đã viết hàng chục alert trong đời. Phần lớn trong số chúng đã trở thành tiếng ồn — và phần lớn trong số những alert đó được viết vì một lý do sai: chúng ta nghĩ rằng nhiều alert = nhiều an toàn. Ngược lại: nhiều alert = nhiều tiếng ồn = ít sự chú ý = nhiều lỗi bị bỏ qua. Sự yên lặng đến từ việc chỉ giữ lại những alert thật sự cần sự can thiệp của con người.</p>
+
+        <hr />
+
+        <h2 id="thuy-cua-nuoc">Thủy của nước</h2>
+
+        <p>Nước không phải là sự ồn ào. Nước là sự chảy, là sự tìm đường, là sự chịu đựng. Một dòng sông lớn không tạo ra tiếng động — nó chỉ chảy. Và nó chảy qua mọi thứ chống lại nó.</p>
+
+        <p>Tôi nghĩ những hệ thống tốt nhất mà tôi từng làm việc cùng cũng vậy. Chúng không phải là những hệ thống phức tạp nhất, cũng không phải những hệ thống có nhiều tính năng nhất. Chúng là những hệ thống mà khi bạn nhìn vào, bạn nghĩ: <em>“À, nó đang chảy.”</em> Không có gì phải nói thêm.</p>
+
+        <blockquote>
+          “Nước không cần phải nói rằng nó đang chảy — nó chỉ chảy.”
+          <cite>— Lão Tử, Đạo Đức Kinh, chương 8 (diễn giải)</cite>
+        </blockquote>
+
+        <h2 id="thiet-ke-cho-su-im-lang">Thiết kế cho sự im lặng</h2>
+
+        <p>Thiết kế cho sự im lặng không phải là một bài tập kỹ thuật — nó là một bài tập về sự từ bỏ. Đây là một vài nguyên tắc tôi đã học được:</p>
+
+        <h3>1. Im lặng bắt đầu từ dữ liệu</h3>
+
+        <p>Một hệ thống tạo ra nhiều log không phải vì nó phức tạp — mà vì nó không chắc chắn về dữ liệu của nó. Khi schema không rõ ràng, khi boundary giữa các domain mờ nhạt, hệ thống phải nói nhiều để tự giải thích. Ngược lại: khi dữ liệu có cấu trúc rõ ràng, khi mỗi phần của hệ thống biết chính xác nó đang giữ cái gì, sự im lặng tự nhiên xuất hiện.</p>
+
+        <p>Tôi thường bắt đầu một hệ thống mới bằng cách vẽ dữ liệu trước khi viết bất kỳ dòng code nào. Không phải ER diagram — chỉ là một vài trang giấy với những hộp và mũi tên. Hệ thống nào tôi đã làm theo cách này thường yên lặng hơn; hệ thống nào tôi bắt đầu bằng code thường ồn ào hơn.</p>
+
+        <h3>2. Idempotency là im lặng</h3>
+
+        <p>Khi một operation là idempotent, bạn không cần phải lo lắng về việc nó đã chạy hay chưa. Đó là một dạng yên lặng cơ bản nhất trong hệ thống phân tán: <em>“Nếu nó chạy hai lần, kết quả vẫn đúng.”</em> Idempotency giải phóng tâm trí — của người viết code và của hệ thống.</p>
+
+        <pre><code>// An idempotent write — safe to retry
+async function applyOrder(orderId: string) {
+  const order = await db.orders.find(orderId);
+  if (order.applied) return;        // silent on second call
+  await db.orders.markApplied(orderId);
+  await inventory.decrement(order);
+  await notify.send(order);</code></pre>
+
+        <p>Đoạn code trên không có log nào — và đó là điểm. Khi mọi đường dẫn đều idempotent, lỗi không cần phải được kể lại; chúng chỉ cần được thử lại.</p>
+
+        <h3>3. Circuit breaker là sự từ chối lịch sự</h3>
+
+        <p>Một circuit breaker không phải là một biện pháp bảo vệ — nó là một cách để hệ thống từ chối yêu cầu khi nó không thể phục vụ. Đó là một dạng im lặng: im lặng không phải vì hệ thống đang chạy tốt, mà vì nó biết khi nào nên ngừng cố gắng.</p>
+
+        <div class="pull">Khi một hệ thống biết khi nào không nên nói, nó đã trưởng thành.</div>
+
+        <p>Trong thiết kế hệ thống, có một khái niệm gọi là <em>vô vi</em> — không hành động. Không phải lười biếng; không phải bất lực; mà là sự hiểu biết rằng đôi khi hành động đúng nhất là không hành động. Circuit breaker là <em>vô vi</em> trong kỹ thuật.</p>
+
+        <h2 id="ket-thuc">Kết thúc</h2>
+
+        <p>Tôi không có một công thức cụ thể cho sự yên lặng. Có lẽ không ai có. Nhưng tôi biết rằng mỗi khi tôi nhìn vào một hệ thống và thấy im lặng, tôi thường thấy phía sau đó là những quyết định đã được đưa ra từ lâu — những quyết định mà người đưa ra đã không còn ở đó, nhưng dấu vết của họ vẫn còn.</p>
+
+        <p>Có lẽ đó cũng là cách tôi muốn viết phần mềm: để lại dấu vết của sự yên lặng, không phải dấu vết của sự ồn ào.</p>
+
+        <p>Nếu bạn đã đọc đến đây — cảm ơn. Và xin lỗi vì đã cho bạn quá nhiều thứ để đọc trong một bài viết về sự im lặng.</p>
+
+      </div>
+
+      <div class="share" data-od-id="share">
+        <span class="label">Chia sẻ</span>
+        <a href="#" aria-label="Chia sẻ qua Twitter / X">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </a>
+        <a href="#" aria-label="Chia sẻ qua LinkedIn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.45zm-15.1-13c-1.14 0-2.06-.93-2.06-2.06 0-1.14.92-2.06 2.06-2.06 1.14 0 2.06.92 2.06 2.06 0 1.13-.92 2.06-2.06 2.06zm1.78 13H5.33V9h3.55zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+        </a>
+        <a href="#" aria-label="Sao chép liên kết">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <section class="related" data-od-id="related">
+      <div class="container">
+        <header class="related__head">
+          <h2 class="h2">Đọc tiếp trong<br/><span style="color: var(--muted); font-style: italic; font-family: var(--font-body); font-weight: 400; font-size: 0.55em;">More on systems</span></h2>
+          <a href="category.html" class="small" style="font-weight: 600; letter-spacing: 0.04em;">Xem tất cả →</a>
+        </header>
+        <div class="related__grid">
+          <article class="related-card">
+            <a href="post.html">
+              <div class="art">
+                <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                  <rect width="400" height="300" fill="oklch(96% 0.014 85)" />
+                  <g fill="none" stroke="oklch(36% 0.04 255)" stroke-width="0.8" opacity="0.7">
+                    <path d="M0 200 Q50 180 100 200 T200 200 T300 200 T400 200" />
+                    <path d="M0 220 Q50 200 100 220 T200 220 T300 220 T400 220" />
+                    <path d="M0 240 Q50 220 100 240 T200 240 T300 240 T400 240" />
+                  </g>
+                  <g fill="oklch(50% 0.22 28)" opacity="0.6">
+                    <circle cx="120" cy="120" r="3" />
+                    <circle cx="200" cy="100" r="4" />
+                    <circle cx="280" cy="130" r="3" />
+                  </g>
+                </svg>
+              </div>
+              <div class="meta"><span>22 / 02</span><span>·</span><span>12 phút</span></div>
+              <span class="ttl">Triết học của cache: ghi nhớ và quên</span>
+              <p class="excerpt">Cache là cách hệ thống ghi nhớ — và biết quên. Một cuộc đi dạo qua thiết kế cache như một quá trình chiêm nghiệm.</p>
+            </a>
+          </article>
+
+          <article class="related-card">
+            <a href="post.html">
+              <div class="art">
+                <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                  <rect width="400" height="300" fill="oklch(96% 0.014 85)" />
+                  <g stroke="oklch(48% 0.014 250)" stroke-width="0.5" opacity="0.5">
+                    <line x1="60" y1="60" x2="340" y2="60" />
+                    <line x1="60" y1="120" x2="340" y2="120" />
+                    <line x1="60" y1="180" x2="340" y2="180" />
+                    <line x1="60" y1="240" x2="340" y2="240" />
+                    <line x1="60" y1="60" x2="60" y2="240" />
+                    <line x1="150" y1="60" x2="150" y2="240" />
+                    <line x1="240" y1="60" x2="240" y2="240" />
+                    <line x1="340" y1="60" x2="340" y2="240" />
+                  </g>
+                  <circle cx="150" cy="180" r="6" fill="oklch(50% 0.22 28)" />
+                </svg>
+              </div>
+              <div class="meta"><span>30 / 01</span><span>·</span><span>11 phút</span></div>
+              <span class="ttl">Khi hệ thống không chịu được thêm queue</span>
+              <p class="excerpt">Về ranh giới giữa “phân tán” và “rối tung”, và những dấu hiệu cho thấy đã đến lúc dừng thêm.</p>
+            </a>
+          </article>
+
+          <article class="related-card">
+            <a href="post.html">
+              <div class="art">
+                <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                  <rect width="400" height="300" fill="oklch(95% 0.014 85)" />
+                  <g fill="none" stroke="oklch(48% 0.03 255)" stroke-width="0.8" opacity="0.7">
+                    <circle cx="200" cy="150" r="40" />
+                    <circle cx="200" cy="150" r="80" />
+                    <circle cx="200" cy="150" r="120" />
+                  </g>
+                  <text x="200" y="158" text-anchor="middle" font-family="Noto Serif Display, serif" font-size="22" font-weight="700" fill="oklch(50% 0.22 28)">DB</text>
+                </svg>
+              </div>
+              <div class="meta"><span>03 / 01</span><span>·</span><span>13 phút</span></div>
+              <span class="ttl">Khi cơ sở dữ liệu trở thành một nhân vật</span>
+              <p class="excerpt">Một cơ sở dữ liệu không phải thư viện — nó là nhân vật sống, có tính khí, có tuổi thọ. Và bạn phải sống cùng nó.</p>
+            </a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+  </article>
+
+</main>
+
+<footer class="site-footer" data-od-id="footer">
+  <div class="container">
+    <div class="site-footer__grid">
+      <div>
+        <a href="index.html" class="wordmark" style="margin-bottom: var(--space-3); display: inline-flex;">
+          <img src="assets/avatar.jpg" alt="" class="wordmark-avatar" />
+          <span>Đức Trần<span class="seal">.</span></span>
+        </a>
+        <p class="small" style="color: var(--muted); max-width: 36ch; margin-top: var(--space-3);">Đức Trần — Senior Software Engineer. Ghi chép nghề từ 11 năm backend engineering. Viết từ Hà Nội.</p>
+      </div>
+      <div>
+        <h4>Dẫn đường</h4>
+        <ul>
+          <li><a href="index.html">Trang chủ</a></li>
+          <li><a href="categories.html">Danh mục</a></li>
+          <li><a href="category.html">Bài mới nhất</a></li>
+          <li><a href="about.html">Về tôi</a></li>
+          <li><a href="post.html">RSS / Atom</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Nơi khác</h4>
+        <ul>
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">LinkedIn</a></li>
+          <li><a href="#">Twitter / X</a></li>
+          <li><a href="mailto:duc@example.vn">Email</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="site-footer__bottom">
+      <span>© 2025 Đức Trần. Viết bằng tay, đăng bằng tâm.</span>
+      <span>Built with patience · Designed in ink &amp; tide</span>
+    </div>
+  </div>
+</footer>
+
+<div class="progress" aria-label="Tiến độ đọc" title="Tiến độ đọc">
+  <span id="prog">01</span>
+</div>
+
+<script>
+  (function () {
+    var prog = document.getElementById('prog');
+    if (!prog) return;
+    var article = document.querySelector('.article');
+    if (!article) return;
+    function update() {
+      var rect = article.getBoundingClientRect();
+      var viewport = window.innerHeight;
+      var total = rect.height - viewport;
+      var passed = Math.min(Math.max(-rect.top, 0), total);
+      var pct = total > 0 ? Math.round((passed / total) * 100) : 0;
+      prog.textContent = String(Math.min(99, Math.max(1, pct))).padStart(2, '0');
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  })();
+</script>
+
+</body>
+</html>

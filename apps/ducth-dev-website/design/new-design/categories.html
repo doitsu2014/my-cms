@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Danh mục — Đức Trần</title>
+<meta name="description" content="Danh mục ghi chép nghề — backend engineering, distributed systems, ngôn ngữ lập trình, vận hành production, và bài học từ thực tế." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: oklch(92% 0.032 70);
+    --surface: oklch(97% 0.015 70);
+    --fg: oklch(18% 0.055 260);
+    --muted: oklch(42% 0.022 260);
+    --border: oklch(82% 0.022 78);
+    --accent: oklch(50% 0.22 28);
+    --accent-ink: oklch(95% 0.05 30);
+    --ink-deep: oklch(12% 0.055 260);
+    --success: oklch(46% 0.14 155);
+    --warn: oklch(72% 0.15 72);
+    --danger: oklch(54% 0.22 25);
+    --font-display: "Noto Serif Display", Georgia, "Times New Roman", serif;
+    --font-body: "Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+    --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px; --space-9: 96px;
+    --radius-sm: 4px; --radius-md: 8px;
+    --container: 1240px;
+    --gutter: clamp(20px, 4vw, 48px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: oklch(13% 0.028 260);
+      --surface: oklch(17% 0.032 260);
+      --fg: oklch(95% 0.018 85);
+      --muted: oklch(68% 0.015 252);
+      --border: oklch(28% 0.022 252);
+      --accent: oklch(66% 0.19 28);
+      --accent-ink: oklch(25% 0.075 28);
+      --ink-deep: oklch(98% 0.012 85);
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 17px; line-height: 1.65; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+  img, svg { display: block; max-width: 100%; }
+  .container { width: 100%; max-width: var(--container); margin: 0 auto; padding-inline: var(--gutter); }
+  .eyebrow { font-family: var(--font-body); font-size: 12px; font-weight: 600; line-height: 1.4; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .eyebrow .dot { display: inline-block; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; margin-right: 10px; vertical-align: middle; transform: translateY(-1px); }
+  .display-l { font-family: var(--font-display); font-weight: 700; font-size: clamp(36px, 5vw, 64px); line-height: 1.08; letter-spacing: -0.02em; color: var(--ink-deep); }
+  .h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 4vw, 48px); line-height: 1.12; letter-spacing: -0.018em; color: var(--ink-deep); }
+  .h2 { font-family: var(--font-display); font-weight: 600; font-size: 28px; line-height: 1.18; letter-spacing: -0.01em; color: var(--ink-deep); }
+  .h3 { font-family: var(--font-display); font-weight: 600; font-size: 22px; line-height: 1.25; letter-spacing: -0.005em; color: var(--ink-deep); }
+  .lead { font-size: 19px; line-height: 1.6; color: var(--fg); max-width: 56ch; }
+  .small { font-size: 14px; line-height: 1.5; letter-spacing: 0.01em; }
+  .vstack-2 > * + * { margin-top: var(--space-2); }
+  .vstack-3 > * + * { margin-top: var(--space-3); }
+  .vstack-4 > * + * { margin-top: var(--space-4); }
+  .vstack-5 > * + * { margin-top: var(--space-5); }
+  .vstack-6 > * + * { margin-top: var(--space-6); }
+  .vstack-7 > * + * { margin-top: var(--space-7); }
+
+  /* Header (shared) */
+  .site-header { border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(140%) blur(8px); }
+  .site-header__inner { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); padding-block: var(--space-4); }
+  .wordmark { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: var(--ink-deep); }
+  .wordmark-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; object-position: center 40%; border: 1px solid var(--border); }
+  .wordmark .seal { color: var(--accent); font-style: italic; font-weight: 600; }
+  .site-nav { display: flex; align-items: center; gap: var(--space-6); }
+  .site-nav__link { font-size: 14px; font-weight: 500; letter-spacing: 0.02em; color: var(--fg); padding-block: 6px; border-bottom: 1px solid transparent; transition: border-color 160ms ease-out, color 160ms ease-out; }
+  .site-nav__link:hover, .site-nav__link[aria-current="page"] { color: var(--ink-deep); border-bottom-color: var(--accent); }
+  .lang-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: 3px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; }
+  .lang-toggle a { padding: 4px 10px; border-radius: 999px; color: var(--muted); transition: background 160ms ease-out, color 160ms ease-out; }
+  .lang-toggle a[aria-current="true"] { background: var(--ink-deep); color: var(--bg); }
+  @media (max-width: 720px) { .site-nav__link { display: none; } }
+
+  /* Page header */
+  .page-head {
+    padding-block: clamp(64px, 9vw, 112px);
+    border-bottom: 1px solid var(--border);
+  }
+  .page-head__grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: clamp(32px, 5vw, 80px);
+    align-items: end;
+  }
+  @media (max-width: 800px) { .page-head__grid { grid-template-columns: 1fr; gap: var(--space-5); } }
+  .page-head__title { display: grid; grid-template-columns: 1fr; gap: var(--space-3); }
+  .page-head .display-l .small-en {
+    display: block;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 0.45em;
+    margin-top: 0.4em;
+    letter-spacing: -0.01em;
+  }
+  .page-head__meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    align-items: flex-start;
+  }
+  @media (min-width: 800px) {
+    .page-head__meta { align-items: flex-end; text-align: right; }
+  }
+  .stat-row {
+    display: flex;
+    gap: var(--space-7);
+    margin-top: var(--space-5);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border);
+  }
+  .stat-row .stat .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .stat-row .stat .value {
+    font-family: var(--font-display);
+    font-size: 32px;
+    line-height: 1;
+    font-weight: 600;
+    color: var(--ink-deep);
+    letter-spacing: -0.015em;
+  }
+  .stat-row .stat .value .accent { color: var(--accent); font-style: italic; }
+
+  /* Category rows */
+  .cat-list { padding-block: clamp(48px, 7vw, 96px); }
+  .cat-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 1.2fr;
+    gap: clamp(24px, 4vw, 48px);
+    padding-block: clamp(40px, 5vw, 56px);
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+  }
+  .cat-row:first-child { border-top: 1px solid var(--border); }
+  @media (max-width: 900px) {
+    .cat-row { grid-template-columns: 1fr; gap: var(--space-4); }
+  }
+  .cat-row__num {
+    font-family: var(--font-display);
+    font-size: clamp(56px, 6vw, 80px);
+    font-weight: 400;
+    line-height: 1;
+    color: oklch(82% 0.012 80);
+    letter-spacing: -0.02em;
+  }
+  .cat-row__num .accent { color: var(--accent); }
+  .cat-row__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(28px, 3vw, 36px);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--ink-deep);
+    margin-bottom: var(--space-2);
+    display: block;
+  }
+  .cat-row__name .small-en {
+    display: block;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 0.45em;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: -0.005em;
+  }
+  .cat-row__slug {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-top: var(--space-3);
+  }
+  .cat-row__desc {
+    color: var(--fg);
+    margin-bottom: var(--space-4);
+    max-width: 48ch;
+  }
+  .cat-row__posts {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .cat-row__posts li {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: var(--space-3);
+    align-items: baseline;
+    padding-block: var(--space-3);
+    border-top: 1px solid var(--border);
+  }
+  .cat-row__posts .date {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .cat-row__posts .ttl {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.35;
+    color: var(--fg);
+    transition: color 160ms ease-out;
+  }
+  .cat-row__posts a:hover .ttl { color: var(--accent); }
+  .cat-row__cta {
+    margin-top: var(--space-4);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--ink-deep);
+    border-bottom: 1px solid transparent;
+    transition: border-color 160ms ease-out, gap 160ms ease-out;
+  }
+  .cat-row__cta:hover { border-bottom-color: var(--accent); gap: 12px; }
+  .cat-row__cta::after { content: "→"; }
+
+  /* Footer (shared) */
+  .site-footer { border-top: 1px solid var(--border); padding-block: var(--space-7); margin-top: var(--space-9); }
+  .site-footer__grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: clamp(32px, 5vw, 64px); margin-bottom: var(--space-7); }
+  @media (max-width: 720px) { .site-footer__grid { grid-template-columns: 1fr; } }
+  .site-footer h4 { font-family: var(--font-body); font-weight: 600; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin: 0 0 var(--space-4); }
+  .site-footer ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .site-footer a { font-size: 14px; color: var(--fg); }
+  .site-footer a:hover { color: var(--accent); }
+  .site-footer__bottom { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); padding-top: var(--space-5); border-top: 1px solid var(--border); font-size: 12px; letter-spacing: 0.04em; color: var(--muted); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(8px); animation: revealUp 700ms ease-out forwards; }
+    .reveal[data-delay="1"] { animation-delay: 80ms; }
+    .reveal[data-delay="2"] { animation-delay: 160ms; }
+    @keyframes revealUp { to { opacity: 1; transform: none; } }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header" data-od-id="header">
+  <div class="container site-header__inner">
+    <a href="index.html" class="wordmark" aria-label="Đức Trần — trang chủ">
+      <img src="assets/avatar.jpg" alt="" class="wordmark-avatar" />
+      <span>Đức Trần<span class="seal">.</span></span>
+    </a>
+    <nav class="site-nav" aria-label="Chính">
+      <a class="site-nav__link" href="index.html">Trang chủ</a>
+      <a class="site-nav__link" href="categories.html" aria-current="page">Danh mục</a>
+      <a class="site-nav__link" href="about.html">Về tôi</a>
+    </nav>
+    <div class="lang-toggle" role="group" aria-label="Ngôn ngữ">
+      <a href="categories.html" aria-current="true">VI</a>
+      <a href="categories.html">EN</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Page header -->
+  <section class="page-head" data-od-id="page-head">
+    <div class="container">
+      <div class="page-head__grid">
+        <div class="page-head__title vstack-4 reveal">
+          <p class="eyebrow"><span class="dot"></span>Mục lục · Index</p>
+          <h1 class="display-l">Danh mục<span class="small-en">Categories — five rooms of a career</span></h1>
+        </div>
+        <div class="page-head__meta reveal" data-delay="1">
+          <p class="lead">Mỗi danh mục là một góc của nghề backend engineering mà tôi đã đi qua — kỹ thuật, vận hành, và những bài học từ thực tế.</p>
+          <div class="stat-row">
+            <div class="stat">
+              <span class="label">Danh mục</span>
+              <span class="value">05</span>
+            </div>
+            <div class="stat">
+              <span class="label">Bài viết</span>
+              <span class="value"><span class="accent">38</span></span>
+            </div>
+            <div class="stat">
+              <span class="label">Cập nhật</span>
+              <span class="value">2025</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Category list -->
+  <section class="cat-list" data-od-id="category-list">
+    <div class="container">
+
+      <!-- Cat 1: Hệ thống -->
+      <article class="cat-row reveal">
+        <div class="cat-row__num">01<span class="accent">.</span></div>
+        <div>
+          <a href="category.html" class="cat-row__name">Hệ thống<span class="small-en">Systems</span></a>
+          <p class="cat-row__desc">Những hệ thống phân tán, cơ sở dữ liệu, queue, cache — những bài toán tôi đã đối mặt trong production. Các quyết định kiến trúc tôi đã đưa ra, và những hệ quả tôi đã sống cùng.</p>
+          <a href="category.html" class="cat-row__cta">Vào danh mục · 14 bài</a>
+        </div>
+        <div>
+          <ul class="cat-row__posts">
+            <li><span class="date">14 / 03</span><a href="post.html"><span class="ttl">Về sự tĩnh lặng trong hệ thống phân tán</span></a></li>
+            <li><span class="date">22 / 02</span><a href="post.html"><span class="ttl">Triết học của cache: ghi nhớ và quên</span></a></li>
+            <li><span class="date">30 / 01</span><a href="post.html"><span class="ttl">Khi hệ thống không thể chịu đựng thêm một queue</span></a></li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Cat 2: Nghề thủ công -->
+      <article class="cat-row reveal" data-delay="1">
+        <div class="cat-row__num">02<span class="accent">.</span></div>
+        <div>
+          <a href="category.html" class="cat-row__name">Nghề thủ công<span class="small-en">Craft</span></a>
+          <p class="cat-row__desc">Về thực hành kỹ thuật — code review, refactor, viết test, và những kỹ năng mà một kỹ sư senior dùng hàng ngày. Những gì tôi đã học được khi dẫn dắt team và review hàng nghìn pull request.</p>
+          <a href="category.html" class="cat-row__cta">Vào danh mục · 09 bài</a>
+        </div>
+        <div>
+          <ul class="cat-row__posts">
+            <li><span class="date">02 / 03</span><a href="post.html"><span class="ttl">Khi nào code trở thành nghề thủ công</span></a></li>
+            <li><span class="date">08 / 02</span><a href="post.html"><span class="ttl">Đọc codebase như đọc thơ</span></a></li>
+            <li><span class="date">11 / 01</span><a href="post.html"><span class="ttl">Mười năm cùng một hàm — ghi chép về sự bền bỉ</span></a></li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Cat 3: Ngôn ngữ -->
+      <article class="cat-row reveal" data-delay="2">
+        <div class="cat-row__num">03<span class="accent">.</span></div>
+        <div>
+          <a href="category.html" class="cat-row__name">Ngôn ngữ<span class="small-en">Languages</span></a>
+          <p class="cat-row__desc">TypeScript, Go, Python, Rust — những ngôn ngữ tôi đã dùng trong production. Tại sao tôi chọn chúng, khi nào tôi từ bỏ, và bài học từ mỗi lần chuyển đổi.</p>
+          <a href="category.html" class="cat-row__cta">Vào danh mục · 07 bài</a>
+        </div>
+        <div>
+          <ul class="cat-row__posts">
+            <li><span class="date">21 / 02</span><a href="post.html"><span class="ttl">TypeScript như một ngôn ngữ mẹ đẻ</span></a></li>
+            <li><span class="date">19 / 01</span><a href="post.html"><span class="ttl">Rust không dành cho tất cả mọi người — và đó là điều tốt</span></a></li>
+            <li><span class="date">04 / 01</span><a href="post.html"><span class="ttl">Python ở tuổi 30 — vẫn còn đáng yêu, nhưng đã trưởng thành</span></a></li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Cat 4: Triết học -->
+      <article class="cat-row reveal" data-delay="3">
+        <div class="cat-row__num">04<span class="accent">.</span></div>
+        <div>
+          <a href="category.html" class="cat-row__name">Triết học<span class="small-en">Philosophy</span></a>
+          <p class="cat-row__desc">Những bài viết về quyết định kiến trúc lớn — về trade-off, về những lựa chọn tôi đã đưa ra và hậu quả của chúng. Nơi tôi tổng kết những bài học lớn nhất từ 11 năm trong nghề.</p>
+          <a href="category.html" class="cat-row__cta">Vào danh mục · 05 bài</a>
+        </div>
+        <div>
+          <ul class="cat-row__posts">
+            <li><span class="date">15 / 01</span><a href="post.html"><span class="ttl">Triết học của cache: ghi nhớ và quên trong hệ thống</span></a></li>
+            <li><span class="date">06 / 12</span><a href="post.html"><span class="ttl">Âm dương trong kiến trúc phần mềm</span></a></li>
+            <li><span class="date">17 / 11</span><a href="post.html"><span class="ttl">Tại sao tôi đọc Lão Tử trước khi review code</span></a></li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Cat 5: Bảo trì -->
+      <article class="cat-row reveal">
+        <div class="cat-row__num">05<span class="accent">.</span></div>
+        <div>
+          <a href="category.html" class="cat-row__name">Bảo trì<span class="small-en">Maintenance</span></a>
+          <p class="cat-row__desc">Phần lớn sự nghiệp của một kỹ sư không phải viết mới — mà là duy trì, sửa chữa, và giữ cho những hệ thống cũ tiếp tục chạy. Những bài học tôi đã học khi vận hành dịch vụ production qua nhiều năm.</p>
+          <a href="category.html" class="cat-row__cta">Vào danh mục · 03 bài</a>
+        </div>
+        <div>
+          <ul class="cat-row__posts">
+            <li><span class="date">29 / 01</span><a href="post.html"><span class="ttl">Refactor không phải là viết lại</span></a></li>
+            <li><span class="date">12 / 12</span><a href="post.html"><span class="ttl">Nghệ thuật giữ một dịch vụ chạy trong mười năm</span></a></li>
+            <li><span class="date">21 / 10</span><a href="post.html"><span class="ttl">Sửa bug như dọn dòng sông — chậm và đúng hướng</span></a></li>
+          </ul>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer" data-od-id="footer">
+  <div class="container">
+    <div class="site-footer__grid">
+      <div>
+        <a href="index.html" class="wordmark" style="margin-bottom: var(--space-3); display: inline-flex;">
+          <img src="assets/avatar.jpg" alt="" class="wordmark-avatar" />
+          <span>Đức Trần<span class="seal">.</span></span>
+        </a>
+        <p class="small" style="color: var(--muted); max-width: 36ch; margin-top: var(--space-3);">Đức Trần — Senior Software Engineer. Ghi chép nghề từ 11 năm backend engineering. Viết từ Hà Nội.</p>
+      </div>
+      <div>
+        <h4>Dẫn đường</h4>
+        <ul>
+          <li><a href="index.html">Trang chủ</a></li>
+          <li><a href="categories.html">Danh mục</a></li>
+          <li><a href="category.html">Bài mới nhất</a></li>
+          <li><a href="about.html">Về tôi</a></li>
+          <li><a href="post.html">RSS / Atom</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Nơi khác</h4>
+        <ul>
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">LinkedIn</a></li>
+          <li><a href="#">Twitter / X</a></li>
+          <li><a href="mailto:duc@example.vn">Email</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="site-footer__bottom">
+      <span>© 2025 Đức Trần. Viết bằng tay, đăng bằng tâm.</span>
+      <span>Built with patience · Designed in ink &amp; tide</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Về tôi — Đức Trần · About</title>
+<meta name="description" content="Đức Trần — Software Engineer tại Dragon Capital (Sài Gòn), 11 năm kinh nghiệm với hệ thống tài chính và quản lý quỹ. C#, Angular, React, distributed systems, AI development workflow. Sơ yếu lý lịch nghề và cách tôi viết." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: oklch(92% 0.032 70);
+    --surface: oklch(97% 0.015 70);
+    --fg: oklch(18% 0.055 260);
+    --muted: oklch(42% 0.022 260);
+    --border: oklch(82% 0.022 78);
+    --accent: oklch(50% 0.22 28);
+    --accent-ink: oklch(95% 0.05 30);
+    --ink-deep: oklch(12% 0.055 260);
+    --font-display: "Noto Serif Display", Georgia, "Times New Roman", serif;
+    --font-body: "Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+    --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px; --space-9: 96px;
+    --container: 1240px;
+    --gutter: clamp(20px, 4vw, 48px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: oklch(13% 0.028 260);
+      --surface: oklch(17% 0.032 260);
+      --fg: oklch(95% 0.018 85);
+      --muted: oklch(68% 0.015 252);
+      --border: oklch(28% 0.022 252);
+      --accent: oklch(66% 0.19 28);
+      --accent-ink: oklch(25% 0.075 28);
+      --ink-deep: oklch(98% 0.012 85);
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 17px; line-height: 1.65; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+  img, svg { display: block; max-width: 100%; }
+  .container { width: 100%; max-width: var(--container); margin: 0 auto; padding-inline: var(--gutter); }
+  .eyebrow { font-family: var(--font-body); font-size: 12px; font-weight: 600; line-height: 1.4; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .eyebrow .dot { display: inline-block; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; margin-right: 10px; vertical-align: middle; transform: translateY(-1px); }
+  .display-xl { font-family: var(--font-display); font-weight: 700; font-size: clamp(48px, 7vw, 96px); line-height: 1.05; letter-spacing: -0.025em; color: var(--ink-deep); }
+  .display-l { font-family: var(--font-display); font-weight: 700; font-size: clamp(36px, 5vw, 64px); line-height: 1.08; letter-spacing: -0.02em; color: var(--ink-deep); }
+  .h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 4vw, 48px); line-height: 1.12; letter-spacing: -0.018em; color: var(--ink-deep); }
+  .h2 { font-family: var(--font-display); font-weight: 600; font-size: 28px; line-height: 1.18; letter-spacing: -0.01em; color: var(--ink-deep); }
+  .h3 { font-family: var(--font-display); font-weight: 600; font-size: 22px; line-height: 1.25; letter-spacing: -0.005em; color: var(--ink-deep); }
+  .lead { font-size: 19px; line-height: 1.6; color: var(--fg); max-width: 56ch; }
+  .small { font-size: 14px; line-height: 1.5; letter-spacing: 0.01em; }
+  .vstack-2 > * + * { margin-top: var(--space-2); }
+  .vstack-3 > * + * { margin-top: var(--space-3); }
+  .vstack-4 > * + * { margin-top: var(--space-4); }
+  .vstack-5 > * + * { margin-top: var(--space-5); }
+  .vstack-6 > * + * { margin-top: var(--space-6); }
+  .vstack-7 > * + * { margin-top: var(--space-7); }
+
+  .site-header { border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(140%) blur(8px); }
+  .site-header__inner { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); padding-block: var(--space-4); }
+  .wordmark { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: var(--ink-deep); }
+  .wordmark-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; object-position: center 40%; border: 1px solid var(--border); }
+  .wordmark .seal { color: var(--accent); font-style: italic; font-weight: 600; }
+  .site-nav { display: flex; align-items: center; gap: var(--space-6); }
+  .site-nav__link { font-size: 14px; font-weight: 500; letter-spacing: 0.02em; color: var(--fg); padding-block: 6px; border-bottom: 1px solid transparent; transition: border-color 160ms ease-out, color 160ms ease-out; }
+  .site-nav__link:hover, .site-nav__link[aria-current="page"] { color: var(--ink-deep); border-bottom-color: var(--accent); }
+  .lang-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: 3px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; }
+  .lang-toggle a { padding: 4px 10px; border-radius: 999px; color: var(--muted); }
+  .lang-toggle a[aria-current="true"] { background: var(--ink-deep); color: var(--bg); }
+  @media (max-width: 720px) { .site-nav__link { display: none; } }
+
+  /* Opening */
+  .opening { padding-block: clamp(80px, 12vw, 144px); border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+  .opening::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 80% 20%, oklch(94% 0.04 30 / 0.45), transparent 55%),
+      radial-gradient(ellipse at 10% 80%, oklch(90% 0.02 250 / 0.55), transparent 60%);
+    pointer-events: none;
+  }
+  .opening__inner {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-7);
+    max-width: 920px;
+  }
+  .opening__display .small-en {
+    display: block;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 0.42em;
+    margin-top: 0.4em;
+    letter-spacing: -0.01em;
+  }
+
+  /* Pillars */
+  .pillars { padding-block: clamp(64px, 9vw, 112px); border-bottom: 1px solid var(--border); }
+  .pillars__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--border);
+  }
+  @media (max-width: 900px) { .pillars__grid { grid-template-columns: 1fr; } }
+  .pillar {
+    padding: var(--space-7) var(--space-5) var(--space-7) 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .pillars__grid > .pillar { border-bottom: 0; }
+  @media (min-width: 901px) {
+    .pillars__grid > .pillar + .pillar {
+      border-left: 1px solid var(--border);
+      padding-left: var(--space-5);
+    }
+    .pillars__grid > .pillar:not(:last-child) {
+      padding-right: var(--space-5);
+    }
+  }
+  .pillar__num {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: var(--space-4);
+  }
+  .pillar__name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(28px, 3vw, 36px);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--ink-deep);
+    margin-bottom: 4px;
+  }
+  .pillar__name .ch {
+    color: var(--accent);
+    font-style: italic;
+    font-weight: 600;
+  }
+  .pillar__name-en {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: var(--space-5);
+    display: block;
+  }
+  .pillar__body p { color: var(--fg); margin-bottom: var(--space-3); }
+  .pillar__body p:last-child { margin-bottom: 0; }
+
+  /* Statement */
+  .statement { padding-block: clamp(80px, 12vw, 144px); border-bottom: 1px solid var(--border); background: var(--ink-deep); color: var(--bg); }
+  .statement .h2 { color: var(--bg); }
+  .statement__inner {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: clamp(40px, 6vw, 96px);
+    align-items: center;
+  }
+  @media (max-width: 900px) { .statement__inner { grid-template-columns: 1fr; gap: var(--space-6); } }
+  .statement__seal {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0;
+    box-shadow: 0 1px 0 oklch(0% 0 0 / 0.06), 0 24px 60px -24px oklch(0% 0 0 / 0.6);
+  }
+  .statement__seal img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
+  .statement__quote {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(24px, 3vw, 36px);
+    line-height: 1.4;
+    color: var(--bg);
+    letter-spacing: -0.01em;
+    border-left: 3px solid var(--accent);
+    padding-left: var(--space-5);
+    margin-bottom: var(--space-6);
+  }
+  .statement__quote em { color: var(--accent); font-style: italic; font-weight: 600; }
+  .statement__cite {
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: oklch(78% 0.012 250);
+  }
+
+  /* Practice */
+  .practice { padding-block: clamp(64px, 9vw, 112px); border-bottom: 1px solid var(--border); }
+  .practice__head {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: clamp(32px, 5vw, 80px);
+    align-items: end;
+    margin-bottom: var(--space-7);
+  }
+  @media (max-width: 800px) { .practice__head { grid-template-columns: 1fr; gap: var(--space-4); } }
+  .practice__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-top: 1px solid var(--border);
+  }
+  @media (max-width: 720px) { .practice__list { grid-template-columns: 1fr; } }
+  .practice__list li {
+    padding: var(--space-6) var(--space-5) var(--space-6) 0;
+    border-bottom: 1px solid var(--border);
+  }
+  @media (min-width: 721px) {
+    .practice__list li:nth-child(odd) {
+      border-right: 1px solid var(--border);
+      padding-right: var(--space-5);
+    }
+    .practice__list li:nth-child(even) {
+      padding-left: var(--space-5);
+    }
+  }
+  .practice__list .ttl {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    color: var(--ink-deep);
+    margin-bottom: 8px;
+  }
+  .practice__list .body { color: var(--fg); font-size: 16px; }
+
+  /* Connect */
+  .connect { padding-block: clamp(64px, 9vw, 112px); }
+  .connect__inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(40px, 6vw, 96px);
+    align-items: start;
+  }
+  @media (max-width: 800px) { .connect__inner { grid-template-columns: 1fr; } }
+  .connect__links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid var(--border);
+  }
+  .connect__links li { border-bottom: 1px solid var(--border); }
+  .connect__links a {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-4);
+    padding-block: var(--space-5);
+    transition: color 160ms ease-out, padding 200ms ease-out;
+  }
+  .connect__links a:hover {
+    color: var(--accent);
+    padding-left: 8px;
+  }
+  .connect__links .label {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    color: var(--ink-deep);
+  }
+  .connect__links .handle {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .connect__links .arrow { color: var(--muted); transition: transform 160ms ease-out; }
+  .connect__links a:hover .arrow { color: var(--accent); transform: translateX(4px); }
+
+  /* ───── A moment ───── */
+  .moment {
+    padding-block: clamp(80px, 12vw, 144px);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .moment__grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(40px, 6vw, 80px);
+    align-items: center;
+  }
+  @media (max-width: 900px) { .moment__grid { grid-template-columns: 1fr; } }
+  .moment__art {
+    aspect-ratio: 4 / 3;
+    background: var(--bg);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    margin: 0;
+    box-shadow: 0 1px 0 oklch(20% 0.04 260 / 0.06), 0 18px 36px -20px oklch(20% 0.04 260 / 0.4);
+  }
+  .moment__art img { width: 100%; height: 100%; object-fit: cover; object-position: center 38%; }
+  .moment__caption {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(22px, 2.6vw, 30px);
+    line-height: 1.45;
+    color: var(--ink-deep);
+    letter-spacing: -0.005em;
+    max-width: 36ch;
+  }
+  .moment__caption small {
+    display: block;
+    font-family: var(--font-body);
+    font-style: normal;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: var(--space-4);
+  }
+
+  .site-footer { border-top: 1px solid var(--border); padding-block: var(--space-7); margin-top: var(--space-9); }
+  .site-footer__grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: clamp(32px, 5vw, 64px); margin-bottom: var(--space-7); }
+  @media (max-width: 720px) { .site-footer__grid { grid-template-columns: 1fr; } }
+  .site-footer h4 { font-family: var(--font-body); font-weight: 600; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin: 0 0 var(--space-4); }
+  .site-footer ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .site-footer a { font-size: 14px; color: var(--fg); }
+  .site-footer a:hover { color: var(--accent); }
+  .site-footer__bottom { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); padding-top: var(--space-5); border-top: 1px solid var(--border); font-size: 12px; letter-spacing: 0.04em; color: var(--muted); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(8px); animation: revealUp 700ms ease-out forwards; }
+    .reveal[data-delay="1"] { animation-delay: 80ms; }
+    .reveal[data-delay="2"] { animation-delay: 160ms; }
+    .reveal[data-delay="3"] { animation-delay: 240ms; }
+    @keyframes revealUp { to { opacity: 1; transform: none; } }
+  }
+
+  /* ───── Hero (moved from home) ───── */
+  .hero {
+    padding-block: clamp(64px, 10vw, 128px);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 12% 0%, oklch(94% 0.04 30 / 0.45), transparent 55%),
+      radial-gradient(ellipse at 90% 100%, oklch(92% 0.02 250 / 0.5), transparent 60%);
+    pointer-events: none;
+  }
+  .hero__grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: clamp(32px, 6vw, 80px);
+    align-items: end;
+  }
+  @media (max-width: 900px) {
+    .hero__grid { grid-template-columns: 1fr; gap: var(--space-7); }
+  }
+  .hero__title-vi { display: block; }
+  .hero__title-en {
+    display: block;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--muted);
+    font-size: 0.55em;
+    margin-top: 0.2em;
+    letter-spacing: -0.01em;
+  }
+  .hero__art {
+    aspect-ratio: 4 / 5;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero__art img { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; }
+  .hero__meta {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-5);
+    margin-top: var(--space-7);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border);
+  }
+  .hero__meta-item { display: flex; flex-direction: column; gap: 6px; }
+  .hero__meta-item .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .hero__meta-item .value {
+    font-family: var(--font-display);
+    font-size: 18px;
+    line-height: 1.3;
+    color: var(--ink-deep);
+    font-weight: 500;
+  }
+
+  /* ───── Career timeline (replaces the old .identity career panel) ───── */
+  .timeline-section {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding-block: clamp(64px, 9vw, 112px);
+  }
+  .timeline {
+    list-style: none;
+    margin: var(--space-7) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 110px 32px 1fr;
+    gap: 0;
+  }
+  .timeline__entry {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 110px 32px 1fr;
+    padding-bottom: var(--space-7);
+  }
+  .timeline__entry:last-child { padding-bottom: 0; }
+  .timeline__year {
+    grid-column: 1;
+    text-align: right;
+    font-family: var(--font-display);
+    font-size: clamp(24px, 2.6vw, 30px);
+    font-weight: 600;
+    color: var(--ink-deep);
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    padding-right: var(--space-5);
+  }
+  .timeline__line {
+    grid-column: 2;
+    position: relative;
+  }
+  .timeline__line::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0.7em;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+    transform: translateX(-50%);
+  }
+  .timeline__entry:last-child .timeline__line::before {
+    bottom: -100%;
+  }
+  .timeline__line::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0.4em;
+    width: 11px;
+    height: 11px;
+    background: var(--accent);
+    border-radius: 50%;
+    border: 3px solid var(--surface);
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+  .timeline__body {
+    grid-column: 3;
+    padding-left: var(--space-3);
+  }
+  .timeline__role {
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--ink-deep);
+    line-height: 1.3;
+  }
+  .timeline__company {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .timeline__description {
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--fg);
+    margin-top: var(--space-3);
+    max-width: 56ch;
+  }
+  @media (max-width: 720px) {
+    .timeline,
+    .timeline__entry {
+      display: block;
+    }
+    .timeline__entry {
+      padding-bottom: var(--space-6);
+    }
+    .timeline__year {
+      text-align: left;
+      font-size: 22px;
+      padding: 0 0 var(--space-2) var(--space-6);
+    }
+    .timeline__line {
+      position: absolute;
+      left: var(--space-2);
+      top: 0.5em;
+      bottom: 0;
+      width: 1px;
+      transform: none;
+    }
+    .timeline__line::before {
+      display: none;
+    }
+    .timeline__line::after {
+      left: -5.5px;
+      top: 0.5em;
+      transform: none;
+    }
+    .timeline__body {
+      padding-left: var(--space-6);
+      padding-top: var(--space-1);
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header" data-od-id="header">
+  <div class="container site-header__inner">
+    <a href="index.html" class="wordmark">
+      <img src="assets/avatar.jpg" alt="" class="wordmark-avatar" />
+      <span>Đức Trần<span class="seal">.</span></span>
+    </a>
+    <nav class="site-nav" aria-label="Chính">
+      <a class="site-nav__link" href="index.html">Trang chủ</a>
+      <a class="site-nav__link" href="categories.html">Danh mục</a>
+      <a class="site-nav__link" href="about.html" aria-current="page">Về tôi</a>
+    </nav>
+    <div class="lang-toggle" role="group" aria-label="Ngôn ngữ">
+      <a href="about.html" aria-current="true">VI</a>
+      <a href="about.html">EN</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Hero (moved from home) -->
+  <section class="hero" data-od-id="hero">
+    <div class="container">
+      <div class="hero__grid">
+        <div class="vstack-5 reveal">
+          <p class="eyebrow"><span class="dot"></span>Kỹ sư phần mềm · Software engineer</p>
+          <h1 class="display-xl">
+            <span class="hero__title-vi">Mười một năm viết phần mềm.</span>
+            <span class="hero__title-en">Eleven years writing software.</span>
+          </h1>
+          <p class="lead">Tôi là Đức Trần — kỹ sư phần mềm tại Dragon Capital (Sài Gòn), làm việc với hệ thống tài chính và quản lý quỹ. Mười một năm viết phần mềm production — chủ yếu với C# cho backend, Angular và React cho frontend. Gần đây tôi cũng thiết lập development workflow với 3-4 AI agents để tăng tốc độ giao hàng. Blog này là ghi chép nghề từ hành trình đó: những kiến trúc tôi đã chọn, những sai lầm tôi đã sửa, và những bài học tôi đã trả giá.</p>
+          <p class="lead" style="color: var(--muted); font-style: italic; max-width: 52ch;">I'm Duc Tran — a software engineer at Dragon Capital (Saigon), working on financial systems and fund management. Eleven years writing production software — mostly C# for backend, Angular and React for frontend. Recently I've also been setting up development workflows with 3-4 AI agents to ship faster. This notebook collects the architecture choices, the bugs I shipped, and the lessons I paid for.</p>
+        </div>
+        <figure class="hero__art reveal" data-delay="1" aria-label="Đức Trần — ảnh chân dung tại hồ">
+          <img src="assets/avatar.jpg" alt="Đức Trần ngồi trên ghế, nhìn ra hồ" />
+        </figure>
+      </div>
+
+      <div class="hero__meta reveal" data-delay="2">
+        <div class="hero__meta-item">
+          <span class="label">Nghề · Practice</span>
+          <span class="value">C# · Angular · React</span>
+        </div>
+        <div class="hero__meta-item">
+          <span class="label">Kinh nghiệm · Experience</span>
+          <span class="value">11 năm · 2014 — nay</span>
+        </div>
+        <div class="hero__meta-item">
+          <span class="label">Nơi làm việc · Current</span>
+          <span class="value">Dragon Capital · Sài Gòn</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Career timeline -->
+  <section class="timeline-section" data-od-id="timeline">
+    <div class="container">
+      <header class="vstack-3 reveal" style="max-width: 920px; margin-bottom: var(--space-8);">
+        <p class="eyebrow"><span class="dot"></span>Hành trình nghề · Career timeline</p>
+        <h2 class="h1">Mười một năm, ba chương.</h2>
+        <p class="lead" style="color: var(--muted);">Mỗi chương là một bài học — từ dòng code đầu tiên đến hệ thống tài chính production. Each chapter is a lesson — from the first line of code to financial systems in production.</p>
+      </header>
+
+      <ol class="timeline">
+        <li class="timeline__entry reveal">
+          <div class="timeline__year">2014</div>
+          <div class="timeline__line" aria-hidden="true"></div>
+          <div class="timeline__body">
+            <h3 class="timeline__role">Bắt đầu viết production code</h3>
+            <p class="timeline__company">First line of production code</p>
+            <p class="timeline__description">Dòng code production đầu tiên. Chưa biết mình sẽ đi đâu — chỉ biết mình thích xây những thứ chạy thật. The first line of production code. No idea where this was going — just knew I liked building things that actually ran.</p>
+          </div>
+        </li>
+
+        <li class="timeline__entry reveal" data-delay="1">
+          <div class="timeline__year">Now</div>
+          <div class="timeline__line" aria-hidden="true"></div>
+          <div class="timeline__body">
+            <h3 class="timeline__role">Software Engineer tại Dragon Capital</h3>
+            <p class="timeline__company">Sài Gòn · Financial systems · C#, Angular, React</p>
+            <p class="timeline__description">Xây dựng hệ thống cho giao dịch, quản lý quỹ, và tính toán NAV — backend C#, frontend Angular/React. Một lỗi rounding tốn hàng triệu; một transaction chậm làm khách hàng mất tiền thật. Building systems for trading, fund management, and NAV calculation — C# backend, Angular/React frontend. A rounding error costs millions; a slow transaction costs a client real money.</p>
+          </div>
+        </li>
+
+        <li class="timeline__entry reveal" data-delay="2">
+          <div class="timeline__year">Recent</div>
+          <div class="timeline__line" aria-hidden="true"></div>
+          <div class="timeline__body">
+            <h3 class="timeline__role">AI-assisted development workflow</h3>
+            <p class="timeline__company">3-4 AI agents · tooling around the engineering</p>
+            <p class="timeline__description">Thiết lập development workflow với 3-4 AI agents — không phải để thay thế mình, mà để tăng tốc độ giao hàng. Công cụ tăng cường phán đoán kỹ thuật, không phải ngược lại. Set up a development workflow with 3-4 AI agents — not to replace myself, but to ship faster. The tooling augments engineering judgment, not the other way around.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Opening -->
+  <section class="opening" data-od-id="opening">
+    <div class="container">
+      <div class="opening__inner reveal">
+        <p class="eyebrow"><span class="dot"></span>Về tôi · About</p>
+        <h1 class="display-xl opening__display">
+          Tôi là Đức Trần.<br/>
+          <span style="color: var(--muted); font-style: italic; font-weight: 400;">Kỹ sư backend, mười một năm trong nghề.</span>
+          <span class="small-en">I am Duc Tran. Backend engineer, eleven years in.</span>
+        </h1>
+        <p class="lead" style="max-width: 64ch;">Năm 2014 tôi viết dòng code production đầu tiên. Mười một năm sau, tôi đã chạm vào hệ thống tài chính tại Dragon Capital (Sài Gòn) — backend C# cho giao dịch, quản lý quỹ, và tính toán NAV — nơi sự chính xác là yếu tố sống còn. Frontend với Angular và React. Một lỗi rounding có thể tốn hàng triệu; một transaction chậm có thể làm khách hàng mất tiền thật. Tôi vẫn chọn những kiến trúc phải sống cùng nhiều năm. Gần đây tôi cũng thiết lập development workflow với 3-4 AI agents.</p>
+        <p class="lead" style="color: var(--muted); font-style: italic; max-width: 64ch;">In 2014 I wrote my first line of production code. Eleven years later, I work on financial systems at Dragon Capital (Saigon) — C# backend for trading, fund management, and NAV calculation where correctness is non-negotiable. Angular and React on the frontend. A single rounding error can cost millions; a slow transaction can cost a client real money. I still choose architectures I have to live with for years. Recently I've also been setting up development workflows with 3-4 AI agents.</p>
+        <p class="lead" style="color: var(--muted); max-width: 64ch; margin-top: var(--space-4);">Trang này là sơ yếu lý lịch nghề — những gì tôi đã làm, những gì tôi đang làm, và những bài học tôi đã trả giá. Nếu bạn đến từ trang chủ, bạn đã đọc 38 bài viết của tôi trước khi đến đây; trang này là phần tôi muốn kể về mình, về con người đứng sau những bài viết đó.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Career pillars -->
+  <section class="pillars" data-od-id="pillars">
+    <div class="container">
+      <header class="vstack-3 reveal" style="max-width: 920px; margin-bottom: var(--space-8);">
+        <p class="eyebrow"><span class="dot"></span>Hành trình nghề · Career pillars</p>
+        <h2 class="h1">Ba trụ cột của mười một năm qua.</h2>
+        <p class="lead" style="color: var(--muted);">Không phải tất cả đều đến từ phòng họp — phần lớn đến từ những hệ thống tôi đã chạy, những sự cố tôi đã xử lý, và những người tôi đã làm việc cùng.</p>
+      </header>
+
+      <div class="pillars__grid">
+
+        <article class="pillar reveal">
+          <div class="pillar__num">01 · Kỹ sư</div>
+          <h3 class="pillar__name">Financial <span class="ch">systems</span></h3>
+          <span class="pillar__name-en">Backend · frontend · 2014 — nay · Dragon Capital</span>
+          <div class="pillar__body">
+            <p>Mười một năm viết phần mềm — C# cho backend, Angular và React cho frontend. Tại Dragon Capital tôi xây dựng hệ thống cho giao dịch, quản lý quỹ, và các hệ thống tài chính production — nơi sự chính xác không phải nice-to-have.</p>
+            <p>C#, .NET, TypeScript, Angular, React, PostgreSQL, Redis, Kafka — nhưng công cụ chỉ là công cụ; vấn đề là vấn đề.</p>
+          </div>
+        </article>
+
+        <article class="pillar reveal" data-delay="1">
+          <div class="pillar__num">02 · Vận hành</div>
+          <h3 class="pillar__name">Reliability <span class="ch">&amp; ops</span></h3>
+          <span class="pillar__name-en">Production reliability · on-call · SRE</span>
+          <div class="pillar__body">
+            <p>Tôi đã trực đêm cho những hệ thống phục vụ hàng triệu người dùng, đã chạy incident response khi mọi thứ vỡ, và đã viết postmortem khi mọi thứ trở lại bình thường.</p>
+            <p>Tôi tin rằng một hệ thống tốt là hệ thống bạn có thể debug lúc 3 giờ sáng mà không cần gọi đồng nghiệp.</p>
+          </div>
+        </article>
+
+        <article class="pillar reveal" data-delay="2">
+          <div class="pillar__num">03 · Dẫn dắt</div>
+          <h3 class="pillar__name">Mentor <span class="ch">&amp; lead</span></h3>
+          <span class="pillar__name-en">Tech lead · mentoring · technical writing</span>
+          <div class="pillar__body">
+            <p>Những năm gần đây tôi dành nhiều thời gian hơn cho code review, design doc, và mentoring — vì phần lớn giá trị của một kỹ sư senior không nằm ở code, mà ở khả năng giúp đồng đội viết code tốt hơn.</p>
+            <p>Tôi từng dẫn dắt team 6 người, review hơn 2.000 pull request, và viết hàng chục technical proposal.</p>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Statement -->
+  <section class="statement" data-od-id="statement">
+    <div class="container">
+      <div class="statement__inner">
+        <figure class="statement__seal reveal">
+          <img src="assets/avatar.jpg" alt="Đức Trần" />
+        </figure>
+        <div class="reveal" data-delay="1">
+          <p class="eyebrow" style="color: oklch(64% 0.18 28);"><span class="dot" style="background: oklch(64% 0.18 28);"></span>Một ghi chú dài hơn · A longer note</p>
+          <blockquote class="statement__quote">
+            Trong mười một năm, tôi đã học được rằng phần lớn giá trị của một kỹ sư senior không nằm ở những dòng code — mà ở khả năng viết hệ thống mà đồng nghiệp có thể <em>đọc</em>, <em>vận hành</em>, và <em>duy trì</em> nhiều năm sau khi mình rời đi.
+          </blockquote>
+          <p class="statement__cite">— ghi chép cá nhân, sau 6 năm vận hành một dịch vụ production</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Practice -->
+  <section class="practice" data-od-id="practice">
+    <div class="container">
+      <header class="practice__head">
+        <div class="vstack-3">
+          <p class="eyebrow"><span class="dot"></span>Cách tôi làm việc</p>
+          <h2 class="h1">Bốn thói quen nhỏ.</h2>
+        </div>
+        <p class="lead" style="color: var(--muted);">Không phải quy tắc cứng — chỉ là những thói quen tôi đã gặp lại đủ nhiều lần để tin rằng chúng có giá trị.</p>
+      </header>
+
+      <ul class="practice__list">
+        <li>
+          <h3 class="ttl">01 · Đọc trước khi viết</h3>
+          <p class="body">Trước khi sửa một dòng code, đọc codebase như đọc thơ — tìm nhịp, tìm hình ảnh, tìm ý định. Hiểu trước, viết sau.</p>
+        </li>
+        <li>
+          <h3 class="ttl">02 · Viết chậm, xoá nhanh</h3>
+          <p class="body">Tôi viết chậm, nhưng xoá rất nhanh. Code không phải tài sản — code là sản phẩm phụ của việc hiểu vấn đề.</p>
+        </li>
+        <li>
+          <h3 class="ttl">03 · Đo ít, quan sát nhiều</h3>
+          <p class="body">Metric là bản đồ — nhưng bản đồ không phải lãnh thổ. Tôi để mắt đến hệ thống nhiều hơn là đếm nó.</p>
+        </li>
+        <li>
+          <h3 class="ttl">04 · Buông bỏ có chọn lọc</h3>
+          <p class="body">Một trong những quyết định khó nhất là biết khi nào nên bỏ một công cụ, một quy trình, một codebase. Tôi đang học cái này.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- A moment -->
+  <section class="moment" data-od-id="moment">
+    <div class="container">
+      <div class="moment__grid">
+        <figure class="moment__art reveal">
+          <img src="assets/coast.jpg" alt="Bờ biển — calm sea, distant mountains, and a wooden post in the foreground" />
+        </figure>
+        <div class="reveal" data-delay="1">
+          <p class="moment__caption">
+            <small>Khoảnh khắc · A moment</small>
+            Mười một năm viết code. Và tôi vẫn cần những khoảnh khắc thế này — chỉ ngồi, nhìn ra biển, và quên mất mình đang sống ở thời đại nào.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Connect -->
+  <section class="connect" data-od-id="connect">
+    <div class="container">
+      <div class="connect__inner">
+        <div class="vstack-5 reveal">
+          <p class="eyebrow"><span class="dot"></span>Giữ liên lạc · Get in touch</p>
+          <h2 class="h1">Nếu bạn đang tìm<br/>một kỹ sư backend.</h2>
+          <p class="lead" style="color: var(--muted);">Tôi đang mở cho cơ hội mới — remote hoặc tại Sài Gòn. Hiện tại tôi là Software Engineer tại Dragon Capital, làm việc với hệ thống tài chính và quản lý quỹ, chủ yếu với C#, Angular, và React. Gần đây tôi cũng thiết lập development workflow với 3-4 AI agents. Tôi đọc mọi email, trả lời trong vòng 24 giờ, và sẵn sàng nói chuyện về kiến trúc, hệ thống tài chính, hoặc AI development workflow.</p>
+        </div>
+
+        <ul class="connect__links reveal" data-delay="1">
+          <li><a href="mailto:duc@example.vn">
+            <span>
+              <span class="label">Email</span>
+              <span class="handle">duc@example.vn</span>
+            </span>
+            <span class="arrow">→</span>
+          </a></li>
+          <li><a href="#">
+            <span>
+              <span class="label">GitHub</span>
+              <span class="handle">@ductran</span>
+            </span>
+            <span class="arrow">→</span>
+          </a></li>
+          <li><a href="#">
+            <span>
+              <span class="label">LinkedIn</span>
+              <span class="handle">duc-tran</span>
+            </span>
+            <span class="arrow">→</span>
+          </a></li>
+          <li><a href="#">
+            <span>
+              <span class="label">RSS / Atom</span>
+              <span class="handle">/feed.xml</span>
+            </span>
+            <span class="arrow">→</span>
+          </a></li>
+          <li><a href="post.html">
+            <span>
+              <span class="label">Bài viết gần nhất</span>
+              <span class="handle">14 / 03 / 2025</span>
+            </span>
+            <span class="arrow">→</span>
+          </a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer" data-od-id="footer">
+  <div class="container">
+    <div class="site-footer__grid">
+      <div>
+        <a href="index.html" class="wordmark" style="margin-bottom: var(--space-3); display: inline-flex;">
+          <img src="assets/avatar.jpg" alt="" class="wordmark-avatar" />
+          <span>Đức Trần<span class="seal">.</span></span>
+        </a>
+        <p class="small" style="color: var(--muted); max-width: 36ch; margin-top: var(--space-3);">Đức Trần — Software Engineer tại Dragon Capital. Ghi chép nghề từ 11 năm với C#, Angular, React, financial systems, và quản lý quỹ. Viết từ Sài Gòn.</p>
+      </div>
+      <div>
+        <h4>Dẫn đường</h4>
+        <ul>
+          <li><a href="index.html">Trang chủ</a></li>
+          <li><a href="categories.html">Danh mục</a></li>
+          <li><a href="category.html">Bài mới nhất</a></li>
+          <li><a href="about.html">Về tôi</a></li>
+          <li><a href="post.html">RSS / Atom</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Nơi khác</h4>
+        <ul>
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">LinkedIn</a></li>
+          <li><a href="#">Twitter / X</a></li>
+          <li><a href="mailto:duc@example.vn">Email</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="site-footer__bottom">
+      <span>© 2025 Đức Trần. Viết bằng tay, đăng bằng tâm.</span>
+      <span>Built with patience · Designed in ink &amp; tide</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

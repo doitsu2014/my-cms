@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Hệ thống — Đức Trần</title>
+<meta name="description" content="Ghi chép về hệ thống phân tán, cơ sở dữ liệu, và vận hành phần mềm production — những bài học từ 11 năm làm backend engineering." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: oklch(92% 0.032 70);
+    --surface: oklch(97% 0.015 70);
+    --fg: oklch(18% 0.055 260);
+    --muted: oklch(42% 0.022 260);
+    --border: oklch(82% 0.022 78);
+    --accent: oklch(50% 0.22 28);
+    --accent-ink: oklch(95% 0.05 30);
+    --ink-deep: oklch(12% 0.055 260);
+    --font-display: "Noto Serif Display", Georgia, "Times New Roman", serif;
+    --font-body: "Inter", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+    --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px; --space-9: 96px;
+    --container: 1240px;
+    --gutter: clamp(20px, 4vw, 48px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: oklch(13% 0.028 260);
+      --surface: oklch(17% 0.032 260);
+      --fg: oklch(95% 0.018 85);
+      --muted: oklch(68% 0.015 252);
+      --border: oklch(28% 0.022 252);
+      --accent: oklch(66% 0.19 28);
+      --accent-ink: oklch(25% 0.075 28);
+      --ink-deep: oklch(98% 0.012 85);
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 17px; line-height: 1.65; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+  img, svg { display: block; max-width: 100%; }
+  .container { width: 100%; max-width: var(--container); margin: 0 auto; padding-inline: var(--gutter); }
+  .eyebrow { font-family: var(--font-body); font-size: 12px; font-weight: 600; line-height: 1.4; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  .eyebrow .dot { display: inline-block; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; margin-right: 10px; vertical-align: middle; transform: translateY(-1px); }
+  .display-l { font-family: var(--font-display); font-weight: 700; font-size: clamp(36px, 5vw, 64px); line-height: 1.08; letter-spacing: -0.02em; color: var(--ink-deep); }
+  .h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 4vw, 48px); line-height: 1.12; letter-spacing: -0.018em; color: var(--ink-deep); }
+  .h2 { font-family: var(--font-display); font-weight: 600; font-size: 28px; line-height: 1.18; letter-spacing: -0.01em; color: var(--ink-deep); }
+  .h3 { font-family: var(--font-display); font-weight: 600; font-size: 22px; line-height: 1.25; letter-spacing: -0.005em; color: var(--ink-deep); }
+  .lead { font-size: 19px; line-height: 1.6; color: var(--fg); max-width: 56ch; }
+  .small { font-size: 14px; line-height: 1.5; letter-spacing: 0.01em; }
+  .vstack-2 > * + * { margin-top: var(--space-2); }
+  .vstack-3 > * + * { margin-top: var(--space-3); }
+  .vstack-4 > * + * { margin-top: var(--space-4); }
+  .vstack-5 > * + * { margin-top: var(--space-5); }
+  .vstack-6 > * + * { margin-top: var(--space-6); }
+  .vstack-7 > * + * { margin-top: var(--space-7); }
+
+  .site-header { border-bottom: 1px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(140%) blur(8px); }
+  .site-header__inner { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); padding-block: var(--space-4); }
+  .wordmark { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: var(--ink-deep); }
+  .wordmark-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; object-position: center 40%; border: 1px solid var(--border); }
+  .wordmark .seal { color: var(--accent); font-style: italic; font-weight: 600; }
+  .site-nav { display: flex; align-items: center; gap: var(--space-6); }
+  .site-nav__link { font-size: 14px; font-weight: 500; letter-spacing: 0.02em; color: var(--fg); padding-block: 6px; border-bottom: 1px solid transparent; transition: border-color 160ms ease-out, color 160ms ease-out; }
+  .site-nav__link:hover, .site-nav__link[aria-current="page"] { color: var(--ink-deep); border-bottom-color: var(--accent); }
+  .lang-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: 3px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; }
+  .lang-toggle a { padding: 4px 10px; border-radius: 999px; color: var(--muted); }
+  .lang-toggle a[aria-current="true"] { background: var(--ink-deep); color: var(--bg); }
+  @media (max-width: 720px) { .site-nav__link { display: none; } }
+
+  /* Breadcrumb */
+  .crumbs { padding-block: var(--space-5); border-bottom: 1px solid var(--border); }
+  .crumbs ol { list-style: none; display: flex; gap: var(--space-3); padding: 0; margin: 0; font-size: 12px; letter-spacing: 0.04em; color: var(--muted); }
+  .crumbs li { display: inline-flex; align-items: center; gap: var(--space-3); }
+  .crumbs li + li::before { content: "/"; color: var(--border); }
+  .crumbs a:hover { color: var(--accent); }
+
+  /* Category intro */
+  .cat-intro {
+    padding-block: clamp(56px, 8vw, 96px);
+    border-bottom: 1px solid var(--border);
+  }
+  .cat-intro__grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: clamp(32px, 5vw, 80px);
+    align-items: end;
+  }
+  @media (max-width: 900px) { .cat-intro__grid { grid-template-columns: 1fr; gap: var(--space-5); } }
+  .cat-intro__seal {
+    aspect-ratio: 3 / 4;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    margin: 0;
+    box-shadow: 0 1px 0 oklch(20% 0.04 260 / 0.06), 0 18px 36px -20px oklch(20% 0.04 260 / 0.45);
+  }
+  .cat-intro__seal img { width: 100%; height: 100%; object-fit: cover; object-position: center 32%; }
+    color: oklch(78% 0.012 250);
+    font-size: 13px;
+    margin-top: 4px;
+    letter-spacing: 0;
+  }
+
+  /* Posts list */
+  .cat-posts { padding-block: clamp(48px, 7vw, 96px); }
+  .post-row {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: clamp(24px, 4vw, 56px);
+    padding-block: clamp(28px, 4vw, 48px);
+    border-top: 1px solid var(--border);
+    align-items: start;
+    transition: background 200ms ease-out;
+  }
+  .post-row:hover { background: oklch(96% 0.012 85 / 0.4); }
+  .post-row:last-child { border-bottom: 1px solid var(--border); }
+  @media (max-width: 800px) { .post-row { grid-template-columns: 1fr; gap: var(--space-4); } }
+  .post-row__art {
+    aspect-ratio: 4 / 3;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .post-row__art svg { width: 100%; height: 100%; }
+  .post-row__meta {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin-bottom: var(--space-3);
+  }
+  .post-row__meta .sep { color: var(--border); }
+  .post-row__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(22px, 2.4vw, 30px);
+    line-height: 1.2;
+    letter-spacing: -0.012em;
+    color: var(--ink-deep);
+    margin-bottom: var(--space-3);
+    transition: color 160ms ease-out;
+    display: block;
+  }
+  .post-row a:hover .post-row__title { color: var(--accent); }
+  .post-row__excerpt {
+    color: var(--fg);
+    max-width: 60ch;
+    margin-bottom: var(--space-4);
+  }
+  .post-row__read {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--ink-deep);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .post-row__read::after { content: "→"; transition: transform 160ms ease-out; }
+  .post-row a:hover .post-row__read::after { transform: translateX(4px); }
+
+  /* Pagination */
+  .pagination {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+    margin-top: var(--space-8);
+    font-size: 14px;
+    letter-spacing: 0.02em;
+  }
+  .pagination a, .pagination span {
+    padding: 8px 14px;
+    border-radius: 2px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .pagination a:hover { color: var(--ink-deep); }
+  .pagination .current {
+    background: var(--ink-deep);
+    color: var(--bg);
+  }
+  .pagination .disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .site-footer { border-top: 1px solid var(--border); padding-block: var(--space-7); margin-top: var(--space-9); }
+  .site-footer__grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: clamp(32px, 5vw, 64px); margin-bottom: var(--space-7); }
+  @media (max-width: 720px) { .site-footer__grid { grid-template-columns: 1fr; } }
+  .site-footer h4 { font-family: var(--font-body); font-weight: 600; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin: 0 0 var(--space-4); }
+  .site-footer ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+  .site-footer a { font-size: 14px; color: var(--fg); }
+  .site-footer a:hover { color: var(--accent); }
+  .site-footer__bottom { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); padding-top: var(--space-5); border-top: 1px solid var(--border); font-size: 12px; letter-spacing: 0.04em; color: var(--muted); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(8px); animation: revealUp 700ms ease-out forwards; }
+    .reveal[data-delay="1"] { animation-delay: 80ms; }
+    .reveal[data-delay="2"] { animation-delay: 160ms; }
+    @keyframes revealUp { to { opacity: 1; transform: none; } }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header" data-od-id="header">
+  <div class="container site-header__inner">
+    <a href="index.html" class="wordmark">
+      <img src="assets/avatar.jpg" alt="" class="wordmark-avatar" />
+      <span>Đức Trần<span class="seal">.</span></span>
+    </a>
+    <nav class="site-nav" aria-label="Chính">
+      <a class="site-nav__link" href="index.html">Trang chủ</a>
+      <a class="site-nav__link" href="categories.html" aria-current="page">Danh mục</a>
+      <a class="site-nav__link" href="about.html">Về tôi</a>
+    </nav>
+    <div class="lang-toggle" role="group" aria-label="Ngôn ngữ">
+      <a href="category.html" aria-current="true">VI</a>
+      <a href="category.html">EN</a>
+    </div>
+  </div>
+</header>
+
+<nav class="crumbs" aria-label="Breadcrumb" data-od-id="breadcrumb">
+  <div class="container">
+    <ol>
+      <li><a href="index.html">Trang chủ</a></li>
+      <li><a href="categories.html">Danh mục</a></li>
+      <li>Hệ thống</li>
+    </ol>
+  </div>
+</nav>
+
+<main>
+
+  <section class="cat-intro" data-od-id="category-intro">
+    <div class="container">
+      <div class="cat-intro__grid">
+        <figure class="cat-intro__seal reveal">
+          <img src="assets/architecture.jpg" alt="Những cột bê tông chĩa lên trời — concrete pillars reaching toward the sky, a visual metaphor for backend systems" />
+        </figure>
+        <div class="vstack-5 reveal" data-delay="1">
+          <p class="eyebrow"><span class="dot"></span>Danh mục · Mục số 01</p>
+          <h1 class="display-l">Hệ thống</h1>
+          <p class="lead">Mười bốn bài viết về backend systems — những kiến trúc phân tán, cơ sở dữ liệu, queue, cache mà tôi đã thiết kế, vận hành, và giữ cho chạy qua nhiều năm. Tất cả những gì phải hoạt động đúng vào lúc bạn không nhìn.</p>
+          <p class="lead" style="color: var(--muted); font-style: italic;">Fourteen notes on backend systems — distributed architecture, databases, queues, and caches that I designed, operated, and kept running for years. All the things that have to be right when nobody is watching.</p>
+          <div class="vstack-2" style="margin-top: var(--space-4);">
+            <p class="small" style="color: var(--muted);">14 bài · cập nhật lần cuối 14 / 03 / 2025 · viết từ Hà Nội</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cat-posts" data-od-id="post-list">
+    <div class="container">
+
+      <article class="post-row">
+        <div class="post-row__art">
+          <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Sóng tĩnh — still water">
+            <defs>
+              <linearGradient id="catA" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="oklch(94% 0.012 250)" />
+                <stop offset="100%" stop-color="oklch(82% 0.018 250)" />
+              </linearGradient>
+            </defs>
+            <rect width="400" height="300" fill="url(#catA)" />
+            <g stroke="oklch(28% 0.04 255)" stroke-width="0.6" fill="none" opacity="0.6">
+              <path d="M0 80 Q100 70 200 80 T400 80" />
+              <path d="M0 110 Q100 100 200 110 T400 110" />
+              <path d="M0 140 Q100 130 200 140 T400 140" />
+              <path d="M0 170 Q100 160 200 170 T400 170" />
+              <path d="M0 200 Q100 190 200 200 T400 200" />
+            </g>
+          </svg>
+        </div>
+        <div>
+          <div class="post-row__meta"><span>Hệ thống</span><span class="sep">·</span><span>14 tháng 3, 2025</span><span class="sep">·</span><span>9 phút</span></div>
+          <a href="post.html"><span class="post-row__title">Về sự tĩnh lặng trong hệ thống phân tán</span></a>
+          <p class="post-row__excerpt">Một hệ thống tốt là hệ thống không đòi hỏi bạn phải để ý đến nó. Bài viết này đi qua những quyết định kiến trúc khiến hệ thống trở nên yên lặng — và lý do tại sao yên lặng lại là dấu hiệu của sự trưởng thành.</p>
+          <a href="post.html" class="post-row__read">Đọc tiếp</a>
+        </div>
+      </article>
+
+      <article class="post-row">
+        <div class="post-row__art">
+          <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Lớp sóng — layered waves">
+            <rect width="400" height="300" fill="oklch(96% 0.014 85)" />
+            <g fill="none" stroke="oklch(36% 0.04 255)" stroke-width="0.8" opacity="0.7">
+              <path d="M0 200 Q50 180 100 200 T200 200 T300 200 T400 200" />
+              <path d="M0 220 Q50 200 100 220 T200 220 T300 220 T400 220" />
+              <path d="M0 240 Q50 220 100 240 T200 240 T300 240 T400 240" />
+            </g>
+            <g fill="oklch(50% 0.22 28)" opacity="0.6">
+              <circle cx="120" cy="120" r="3" />
+              <circle cx="200" cy="100" r="4" />
+              <circle cx="280" cy="130" r="3" />
+            </g>
+          </svg>
+        </div>
+        <div>
+          <div class="post-row__meta"><span>Hệ thống</span><span class="sep">·</span><span>22 tháng 2, 2025</span><span class="sep">·</span><span>12 phút</span></div>
+          <a href="post.html"><span class="post-row__title">Triết học của cache: ghi nhớ và quên trong hệ thống</span></a>
+          <p class="post-row__excerpt">Cache là cách hệ thống ghi nhớ — và biết quên. Một cuộc đi dạo qua những nguyên tắc thiết kế cache như một quá trình chiêm nghiệm về trí nhớ, sự trôi qua, và việc buông bỏ.</p>
+          <a href="post.html" class="post-row__read">Đọc tiếp</a>
+        </div>
+      </article>
+
+      <article class="post-row">
+        <div class="post-row__art">
+          <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Lưới kết nối — connection grid">
+            <rect width="400" height="300" fill="oklch(96% 0.014 85)" />
+            <g stroke="oklch(48% 0.014 250)" stroke-width="0.5" opacity="0.5">
+              <line x1="60" y1="60" x2="340" y2="60" />
+              <line x1="60" y1="120" x2="340" y2="120" />
+              <line x1="60" y1="180" x2="340" y2="180" />
+              <line x1="60" y1="240" x2="340" y2="240" />
+              <line x1="60" y1="60" x2="60" y2="240" />
+              <line x1="150" y1="60" x2="150" y2="240" />
+              <line x1="240" y1="60" x2="240" y2="240" />
+              <line x1="340" y1="60" x2="340" y2="240" />
+            </g>
+            <g stroke="oklch(50% 0.22 28)" stroke-width="1.2" fill="none">
+              <path d="M60 120 L150 60 L240 180 L340 120" />
+              <path d="M60 240 L150 180 L240 120 L340 240" />
+            </g>
+            <circle cx="60" cy="120" r="4" fill="oklch(18% 0.055 260)" />
+            <circle cx="150" cy="60" r="4" fill="oklch(18% 0.055 260)" />
+            <circle cx="240" cy="180" r="4" fill="oklch(18% 0.055 260)" />
+            <circle cx="340" cy="120" r="4" fill="oklch(18% 0.055 260)" />
+            <circle cx="150" cy="180" r="5" fill="oklch(50% 0.22 28)" />
+          </svg>
+        </div>
+        <div>
+          <div class="post-row__meta"><span>Hệ thống</span><span class="sep">·</span><span>30 tháng 1, 2025</span><span class="sep">·</span><span>11 phút</span></div>
+          <a href="post.html"><span class="post-row__title">Khi hệ thống không thể chịu đựng thêm một queue</span></a>
+          <p class="post-row__excerpt">Về ranh giới giữa “phân tán” và “rối tung”, và những dấu hiệu cho thấy hệ thống của bạn đang ở phía bên kia. Khi nào nên thêm queue, khi nào nên gỡ bỏ.</p>
+          <a href="post.html" class="post-row__read">Đọc tiếp</a>
+        </div>
+      </article>
+
+      <article class="post-row">
+        <div class="post-row__art">
+          <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Trục thời gian — timeline">
+            <rect width="400" height="300" fill="oklch(95% 0.014 85)" />
+            <line x1="40" y1="150" x2="360" y2="150" stroke="oklch(36% 0.04 255)" stroke-width="0.8" />
+            <g fill="oklch(18% 0.055 260)">
+              <circle cx="60" cy="150" r="5" />
+              <circle cx="140" cy="150" r="5" />
+              <circle cx="220" cy="150" r="5" />
+              <circle cx="300" cy="150" r="5" />
+            </g>
+            <g fill="oklch(50% 0.22 28)">
+              <circle cx="60" cy="150" r="9" opacity="0.4" />
+              <circle cx="220" cy="150" r="9" opacity="0.4" />
+            </g>
+            <g stroke="oklch(48% 0.014 250)" stroke-width="0.5" opacity="0.5">
+              <line x1="60" y1="155" x2="60" y2="180" />
+              <line x1="140" y1="155" x2="140" y2="180" />
+              <line x1="220" y1="155" x2="220" y2="180" />
+              <line x1="300" y1="155" x2="300" y2="180" />
+            </g>
+            <g font-family="JetBrains Mono, monospace" font-size="11" fill="oklch(48% 0.014 250)">
+              <text x="60" y="200" text-anchor="middle">00:01</text>
+              <text x="140" y="200" text-anchor="middle">00:14</text>
+              <text x="220" y="200" text-anchor="middle">00:42</text>
+              <text x="300" y="200" text-anchor="middle">02:11</text>
+            </g>
+          </svg>
+        </div>
+        <div>
+          <div class="post-row__meta"><span>Hệ thống</span><span class="sep">·</span><span>14 tháng 1, 2025</span><span class="sep">·</span><span>7 phút</span></div>
+          <a href="post.html"><span class="post-row__title">Latency như một ngôn ngữ — về nhịp điệu của phản hồi</span></a>
+          <p class="post-row__excerpt">Một request trả về trong 50ms và một request trả về trong 500ms tạo ra hai loại sản phẩm khác nhau. Về latency như một ngôn ngữ thiết kế — và cách nó định hình cảm xúc người dùng.</p>
+          <a href="post.html" class="post-row__read">Đọc tiếp</a>
+        </div>
+      </article>
+
+      <article class="post-row">
+        <div class="post-row__art">
+          <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Vòng tròn đồng tâm — concentric circles">
+            <rect width="400" height="300" fill="oklch(95% 0.014 85)" />
+            <g fill="none" stroke="oklch(48% 0.03 255)" stroke-width="0.8" opacity="0.7">
+              <circle cx="200" cy="150" r="40" />
+              <circle cx="200" cy="150" r="80" />
+              <circle cx="200" cy="150" r="120" />
+            </g>
+            <text x="200" y="158" text-anchor="middle" font-family="Noto Serif Display, serif" font-size="22" font-weight="700" fill="oklch(50% 0.22 28)">DB</text>
+          </svg>
+        </div>
+        <div>
+          <div class="post-row__meta"><span>Hệ thống</span><span class="sep">·</span><span>03 tháng 1, 2025</span><span class="sep">·</span><span>13 phút</span></div>
+          <a href="post.html"><span class="post-row__title">Khi cơ sở dữ liệu trở thành một nhân vật</span></a>
+          <p class="post-row__excerpt">Một cơ sở dữ liệu không phải là một thư viện — nó là một nhân vật sống, có tính khí, có tuổi thọ. Về cách thiết kế để nhân vật ấy không trở thành kẻ phản diện sau năm năm.</p>
+          <a href="post.html" class="post-row__read">Đọc tiếp</a>
+        </div>
+      </article>
+
+      <article class="post-row">
+        <div class="post-row__art">
+          <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Đường thẳng đứng — vertical lines">
+            <rect width="400" height="300" fill="oklch(96% 0.014 85)" />
+            <g stroke="oklch(36% 0.04 255)" stroke-width="0.8" opacity="0.7">
+              <line x1="60" y1="40" x2="60" y2="260" />
+              <line x1="120" y1="80" x2="120" y2="220" />
+              <line x1="180" y1="120" x2="180" y2="180" />
+              <line x1="240" y1="60" x2="240" y2="240" />
+              <line x1="300" y1="100" x2="300" y2="200" />
+              <line x1="360" y1="40" x2="360" y2="260" />
+            </g>
+            <line x1="40" y1="150" x2="380" y2="150" stroke="oklch(50% 0.22 28)" stroke-width="1.5" />
+          </svg>
+        </div>
+        <div>
+          <div class="post-row__meta"><span>Hệ thống</span><span class="sep">·</span><span>18 tháng 12, 2024</span><span class="sep">·</span><span>10 phút</span></div>
+          <a href="post.html"><span class="post-row__title">Observability như thiền — về việc nhìn hệ thống thật sự</span></a>
+          <p class="post-row__excerpt">Có ba cấp độ của việc nhìn: nhìn thấy log, đọc được metric, và thật sự thấy hệ thống đang sống. Bài viết này về cấp độ thứ ba — và tại sao nó khó hơn nhiều người nghĩ.</p>
+          <a href="post.html" class="post-row__read">Đọc tiếp</a>
+        </div>
+      </article>
+
+      <div class="pagination" aria-label="Phân trang">
+        <span class="disabled">← Trước</span>
+        <a href="#" class="current">1</a>
+        <a href="#">2</a>
+        <a href="#">3</a>
+        <a href="#">Sau →</a>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer" data-od-id="footer">
+  <div class="container">
+    <div class="site-footer__grid">
+      <div>
+        <a href="index.html" class="wordmark" style="margin-bottom: var(--space-3); display: inline-flex;">
+          <img src="assets/avatar.jpg" alt="" class="wordmark-avatar" />
+          <span>Đức Trần<span class="seal">.</span></span>
+        </a>
+        <p class="small" style="color: var(--muted); max-width: 36ch; margin-top: var(--space-3);">Đức Trần — Senior Software Engineer. Ghi chép nghề từ 11 năm backend engineering. Viết từ Hà Nội.</p>
+      </div>
+      <div>
+        <h4>Dẫn đường</h4>
+        <ul>
+          <li><a href="index.html">Trang chủ</a></li>
+          <li><a href="categories.html">Danh mục</a></li>
+          <li><a href="category.html">Bài mới nhất</a></li>
+          <li><a href="about.html">Về tôi</a></li>
+          <li><a href="post.html">RSS / Atom</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Nơi khác</h4>
+        <ul>
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">LinkedIn</a></li>
+          <li><a href="#">Twitter / X</a></li>
+          <li><a href="mailto:duc@example.vn">Email</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="site-footer__bottom">
+      <span>© 2025 Đức Trần. Viết bằng tay, đăng bằng tâm.</span>
+      <span>Built with patience · Designed in ink &amp; tide</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
