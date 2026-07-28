@@ -67,6 +67,11 @@ export interface AboutContent {
   domainsSection: AboutSectionHeader;
   statement: { quote: string; cite: string };
   timeline: AboutTimeline;
+  practiceSection: {
+    eyebrow: string;
+    title: string;
+    lead: string;
+  };
   practices: AboutPractice[];
   contact: {
     eyebrow: string;
@@ -203,6 +208,11 @@ const enContent = (): AboutContent => ({
     quote:
       "Money doesn't lie. Production either works or it doesn't — everything else is a story we tell ourselves.",
     cite: 'Personal note, after seven years operating financial systems in production.',
+  },
+  practiceSection: {
+    eyebrow: 'Practice',
+    title: 'Small habits.',
+    lead: "Not hard rules — just habits I've encountered enough times to believe they're worth keeping.",
   },
   practices: [
     { title: '01 · Read the system before changing it', body: "Understand before editing. The fastest way to break a distributed system is to change it before you understand why it's shaped that way." },
@@ -353,6 +363,11 @@ const viContent = (): AboutContent => ({
     quote:
       'Tiền không nói dối. Production hoặc chạy hoặc không — mọi thứ khác chỉ là câu chuyện ta tự kể với nhau.',
     cite: 'Ghi chép cá nhân, sau bảy năm vận hành hệ thống tài chính production.',
+  },
+  practiceSection: {
+    eyebrow: 'Cách tôi làm việc',
+    title: 'Bốn thói quen nhỏ.',
+    lead: 'Không phải quy tắc cứng — chỉ là những thói quen tôi đã gặp lại đủ nhiều lần để tin rằng chúng có giá trị.',
   },
   practices: [
     { title: '01 · Đọc hệ thống trước khi thay đổi', body: 'Hiểu trước khi sửa. Cách nhanh nhất để break một distributed system là thay đổi nó trước khi hiểu vì sao nó có shape như vậy.' },

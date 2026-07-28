@@ -110,9 +110,21 @@ const AboutPage = () => {
       </Section>
       <Section className="about-practice">
         <Container>
-          <Eyebrow>{currentLang === 'vi' ? 'Cách tôi làm việc' : 'Practice'}</Eyebrow>
-          <h2 className="display-h2">{currentLang === 'vi' ? 'Thói quen nhỏ.' : 'Small habits.'}</h2>
-          <ul>{content.practices.map((practice) => <li key={practice.title}><h3>{practice.title}</h3><p>{practice.body}</p></li>)}</ul>
+          <header className="about-practice__head">
+            <div className="about-practice__intro">
+              <Eyebrow>{content.practiceSection.eyebrow}</Eyebrow>
+              <h2 className="display-h1">{content.practiceSection.title}</h2>
+            </div>
+            <p className="lead about-practice__lead">{content.practiceSection.lead}</p>
+          </header>
+          <ul className="about-practice__list">
+            {content.practices.map((practice) => (
+              <li key={practice.title}>
+                <h3 className="about-practice__title">{practice.title}</h3>
+                <p className="about-practice__body">{practice.body}</p>
+              </li>
+            ))}
+          </ul>
         </Container>
       </Section>
       <Section className="about-contact">
