@@ -1,0 +1,1 @@
+pub use application_core::commands::ai::translate::*;
