@@ -1,83 +1,88 @@
-## Task 1 — Establish empty workspace members
+## 1. Workspace scaffold
 
-- Add `domain_interface`, `domain_foundation`, `domain_post`, and `my_cms_api` as empty `[lib]`/`[[bin]]` members under `apps/api/Cargo.toml` `[workspace] members`.
-- Each new crate has a minimal `Cargo.toml` and a placeholder `src/lib.rs` or `src/main.rs` that compiles.
-- Do not change any existing source.
-- Verify: `cargo check -p domain_interface -p domain_foundation -p domain_post -p my_cms_api` succeeds; `cargo test --workspace` is unchanged; `cargo fmt -- --check && cargo clippy --all-targets -- -D warnings` pass.
+- [ ] 1.1 Add `domain_interface` (publishable lib), `domain_posts` (lib + bin), and `gateway` (bin) as new workspace members in `apps/api/Cargo.toml`. Each new crate has a minimal `Cargo.toml` and a placeholder `src/lib.rs` / `src/main.rs` that compiles. Do not add a `domain_foundation` or shared `application_core` crate.
+- [ ] 1.2 Keep the legacy `application_core`, `migration`, and `cms` lib/workspace members in place during this change as transitional compatibility shims; they are removed in follow-up changes.
+- [ ] 1.3 Verify: `cargo check -p domain_interface -p domain_posts -p gateway` succeeds; `cargo test --workspace` is unchanged; `cargo fmt -- --check && cargo clippy --all-targets -- -D warnings` pass.
 
-## Task 2 — Define the `DomainService` contract in `domain_interface`
+## 2. Reusable `domain_interface` contract crate
 
-- Add `DomainService`, `DomainContext`, `Mount`, `RouteRegistration`, `MigrationDescriptor`, and `FoundationServices` per `design.md` Decision 2.
-- Add module tests that confirm the trait is object-safe (`fn _assert_object_safe<T: ?Sized + DomainService>() {}`) and that `Mount::Public/Protected/Administrator` round-trips to JSON.
-- Verify: `cargo test -p domain_interface` passes; `cargo check --workspace` still passes.
+- [ ] 2.1 Implement `DomainService`, `DomainContext`, `Mount`, `RouteRegistration`, `HealthDescriptor`, `MigrationDescriptor`, and `DomainConfigError` in `domain_interface/src/lib.rs` per `design.md` Decision 1. The crate depends only on foundational Rust libs (`axum`, `sea-orm`, `async-graphql`, `async-trait`, `serde`, `tokio`, `futures`, `chrono`, `uuid`, `async-std`); it does NOT depend on `domain_posts`, `application_core`, `migration`, or any other domain crate.
+- [ ] 2.2 Set `[package].publish = true` in `domain_interface/Cargo.toml`. Add a `[package].description` and `[package].license]` that match the workspace conventions.
+- [ ] 2.3 Add module tests that confirm the trait is object-safe (`fn _assert_object_safe<T: ?Sized + DomainService>() {}`) and that `Mount::Public/Protected/Administrator` round-trips through JSON serialization.
+- [ ] 2.4 Verify: `cargo test -p domain_interface` passes; `cargo check --workspace` still passes; `cargo metadata --format-version 1 | ConvertFrom-Json` shows `domain_interface.publish == true` and no concrete domain dependency.
 
-## Task 3 — Lift `AppError`, presentation models, auth, CORS, and tracing to `domain_foundation`
+## 3. Self-contained `domain_posts` lib + bin skeleton
 
-- Move `apps/api/application_core/src/common/app_error.rs` into `apps/api/domain_foundation/src/error.rs`, re-exporting it as `domain_foundation::AppError`. Keep variant list unchanged.
-- Move `apps/api/src/presentation_models/api_response.rs` into `apps/api/domain_foundation/src/response.rs`; keep envelope types unchanged.
-- Move `apps/api/src/common/supabase_auth.rs` into `apps/api/domain_foundation/src/auth.rs`; re-export as `domain_foundation::SupabaseAuthLayer` and `SupabaseAuthConfig`. Public constructor and behavior unchanged.
-- Add factory functions `cors_layer()`, `body_limit_layer()`, `otel_layers()`, `cookie_layer()` in `apps/api/domain_foundation/src/layers.rs`.
-- Update `apps/api/application_core/src/lib.rs` and `apps/api/src/lib.rs` to re-export from `domain_foundation`; do not delete yet.
-- Verify: `cargo check --workspace`, `cargo test --workspace`, `cargo fmt -- --check`, `cargo clippy --all-targets` all pass. `/health` smoke check via existing integration test still passes.
+- [ ] 3.1 Scaffold `domain_posts` with `src/lib.rs` (public re-exports), `src/main.rs` (standalone bin), `src/service.rs` (impl `DomainService` for `DomainPostService`), and empty `src/api/`, `src/handlers/`, `src/domain/`, `src/entities/`, `src/migrations/`, `src/migrations_cli.rs`, `src/observability.rs`, `src/tests.rs` modules. The crate depends on `domain_interface` and on its own infrastructure dependencies (SeaORM, Axum, OpenAI, pgvector, jsonwebtoken, tower-http, tower-cookies, axum-tracing-opentelemetry, init-tracing-opentelemetry, moka, async-openai, html5ever, markup5ever_rcdom, slugify, dotenv, reqwest, async-std, tokio, etc.). It does NOT depend on `application_core`, `migration`, or any sibling domain.
+- [ ] 3.2 Implement `DomainPostService::health`, `DomainPostService::required_env`, `DomainPostService::validate_config`, `DomainPostService::migrations`, and `DomainPostService::register_routes` as empty / shell implementations that compile and satisfy the trait.
+- [ ] 3.3 Verify: `cargo check -p domain_posts` succeeds; `cargo test --workspace` still passes.
 
-## Task 4 — Move foundation services (media + GraphQL) into `domain_foundation`
+## 4. Move post code into `domain_posts` (handlers, adapters, foundation/integrations, entities)
 
-- Move `commands::media::{MediaConfig, SupabaseStorage, MediaCacheKey, CachedMedia, create_media_cache}` from `application_core` to `domain_foundation/src/media.rs`.
-- Move the GraphQL schema builder (`commands::graphql::query_root::schema`) and the `application_core::graphql` module into `domain_foundation/src/graphql.rs`. Seaography registration callback stays as-is.
-- Move `commands::user::supabase_admin_client::SupabaseAdminClient` into `domain_foundation/src/admin_client.rs`.
-- Re-export from `application_core` as compatibility shims; `apps/api/src/lib.rs::AppState` becomes a thin façade that constructs a `FoundationServices` + `DomainContext`.
-- Verify: `cargo check --workspace`, `cargo test --workspace` pass. One-shot `cargo test -p application_core commands::media` and `commands::graphql` pass.
+- [ ] 4.1 Move the post HTTP adapters from `apps/api/src/api/post/{create,read,modify,delete,translate}/*` into `domain_posts/src/api/post/{create,read,modify,delete,translate}/*` (preserve the current `api_*` function names and their `tracing::instrument` annotations). Each adapter extracts state, calls the corresponding `*HandlerTrait` from `domain_posts::handlers::post::*`, and returns the existing `ApiResponseWith` / `ApiResponseError` envelope.
+- [ ] 4.2 Move the post command handlers from `apps/api/application_core/src/commands/post/{create,read,modify,delete,translate}/*` into `domain_posts/src/handlers/post/{create,read,modify,delete,translate}/*`. Preserve the existing `*HandlerTrait` signatures and the `actor_email` parameter. The `PostCreateHandler::handle_create_post` transaction logic in `apps/api/application_core/src/commands/post/create/create_handler.rs` lines 30–128 is preserved verbatim.
+- [ ] 4.3 Move the OpenAI / pgvector translation orchestration from `apps/api/application_core/src/commands/ai/translate/translate_handler.rs` and `vector_store_pg.rs` into `domain_posts/src/handlers/post/translate/*` and `domain_posts/src/handlers/vector_store/*`. The `vector_store_pg::VectorStore` is owned by `domain_posts` because it is consumed only by the post translation pipeline.
+- [ ] 4.4 Resolve the `PostCreateHandler -> TagCreateHandler` cross-domain call in `apps/api/application_core/src/commands/post/create/create_handler.rs` (line 9, line 37) by lifting the `TagCreateHandler::handle_create_tags_in_transaction` body into `domain_posts/src/handlers/tag_helper/mod.rs` as a local helper. The helper is `pub(crate)` and is not exported from any other crate. Re-export the helper from `fake_tag_names` in `domain_posts::handlers::tag_helper::tests` so `domain_posts::handlers::post::tests::fake_create_post_request` keeps working (replace the `crate::commands::tag::tests::fake_tag_names` import in `apps/api/application_core/src/commands/post/mod.rs` lines 14, 31).
+- [ ] 4.5 Move the domain infrastructure code into `domain_posts/src/domain/`:
+  - `error.rs` (from `apps/api/application_core/src/common/app_error.rs`): `AppError` with the same variant list and the same `From<DbErr>`, `From<TransactionError<DbErr>>` impls.
+  - `response.rs` (from `apps/api/src/presentation_models/api_response.rs`): `ApiResponseWith<T>`, `ApiResponseError`, `ErrorCode`, `AxumResponse`, the same JSON envelope.
+  - `auth.rs` (from `apps/api/src/common/supabase_auth.rs`): `SupabaseAuthLayer`, `SupabaseAuthConfig`, `SupabaseClaims`, `SupabaseToken`, the same constructor and `Layer` impl.
+  - `layers.rs`: factory functions `cors_layer()`, `body_limit_layer()`, `otel_layers()`, `cookie_layer()` mirroring the current `apps/api/src/bin/my-cms-api.rs` lines 320–331 (CORS) and 188–205 (auth + body limit + cookie + Otel).
+  - `storage.rs` (from `apps/api/application_core/src/commands/media/supabase_storage.rs`, `bucket/dto.rs`, `read/read_handler.rs`, `bucket/access/access_cache.rs`): `SupabaseStorage`, `MediaConfig`, `MediaCacheKey`, `CachedMedia`, `create_media_cache`, `create_bucket_visibility_cache`.
+  - `ai.rs`: OpenAI client factory used by `domain_posts::handlers::post::translate`.
+  - `postgres.rs`: `connect_database()` env-driven helper that mirrors `apps/api/src/bin/my-cms-api.rs` lines 257–301 (`construct_app_state`).
+  - `graphql.rs` (from `apps/api/application_core/src/graphql/query_root.rs`): `contribute_post_schema(...)` and the `Schema` builder that produces the post-relevant entity registration for Seaography.
+  - `env.rs`: required env-var surface and validation.
+  - `extensions.rs` (from `apps/api/application_core/src/common/extensions.rs` and `datetime_generator.rs`): `StringExtension`, `generate_vietnam_now`, etc.
+- [ ] 4.6 Move the post-relevant generated entities into `domain_posts/src/entities/`. Use `sea-orm generate entity` against the `domain_posts` migration set with the output target `domain_posts/src/entities/`. The historical entity set (`categories`, `category_tags`, `category_translations`, `posts`, `post_tags`, `post_translations`, `tags`, `translation_jobs`, `test_fulltext`, `sea_orm_active_enums`) stays with `domain_posts` until each future domain is extracted. Do NOT manually edit the generated entity files.
+- [ ] 4.7 Update the legacy `apps/api/application_core/src/lib.rs` and `apps/api/src/lib.rs` to re-export the post types from `domain_posts` (`pub use domain_posts::domain::AppError;`, `pub use domain_posts::domain::ApiResponseWith;`, `pub use domain_posts::entities::*;`) so the legacy `application_core` shim compiles during the transition. The `AppState` in `apps/api/src/lib.rs` becomes a thin façade that constructs a `DomainContext` and forwards the same fields.
+- [ ] 4.8 Verify: `cargo check -p domain_posts`, `cargo test -p domain_posts`, `cargo test --workspace` all pass. Existing router tests against `/posts/**`, `/posts/{post_id}/translate`, `/posts/{post_id}/translate/background`, `/posts/{post_id}/translate/jobs/**` must still pass (HTTP method + path + status code parity).
 
-## Task 5 — Add migration orchestrator
+## 5. Move post migrations into `domain_posts` and add per-domain migration CLI
 
-- Add `apps/api/domain_foundation/src/migrations.rs` with `MigrationDescriptor`, `MigrationSet`, and an `Orchestrator` that topologically sorts descriptors by `id` and `depends_on` and runs them via `sea-orm-migration`.
-- Wire `apps/api/migration/src/main.rs` to delegate to the orchestrator, keeping the same migration identities (`m20240409_151952_release_100`, `m20250330_151455_release_110`, `m20260126_040610_release_300`, `m20260531_000001_pgvector`).
-- Add unit tests for cycle detection, duplicate detection, and topological order.
-- Verify: `cargo run -p migration -- up` succeeds against the test database; the orchestrator logs the same migration identities in the same order; `cargo test --workspace` passes.
+- [ ] 5.1 Move the migrations from `apps/api/migration/src/{m20240409_151952_release_100.rs, m20250330_151455_release_110.rs, m20260126_040610_release_300.rs, m20260531_000001_pgvector.rs, constants.rs}` into `domain_posts/src/migrations/{m20240409_151952_release_100.rs, m20250330_151455_release_110.rs, m20260126_040610_release_300.rs, m20260531_000001_pgvector.rs, constants.rs}`. Preserve the migration identities exactly so the database `up` history is unchanged.
+- [ ] 5.2 Move `apps/api/migration/src/lib.rs` into `domain_posts/src/migrations/mod.rs`. `pub struct Migrator;` and `impl MigratorTrait for Migrator` keep the same identity list and order.
+- [ ] 5.3 Implement `domain_posts::migrations_cli::run()` that wraps `sea_orm_migration::MigratorTrait::up` and exposes a `cli::run_cli` entry for `cargo run -p domain_posts -- migrate`. The CLI behaves identically to the current `apps/api/migration/src/main.rs`.
+- [ ] 5.4 Wire `domain_posts::service::DomainPostService::migrations()` to return the four `MigrationDescriptor` instances derived from `domain_posts::migrations::Migrator`, each with `id = "m20240409_151952_release_100"`, `id = "m20250330_151455_release_110"`, `id = "m20260126_040610_release_300"`, `id = "m20260531_000001_pgvector"` and `depends_on = &[]` (no foundation dependency exists).
+- [ ] 5.5 Add unit tests for the post-domain migration runner: identity preservation, idempotent re-run against an already-migrated database, and `DomainConfigError`-mapped failure on a connection error.
+- [ ] 5.6 Verify: `cargo run -p domain_posts -- migrate` succeeds against the test database; the runner logs the same migration identities in the same order; `cargo test --workspace` passes.
 
-## Task 6 — Create `domain-post` skeleton with empty `DomainPostService`
+## 6. Wire post routes and Seaography contribution
 
-- Scaffold `apps/api/domain_post/` with `Cargo.toml` and `src/lib.rs` exporting `pub struct DomainPostService` implementing `DomainService`.
-- Implement `name()`/`version()`/`required_env()`; leave `register_routes`, `migrations`, and `health` returning empty results.
-- Register the new crate in `apps/api/Cargo.toml` `members` and `workspace.dependencies`.
-- Verify: `cargo check -p domain_post` succeeds; `cargo test --workspace` still passes.
+- [ ] 6.1 Implement `DomainPostService::register_routes(&ctx)` to return `Vec<RouteRegistration>` with `Mount::Public`, `Mount::Protected`, and `Mount::Administrator` registrations covering the existing paths `/posts/**`, `/posts/{post_id}/translate`, `/posts/{post_id}/translate/background`, `/posts/{post_id}/translate/jobs/**`, plus the post domain's `/health` aggregator contribution. The routers must be free of any auth/CORS/cookie/body-limit/Otel layers at this point; the layers are applied at the binary boundary (gateway or standalone bin).
+- [ ] 6.2 Implement `domain_posts::domain::graphql::contribute_post_schema(ctx) -> Schema` that registers the post-relevant entities (`posts`, `post_tags`, `post_translations`, `translation_jobs`, `categories`, `category_tags`, `category_translations`, `tags`) via Seaography, mirroring the entity set in `apps/api/application_core/src/graphql/query_root.rs` lines 22–33. The two schemas (immutable / mutable) remain owned by the gateway at composition time; the domain only registers entities.
+- [ ] 6.3 Implement `DomainPostService::health()` as a `posts` table `SELECT 1` check via `DatabaseConnection`. The result is a `HealthDescriptor` with `name = "domain-posts"`, a `version` from `domain_posts/Cargo.toml`, and a status that the gateway can aggregate.
+- [ ] 6.4 Verify: `cargo test -p domain_posts` passes; existing router tests against `/posts/**`, `/posts/{post_id}/translate`, `/posts/{post_id}/translate/background`, `/posts/{post_id}/translate/jobs/**` still pass; the `/health` aggregator returns the post service's health.
 
-## Task 7 — Move post HTTP adapters into `domain-post`
+## 7. Standalone `domain_posts` microservice
 
-- Move `apps/api/src/api/post/**/*.rs` (handlers + mod.rs files) into `apps/api/domain_post/src/api/` with re-exports `pub use api::*` for handler functions.
-- Rewrite handlers so each still extracts state, calls the corresponding `*HandlerTrait` from `application_core::commands::post::*`, and returns the existing `ApiResponseWith`/`ApiResponseError` envelope.
-- Move the corresponding `commands::post::{create,read,modify,delete,translate}` into `apps/api/domain_post/src/commands/`. Keep `commands::post::translate::translate_handler::TranslateHandler`, `JobHandler`, and the OpenAI/pgvector client wrappers.
-- Verify: `cargo check -p domain_post`, `cargo test -p domain_post`, `cargo test --workspace`. Existing router tests against `/posts/**`, `/posts/{post_id}/translate`, `/posts/{post_id}/translate/background`, `/posts/{post_id}/translate/jobs/**` must still pass (HTTP method + path + status code parity).
+- [ ] 7.1 Implement `domain_posts/src/main.rs` (the bin target) to: load env (the same env-var surface as the current `my-cms-api`); initialize tracing and OpenTelemetry via `domain_posts::observability::init` (mirroring `apps/api/src/bin/my-cms-api.rs` lines 70–89); open one `DatabaseConnection` via `domain_posts::domain::postgres::connect_database()`; build `DomainPostService` via `DomainPostService::new(...)`; call `register_routes(&ctx)` to obtain the three Axum routers; apply the auth/CORS/cookie/body-limit/Otel layers via `domain_posts::domain::layers::*`; bind the listener (`HOST:PORT`) and serve.
+- [ ] 7.2 Implement `domain_posts::migrations_cli::handle_args` so `cargo run -p domain_posts -- migrate` runs the post-domain migrations; `cargo run -p domain_posts` (no args) boots the server.
+- [ ] 7.3 Verify: `cargo run -p domain_posts -- migrate` runs successfully against the test database; `cargo run -p domain_posts` boots and `/health` returns 200; `cargo test -p domain_posts` passes.
 
-## Task 8 — Wire post migrations and Seaography contribution
+## 8. Thin gateway composition crate
 
-- Move post-relevant migrations (`m20260126_040610_release_300` for `posts/post_tags/post_translations/translation_jobs/categories/tags/category_tags/category_translations` and `m20260531_000001_pgvector`) into `apps/api/domain_post/src/migrations.rs`.
-- Implement `DomainPostService::migrations()` returning descriptors with `depends_on` referencing foundation migration ids (none in this change; foundation does not yet own a migration, so the dependencies are empty and execution order remains the historical one).
-- Implement `DomainPostService::register_routes(...)` returning `Mount::Public`, `Mount::Protected` registrations under existing paths (`/posts/**`, `/posts/{post_id}/translate`, `/posts/{post_id}/translate/background`, `/posts/{post_id}/translate/jobs/**`).
-- Implement `DomainPostService::health()` as a `posts` table `SELECT 1` check via `DatabaseConnection`.
-- Verify: `cargo test -p domain_post` and `cargo run -p migration -- up` both succeed against the test database; `/health` aggregator returns the post service's health.
+- [ ] 8.1 Implement `gateway/Cargo.toml` and `gateway/src/main.rs` (binary name `my-cms-api` for deployment image compatibility). The binary: loads env; initializes tracing/OpenTelemetry; opens one `DatabaseConnection`; calls `domain_posts::domain::graphql::contribute_post_schema` and (during transition) the legacy `application_core::graphql::query_root::schema` to build the two `Arc<Schema>` values; constructs a `DomainContext` with `Arc<DatabaseConnection>` and the two schemas; constructs `DomainPostService::new(...)` and a `LegacyShimService` (Task 8.2); registers them in a `Vec<Box<dyn DomainService>>`; iterates the manifest to call `register_routes(&ctx)` on each; merges the resulting `RouteRegistration`s into the public / protected / administrator Axum routers; applies the auth/CORS/cookie/body-limit/Otel layers via `gateway::layers::*` (same factory functions as `domain_posts::domain::layers::*`); binds the listener and serves.
+- [ ] 8.2 Implement `gateway::legacy_shim::LegacyShimService` that wraps the legacy `application_core` modules for categories, tags, media, users, and ai. Each module's existing `api_*` handlers are exposed through `DomainService::register_routes` and registered into the same router groups. The shim is removed in a follow-up change after categories/tags/media/users are extracted as their own self-contained domains.
+- [ ] 8.3 Implement `gateway::orchestrator::run()` that collects `MigrationDescriptor`s from every registered `DomainService`, topologically sorts by `id` and `depends_on`, deduplicates by `id`, runs them sequentially against the shared `DatabaseConnection`, and maps errors to `DomainConfigError`. The orchestrator is invoked at startup (so the composed gateway is always at the latest schema) and at `/administrator/database/migration` (the legacy protected route).
+- [ ] 8.4 Verify: `cargo run -p gateway` boots and `/health` returns 200; `cargo test -p gateway --no-fail-fast` passes (router + health integration); the composed gateway serves the same routes as the current `my-cms-api`.
 
-## Task 9 — Add new `my_cms_api` gateway bin
+## 9. Cut over and remove the legacy `my-cms-api` bin
 
-- Create `apps/api/my_cms_api/src/main.rs` (composition root). It loads env, initializes tracing/OpenTelemetry, builds one `DatabaseConnection`, builds `FoundationServices`, builds `DomainContext`, registers `DomainPostService` and a no-op `Hello` test domain in a `Vec<Box<dyn DomainService>>`, iterates the vec to build the three Axum routers (`Mount::Public`, `Mount::Protected`, `Mount::Administrator`), applies the foundation's auth/CORS/cookie/body-limit/Otel layers, runs the migration orchestrator only when invoked via `/administrator/database/migration`, and binds the listener.
-- The new bin re-uses `construct_app_state`'s current env-var surface unchanged.
-- Verify: `cargo run -p my_cms_api` boots and `/health` returns 200; `cargo test --workspace` passes.
+- [ ] 9.1 Delete `apps/api/src/bin/my-cms-api.rs` and `apps/api/src/lib.rs` (and the now-empty `apps/api/src/api/**` directories). Remove the `apps/api/src/{common,presentation_models}` modules.
+- [ ] 9.2 Update `apps/api/Cargo.toml` `[[bin]]` to point only to the new binary produced by `gateway` (keep `[[bin]] name = "my-cms-api"` for deployment image compatibility).
+- [ ] 9.3 Verify: `cargo build -p cms --bin my-cms-api` builds; `cargo run --bin my-cms-api` serves `/health`, `/healthz`, `/posts/**`, `/posts/{post_id}/translate`, `/posts/{post_id}/translate/background`, `/posts/{post_id}/translate/jobs/**`, `/categories/**`, `/tags`, `/media/**`, `/users/**`, and both `/graphql/**` paths; `cargo test --workspace` and the verification gate (`cargo fmt -- --check && cargo clippy --all-targets`) pass.
 
-## Task 10 — Cut over and remove the legacy `my-cms-api` bin
+## 10. New-domain scaffold (copy `domain_posts` pattern)
 
-- Delete `apps/api/src/bin/my-cms-api.rs` and `apps/api/src/lib.rs` (and the now-empty `apps/api/src/api/**` directories).
-- Update `apps/api/Cargo.toml` `[[bin]]` to point only to the new bin name `my-cms-api` (the user-facing name) backed by `apps/api/my_cms_api/src/main.rs`. Keep `[[bin]] name = "my-cms-api"` for deployment image compatibility.
-- Verify: `cargo build -p cms --bin my-cms-api` builds; `cargo run --bin my-cms-api` serves `/health`, `/posts/**`, `/posts/{post_id}/translate`, `/posts/{post_id}/translate/background`, `/posts/{post_id}/translate/jobs/**`, and both GraphQL paths; `cargo test --workspace` and the verification gate (`cargo fmt -- --check && cargo clippy --all-targets`) pass.
+- [ ] 10.1 Document `docs/adding-a-domain.md` (or a section in `openspec/specs/domain-service-interface/spec.md`) describing the new-domain scaffold: copy `apps/api/domain_posts/` into `apps/api/domain_<name>/`, rename identifiers, replace `posts` with the new domain name, add the new crate to `apps/api/Cargo.toml` `[workspace] members`, implement `domain_interface::DomainService` for `Domain<Name>Service`, and append `Box::new(Domain<Name>Service::new(...))` to `gateway::manifest::services()`. The canonical reference for the scaffold is `domain_posts` itself; no separate `templates/domain_template/` crate is created.
+- [ ] 10.2 Verify: copy `domain_posts` into a temporary `apps/api/domain_demo/`, add to workspace, run `cargo check -p domain_demo` succeeds, remove the temporary crate. Update the docs.
 
-## Task 11 — Add a new-domain scaffold
+## 11. Verification and synchronization
 
-- Commit `apps/api/templates/domain_template/` (a Cargo lib + README) with the standard `Cargo.toml`, `src/lib.rs`, `src/api/` placeholder, `src/commands/` placeholder, `src/migrations.rs` placeholder, `src/service.rs` implementing an empty `DomainService`.
-- Add `docs/adding-a-domain.md` describing: copy template, replace crate name, add to `Cargo.toml` members, register in the gateway composition manifest.
-- Verify: copy the template into a temporary `apps/api/domain_demo/`, add to workspace, run `cargo check -p domain_demo` succeeds, remove the temporary crate. Update docs.
-
-## Task 12 — Verification and synchronization
-
-- Run the full repository verification gate: `cargo check`, `cargo test`, `cargo fmt -- --check`, `cargo clippy --all-targets -- -D warnings`, `pnpm --dir apps/web build`.
-- Run `openspec verify --change "refactor-api-into-pluggable-domain-libraries"` and resolve every CRITICAL finding.
-- Optional: run `openspec sync --change "refactor-api-into-pluggable-domain-libraries"` only if the team chooses to publish the new canonical specs (`domain-service-interface`, `domain-post-service`, `api-gateway-bootstrap`) into `openspec/specs/`.
-- Optional: archive the change via `openspec archive "refactor-api-into-pluggable-domain-libraries"` only after the next domain (`domain-tag`, `domain-category`, `domain-media`, `domain-user`) is approved and shipped in a follow-up change.
+- [ ] 11.1 Run the full repository verification gate: `cargo check`, `cargo test`, `cargo fmt -- --check`, `cargo clippy --all-targets -- -D warnings`, `pnpm --dir apps/web build`.
+- [ ] 11.2 Run `openspec verify --change "refactor-api-into-pluggable-domain-libraries"` and resolve every CRITICAL finding.
+- [ ] 11.3 Run `cargo run -p domain_posts -- migrate` against the test database; confirm the migration identities are reported in the original order.
+- [ ] 11.4 Run `cargo run -p domain_posts` (standalone) and `cargo run -p gateway` (composed) against the same env-var surface; capture the `/health` and `/posts/**` responses for parity comparison.
+- [ ] 11.5 Optional: run `openspec sync --change "refactor-api-into-pluggable-domain-libraries"` only if the team chooses to publish the new canonical specs (`domain-service-interface`, `domain-post-service`, `api-gateway-bootstrap`) into `openspec/specs/`.
+- [ ] 11.6 Optional: archive the change via `openspec archive "refactor-api-into-pluggable-domain-libraries"` only after the next domains (`domain-categories`, `domain-tags`, `domain-media`, `domain-users`) are extracted in follow-up changes.
