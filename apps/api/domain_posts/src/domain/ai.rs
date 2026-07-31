@@ -1,9 +1,7 @@
 //! OpenAI client factory used by the post translation handler.
 //!
-//! The actual translation logic lives in `handlers::post::translate` (which
-//! owns the prompt engineering, pgvector lookup, and translation chunking).
-//! This module exposes the `OpenAIConfig`/`Client` factories and the
-//! `OPENAI_API_KEY` env contract.
+//! Skeleton phase (Task 3): minimal factory. Task 4 enriches this module
+//! with the configuration used by the real translation pipeline.
 
 use async_openai::{config::OpenAIConfig, Client};
 

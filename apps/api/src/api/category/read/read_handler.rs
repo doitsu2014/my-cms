@@ -2,7 +2,7 @@ use application_core::commands::category::read::category_read_handler::{
     CategoryReadHandler, CategoryReadHandlerTrait,
 };
 use application_core::entities::sea_orm_active_enums::CategoryType;
-use axum::extract::{Path, Query, State};
+use axum::extract::{Extension, Path, Query};
 use axum::response::IntoResponse;
 use sea_orm::sqlx::types::Uuid;
 use serde::Deserialize;
@@ -18,7 +18,7 @@ pub struct QueryParams {
 
 #[instrument]
 pub async fn api_get_categories_with_filtering(
-    state: State<AppState>,
+    state: Extension<AppState>,
     query: Query<QueryParams>,
 ) -> impl IntoResponse {
     let handler = CategoryReadHandler {
@@ -37,7 +37,7 @@ pub async fn api_get_categories_with_filtering(
 
 #[instrument]
 pub async fn api_get_category(
-    state: State<AppState>,
+    state: Extension<AppState>,
     Path(category_id): Path<Uuid>,
 ) -> impl IntoResponse {
     let handler = CategoryReadHandler {

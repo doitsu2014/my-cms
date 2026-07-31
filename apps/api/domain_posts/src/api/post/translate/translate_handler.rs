@@ -10,16 +10,16 @@ use axum::{
     response::IntoResponse,
     Extension, Json,
 };
-use sea_orm::DatabaseConnection;
 use sea_orm::sqlx::types::Uuid;
+use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use domain_interface::DomainContext;
-use domain_posts::handlers::post::translate::translate_handler::{
+use crate::handlers::post::translate::translate_handler::{
     PostTranslateHandler, PostTranslateHandlerTrait,
 };
-use domain_posts::handlers::post::translate::translate_request::TranslatePostRequest;
+use crate::handlers::post::translate::translate_request::TranslatePostRequest;
+use domain_interface::DomainContext;
 
 use crate::domain::auth::SupabaseToken;
 use crate::domain::response::{ApiResponseError, ApiResponseWith, AxumResponse, ErrorCode};
@@ -46,13 +46,8 @@ pub struct TranslatePostResponse {
 async fn initialize_vector_store(
     db: Arc<DatabaseConnection>,
     openai_api_key: &str,
-) -> Option<Arc<domain_posts::handlers::vector_store::VectorStore>> {
-    match domain_posts::handlers::vector_store::VectorStore::new(
-        db,
-        openai_api_key.to_string(),
-    )
-    .await
-    {
+) -> Option<Arc<crate::handlers::vector_store::VectorStore>> {
+    match crate::handlers::vector_store::VectorStore::new(db, openai_api_key.to_string()).await {
         Ok(vs) => {
             if let Err(e) = vs.initialize_collection().await {
                 tracing::error!("Failed to initialize pgvector embeddings table: {}", e);

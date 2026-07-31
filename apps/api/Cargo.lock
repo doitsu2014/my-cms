@@ -117,7 +117,6 @@ dependencies = [
  "html5ever",
  "lazy_static",
  "markup5ever_rcdom",
- "migration",
  "moka",
  "nanoid",
  "rand 0.9.4",
@@ -957,6 +956,8 @@ dependencies = [
  "axum",
  "axum-tracing-opentelemetry",
  "chrono",
+ "domain_interface",
+ "domain_posts",
  "dotenv",
  "hyper",
  "hyper-util",
@@ -1416,6 +1417,77 @@ dependencies = [
 ]
 
 [[package]]
+name = "domain_interface"
+version = "0.1.0"
+dependencies = [
+ "async-graphql",
+ "async-trait",
+ "axum",
+ "chrono",
+ "futures",
+ "sea-orm",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
+name = "domain_posts"
+version = "0.1.0"
+dependencies = [
+ "application_core",
+ "async-graphql",
+ "async-graphql-axum",
+ "async-openai",
+ "async-std",
+ "async-trait",
+ "axum",
+ "axum-tracing-opentelemetry",
+ "chrono",
+ "domain_interface",
+ "dotenv",
+ "fake",
+ "futures",
+ "html5ever",
+ "http",
+ "hyper",
+ "init-tracing-opentelemetry",
+ "jsonwebtoken",
+ "lazy_static",
+ "markup5ever_rcdom",
+ "moka",
+ "nanoid",
+ "opentelemetry",
+ "opentelemetry-otlp",
+ "rand 0.9.4",
+ "regex",
+ "reqwest",
+ "sea-orm",
+ "sea-orm-macros",
+ "sea-orm-migration",
+ "seaography",
+ "serde",
+ "serde_json",
+ "slugify",
+ "test_helpers",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-test",
+ "tower",
+ "tower-cookies",
+ "tower-http",
+ "tracing",
+ "tracing-error",
+ "tracing-opentelemetry",
+ "tracing-opentelemetry-instrumentation-sdk 0.30.0",
+ "tracing-subscriber",
+ "uuid",
+ "wiremock",
+]
+
+[[package]]
 name = "dotenv"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1783,6 +1855,32 @@ dependencies = [
  "memchr",
  "pin-project-lite",
  "slab",
+]
+
+[[package]]
+name = "gateway"
+version = "0.1.0"
+dependencies = [
+ "application_core",
+ "async-graphql",
+ "async-graphql-axum",
+ "async-trait",
+ "axum",
+ "axum-tracing-opentelemetry",
+ "domain_interface",
+ "domain_posts",
+ "dotenv",
+ "hyper",
+ "init-tracing-opentelemetry",
+ "migration",
+ "sea-orm",
+ "test_helpers",
+ "tokio",
+ "tower",
+ "tower-cookies",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -2676,6 +2774,7 @@ name = "migration"
 version = "0.1.0"
 dependencies = [
  "async-std",
+ "domain_posts",
  "sea-orm",
  "sea-orm-migration",
  "sea-query",

@@ -1,7 +1,7 @@
 use application_core::commands::user::read_list::read_list_handler::{
     ReadListUserHandler, ReadListUserHandlerTrait,
 };
-use axum::extract::{Query, State};
+use axum::extract::{Extension, Query};
 use axum::response::IntoResponse;
 use serde::Deserialize;
 use tracing::instrument;
@@ -19,7 +19,7 @@ pub struct QueryParams {
 
 #[instrument]
 pub async fn api_list_users(
-    state: State<AppState>,
+    state: Extension<AppState>,
     query: Query<QueryParams>,
 ) -> impl IntoResponse {
     let handler = ReadListUserHandler {

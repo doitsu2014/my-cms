@@ -14,7 +14,7 @@ use tracing::instrument;
 
 #[instrument]
 pub async fn api_delete_user(
-    state: State<AppState>,
+    state: Extension<AppState>,
     Path(user_id): Path<Uuid>,
     Extension(token): Extension<SupabaseToken>,
 ) -> Response<String> {

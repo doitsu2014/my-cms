@@ -3,13 +3,13 @@ use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
 use application_core::commands::media::bucket::list::list_handler::{
     ListBucketsHandler, ListBucketsHandlerTrait,
 };
-use axum::{extract::State, response::IntoResponse, Extension};
+use axum::{extract::Extension, response::IntoResponse};
 use tower_cookies::Cookies;
 use tracing::instrument;
 
 #[instrument(skip(state))]
 pub async fn api_list_buckets(
-    state: State<AppState>,
+    state: Extension<AppState>,
     _cookies: Cookies,
     Extension(_token): Extension<SupabaseToken>,
 ) -> impl IntoResponse {

@@ -22,7 +22,7 @@ pub struct CreateMediaQueryParams {
 
 #[instrument(skip(state, multipart))]
 pub async fn api_create_media(
-    state: State<AppState>,
+    state: Extension<AppState>,
     _cookies: Cookies,
     Extension(_token): Extension<SupabaseToken>,
     Query(params): Query<CreateMediaQueryParams>,

@@ -4,13 +4,13 @@ use application_core::commands::category::modify::{
     modify_handler::{CategoryModifyHandler, CategoryModifyHandlerTrait},
     modify_request::ModifyCategoryRequest,
 };
-use axum::{extract::State, response::IntoResponse, Extension, Json};
+use axum::{extract::Extension, response::IntoResponse, Json};
 use tower_cookies::Cookies;
 use tracing::instrument;
 
 #[instrument]
 pub async fn api_modify_category(
-    state: State<AppState>,
+    state: Extension<AppState>,
     cookies: Cookies,
     Extension(token): Extension<SupabaseToken>,
     Json(body): Json<ModifyCategoryRequest>,

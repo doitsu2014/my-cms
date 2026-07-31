@@ -4,13 +4,13 @@ use application_core::commands::media::bucket::create::{
     create_handler::{CreateBucketHandler, CreateBucketHandlerTrait},
     create_request::CreateBucketRequest,
 };
-use axum::{extract::State, response::IntoResponse, Extension, Json};
+use axum::{extract::Extension, response::IntoResponse, Json};
 use tower_cookies::Cookies;
 use tracing::instrument;
 
 #[instrument(skip(state))]
 pub async fn api_create_bucket(
-    state: State<AppState>,
+    state: Extension<AppState>,
     _cookies: Cookies,
     Extension(_token): Extension<SupabaseToken>,
     Json(body): Json<CreateBucketRequest>,

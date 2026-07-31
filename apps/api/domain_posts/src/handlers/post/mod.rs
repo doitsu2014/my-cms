@@ -1,5 +1,7 @@
-//! Post application-layer command handlers. Re-exports from the legacy
-//! `application_core::commands::post::*` modules during the transition.
+//! Post application-layer command handlers.
+//!
+//! Skeleton phase (Task 3): empty submodules. Task 4 moves the post
+//! handlers from `application_core::commands::post::*` into this tree.
 
 pub mod create;
 pub mod delete;

@@ -1,6 +1,9 @@
 //! Layer factory functions used by both the gateway-composed and standalone
 //! modes. These mirror the legacy `apps/api/src/bin/my-cms-api.rs` lines
 //! 188–205 (auth + body limit + cookie + Otel) and lines 320–331 (CORS).
+//!
+//! The canonical implementations live here in the skeleton phase so both
+//! the `domain_posts` bin and the gateway can call them.
 
 use axum::extract::DefaultBodyLimit;
 use hyper::Method;

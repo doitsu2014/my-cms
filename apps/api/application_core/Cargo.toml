@@ -51,7 +51,6 @@ regex = "1"
 [dev-dependencies]
 sea-orm-migration = "1.1.20"
 fake = { version = "4.4.0", features = ["derive"] }
-migration = { path = "../migration" }
 test_helpers = { path = "../test_helpers" }
 rand = "0.9.4"
 wiremock = "0.6.5"

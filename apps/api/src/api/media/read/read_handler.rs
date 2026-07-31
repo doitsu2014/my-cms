@@ -9,7 +9,7 @@ use application_core::commands::media::{MediaConfig, SupabaseStorage};
 use application_core::common::app_error::AppError;
 use axum::{
     body::Body,
-    extract::{Path, Query, State},
+    extract::{Extension, Path, Query},
     http::{header, HeaderMap, StatusCode},
     response::{IntoResponse, Response},
 };
@@ -144,7 +144,7 @@ pub(crate) async fn enforce_bucket_visibility_gate(
 
 #[instrument(skip(state, headers))]
 pub async fn api_get_media_image(
-    state: State<AppState>,
+    state: Extension<AppState>,
     headers: HeaderMap,
     Path(path): Path<String>,
     Query(params): Query<ImageQueryParams>,
@@ -183,7 +183,7 @@ pub async fn api_get_media_image(
 
 #[instrument(skip(state, headers))]
 pub async fn api_get_media(
-    state: State<AppState>,
+    state: Extension<AppState>,
     headers: HeaderMap,
     Path(path): Path<String>,
     Query(params): Query<ReadQueryParams>,

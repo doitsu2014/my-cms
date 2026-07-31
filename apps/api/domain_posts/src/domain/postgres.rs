@@ -13,8 +13,8 @@ use sea_orm::{Database, DatabaseConnection};
 /// `DomainConfigError::UnreachableDependency` without depending on the
 /// post domain's error type.
 pub async fn connect_database() -> Result<Arc<DatabaseConnection>, String> {
-    let database_url = std::env::var("DATABASE_URL")
-        .map_err(|_| "DATABASE_URL must be set".to_string())?;
+    let database_url =
+        std::env::var("DATABASE_URL").map_err(|_| "DATABASE_URL must be set".to_string())?;
     let conn = Database::connect(&database_url)
         .await
         .map_err(|e| format!("Failed to connect to database: {}", e))?;

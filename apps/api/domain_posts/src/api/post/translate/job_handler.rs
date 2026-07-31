@@ -5,17 +5,17 @@
 //! - `GET /posts/{post_id}/translate/jobs` — fetch all active (pending or
 //!   processing) translation jobs for a post.
 
-use application_core::entities::translation_jobs;
 use axum::{
     extract::{Path, State},
     response::IntoResponse,
     Extension,
 };
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use sea_orm::sqlx::types::Uuid;
+use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
+use crate::entities::translation_jobs;
 use domain_interface::DomainContext;
 
 use crate::domain::auth::SupabaseToken;

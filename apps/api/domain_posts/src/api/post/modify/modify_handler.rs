@@ -1,11 +1,11 @@
-//! `PUT /posts/{post_id}` — modify a post.
+//! `PUT /posts` — modify an existing post.
 
 use axum::{extract::State, response::IntoResponse, Extension, Json};
 use tracing::instrument;
 
+use crate::handlers::post::modify::modify_handler::{PostModifyHandler, PostModifyHandlerTrait};
+use crate::handlers::post::modify::modify_request::ModifyPostRequest;
 use domain_interface::DomainContext;
-use domain_posts::handlers::post::modify::modify_handler::{PostModifyHandler, PostModifyHandlerTrait};
-use domain_posts::handlers::post::modify::modify_request::ModifyPostRequest;
 
 use crate::domain::auth::SupabaseToken;
 use crate::domain::response::{ApiResponseError, ApiResponseWith, AxumResponse};

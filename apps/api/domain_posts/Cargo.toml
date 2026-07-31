@@ -17,6 +17,7 @@ path = "src/main.rs"
 [dependencies]
 async-std = "1.13.2"
 async-openai = "0.27"
+async-trait = "0.1"
 axum = { version = "0.8.9", features = ["http2", "tracing", "multipart"] }
 axum-tracing-opentelemetry = { version = "0.30.1" }
 chrono = { version = "0.4.44", features = ["serde"] }
@@ -30,7 +31,7 @@ hyper = { version = "1.10.1" }
 init-tracing-opentelemetry = { version = "0.30.1", features = [
   "otlp",
   "tracing_subscriber_ext",
-] ]
+] }
 jsonwebtoken = { version = "9.3.1" }
 lazy_static = "1.5.0"
 markup5ever_rcdom = "0.3"

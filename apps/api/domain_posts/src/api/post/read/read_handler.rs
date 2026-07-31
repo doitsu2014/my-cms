@@ -1,6 +1,5 @@
 //! `GET /posts`, `GET /posts/{post_id}` — read posts with optional filtering.
 
-use application_core::entities::sea_orm_active_enums::CategoryType;
 use axum::{
     extract::{Path, Query, State},
     response::IntoResponse,
@@ -9,8 +8,9 @@ use sea_orm::sqlx::types::Uuid;
 use serde::Deserialize;
 use tracing::instrument;
 
+use crate::handlers::post::read::read_handler::{PostReadHandler, PostReadHandlerTrait};
+use crate::entities::sea_orm_active_enums::CategoryType;
 use domain_interface::DomainContext;
-use domain_posts::handlers::post::read::read_handler::{PostReadHandler, PostReadHandlerTrait};
 
 use crate::domain::response::{ApiResponseError, ApiResponseWith, AxumResponse};
 

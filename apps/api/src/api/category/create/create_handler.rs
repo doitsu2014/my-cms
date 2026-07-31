@@ -4,13 +4,13 @@ use application_core::commands::category::create::{
     create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
     create_request::CreateCategoryRequest,
 };
-use axum::{extract::State, response::IntoResponse, Extension, Json};
+use axum::{extract::Extension, response::IntoResponse, Json};
 use tower_cookies::Cookies;
 use tracing::instrument;
 
 #[instrument]
 pub async fn api_create_category_with_tags(
-    state: State<AppState>,
+    state: Extension<AppState>,
     cookies: Cookies,
     Extension(token): Extension<SupabaseToken>,
     Json(body): Json<CreateCategoryRequest>,

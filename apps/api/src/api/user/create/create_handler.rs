@@ -4,12 +4,12 @@ use application_core::commands::user::create::{
     create_handler::{CreateUserHandler, CreateUserHandlerTrait},
     create_request::CreateUserRequest,
 };
-use axum::{extract::State, response::IntoResponse, Extension, Json};
+use axum::{extract::Extension, response::IntoResponse, Json};
 use tracing::instrument;
 
 #[instrument]
 pub async fn api_create_user(
-    state: State<AppState>,
+    state: Extension<AppState>,
     Extension(token): Extension<SupabaseToken>,
     Json(body): Json<CreateUserRequest>,
 ) -> impl IntoResponse {

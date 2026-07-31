@@ -6,11 +6,13 @@
 //! during the transition. The transition plan is documented in
 //! `openspec/changes/refactor-api-into-pluggable-domain-libraries/tasks.md`.
 
-pub mod auth;
 pub mod ai;
+pub mod auth;
+pub mod datetime_generator;
 pub mod env;
 pub mod error;
 pub mod extensions;
+pub mod extensions_impl;
 pub mod graphql;
 pub mod layers;
 pub mod postgres;

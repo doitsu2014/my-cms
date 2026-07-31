@@ -22,7 +22,7 @@ pub struct ListQueryParams {
 
 #[instrument(skip(state))]
 pub async fn api_list_media(
-    state: State<AppState>,
+    state: Extension<AppState>,
     _cookies: Cookies,
     Extension(_token): Extension<SupabaseToken>,
     Query(params): Query<ListQueryParams>,

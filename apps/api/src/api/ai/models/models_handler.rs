@@ -1,4 +1,4 @@
-use axum::{extract::State, Json};
+use axum::{extract::Extension, Json};
 use std::env;
 
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
 use application_core::commands::ai::models::{ModelsHandler, ModelsHandlerTrait};
 
 pub async fn api_get_openai_models(
-    State(_state): State<AppState>,
+    Extension(_state): Extension<AppState>,
 ) -> Result<
     Json<ApiResponseWith<application_core::commands::ai::models::ModelsListResponse>>,
     Json<ApiResponseError>,

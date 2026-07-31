@@ -1,11 +1,16 @@
 [workspace]
-members = ["application_core", "migration", "test_helpers"]
+members = ["application_core", "domain_interface", "domain_posts", "gateway", "migration", "test_helpers"]
 
 [package]
 name = "cms"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
+
+[[bin]]
+name = "my-cms-api"
+path = "gateway/src/main.rs"
+required-features = []
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -65,6 +70,8 @@ reqwest = { version = "0.12.28" }
 moka = { version = "0.12.15", features = ["future"] }
 
 application_core = { path = "application_core" }
+domain_interface = { path = "domain_interface" }
+domain_posts = { path = "domain_posts" }
 migration = { path = "migration" }
 
 [dev-dependencies]

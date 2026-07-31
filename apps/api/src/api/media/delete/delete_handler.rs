@@ -24,7 +24,7 @@ pub struct DeleteMediaQueryParams {
 /// Delete a single media file by path
 #[instrument(skip(state))]
 pub async fn api_delete_media(
-    state: State<AppState>,
+    state: Extension<AppState>,
     _cookies: Cookies,
     Extension(_token): Extension<SupabaseToken>,
     Path(path): Path<String>,
@@ -57,7 +57,7 @@ pub async fn api_delete_media(
 /// Delete multiple media files by paths (batch delete)
 #[instrument(skip(state))]
 pub async fn api_delete_media_batch(
-    state: State<AppState>,
+    state: Extension<AppState>,
     _cookies: Cookies,
     Extension(_token): Extension<SupabaseToken>,
     Query(params): Query<DeleteMediaQueryParams>,

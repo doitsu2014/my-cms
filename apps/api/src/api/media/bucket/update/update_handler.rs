@@ -14,7 +14,7 @@ use tracing::instrument;
 
 #[instrument(skip(state))]
 pub async fn api_update_bucket(
-    state: State<AppState>,
+    state: Extension<AppState>,
     _cookies: Cookies,
     Extension(_token): Extension<SupabaseToken>,
     Path(name): Path<String>,

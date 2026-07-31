@@ -4,16 +4,16 @@ use application_core::commands::user::reset_password::{
     ResetPasswordHandler, ResetPasswordHandlerTrait, ResetPasswordRequest,
 };
 use axum::{
-    extract::{Path, State},
+    extract::{Extension, Path},
     response::IntoResponse,
-    Extension, Json,
+    Json,
 };
 use sea_orm::sqlx::types::Uuid;
 use tracing::instrument;
 
 #[instrument]
 pub async fn api_reset_password(
-    state: State<AppState>,
+    state: Extension<AppState>,
     Path(user_id): Path<Uuid>,
     Extension(token): Extension<SupabaseToken>,
     Json(body): Json<ResetPasswordRequest>,

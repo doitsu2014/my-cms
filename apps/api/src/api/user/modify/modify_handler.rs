@@ -14,7 +14,7 @@ use tracing::instrument;
 
 #[instrument]
 pub async fn api_modify_user(
-    state: State<AppState>,
+    state: Extension<AppState>,
     Path(user_id): Path<Uuid>,
     Extension(token): Extension<SupabaseToken>,
     Json(body): Json<ModifyUserRequest>,

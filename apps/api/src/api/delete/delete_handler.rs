@@ -5,7 +5,7 @@ use crate::{
 use application_core::commands::post::delete::delete_handler::{
     PostDeleteHandler, PostDeleteHandlerTrait,
 };
-use axum::{extract::State, response::IntoResponse, Extension, Json};
+use axum::{extract::Extension, response::IntoResponse, Json};
 use crate::common::supabase_auth::SupabaseToken;
 use sea_orm::sqlx::types::Uuid;
 use tower_cookies::Cookies;
@@ -13,7 +13,7 @@ use tracing::instrument;
 
 #[instrument]
 pub async fn api_delete_post(
-    state: State<AppState>,
+    state: Extension<AppState>,
     cookies: Cookies,
     Extension(token): Extension<SupabaseToken>,
     Json(body): Json<Vec<Uuid>>,

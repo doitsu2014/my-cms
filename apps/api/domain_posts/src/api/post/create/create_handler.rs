@@ -3,9 +3,9 @@
 use axum::{extract::State, response::IntoResponse, Extension, Json};
 use tracing::instrument;
 
+use crate::handlers::post::create::create_handler::{PostCreateHandler, PostCreateHandlerTrait};
+use crate::handlers::post::create::create_request::CreatePostRequest;
 use domain_interface::DomainContext;
-use domain_posts::handlers::post::create::create_handler::{PostCreateHandler, PostCreateHandlerTrait};
-use domain_posts::handlers::post::create::create_request::CreatePostRequest;
 
 use crate::domain::auth::SupabaseToken;
 use crate::domain::response::{ApiResponseError, ApiResponseWith, AxumResponse};
