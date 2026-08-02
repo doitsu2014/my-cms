@@ -4,35 +4,63 @@
 //! contributes the entity registration via [`contribute_post_schema`]. This
 //! keeps the gateway from importing post entities directly.
 //!
-//! During the transition the canonical schema builder lives in
-//! `application_core::graphql::query_root::schema` (Task 4.6 will generate
-//! the post-domain entities directly). The wrapper here preserves the
-//! `domain_posts::domain::graphql::contribute_post_schema` signature so the
-//! gateway composition can call it without depending on `application_core`.
+//! The canonical schema builder previously lived in
+//! `application_core::graphql::query_root::schema`; it is now inlined here
+//! because `domain_posts` no longer depends on `application_core`.
 
+use crate::entities::*;
 use sea_orm::DatabaseConnection;
+use seaography::{Builder, BuilderContext};
+
+lazy_static::lazy_static! {
+    static ref CONTEXT : BuilderContext = {
+        let context = BuilderContext::default();
+        BuilderContext {
+            ..context
+        }
+    };
+}
 
 /// Build the post-domain's contribution to a Seaography schema.
-///
-/// Wraps `application_core::graphql::query_root::schema` with the post
-/// domain's parameters. The gateway can call this for both the immutable
-/// (mutations disabled) and mutable schemas.
 pub fn contribute_post_schema(
     database: DatabaseConnection,
     depth: Option<usize>,
     complexity: Option<usize>,
     is_mutation_supported: bool,
 ) -> Result<async_graphql::dynamic::Schema, async_graphql::dynamic::SchemaError> {
-    application_core::graphql::query_root::schema(
-        database,
-        depth,
-        complexity,
-        is_mutation_supported,
-    )
+    let mut builder = Builder::new(&CONTEXT, database.clone());
+    seaography::register_entities!(
+        builder,
+        [
+            categories,
+            category_tags,
+            posts,
+            post_tags,
+            tags,
+            category_translations,
+            post_translations
+        ]
+    );
+    builder.register_enumeration::<crate::entities::sea_orm_active_enums::CategoryType>();
+    if !is_mutation_supported {
+        builder.mutations = vec![];
+    }
+    let schema = builder.schema_builder();
+    let schema = if let Some(depth) = depth {
+        schema.limit_depth(depth)
+    } else {
+        schema
+    };
+    let schema = if let Some(complexity) = complexity {
+        schema.limit_complexity(complexity)
+    } else {
+        schema
+    };
+    schema.data(database).finish()
 }
 
 /// Historical Seaography entity set for the post domain — mirrors
-/// `application_core::graphql::query_root::schema` lines 22–33.
+/// the prior `application_core::graphql::query_root::schema` entity list.
 ///
 /// Once each non-post domain is extracted, this set will shrink to only
 /// the post-aggregate entities (`posts`, `post_tags`, `post_translations`,

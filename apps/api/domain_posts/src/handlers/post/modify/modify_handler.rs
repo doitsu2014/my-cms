@@ -6,16 +6,16 @@ use std::sync::Arc;
 use tracing::instrument;
 use uuid::Uuid;
 
-use application_core::{
-    commands::{
-        post::read::read_handler::{PostReadHandler, PostReadHandlerTrait, PostReadResponse},
-        tag::create::create_handler::{TagCreateHandler, TagCreateHandlerTrait},
-    },
-    common::{app_error::AppError, datetime_generator::generate_vietnam_now},
-    entities::{
-        post_tags, post_translations,
-        posts::{self, Column},
-    },
+use crate::domain::{datetime_generator::generate_vietnam_now, error::AppError};
+use crate::entities::{
+    post_tags, post_translations,
+    posts::{self, Column},
+};
+use crate::handlers::post::read::read_handler::{
+    PostReadHandler, PostReadHandlerTrait, PostReadResponse,
+};
+use crate::handlers::tag_helper::create::create_handler::{
+    TagCreateHandler, TagCreateHandlerTrait,
 };
 
 use super::modify_request::ModifyPostRequest;
@@ -91,7 +91,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                             .filter(Expr::col(post_tags::Column::TagId).is_in(tags_to_delete))
                             .exec(tx)
                             .await
-                            .map_err(|err| err.into())?;
+                            .map_err(AppError::from)?;
                     }
 
                     // 3.2. Insert post Tags
@@ -119,7 +119,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                         post_tags::Entity::insert_many(post_tags_to_insert)
                             .exec(tx)
                             .await
-                            .map_err(|err| err.into())?;
+                            .map_err(AppError::from)?;
                     }
 
                     // 3.3. Modify Category information
@@ -129,7 +129,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                         .filter(Expr::col(Column::RowVersion).eq(current_row_version))
                         .exec(tx)
                         .await
-                        .map_err(|err| err.into())?;
+                        .map_err(AppError::from)?;
                     match modified_result.rows_affected == 0 {
                         true => {
                             return Err(AppError::Logical("Row version is not matched".to_string()))
@@ -149,7 +149,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                             .filter(Expr::col(post_translations::Column::PostId).eq(modified_id))
                             .all(tx)
                             .await
-                            .map_err(|err| err.into())?;
+                            .map_err(AppError::from)?;
 
                         let translations_to_delete: Vec<Uuid> = existing_translations
                             .iter()
@@ -167,7 +167,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                                 )
                                 .exec(tx)
                                 .await
-                                .map_err(|err| err.into())?;
+                                .map_err(AppError::from)?;
                         }
 
                         for request_translation in request_translations {
@@ -178,14 +178,14 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                                 post_translations::Entity::update(existing_translation)
                                     .exec(tx)
                                     .await
-                                    .map_err(|err| err.into())?;
+                                    .map_err(AppError::from)?;
                             } else {
                                 let mut new_translation = request_translation.into_active_model();
                                 new_translation.post_id = Set(modified_id);
                                 post_translations::Entity::insert(new_translation)
                                     .exec(tx)
                                     .await
-                                    .map_err(|err| err.into())?;
+                                    .map_err(AppError::from)?;
                             }
                         }
                     }
@@ -194,7 +194,7 @@ impl PostModifyHandlerTrait for PostModifyHandler {
                 })
             })
             .await
-            .map_err(|e| e.into());
+            .map_err(AppError::from);
 
         result
     }

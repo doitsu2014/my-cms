@@ -1,13 +1,8 @@
 //! `PostDeleteHandler` — application-layer command handler for post deletion.
 //!
 //! Moved from `application_core::commands::post::delete::delete_handler`
-//! per design Decision 2. The handler continues to reference the legacy
-//! `crate::entities::posts` during the transition; the entity
-//! set moves to `domain_posts::entities` in Task 4.6.
+//! per the `consolidate-category-ai-translate-into-domain-posts` change.
 
-pub use application_core::commands::post::delete::delete_handler::{
-    PostDeleteHandler, PostDeleteHandlerTrait,
-};
+pub mod delete_handler;
 
-#[allow(unused_imports)]
-pub use application_core::commands::post::delete::delete_handler;
+pub use delete_handler::{PostDeleteHandler, PostDeleteHandlerTrait};

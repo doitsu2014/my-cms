@@ -18,31 +18,31 @@ apps/api/
 
 ## Deployment Modes
 
-Two binaries are produced:
+Three binaries are produced:
 
 | Binary | Backing crate | Routes served | When to use |
 |---|---|---|---|
-| `my-cms-api` | `gateway` | `/`, `/health`, `/healthz`, `/graphql/**`, `/posts/**`, `/posts/{post_id}/translate*` | Composed gateway (post domain only, for now) |
-| `legacy_bootstrap` | `cms` | `/`, `/health`, `/healthz`, `/categories/**`, `/tags`, `/media/**`, `/users/**`, `/administrator/**`, `/graphql/**` | Staged cutover — covers non-migrated domains |
-| `domain_posts` | `domain_posts` | `/posts/**`, `/posts/{post_id}/translate*` | Standalone post microservice |
+| `my-cms-api` | `gateway` | `/`, `/health`, `/healthz`, `/graphql/**`, `/posts/**`, `/posts/{post_id}/translate*`, `/categories/**`, `/ai/models` | Composed gateway (single domain: post + categories + AI + translation) |
+| `legacy_bootstrap` | `cms` | `/`, `/health`, `/healthz`, `/tags`, `/media/**`, `/users/**`, `/administrator/**`, `/graphql/**` | Staged cutover — covers not-yet-extracted domains (tags, media, users, administrator) |
+| `domain_posts` | `domain_posts` | `/posts/**`, `/posts/{post_id}/translate*`, `/categories/**`, `/ai/models` | Standalone post microservice (same surface as the composed gateway) |
 
 ## Staged Cutover
 
 The cutover is **staged**:
 
-1. **Stage 1 (DONE)** — `domain_posts` is fully extracted. The gateway serves post-domain routes via `DomainPostService`. The legacy bootstrap (`legacy_bootstrap` binary) continues to serve the remaining categories/tags/media/users/administrator routes.
+1. **Stage 1 (DONE)** — `domain_posts` is fully extracted as the single Cargo crate that owns every post-related capability: post CRUD, post translation, post-related categories, post-related AI model registry, post-related tag helper, post GraphQL contribution, post migrations, and post-related cross-cutting layers (auth, response, error, OpenTelemetry). The gateway serves the consolidated post-domain routes via `DomainPostService`. The legacy bootstrap (`legacy_bootstrap` binary) continues to serve the remaining tags/media/users/administrator routes.
 
-2. **Stage 2 (next)** — Extract `domain_categories`, `domain_tags`, `domain_media`, `domain_users`, `domain_ai` as self-contained crates (per `docs/adding-a-domain.md`). Each new domain's `Domain<Name>Service` is appended to `gateway::manifest()`.
+2. **Stage 2 (next)** — Extract `domain_media`, `domain_users`, `domain_administrator`, and `domain_tags` as self-contained crates (per `docs/adding-a-domain.md`). Each new domain's `Domain<Name>Service` is appended to `gateway::manifest()`. **Categories, AI, and translation are intentionally NOT extracted** — they are integral to the post vertical slice (per the `consolidate-category-ai-translate-into-domain-posts` change). `domain_posts` is the canonical owner of these.
 
 3. **Stage 3** — The `LegacyShimService` (Task 8.2 from the change plan) integrates the remaining legacy routes into the gateway composition. Once all non-post domains are extracted, the `legacy_bootstrap` binary is removed and only `my-cms-api` survives.
 
-4. **Stage 4** — `application_core` and `migration` crates become pure re-export shims and are eventually removed.
+4. **Stage 4** — `application_core` and `migration` crates become pure re-export shims and are eventually removed. After Stage 1, `application_core::entities::*` is already a pure `pub use domain_posts::entities::*;` shim; `application_core::commands::*` keeps only the non-post command modules (`media`, `user`) plus `common::*` for the legacy `cms::api::{media,user,administrator}::*` adapters.
 
 ## Why Two Binaries Today
 
 The gateway composition uses `Vec<Box<dyn DomainService>>` where each domain registers its own routes via `DomainService::register_routes(&ctx) -> Vec<RouteRegistration>`. The `RouteRegistration.router` is `Router<DomainContext>`.
 
-The legacy handlers in `apps/api/src/api/{category,tag,media,user,administrator}/*` use `Router<AppState>` (the legacy state type with `media_config`, `supabase_admin_client`, etc.). Bridging `Router<AppState>` to `Router<DomainContext>` requires either:
+The legacy handlers in `apps/api/src/api/{tag,media,user,administrator}/*` use `Router<AppState>` (the legacy state type with `media_config`, `supabase_admin_client`, etc.). The category HTTP adapters are now owned by `domain_posts::api::category::*` and use `State<DomainContext>`. Bridging the remaining `Router<AppState>` legacy routers to `Router<DomainContext>` requires either:
 
 - **Option A**: A `LegacyShimService` that wraps the legacy routers with a middleware translating `DomainContext` → `AppState` and re-exposes the result as `Router<DomainContext>`. Each legacy handler would receive `AppState` via `Extension` instead of `State`. **Status: implementation requires touching ~25 handler files; documented in Task 8.2**.
 
@@ -95,7 +95,7 @@ Each identity is preserved exactly. The database `up` history is unchanged.
 
 ```bash
 cargo check --workspace
-cargo test --workspace          # 220 tests pass
+cargo test --workspace          # 204 tests pass (post-change baseline)
 cargo fmt --check
 cargo build --bin my-cms-api   # gateway
 cargo build --bin legacy_bootstrap   # legacy bootstrap

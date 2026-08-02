@@ -1,8 +1,6 @@
-use application_core::{
-    common::datetime_generator::generate_vietnam_now,
-    entities::{post_translations, posts},
-    StringExtension,
-};
+use crate::domain::datetime_generator::generate_vietnam_now;
+use crate::domain::extensions::StringExtension;
+use crate::entities::{post_translations, posts};
 use sea_orm::prelude::Uuid;
 use serde::{Deserialize, Serialize};
 

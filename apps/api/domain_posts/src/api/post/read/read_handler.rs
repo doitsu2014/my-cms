@@ -8,8 +8,8 @@ use sea_orm::sqlx::types::Uuid;
 use serde::Deserialize;
 use tracing::instrument;
 
-use crate::handlers::post::read::read_handler::{PostReadHandler, PostReadHandlerTrait};
 use crate::entities::sea_orm_active_enums::CategoryType;
+use crate::handlers::post::read::read_handler::{PostReadHandler, PostReadHandlerTrait};
 use domain_interface::DomainContext;
 
 use crate::domain::response::{ApiResponseError, ApiResponseWith, AxumResponse};

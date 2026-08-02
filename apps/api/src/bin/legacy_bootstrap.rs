@@ -17,7 +17,6 @@ use axum::{
 };
 use cms::{
     api,
-    category::delete::delete_handler::api_delete_categories,
     common::supabase_auth::{SupabaseAuthConfig, SupabaseAuthLayer},
     post::delete::delete_handler::api_delete_posts,
     public,
@@ -122,17 +121,6 @@ pub async fn protected_router() -> Router {
 
     Router::new()
         .route(
-            "/categories",
-            get(api::category::read::read_handler::api_get_categories_with_filtering)
-                .post(api::category::create::create_handler::api_create_category_with_tags)
-                .put(api::category::modify::modify_handler::api_modify_category)
-                .delete(api_delete_categories),
-        )
-        .route(
-            "/categories/{category_id}",
-            get(api::category::read::read_handler::api_get_category),
-        )
-        .route(
             "/posts",
             get(api::post::read::read_handler::api_get_posts_with_filtering)
                 .post(api::post::create::create_handler::api_create_post)
@@ -158,10 +146,6 @@ pub async fn protected_router() -> Router {
         .route(
             "/posts/{post_id}/translate/jobs",
             get(api::post::translate::job_handler::api_get_active_jobs),
-        )
-        .route(
-            "/ai/models",
-            get(api::ai::models::models_handler::api_get_openai_models),
         )
         .route("/tags", delete(api_delete_tags))
         // Media management routes

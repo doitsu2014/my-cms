@@ -18,10 +18,8 @@ use tokio::task::JoinSet;
 use tracing::instrument;
 use uuid::Uuid;
 
-use application_core::{
-    common::app_error::AppError,
-    entities::{post_translations, posts, translation_jobs},
-};
+use crate::domain::error::AppError;
+use crate::entities::{post_translations, posts, translation_jobs};
 
 use super::{translate_request::TranslatePostRequest, translate_response::TranslatePostResponse};
 
@@ -111,7 +109,7 @@ impl PostTranslateHandler {
             .filter(post_translations::Column::LanguageCode.eq(language_code))
             .one(db)
             .await
-            .map_err(|e| e.into())
+            .map_err(AppError::from)
     }
 
     /// Delete existing translation
@@ -126,7 +124,7 @@ impl PostTranslateHandler {
             post_translations::Entity::delete_by_id(existing.id)
                 .exec(db)
                 .await
-                .map_err(|e| e.into())?;
+                .map_err(AppError::from)?;
             tracing::info!(
                 "Deleted existing translation_id={} for retranslation",
                 existing.id
@@ -302,7 +300,7 @@ impl PostTranslateHandler {
         post_translations::Entity::insert(translation_model)
             .exec(db)
             .await
-            .map_err(|e| e.into())?;
+            .map_err(AppError::from)?;
 
         Ok(post_translation_id)
     }
@@ -382,7 +380,7 @@ impl PostTranslateHandlerTrait for PostTranslateHandler {
         let post = posts::Entity::find_by_id(request.post_id)
             .one(self.db.as_ref())
             .await
-            .map_err(|e| e.into())?
+            .map_err(AppError::from)?
             .ok_or(AppError::NotFound)?;
 
         // Get model from request or use default
@@ -1085,7 +1083,6 @@ impl PostTranslateHandler {
         Ok(translated_text)
     }
 }
-
 
 #[cfg(test)]
 #[allow(unused_imports, dead_code)]

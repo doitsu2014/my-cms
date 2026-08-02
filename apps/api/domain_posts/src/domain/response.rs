@@ -165,16 +165,6 @@ impl From<AppError> for ApiResponseError {
     }
 }
 
-/// Transitional bridge so that legacy `application_core::common::app_error::AppError`
-/// (returned by command handlers during the move) is converted into the
-/// canonical `domain_posts::domain::error::AppError` automatically.
-impl From<application_core::common::app_error::AppError> for ApiResponseError {
-    fn from(legacy: application_core::common::app_error::AppError) -> Self {
-        let canonical: AppError = legacy.into();
-        Self::from(canonical)
-    }
-}
-
 impl Default for ApiResponseError {
     fn default() -> Self {
         Self::new()

@@ -1,9 +1,11 @@
 use std::sync::Arc;
 
-use crate::entities::posts, Posts};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use tracing::{info, instrument};
 use uuid::Uuid;
+
+use crate::domain::error::AppError;
+use crate::entities::{posts, Posts};
 
 pub trait PostDeleteHandlerTrait {
     fn handle_delete_posts(
@@ -29,7 +31,7 @@ impl PostDeleteHandlerTrait for PostDeleteHandler {
             .filter(posts::Column::Id.is_in(ids))
             .exec(self.db.as_ref())
             .await
-            .map_err(|e| e.into())?;
+            .map_err(AppError::from)?;
 
         info!(
             "{} posts deleted by {}",
@@ -40,7 +42,6 @@ impl PostDeleteHandlerTrait for PostDeleteHandler {
         return Ok(result.rows_affected);
     }
 }
-
 
 #[cfg(test)]
 #[allow(unused_imports, dead_code)]

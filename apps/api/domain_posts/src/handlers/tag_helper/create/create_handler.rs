@@ -4,12 +4,9 @@ use sea_orm::{DatabaseConnection, DatabaseTransaction, EntityTrait, Set};
 use tracing::instrument;
 use uuid::Uuid;
 
-use application_core::{
-    commands::tag::read::read_handler::{TagReadHandler, TagReadHandlerTrait},
-    common::{app_error::AppError, datetime_generator::generate_vietnam_now},
-    entities::tags,
-    Tags,
-};
+use crate::domain::{datetime_generator::generate_vietnam_now, error::AppError};
+use crate::entities::{tags, Tags};
+use crate::handlers::tag_helper::read::read_handler::{TagReadHandler, TagReadHandlerTrait};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -47,7 +44,7 @@ impl TagCreateHandlerTrait for TagCreateHandler {
         let classifed_tags = tag_read_handler
             .handle_get_and_classify_tags_by_names(tags)
             .await
-            .map_err(|e| e.into())?;
+            .map_err(AppError::from)?;
 
         let mut new_tag_ids: Vec<Uuid> = vec![];
         if !classifed_tags.new_tags.is_empty() {
@@ -71,7 +68,7 @@ impl TagCreateHandlerTrait for TagCreateHandler {
             Tags::insert_many(new_tags)
                 .exec(transaction)
                 .await
-                .map_err(|e| e.into())?;
+                .map_err(AppError::from)?;
         }
 
         let existing_tag_ids = classifed_tags
@@ -94,11 +91,9 @@ mod tests {
     use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
     use uuid::Uuid;
 
-    use application_core::{
-        commands::tag::create::create_handler::{
-            CreateTagsResponse, TagCreateHandler, TagCreateHandlerTrait,
-        },
-        common::app_error::AppError,
+    use crate::domain::error::AppError;
+    use crate::handlers::tag_helper::create::create_handler::{
+        CreateTagsResponse, TagCreateHandler, TagCreateHandlerTrait,
     };
 
     #[async_std::test]

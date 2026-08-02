@@ -3,11 +3,10 @@ use std::{future::Future, sync::Arc};
 use sea_orm::{sea_query::Expr, DatabaseConnection, DbErr, EntityTrait, QueryFilter};
 use tracing::instrument;
 
-use application_core::{
-    common::datetime_generator::generate_vietnam_now,
-    entities::tags::{Column, Model},
-    StringExtension, Tags,
-};
+use crate::domain::datetime_generator::generate_vietnam_now;
+use crate::domain::extensions::StringExtension;
+use crate::entities::tags::{Column, Model};
+use crate::entities::Tags;
 
 use super::read_response::GetAndClassifyTagCommandResponse;
 
@@ -96,15 +95,16 @@ mod tests {
     use std::sync::Arc;
     use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
 
-    use application_core::{
-        commands::tag::{
-            create::create_handler::{CreateTagsResponse, TagCreateHandler, TagCreateHandlerTrait},
-            delete::delete_handler::{TagDeleteHandler, TagDeleteHandlerTrait},
-        },
-        common::app_error::AppError,
+    use application_core::commands::tag::delete::delete_handler::{
+        TagDeleteHandler, TagDeleteHandlerTrait,
     };
 
+    use crate::domain::error::AppError;
+
     use super::{TagReadHandler, TagReadHandlerTrait};
+    use crate::handlers::tag_helper::create::create_handler::{
+        CreateTagsResponse, TagCreateHandler, TagCreateHandlerTrait,
+    };
 
     #[async_std::test]
     async fn handle_read_tags_test01() {
@@ -176,7 +176,10 @@ mod tests {
                             Some("System".to_string()),
                             tx,
                         )
-                        .await?;
+                        .await
+                        .map_err(|legacy: application_core::common::app_error::AppError| {
+                            AppError::Db(sea_orm::DbErr::Custom(legacy.to_string()))
+                        })?;
                     Ok(x)
                 })
             })

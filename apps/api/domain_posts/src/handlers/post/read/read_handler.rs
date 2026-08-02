@@ -8,13 +8,12 @@ use std::sync::Arc;
 use tracing::instrument;
 use uuid::Uuid;
 
-use application_core::common::app_error::AppError;
+use crate::domain::error::AppError;
 use crate::entities::{
     categories, post_translations,
     posts::{self, Model},
     sea_orm_active_enums::CategoryType,
-    tags,
-    Posts, Tags,
+    tags, Posts, Tags,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -99,7 +98,7 @@ impl PostReadHandlerTrait for PostReadHandler {
             .find_with_related(Tags)
             .all(self.db.as_ref())
             .await
-            .map_err(|e| e.into())?;
+            .map_err(AppError::from)?;
 
         let response = db_result
             .iter()
@@ -129,7 +128,7 @@ impl PostReadHandlerTrait for PostReadHandler {
             .find_with_related(Tags)
             .all(self.db.as_ref())
             .await
-            .map_err(|e| e.into())?;
+            .map_err(AppError::from)?;
 
         // Collect post IDs
         let post_ids: Vec<Uuid> = db_result.iter().map(|(post, _)| post.id).collect();
@@ -140,7 +139,7 @@ impl PostReadHandlerTrait for PostReadHandler {
                 .filter(post_translations::Column::PostId.is_in(post_ids.clone()))
                 .all(self.db.as_ref())
                 .await
-                .map_err(|e| e.into())?
+                .map_err(AppError::from)?
                 .into_iter()
                 .fold(HashMap::new(), |mut acc, translation| {
                     acc.entry(translation.post_id)
@@ -167,7 +166,7 @@ impl PostReadHandlerTrait for PostReadHandler {
             .find_with_related(Tags)
             .all(self.db.as_ref())
             .await
-            .map_err(|e| e.into())?;
+            .map_err(AppError::from)?;
 
         if db_result.is_empty() {
             return Result::Err(AppError::NotFound);
@@ -180,16 +179,13 @@ impl PostReadHandlerTrait for PostReadHandler {
             .filter(post_translations::Column::PostId.eq(post.id))
             .all(self.db.as_ref())
             .await
-            .map_err(|e| e.into())?;
+            .map_err(AppError::from)?;
 
         let response = PostReadResponse::new(post, tags, translations);
 
         Result::Ok(response)
     }
 }
-
-#[cfg(test)]
-mod tests {
 
 #[cfg(test)]
 #[allow(unused_imports, dead_code)]

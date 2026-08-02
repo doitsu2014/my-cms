@@ -1,7 +1,5 @@
-use application_core::{
-    entities::{post_translations, posts::ActiveModel},
-    StringExtension,
-};
+use crate::domain::extensions::StringExtension;
+use crate::entities::{post_translations, posts::ActiveModel};
 use sea_orm::{prelude::Uuid, Set};
 use serde::{Deserialize, Serialize};
 

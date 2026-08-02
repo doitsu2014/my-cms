@@ -113,6 +113,7 @@ dependencies = [
  "async-openai",
  "async-std",
  "chrono",
+ "domain_posts",
  "fake",
  "html5ever",
  "lazy_static",

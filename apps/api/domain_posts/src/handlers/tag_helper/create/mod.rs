@@ -6,6 +6,4 @@
 
 pub mod create_handler;
 
-pub use create_handler::{
-    CreateTagsResponse, TagCreateHandler, TagCreateHandlerTrait,
-};
+pub use create_handler::{CreateTagsResponse, TagCreateHandler, TagCreateHandlerTrait};

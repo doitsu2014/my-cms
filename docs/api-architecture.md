@@ -8,12 +8,12 @@ This document captures the **as-built** state of the API architecture after the 
 graph LR
     subgraph ws["apps/api/  Cargo workspace"]
         DI["<b>domain_interface</b><br/>(publishable)<br/>DomainService trait<br/>DomainContext<br/>Mount, RouteRegistration<br/>HealthDescriptor<br/>MigrationDescriptor<br/>DomainConfigError"]
-        DP["<b>domain_posts</b><br/>lib + bin<br/>api/post/* (HTTP adapters)<br/>handlers/post/* (commands)<br/>handlers/translate, vector_store<br/>handlers/tag_helper<br/>domain/{auth,response,error,<br/>layers,graphql,postgres}<br/>entities (re-export)<br/>migrations/* (4 identities)<br/>service.rs (DomainPostService)"]
+        DP["<b>domain_posts</b><br/>lib + bin<br/>api/{post,category,ai}/* (HTTP adapters)<br/>handlers/{post,tag_helper,<br/>category,ai,vector_store,<br/>translation_jobs}/* (commands)<br/>handlers/post::translate (pipeline)<br/>domain/{auth,response,error,<br/>layers,graphql,postgres}<br/>entities/* (canonical)<br/>migrations/* (4 identities)<br/>service.rs (DomainPostService)"]
         GW["<b>gateway</b><br/>bin: my-cms-api<br/>manifest() → Box&lt;dyn<br/>DomainService&gt;<br/>orchestrator<br/>compose_routers"]
-        AC["<b>application_core</b><br/>(transitional shim)<br/>commands/{post,category,<br/>tag,media,user,ai}<br/>entities/* (canonical)<br/>graphql/query_root<br/>common/{app_error,<br/>datetime_generator,extensions}<br/>re-exports post types from<br/>domain_posts"]
+        AC["<b>application_core</b><br/>(transitional shim)<br/>commands/{tag,media,user,ai::translate,<br/>ai::vector_store_pg}<br/>entities/* = re-export<br/>from domain_posts<br/>graphql/query_root<br/>common/{app_error,<br/>datetime_generator,extensions}"]
         MIG["<b>migration</b><br/>(transitional shim)<br/>re-exports Migrator from<br/>domain_posts::migrations"]
         TH["<b>test_helpers</b><br/>testcontainers + Postgres +<br/>pgvector"]
-        CMS["<b>cms</b><br/>(legacy bootstrap lib)<br/>api/{category,tag,media,<br/>user,administrator,ai}/*<br/>common::supabase_auth<br/>lib.rs → AppState (legacy)<br/>bin: legacy_bootstrap"]
+        CMS["<b>cms</b><br/>(legacy bootstrap lib)<br/>api/{tag,media,user,<br/>administrator}/*<br/>api/post/* (legacy post translate)<br/>common::supabase_auth<br/>lib.rs → AppState (legacy)<br/>bin: legacy_bootstrap"]
     end
 
     subgraph ext["External / Platform"]
@@ -29,11 +29,11 @@ graph LR
     GW --> TH
 
     DP --> DI
-    DP --> AC
     DP --> TH
 
     AC --> MIG
     AC --> TH
+    AC --> DP
 
     MIG --> DP
 
@@ -134,6 +134,8 @@ graph LR
         PPR4["POST   /posts/{post_id}/translate/background"]
         PPR5["GET    /posts/{post_id}/translate/jobs/{job_id}"]
         PPR6["GET    /posts/{post_id}/translate/jobs"]
+        PPR7["GET/POST/PUT/DELETE /categories<br/>GET /categories/{category_id}"]
+        PPR8["GET /ai/models"]
     end
 
     subgraph administrator_routes["Administrator Router (admin auth)"]
@@ -144,7 +146,9 @@ graph LR
     subgraph dps["domain_posts::api::routes()"]
         DPSR1["RouteRegistration { mount: Public }"]
         DPSR2["RouteRegistration { mount: Protected, prefix: /posts }"]
-        DPSR3["RouteRegistration { mount: Administrator, prefix: /posts-admin }"]
+        DPSR3["RouteRegistration { mount: Protected, prefix: /categories }"]
+        DPSR4["RouteRegistration { mount: Protected, prefix: /ai }"]
+        DPSR5["RouteRegistration { mount: Administrator, prefix: /posts-admin }"]
     end
 
     GW --> CTX
@@ -153,10 +157,12 @@ graph LR
     COMP --> SERV
     COMP --> PR1 & PR2 & PR3 & PR4 & PR5
     COMP --> AR1
-    MAN --> DPSR1 & DPSR2 & DPSR3
+    MAN --> DPSR1 & DPSR2 & DPSR3 & DPSR4 & DPSR5
     DPSR1 --> PR1
     DPSR2 --> PPR1 & PPR2 & PPR3 & PPR4 & PPR5 & PPR6
-    DPSR3 --> AR1
+    DPSR3 --> PPR7
+    DPSR4 --> PPR8
+    DPSR5 --> AR1
 
     classDef domain fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
     classDef gateway fill:#f3e8ff,stroke:#6f42c1,stroke-width:2px,color:#3a1d63
@@ -164,8 +170,8 @@ graph LR
     classDef shim fill:#fff4e6,stroke:#d97706,stroke-width:1px,color:#7c2d12
 
     class CTX,ORCH,COMP,SERV gateway
-    class PR1,PR2,PR3,PR4,PR5,PPR1,PPR2,PPR3,PPR4,PPR5,PPR6,AR1 route
-    class MAN,DPSR1,DPSR2,DPSR3 domain
+    class PR1,PR2,PR3,PR4,PR5,PPR1,PPR2,PPR3,PPR4,PPR5,PPR6,PPR7,PPR8,AR1 route
+    class MAN,DPSR1,DPSR2,DPSR3,DPSR4,DPSR5 domain
 ```
 
 ## 4. Legacy Bootstrap — `legacy_bootstrap`
@@ -192,10 +198,8 @@ graph TB
     end
 
     subgraph lprot["Protected (writer or admin)"]
-        LPR1["GET/POST/PUT/DELETE /categories<br/>GET /categories/{category_id}"]
         LPR2["GET/POST/PUT/DELETE /posts<br/>GET /posts/{post_id}"]
         LPR3["POST /posts/{post_id}/translate<br/>POST /posts/{post_id}/translate/background<br/>GET /posts/{post_id}/translate/jobs/{job_id}<br/>GET /posts/{post_id}/translate/jobs"]
-        LPR4["GET /ai/models"]
         LPR5["DELETE /tags"]
         LPR6["GET/POST/DELETE /media<br/>GET /media/info/{*path}<br/>DELETE /media/delete/{*path}"]
         LPR7["GET/POST /graphql/mutable"]
@@ -209,7 +213,7 @@ graph TB
 
     LSTATE --> LPR & LPRR & LPAR
     LPR --> LP1 & LP2 & LP3 & LP4 & LP5 & LP6 & LP7
-    LPRR --> LPR1 & LPR2 & LPR3 & LPR4 & LPR5 & LPR6 & LPR7
+    LPRR --> LPR2 & LPR3 & LPR5 & LPR6 & LPR7
     LPAR --> LA1 & LA2 & LA3
     LPR & LPRR & LPAR --> LSERV
 
@@ -217,7 +221,7 @@ graph TB
     classDef route fill:#fff,stroke:#888,stroke-width:1px,color:#333
 
     class LSTATE,LPR,LPRR,LPAR,LSERV shim
-    class LP1,LP2,LP3,LP4,LP5,LP6,LP7,LPR1,LPR2,LPR3,LPR4,LPR5,LPR6,LPR7,LA1,LA2,LA3 route
+    class LP1,LP2,LP3,LP4,LP5,LP6,LP7,LPR2,LPR3,LPR5,LPR6,LPR7,LA1,LA2,LA3 route
 ```
 
 ## 5. Domain Ownership — `domain_posts` Internals
@@ -227,13 +231,15 @@ graph LR
     subgraph dps["apps/api/domain_posts/"]
         direction TB
 
-        subgraph api["src/api/post/"]
-            APIC["create/create_handler.rs"]
-            APID["delete/delete_handler.rs"]
-            APIM["modify/modify_handler.rs"]
-            APIR["read/read_handler.rs"]
-            APIT["translate/translate_handler.rs"]
-            APIJ["translate/job_handler.rs"]
+        subgraph api["src/api/"]
+            APIC["post/create/create_handler.rs"]
+            APID["post/delete/delete_handler.rs"]
+            APIM["post/modify/modify_handler.rs"]
+            APIR["post/read/read_handler.rs"]
+            APIT["post/translate/translate_handler.rs"]
+            APIJ["post/translate/job_handler.rs"]
+            APICC["category/{create,read,modify,delete}/*"]
+            APII["ai/models/models_handler.rs"]
         end
 
         subgraph handlers["src/handlers/"]
@@ -245,6 +251,8 @@ graph LR
             HV["vector_store/*<br/>(VectorStore)"]
             HTG["tag_helper/{create,read}/*<br/>(TagCreateHandler,<br/>TagReadHandler)"]
             HTT["translation_jobs/*"]
+            HCA["category/{create,read,modify,delete}/*<br/>(CategoryCreateHandler,<br/>CategoryReadHandler,<br/>CategoryModifyHandler,<br/>CategoryDeleteHandler)"]
+            HAI["ai/models/* + openai_client_from_env<br/>(ModelsHandler,<br/>OpenAIClient factory)"]
         end
 
         subgraph domain["src/domain/"]
@@ -253,14 +261,14 @@ graph LR
             DAU["auth.rs<br/>SupabaseAuthLayer<br/>SupabaseAuthConfig<br/>SupabaseClaims<br/>SupabaseToken"]
             DLA["layers.rs<br/>cors_layer()<br/>body_limit_layer()<br/>otel_layers()<br/>cookie_layer()"]
             DPG["postgres.rs<br/>connect_database()"]
-            DGQ["graphql.rs<br/>contribute_post_schema()"]
-            DAI["ai.rs<br/>openai_client_from_env()"]
+            DGQ["graphql.rs<br/>contribute_post_schema()<br/>(Seaography schema<br/>with all post entities)"]
+            DVS["vector_store.rs<br/>(pgvector adapter)"]
             DEX["extensions.rs<br/>StringExtension<br/>generate_vietnam_now"]
             DEV["env.rs<br/>POST_REQUIRED_ENV"]
         end
 
         subgraph entities["src/entities/"]
-            ERE["re-exports from<br/>application_core::entities::*<br/>(cycle-aware)"]
+            ENT["posts, post_tags,<br/>post_translations,<br/>translation_jobs,<br/>tags, test_fulltext,<br/>categories, category_tags,<br/>category_translations,<br/>sea_orm_active_enums<br/>(canonical; physically here)"]
         end
 
         subgraph migrations["src/migrations/"]
@@ -284,9 +292,13 @@ graph LR
     APIR --> HR
     APIT --> HT
     APIJ --> HTT
+    APICC --> HCA
+    APII --> HAI
     HC -->|uses tag_helper<br/>for tag create-in-tx| HTG
     HT --> HV
-    ERE -. "re-exported" .-> HC & HD & HM & HR & HT & HTG
+    HCA -->|uses tag_helper<br/>for category create-in-tx| HTG
+    HT -->|calls openai_client_from_env| HAI
+    ENT -. "owns" .-> HC & HD & HM & HR & HT & HTG & HCA & HAI
     MM --> M1 & M2 & M3 & M4
     SVC --> MM
     SVC --> api
@@ -296,7 +308,7 @@ graph LR
     classDef domain fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
     classDef reexport fill:#fff4e6,stroke:#d97706,stroke-width:1px,color:#7c2d12
 
-    class APIC,APID,APIM,APIR,APIT,APIJ,HC,HD,HM,HR,HT,HV,HTG,HTT,DERR,DRES,DAU,DLA,DPG,DGQ,DAI,DEX,DEV,MM,M1,M2,M3,M4,SVC,MCL,OBS domain
+    class APIC,APID,APIM,APIR,APIT,APIJ,APICC,APII,HC,HD,HM,HR,HT,HV,HTG,HTT,HCA,HAI,DERR,DRES,DAU,DLA,DPG,DGQ,DVS,DEX,DEV,MM,M1,M2,M3,M4,SVC,MCL,OBS,ENT domain
     class ERE reexport
 ```
 
@@ -440,29 +452,31 @@ graph LR
 | `/posts/**`, `/posts/{post_id}` | ✅ | ✅ | ✅ |
 | `/posts/{post_id}/translate{,/background}` | ✅ | ✅ | ✅ |
 | `/posts/{post_id}/translate/jobs{,/**}` | ✅ | ✅ | ✅ |
-| `/categories/**` | ❌ | ✅ | ❌ |
+| `/categories/**` | ✅ | ❌ | ✅ |
+| `/ai/models` | ✅ | ❌ | ✅ |
 | `/tags` | ❌ | ✅ | ❌ |
 | `/media/**`, `/media/buckets/**`, `/media/info/**`, `/media/delete/**`, `/media/images/**` | ❌ | ✅ | ❌ |
-| `/ai/models` | ❌ | ✅ | ❌ |
 | `/users/**` | ❌ | ✅ | ❌ |
 | `/administrator/database/migration` | ❌ | ✅ | ❌ |
+
+> `/categories/**` and `/ai/models` moved from `legacy_bootstrap` to the gateway (`my-cms-api`) and to the standalone `domain_posts` bin per the `consolidate-category-ai-translate-into-domain-posts` change. The `legacy_bootstrap` binary still serves the not-yet-extracted tags/media/users/administrator routes.
 
 ## 11. Future Staged Cutover
 
 ```mermaid
 graph TB
-    subgraph now["Today"]
-        N1["my-cms-api serves post routes"]
-        N2["legacy_bootstrap serves<br/>categories/tags/media/users/ai"]
+    subgraph now["Today (after consolidation)"]
+        N1["my-cms-api serves post + categories + AI + translation routes"]
+        N2["legacy_bootstrap serves<br/>tags/media/users/administrator"]
     end
 
-    subgraph next["After domain_categories extraction"]
-        X1["domain_categories → Box::new(DomainCategoriesService::new())<br/>added to gateway::manifest()"]
-        X2["legacy_bootstrap loses /categories/**<br/>gateway gains /categories/**"]
+    subgraph next["After domain_media, domain_users, domain_administrator extraction"]
+        X1["Box::new(DomainMediaService),<br/>Box::new(DomainUsersService),<br/>Box::new(DomainAdministratorService)<br/>appended to gateway::manifest()"]
+        X2["legacy_bootstrap loses /media/**, /users/**, /administrator/**<br/>gateway gains those routes"]
     end
 
-    subgraph future["After all 5 non-post domains"]
-        F1["domain_categories, domain_tags,<br/>domain_media, domain_users, domain_ai<br/>all registered in manifest()"]
+    subgraph future["After domain_tags extraction"]
+        F1["domain_tags registered in manifest()"]
         F2["legacy_bootstrap deleted"]
         F3["single my-cms-api deployment image<br/>serves ALL routes via DomainService composition"]
     end

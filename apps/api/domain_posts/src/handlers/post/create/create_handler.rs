@@ -5,12 +5,8 @@ use std::sync::Arc;
 use tracing::instrument;
 use uuid::Uuid;
 
-use application_core::{
-    common::{app_error::AppError, datetime_generator::generate_vietnam_now},
-    entities::{post_tags, post_translations, posts},
-    Posts,
-};
-
+use crate::domain::{datetime_generator::generate_vietnam_now, error::AppError};
+use crate::entities::{post_tags, post_translations, posts, Posts};
 use crate::handlers::tag_helper::{TagCreateHandler, TagCreateHandlerTrait};
 
 use super::create_request::CreatePostRequest;
@@ -68,7 +64,7 @@ impl PostCreateHandlerTrait for PostCreateHandler {
                     let inserted_post = Posts::insert(create_model)
                         .exec(tx)
                         .await
-                        .map_err(|e| e.into())?;
+                        .map_err(AppError::from)?;
 
                     // Combine New Tag Ids and Existing Tag Ids
                     let create_tags_response = create_tags_response_task.await?;
@@ -94,7 +90,7 @@ impl PostCreateHandlerTrait for PostCreateHandler {
                         post_tags::Entity::insert_many(post_tags)
                             .exec(tx)
                             .await
-                            .map_err(|e| e.into())?;
+                            .map_err(AppError::from)?;
                     }
 
                     // Insert Post Translations
@@ -113,7 +109,7 @@ impl PostCreateHandlerTrait for PostCreateHandler {
                         post_translations::Entity::insert_many(post_translations)
                             .exec(tx)
                             .await
-                            .map_err(|e| e.into())?;
+                            .map_err(AppError::from)?;
                     }
 
                     Ok(inserted_post.last_insert_id)

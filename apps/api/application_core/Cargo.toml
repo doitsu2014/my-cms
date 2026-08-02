@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 async-std = "1.13.2"
 tokio = { version = "1.52.3", features = ["full"] }
+domain_posts = { path = "../domain_posts" }
 sea-orm = "1.1.20"
 sea-orm-macros = "1.1.20"
 seaography = { version = "1.1.4", features = [
