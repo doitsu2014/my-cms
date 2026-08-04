@@ -1,4 +1,3 @@
-use crate::common::supabase_auth::SupabaseToken;
 use application_core::commands::ai::translate::{
     translate_handler::{PostTranslateHandler, PostTranslateHandlerTrait},
     translate_request::TranslatePostRequest,
@@ -8,6 +7,7 @@ use axum::{
     response::IntoResponse,
     Extension, Json,
 };
+use domain_interface::AuthenticatedActor;
 use sea_orm::sqlx::types::Uuid;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
@@ -75,7 +75,7 @@ async fn initialize_vector_store(
 #[instrument]
 pub async fn api_translate_post(
     state: State<AppState>,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Path(post_id): Path<Uuid>,
     Json(body): Json<TranslatePostRequestBody>,
 ) -> impl IntoResponse {
@@ -123,7 +123,7 @@ pub async fn api_translate_post(
 #[instrument]
 pub async fn api_translate_post_background(
     state: State<AppState>,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Path(post_id): Path<Uuid>,
     Json(body): Json<TranslatePostRequestBody>,
 ) -> impl IntoResponse {

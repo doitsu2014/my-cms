@@ -1,13 +1,13 @@
-use crate::common::supabase_auth::SupabaseToken;
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
 use application_core::commands::media::bucket::delete::delete_handler::{
     DeleteBucketHandler, DeleteBucketHandlerTrait,
 };
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Path, Query},
     response::IntoResponse,
     Extension,
 };
+use domain_interface::AuthenticatedActor;
 use serde::Deserialize;
 use tower_cookies::Cookies;
 use tracing::instrument;
@@ -21,7 +21,7 @@ pub struct DeleteBucketParams {
 pub async fn api_delete_bucket(
     state: Extension<AppState>,
     _cookies: Cookies,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Path(name): Path<String>,
     Query(params): Query<DeleteBucketParams>,
 ) -> impl IntoResponse {

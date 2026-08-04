@@ -1,14 +1,10 @@
-use crate::common::supabase_auth::SupabaseToken;
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
 use application_core::commands::user::modify::{
     modify_handler::{ModifyUserHandler, ModifyUserHandlerTrait},
     modify_request::ModifyUserRequest,
 };
-use axum::{
-    extract::{Path, State},
-    response::IntoResponse,
-    Extension, Json,
-};
+use axum::{extract::Path, response::IntoResponse, Extension, Json};
+use domain_interface::AuthenticatedActor;
 use sea_orm::sqlx::types::Uuid;
 use tracing::instrument;
 
@@ -16,7 +12,7 @@ use tracing::instrument;
 pub async fn api_modify_user(
     state: Extension<AppState>,
     Path(user_id): Path<Uuid>,
-    Extension(token): Extension<SupabaseToken>,
+    Extension(actor): Extension<AuthenticatedActor>,
     Json(body): Json<ModifyUserRequest>,
 ) -> impl IntoResponse {
     let handler = ModifyUserHandler {
@@ -24,7 +20,7 @@ pub async fn api_modify_user(
     };
 
     let result = handler
-        .handle_modify_user(user_id, body, token.user_id())
+        .handle_modify_user(user_id, body, actor.user_id.as_str())
         .await;
 
     match result {

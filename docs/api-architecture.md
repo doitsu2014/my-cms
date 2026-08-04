@@ -7,13 +7,14 @@ This document captures the **as-built** state of the API architecture after the 
 ```mermaid
 graph LR
     subgraph ws["apps/api/  Cargo workspace"]
-        DI["<b>domain_interface</b><br/>(publishable)<br/>DomainService trait<br/>DomainContext<br/>Mount, RouteRegistration<br/>HealthDescriptor<br/>MigrationDescriptor<br/>DomainConfigError"]
-        DP["<b>domain_posts</b><br/>lib + bin<br/>api/{post,category,ai}/* (HTTP adapters)<br/>handlers/{post,tag_helper,<br/>category,ai,vector_store,<br/>translation_jobs}/* (commands)<br/>handlers/post::translate (pipeline)<br/>domain/{auth,response,error,<br/>layers,graphql,postgres}<br/>entities/* (canonical)<br/>migrations/* (4 identities)<br/>service.rs (DomainPostService)"]
-        GW["<b>gateway</b><br/>bin: my-cms-api<br/>manifest() → Box&lt;dyn<br/>DomainService&gt;<br/>orchestrator<br/>compose_routers"]
+        DI["<b>domain_interface</b><br/>(publishable)<br/>DomainService trait<br/>DomainContext<br/>Mount, RouteRegistration<br/>HealthDescriptor<br/>MigrationDescriptor<br/>DomainConfigError<br/>AuthenticatedActor (actor value type)"]
+        DA["<b>domain_auth</b><br/>cross-cutting infrastructure crate<br/>SupabaseAuthLayer,<br/>SupabaseAuthConfig,<br/>SupabaseClaims, SupabaseToken<br/>construct_supabase_auth_layer<br/>DomainAuthService impl<br/>(empty routes, default startup_health,<br/>no sea-orm, no business deps)"]
+        DP["<b>domain_posts</b><br/>lib + bin<br/>api/{post,category,ai}/* (HTTP adapters)<br/>handlers/{post,tag_helper,<br/>category,ai,vector_store,<br/>translation_jobs}/* (commands)<br/>handlers/post::translate (pipeline)<br/>domain/{response,error,<br/>layers,graphql,postgres}<br/>entities/* (canonical)<br/>migrations/* (4 identities)<br/>service.rs (DomainPostService)"]
+        GW["<b>gateway</b><br/>bin: my-cms-api<br/>manifest() → Box&lt;dyn<br/>DomainService&gt;<br/>orchestrator<br/>compose_routers<br/>(applies domain_auth layer to<br/>protected + administrator)"]
         AC["<b>application_core</b><br/>(transitional shim)<br/>commands/{tag,media,user,ai::translate,<br/>ai::vector_store_pg}<br/>entities/* = re-export<br/>from domain_posts<br/>graphql/query_root<br/>common/{app_error,<br/>datetime_generator,extensions}"]
         MIG["<b>migration</b><br/>(transitional shim)<br/>re-exports Migrator from<br/>domain_posts::migrations"]
         TH["<b>test_helpers</b><br/>testcontainers + Postgres +<br/>pgvector"]
-        CMS["<b>cms</b><br/>(legacy bootstrap lib)<br/>api/{tag,media,user,<br/>administrator}/*<br/>api/post/* (legacy post translate)<br/>common::supabase_auth<br/>lib.rs → AppState (legacy)<br/>bin: legacy_bootstrap"]
+        CMS["<b>cms</b><br/>(legacy bootstrap lib)<br/>api/{tag,media,user,<br/>administrator}/*<br/>api/post/* (legacy post translate)<br/>lib.rs → AppState (legacy)<br/>bin: legacy_bootstrap"]
     end
 
     subgraph ext["External / Platform"]
@@ -25,11 +26,14 @@ graph LR
 
     GW --> DI
     GW --> DP
+    GW --> DA
     GW --> AC
     GW --> TH
 
     DP --> DI
     DP --> TH
+
+    DA --> DI
 
     AC --> MIG
     AC --> TH
@@ -40,11 +44,12 @@ graph LR
     CMS --> AC
     CMS --> MIG
     CMS --> TH
+    CMS --> DA
 
     DP -- "SeaORM, OpenAI,<br/>pgvector" --> DB
     DP -- "OpenAI / pgvector" --> OAI
     DP -- "SupabaseStorage" --> STORE
-    DP -- "SupabaseAuthLayer" --> AUTH
+    DA -- "SupabaseAuthLayer<br/>(construct_supabase_auth_layer)" --> AUTH
     GW -- "OTLP / tracing" --> OAI
     CMS -- "all integrations<br/>(legacy)" --> DB
     CMS -- "all integrations<br/>(legacy)" --> STORE
@@ -53,6 +58,7 @@ graph LR
 
     classDef contract fill:#e6f3ff,stroke:#1f6feb,stroke-width:2px,color:#0b3d91
     classDef domain fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
+    classDef infra fill:#fff7e6,stroke:#b07000,stroke-width:2px,color:#6b4500
     classDef gateway fill:#f3e8ff,stroke:#6f42c1,stroke-width:2px,color:#3a1d63
     classDef shim fill:#fff4e6,stroke:#d97706,stroke-width:1px,color:#7c2d12
     classDef ext fill:#fde7ef,stroke:#bf2c7e,stroke-width:1px,color:#7a1148
@@ -60,6 +66,7 @@ graph LR
 
     class DI contract
     class DP domain
+    class DA infra
     class GW gateway
     class AC,MIG,CMS shim
     class TH helper
@@ -79,13 +86,13 @@ graph TB
     subgraph binA["Binary: my-cms-api  (gateway composition)"]
         direction TB
         GA["gateway/src/main.rs<br/>• env + tracing init<br/>• connect_database()<br/>• run_orchestrator()<br/>• build schemas<br/>• compose_routers()<br/>• bind listener"]
-        MA["Manifest:<br/>vec![<br/>  Box::new(DomainPostService::new())<br/>]"]
+        MA["Manifest:<br/>vec![<br/>  Box::new(DomainPostService::new()),<br/>  Box::new(DomainAuthService::new()),<br/>]"]
         GA --> MA
     end
 
     subgraph binB["Binary: legacy_bootstrap  (transitional)"]
         direction TB
-        LA["apps/api/src/bin/legacy_bootstrap.rs<br/>• env + tracing init<br/>• construct_app_state()<br/>• public_router()<br/>• protected_router()<br/>• protected_administrator_router()<br/>• bind listener"]
+        LA["apps/api/src/bin/legacy_bootstrap.rs<br/>• env + tracing init<br/>• construct_app_state()<br/>• public_router()<br/>• protected_router()<br/>• protected_administrator_router()<br/>• bind listener<br/>• applies domain_auth::<br/>legacy_bootstrap::<br/>construct_supabase_auth_layer"]
     end
 
     subgraph dp["domain_posts (standalone)"]
@@ -158,6 +165,7 @@ graph LR
     COMP --> PR1 & PR2 & PR3 & PR4 & PR5
     COMP --> AR1
     MAN --> DPSR1 & DPSR2 & DPSR3 & DPSR4 & DPSR5
+    MAN --> AUTH["domain_auth::DomainAuthService<br/>(registered; empty routes,<br/>validate_config only)"]
     DPSR1 --> PR1
     DPSR2 --> PPR1 & PPR2 & PPR3 & PPR4 & PPR5 & PPR6
     DPSR3 --> PPR7
@@ -165,6 +173,7 @@ graph LR
     DPSR5 --> AR1
 
     classDef domain fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
+    classDef infra fill:#fff7e6,stroke:#b07000,stroke-width:2px,color:#6b4500
     classDef gateway fill:#f3e8ff,stroke:#6f42c1,stroke-width:2px,color:#3a1d63
     classDef route fill:#fff,stroke:#888,stroke-width:1px,color:#333
     classDef shim fill:#fff4e6,stroke:#d97706,stroke-width:1px,color:#7c2d12
@@ -172,6 +181,7 @@ graph LR
     class CTX,ORCH,COMP,SERV gateway
     class PR1,PR2,PR3,PR4,PR5,PPR1,PPR2,PPR3,PPR4,PPR5,PPR6,PPR7,PPR8,AR1 route
     class MAN,DPSR1,DPSR2,DPSR3,DPSR4,DPSR5 domain
+    class AUTH infra
 ```
 
 ## 4. Legacy Bootstrap — `legacy_bootstrap`
@@ -258,7 +268,6 @@ graph LR
         subgraph domain["src/domain/"]
             DERR["error.rs<br/>AppError"]
             DRES["response.rs<br/>ApiResponseWith/Error<br/>ErrorCode, AxumResponse"]
-            DAU["auth.rs<br/>SupabaseAuthLayer<br/>SupabaseAuthConfig<br/>SupabaseClaims<br/>SupabaseToken"]
             DLA["layers.rs<br/>cors_layer()<br/>body_limit_layer()<br/>otel_layers()<br/>cookie_layer()"]
             DPG["postgres.rs<br/>connect_database()"]
             DGQ["graphql.rs<br/>contribute_post_schema()<br/>(Seaography schema<br/>with all post entities)"]
@@ -286,6 +295,8 @@ graph LR
         end
     end
 
+    DAU["<b>domain_auth</b><br/>cross-cutting Supabase JWT layer<br/>SupabaseAuthLayer<br/>SupabaseAuthConfig<br/>SupabaseClaims<br/>SupabaseToken<br/>construct_supabase_auth_layer<br/>DomainAuthService impl<br/>(empty routes, default startup_health)"]
+
     APIC --> HC
     APID --> HD
     APIM --> HM
@@ -302,13 +313,16 @@ graph LR
     MM --> M1 & M2 & M3 & M4
     SVC --> MM
     SVC --> api
-    SVC --> DRES & DAU & DERR & DLA & DPG & DGQ
+    SVC --> DRES & DERR & DLA & DPG & DGQ
+    SVC -->|consumes via<br/>domain_auth| DAU
     MCL --> MM
 
     classDef domain fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
+    classDef infra fill:#fff7e6,stroke:#b07000,stroke-width:2px,color:#6b4500
     classDef reexport fill:#fff4e6,stroke:#d97706,stroke-width:1px,color:#7c2d12
 
-    class APIC,APID,APIM,APIR,APIT,APIJ,APICC,APII,HC,HD,HM,HR,HT,HV,HTG,HTT,HCA,HAI,DERR,DRES,DAU,DLA,DPG,DGQ,DVS,DEX,DEV,MM,M1,M2,M3,M4,SVC,MCL,OBS,ENT domain
+    class APIC,APID,APIM,APIR,APIT,APIJ,APICC,APII,HC,HD,HM,HR,HT,HV,HTG,HTT,HCA,HAI,DERR,DRES,DLA,DPG,DGQ,DVS,DEX,DEV,MM,M1,M2,M3,M4,SVC,MCL,OBS,ENT domain
+    class DAU infra
     class ERE reexport
 ```
 
@@ -361,13 +375,13 @@ sequenceDiagram
 
     Client->>LB: POST /posts (Bearer JWT)
     LB->>GW: forward request
-    GW->>Auth: validate JWT (writer or admin)
-    Auth-->>GW: SupabaseToken Extension
+    GW->>Auth: validate JWT (writer or admin)<br/>(domain_auth::SupabaseAuthLayer)
+    Auth-->>GW: AuthenticatedActor Extension
     GW->>Router: dispatch Mount::Protected
     Router->>DP: api_create_post
     DP->>Api: route to api::post::create
     Api->>Handler: PostCreateHandler::handle_create_post(body, actor_email)
-    Handler->>TagHelper: tag_helper::create_tags_in_transaction(tags, actor_email, tx)
+    Handler->>TagHelper: tag_helper::create_tags_in_transaction(tags, actor_email, tx)<br/>(actor_email from AuthenticatedActor)
     TagHelper->>DB: INSERT new tags
     DB-->>TagHelper: tag ids
     TagHelper-->>Handler: CreateTagsResponse { new_tag_ids, existing_tag_ids }
@@ -397,8 +411,8 @@ sequenceDiagram
 
     Client->>LB: POST /posts (Bearer JWT)
     LB->>DP: forward request
-    DP->>Auth: validate JWT
-    Auth-->>DP: SupabaseToken Extension
+    DP->>Auth: validate JWT<br/>(domain_auth::SupabaseAuthLayer)
+    Auth-->>DP: AuthenticatedActor Extension
     DP->>Router: dispatch
     Router->>Handler: handle_create_post
     Handler->>TagHelper: create_tags_in_transaction

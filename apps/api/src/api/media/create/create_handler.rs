@@ -1,14 +1,14 @@
-use crate::common::supabase_auth::SupabaseToken;
 use application_core::commands::media::bucket::dto::bucket_name_error;
 use application_core::commands::media::{
     create::create_handler::{CreateMediaHandler, CreateMediaHandlerTrait},
     is_supported_content_type, MediaConfig,
 };
 use axum::{
-    extract::{Multipart, Query, State},
+    extract::{Multipart, Query},
     response::IntoResponse,
     Extension,
 };
+use domain_interface::AuthenticatedActor;
 use serde::Deserialize;
 use tower_cookies::Cookies;
 use tracing::instrument;
@@ -24,7 +24,7 @@ pub struct CreateMediaQueryParams {
 pub async fn api_create_media(
     state: Extension<AppState>,
     _cookies: Cookies,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Query(params): Query<CreateMediaQueryParams>,
     mut multipart: Multipart,
 ) -> impl IntoResponse {

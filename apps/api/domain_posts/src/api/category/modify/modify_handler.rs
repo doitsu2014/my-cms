@@ -1,18 +1,17 @@
 use axum::{extract::State, response::IntoResponse, Extension, Json};
 use tracing::instrument;
 
-use crate::domain::auth::SupabaseToken;
 use crate::domain::response::{ApiResponseError, ApiResponseWith, AxumResponse};
 use crate::handlers::category::modify::{
     modify_handler::{CategoryModifyHandler, CategoryModifyHandlerTrait},
     modify_request::ModifyCategoryRequest,
 };
-use domain_interface::DomainContext;
+use domain_interface::{AuthenticatedActor, DomainContext};
 
 #[instrument]
 pub async fn api_modify_category(
     State(ctx): State<DomainContext>,
-    Extension(token): Extension<SupabaseToken>,
+    Extension(actor): Extension<AuthenticatedActor>,
     Json(body): Json<ModifyCategoryRequest>,
 ) -> impl IntoResponse {
     let handler = CategoryModifyHandler {
@@ -20,7 +19,7 @@ pub async fn api_modify_category(
     };
 
     let result = handler
-        .handle_modify_category(body, Some(token.email().unwrap_or("").to_string()))
+        .handle_modify_category(body, actor.email.clone())
         .await;
 
     match result {

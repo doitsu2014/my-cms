@@ -1,4 +1,30 @@
+//! `domain_auth` — self-contained Supabase Authentication Service.
+//!
+//! Owns the JWT validation layer (`SupabaseAuthLayer`, `SupabaseAuthConfig`,
+//! `SupabaseClaims`, `SupabaseToken`), the role-checking middleware, the
+//! `construct_supabase_auth_layer` factory, the env-var surface validation,
+//! and the `DomainAuthService` composition entry point. The crate depends
+//! only on `domain_interface` (plus its own infrastructure dependencies)
+//! and SHALL NOT depend on any concrete business domain.
+//!
+//! See `openspec/changes/extract-auth-into-domain-auth/design.md` for the
+//! architectural context.
+
+#![deny(unsafe_code)]
+#![warn(missing_debug_implementations)]
+
+pub mod domain;
+pub mod legacy_bootstrap;
+pub mod observability;
+pub mod service;
+
+#[cfg(test)]
+mod test_lock;
+
+pub use service::DomainAuthService;
+
 use axum::{extract::Request, http::StatusCode, response::IntoResponse};
+use domain_interface::AuthenticatedActor;
 use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
 use serde::Deserialize;
 use std::sync::Arc;
@@ -6,7 +32,7 @@ use tower::{Layer, Service};
 
 const JWKS_URI_PATH: &str = "/auth/v1/.well-known/jwks.json";
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SupabaseAuthConfig {
     pub supabase_url: String,
     pub jwt_secret: String,
@@ -45,7 +71,7 @@ impl SupabaseToken {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SupabaseAuthLayer {
     config: Arc<SupabaseAuthConfig>,
 }
@@ -69,7 +95,7 @@ impl<S> Layer<S> for SupabaseAuthLayer {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SupabaseAuthMiddleware<S> {
     inner: S,
     config: Arc<SupabaseAuthConfig>,
@@ -151,17 +177,92 @@ where
             }
 
             let mut req = req;
-            req.extensions_mut().insert(SupabaseToken { claims });
+            let actor = AuthenticatedActor {
+                user_id: claims.sub.clone(),
+                email: claims.email.clone(),
+                primary_role: claims.role.clone(),
+                app_roles: extract_app_roles(&claims),
+            };
+            req.extensions_mut().insert(actor);
 
             inner.call(req).await
         })
     }
 }
 
+fn extract_app_roles(claims: &SupabaseClaims) -> Vec<String> {
+    claims
+        .app_metadata
+        .as_ref()
+        .and_then(|metadata| metadata.get("roles"))
+        .and_then(serde_json::Value::as_array)
+        .map(|roles| {
+            roles
+                .iter()
+                .filter_map(|role| role.as_str().map(ToOwned::to_owned))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+async fn validate_supabase_token(
+    token: &str,
+    config: &SupabaseAuthConfig,
+) -> Result<SupabaseClaims, String> {
+    let decoding_key = DecodingKey::from_secret(config.jwt_secret.as_bytes());
+    let mut validation = Validation::new(Algorithm::HS256);
+    validation.set_audience(&[&config.expected_audience]);
+
+    match decode::<SupabaseClaims>(token, &decoding_key, &validation) {
+        Ok(token_data) => Ok(token_data.claims),
+        Err(_) => {
+            let header =
+                decode_header(token).map_err(|e| format!("Invalid token header: {}", e))?;
+
+            if header.alg == Algorithm::HS256 {
+                return Err("Invalid JWT signature".to_string());
+            }
+
+            let jwks_url = format!("{}{}", config.supabase_url, JWKS_URI_PATH);
+            let jwks_response = reqwest::get(&jwks_url)
+                .await
+                .map_err(|e| format!("Failed to fetch JWKS: {}", e))?;
+
+            let jwks: jsonwebtoken::jwk::JwkSet = jwks_response
+                .json()
+                .await
+                .map_err(|e| format!("Failed to parse JWKS: {}", e))?;
+
+            let kid = header.kid.ok_or("Token missing kid header")?;
+            let jwk = jwks
+                .find(&kid)
+                .ok_or_else(|| format!("Key not found for kid: {}", kid))?;
+
+            let decoding_key = DecodingKey::from_jwk(jwk)
+                .map_err(|e| format!("Failed to create decoding key from JWK: {}", e))?;
+
+            let mut validation = Validation::new(header.alg);
+            validation.set_audience(&[&config.expected_audience]);
+
+            let token_data = decode::<SupabaseClaims>(token, &decoding_key, &validation)
+                .map_err(|e| format!("JWT validation failed: {}", e))?;
+
+            Ok(token_data.claims)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::{body::Body, http::Request, response::Response, routing::get, Router};
+    use axum::{
+        body::Body,
+        extract::Extension,
+        http::Request,
+        response::{IntoResponse, Response},
+        routing::get,
+        Router,
+    };
     use jsonwebtoken::{encode, EncodingKey, Header};
     use serde_json::json;
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -234,6 +335,46 @@ mod tests {
             response.status(),
             axum::body::to_bytes(response.into_body(), 1024).await.ok()
         );
+    }
+
+    #[tokio::test]
+    async fn valid_token_inserts_authenticated_actor_extension() {
+        let token = valid_token_with_role("my-headless-cms-writer");
+        let app = Router::new()
+            .route(
+                "/",
+                get(
+                    |Extension(actor): Extension<AuthenticatedActor>| async move {
+                        (
+                            StatusCode::OK,
+                            format!("{}:{}", actor.user_id, actor.email.unwrap_or_default()),
+                        )
+                            .into_response()
+                    },
+                ),
+            )
+            .layer(SupabaseAuthLayer::new(SupabaseAuthConfig {
+                supabase_url: TEST_SUPABASE_URL.to_string(),
+                jwt_secret: TEST_JWT_SECRET.to_string(),
+                expected_audience: "authenticated".to_string(),
+                required_roles: vec!["my-headless-cms-writer".to_string()],
+            }));
+
+        let response = app
+            .oneshot(
+                Request::get("/")
+                    .header("Authorization", format!("Bearer {}", token))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), 1024)
+            .await
+            .unwrap();
+        assert_eq!(&body[..], b"test-user-id:test@example.com");
     }
 
     #[tokio::test]
@@ -486,52 +627,5 @@ mod tests {
             .unwrap();
 
         assert_status(response, StatusCode::OK).await;
-    }
-}
-
-async fn validate_supabase_token(
-    token: &str,
-    config: &SupabaseAuthConfig,
-) -> Result<SupabaseClaims, String> {
-    let decoding_key = DecodingKey::from_secret(config.jwt_secret.as_bytes());
-    let mut validation = Validation::new(Algorithm::HS256);
-    validation.set_audience(&[&config.expected_audience]);
-
-    match decode::<SupabaseClaims>(token, &decoding_key, &validation) {
-        Ok(token_data) => return Ok(token_data.claims),
-        Err(_) => {
-            let header =
-                decode_header(token).map_err(|e| format!("Invalid token header: {}", e))?;
-
-            if header.alg == Algorithm::HS256 {
-                return Err("Invalid JWT signature".to_string());
-            }
-
-            let jwks_url = format!("{}{}", config.supabase_url, JWKS_URI_PATH);
-            let jwks_response = reqwest::get(&jwks_url)
-                .await
-                .map_err(|e| format!("Failed to fetch JWKS: {}", e))?;
-
-            let jwks: jsonwebtoken::jwk::JwkSet = jwks_response
-                .json()
-                .await
-                .map_err(|e| format!("Failed to parse JWKS: {}", e))?;
-
-            let kid = header.kid.ok_or("Token missing kid header")?;
-            let jwk = jwks
-                .find(&kid)
-                .ok_or_else(|| format!("Key not found for kid: {}", kid))?;
-
-            let decoding_key = DecodingKey::from_jwk(&jwk)
-                .map_err(|e| format!("Failed to create decoding key from JWK: {}", e))?;
-
-            let mut validation = Validation::new(header.alg);
-            validation.set_audience(&[&config.expected_audience]);
-
-            let token_data = decode::<SupabaseClaims>(token, &decoding_key, &validation)
-                .map_err(|e| format!("JWT validation failed: {}", e))?;
-
-            Ok(token_data.claims)
-        }
     }
 }

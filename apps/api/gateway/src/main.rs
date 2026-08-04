@@ -19,7 +19,8 @@ use axum::{
     routing::get,
     Router,
 };
-use domain_interface::{DomainContext, DomainService, Mount, RouteRegistration};
+use domain_auth::service::DomainAuthService;
+use domain_interface::{DomainContext, DomainService, Mount};
 use domain_posts::service::DomainPostService;
 use tracing::{info, warn};
 
@@ -28,7 +29,10 @@ use tracing::{info, warn};
 /// Each future domain (`domain_categories`, `domain_tags`, `domain_media`,
 /// `domain_users`) is appended here as a `Box<dyn DomainService>`.
 pub fn manifest() -> Vec<Box<dyn DomainService>> {
-    vec![Box::new(DomainPostService::new())]
+    vec![
+        Box::new(DomainPostService::new()),
+        Box::new(DomainAuthService::new()),
+    ]
 }
 
 /// Collect `MigrationDescriptor`s from every registered domain and run them
@@ -183,7 +187,19 @@ fn compose_routers(
         }
     }
 
-    public.merge(protected).merge(administrator)
+    public
+        .merge(protected.layer(
+            domain_auth::legacy_bootstrap::construct_supabase_auth_layer(
+                env::var("AUTHORIZATION_AUDIENCE").unwrap_or_else(|_| "authenticated".to_string()),
+                vec![],
+            ),
+        ))
+        .merge(administrator.layer(
+            domain_auth::legacy_bootstrap::construct_supabase_auth_layer(
+                env::var("AUTHORIZATION_AUDIENCE").unwrap_or_else(|_| "authenticated".to_string()),
+                vec!["my-headless-cms-administrator".to_string()],
+            ),
+        ))
 }
 
 /// `GET /` — root banner.

@@ -1,14 +1,14 @@
-use crate::common::supabase_auth::SupabaseToken;
 use application_core::commands::media::bucket::dto::bucket_name_error;
 use application_core::commands::media::delete::delete_handler::{
     DeleteMediaHandler, DeleteMediaHandlerTrait,
 };
 use application_core::commands::media::MediaConfig;
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Path, Query},
     response::IntoResponse,
     Extension, Json,
 };
+use domain_interface::AuthenticatedActor;
 use serde::Deserialize;
 use std::sync::Arc;
 use tower_cookies::Cookies;
@@ -26,7 +26,7 @@ pub struct DeleteMediaQueryParams {
 pub async fn api_delete_media(
     state: Extension<AppState>,
     _cookies: Cookies,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Path(path): Path<String>,
     Query(params): Query<DeleteMediaQueryParams>,
 ) -> impl IntoResponse {
@@ -59,7 +59,7 @@ pub async fn api_delete_media(
 pub async fn api_delete_media_batch(
     state: Extension<AppState>,
     _cookies: Cookies,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Query(params): Query<DeleteMediaQueryParams>,
     Json(paths): Json<Vec<String>>,
 ) -> impl IntoResponse {

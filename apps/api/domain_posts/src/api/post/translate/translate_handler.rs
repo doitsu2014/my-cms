@@ -19,9 +19,8 @@ use crate::handlers::post::translate::translate_handler::{
     PostTranslateHandler, PostTranslateHandlerTrait,
 };
 use crate::handlers::post::translate::translate_request::TranslatePostRequest;
-use domain_interface::DomainContext;
+use domain_interface::{AuthenticatedActor, DomainContext};
 
-use crate::domain::auth::SupabaseToken;
 use crate::domain::response::{ApiResponseError, ApiResponseWith, AxumResponse, ErrorCode};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -67,7 +66,7 @@ async fn initialize_vector_store(
 #[instrument]
 pub async fn api_translate_post(
     State(ctx): State<DomainContext>,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Path(post_id): Path<Uuid>,
     Json(body): Json<TranslatePostRequestBody>,
 ) -> impl IntoResponse {
@@ -110,7 +109,7 @@ pub async fn api_translate_post(
 #[instrument]
 pub async fn api_translate_post_background(
     State(ctx): State<DomainContext>,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Path(post_id): Path<Uuid>,
     Json(body): Json<TranslatePostRequestBody>,
 ) -> impl IntoResponse {

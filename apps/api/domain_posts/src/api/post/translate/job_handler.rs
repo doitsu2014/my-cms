@@ -16,9 +16,8 @@ use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
 use crate::entities::translation_jobs;
-use domain_interface::DomainContext;
+use domain_interface::{AuthenticatedActor, DomainContext};
 
-use crate::domain::auth::SupabaseToken;
 use crate::domain::response::{ApiResponseError, ApiResponseWith, AxumResponse, ErrorCode};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -45,7 +44,7 @@ pub struct ActiveJobsResponse {
 #[instrument]
 pub async fn api_get_job_status(
     State(ctx): State<DomainContext>,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Path((post_id, job_id)): Path<(Uuid, Uuid)>,
 ) -> impl IntoResponse {
     let job_result = translation_jobs::Entity::find_by_id(job_id)
@@ -89,7 +88,7 @@ pub async fn api_get_job_status(
 #[instrument]
 pub async fn api_get_active_jobs(
     State(ctx): State<DomainContext>,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Path(post_id): Path<Uuid>,
 ) -> impl IntoResponse {
     let jobs_result = translation_jobs::Entity::find()

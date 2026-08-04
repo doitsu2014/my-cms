@@ -16,13 +16,10 @@ use axum::{
     Router,
 };
 use cms::{
-    api,
-    common::supabase_auth::{SupabaseAuthConfig, SupabaseAuthLayer},
-    post::delete::delete_handler::api_delete_posts,
-    public,
-    tag::delete::delete_handler::api_delete_tags,
-    AppState,
+    api, post::delete::delete_handler::api_delete_posts, public,
+    tag::delete::delete_handler::api_delete_tags, AppState,
 };
+use domain_auth::legacy_bootstrap::construct_supabase_auth_layer;
 use dotenv::{dotenv, from_filename};
 use hyper::Method;
 use init_tracing_opentelemetry::{
@@ -282,23 +279,6 @@ async fn construct_app_state() -> AppState {
         graphql_mutable_schema: Arc::new(graphql_mutable_schema),
         supabase_admin_client,
     }
-}
-
-fn construct_supabase_auth_layer(
-    expected_audience: String,
-    required_roles: Vec<String>,
-) -> SupabaseAuthLayer {
-    let supabase_url = env::var("SUPABASE_URL").expect("SUPABASE_URL must be set");
-    let supabase_internal_url =
-        env::var("SUPABASE_INTERNAL_URL").unwrap_or_else(|_| supabase_url.clone());
-    let jwt_secret = env::var("SUPABASE_JWT_SECRET").expect("SUPABASE_JWT_SECRET must be set");
-
-    SupabaseAuthLayer::new(SupabaseAuthConfig {
-        supabase_url: supabase_internal_url,
-        jwt_secret,
-        expected_audience,
-        required_roles,
-    })
 }
 
 fn construct_cors_layer() -> CorsLayer {

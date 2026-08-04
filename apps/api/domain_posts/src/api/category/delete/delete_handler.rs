@@ -2,17 +2,16 @@ use axum::{extract::State, response::IntoResponse, Extension, Json};
 use sea_orm::sqlx::types::Uuid;
 use tracing::instrument;
 
-use crate::domain::auth::SupabaseToken;
 use crate::domain::response::{ApiResponseError, ApiResponseWith, AxumResponse};
 use crate::handlers::category::delete::delete_handler::{
     CategoryDeleteHandler, CategoryDeleteHandlerTrait,
 };
-use domain_interface::DomainContext;
+use domain_interface::{AuthenticatedActor, DomainContext};
 
 #[instrument]
 pub async fn api_delete_categories(
     State(ctx): State<DomainContext>,
-    Extension(token): Extension<SupabaseToken>,
+    Extension(actor): Extension<AuthenticatedActor>,
     Json(body): Json<Vec<Uuid>>,
 ) -> impl IntoResponse {
     let handler = CategoryDeleteHandler {
@@ -20,7 +19,7 @@ pub async fn api_delete_categories(
     };
 
     let result = handler
-        .handle_delete_categories(body, Some(token.email().unwrap_or("").to_string()))
+        .handle_delete_categories(body, actor.email.clone())
         .await;
 
     match result {

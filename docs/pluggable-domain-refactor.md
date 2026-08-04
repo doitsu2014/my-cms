@@ -8,6 +8,7 @@ My-CMS has been refactored into a **pluggable domain library** architecture. Eac
 apps/api/
 ├── Cargo.toml              # workspace root — declares all members
 ├── domain_interface/       # publishable contract crate (no domain deps)
+├── domain_auth/            # cross-cutting Supabase JWT validation (lib + bin) — see `extract-auth-into-domain-auth`
 ├── domain_posts/           # self-contained Blog Post Service (lib + bin)
 ├── gateway/                # thin composition root (bin: my-cms-api)
 ├── application_core/       # transitional shim — re-exports from domain_posts
@@ -79,6 +80,29 @@ domain_<name>/
 ```
 
 The canonical reference is `domain_posts`. See `docs/adding-a-domain.md` for the recipe.
+
+### Cross-cutting infrastructure crate: `domain_auth`
+
+`domain_auth` is **not** a business domain — it is the cross-cutting
+infrastructure crate that owns the Supabase JWT validation layer
+(`SupabaseAuthLayer`, `SupabaseAuthConfig`, `SupabaseClaims`,
+`SupabaseToken`) and exposes the `domain_interface::AuthenticatedActor`
+value type to every business domain. It depends only on
+`domain_interface` (plus its own infrastructure dependencies —
+`axum`, `tower`, `jsonwebtoken`, `serde`, `tokio`, `reqwest`,
+`async-trait`) and SHALL NOT depend on any concrete business domain
+(`domain-posts`, `application_core`, `cms`).
+
+Auth is HTTP-middleware, not routes: `DomainAuthService::register_routes`
+returns an empty `Vec<RouteRegistration>` and the gateway applies
+`domain_auth::legacy_bootstrap::construct_supabase_auth_layer(...)` to
+the protected and administrator merged routers in `compose_routers`.
+Auth is also infrastructure-only: it uses the default
+`DomainService::startup_health` implementation (no `SELECT 1` probe —
+database readiness is delegated to `domain_posts::DomainPostService`).
+Every business domain reads actor info via
+`Extension<AuthenticatedActor>` (imported from `domain_interface`),
+never via `Extension<SupabaseToken>`.
 
 ## Migration Identities
 

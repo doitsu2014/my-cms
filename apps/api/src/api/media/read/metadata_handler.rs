@@ -1,14 +1,14 @@
-use crate::common::supabase_auth::SupabaseToken;
 use application_core::commands::media::bucket::dto::bucket_name_error;
 use application_core::commands::media::read::metadata_handler::{
     MetadataMediaHandler, MetadataMediaHandlerTrait,
 };
 use application_core::commands::media::MediaConfig;
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Path, Query},
     response::IntoResponse,
     Extension,
 };
+use domain_interface::AuthenticatedActor;
 use serde::Deserialize;
 use std::sync::Arc;
 use tower_cookies::Cookies;
@@ -25,7 +25,7 @@ pub struct MetadataQueryParams {
 pub async fn api_get_media_metadata(
     state: Extension<AppState>,
     _cookies: Cookies,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Path(path): Path<String>,
     Query(params): Query<MetadataQueryParams>,
 ) -> impl IntoResponse {

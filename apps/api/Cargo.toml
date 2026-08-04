@@ -1,5 +1,5 @@
 [workspace]
-members = ["application_core", "domain_interface", "domain_posts", "gateway", "migration", "test_helpers"]
+members = ["application_core", "domain_auth", "domain_interface", "domain_posts", "gateway", "migration", "test_helpers"]
 
 [package]
 name = "cms"
@@ -70,6 +70,7 @@ reqwest = { version = "0.12.28" }
 moka = { version = "0.12.15", features = ["future"] }
 
 application_core = { path = "application_core" }
+domain_auth = { path = "domain_auth" }
 domain_interface = { path = "domain_interface" }
 domain_posts = { path = "domain_posts" }
 migration = { path = "migration" }

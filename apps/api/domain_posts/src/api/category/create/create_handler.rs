@@ -1,18 +1,17 @@
 use axum::{extract::State, response::IntoResponse, Extension, Json};
 use tracing::instrument;
 
-use crate::domain::auth::SupabaseToken;
 use crate::domain::response::{ApiResponseError, ApiResponseWith, AxumResponse};
 use crate::handlers::category::create::{
     create_handler::{CategoryCreateHandler, CategoryCreateHandlerTrait},
     create_request::CreateCategoryRequest,
 };
-use domain_interface::DomainContext;
+use domain_interface::{AuthenticatedActor, DomainContext};
 
 #[instrument]
 pub async fn api_create_category_with_tags(
     State(ctx): State<DomainContext>,
-    Extension(token): Extension<SupabaseToken>,
+    Extension(actor): Extension<AuthenticatedActor>,
     Json(body): Json<CreateCategoryRequest>,
 ) -> impl IntoResponse {
     let handler = CategoryCreateHandler {
@@ -20,7 +19,7 @@ pub async fn api_create_category_with_tags(
     };
 
     let result = handler
-        .handle_create_category_with_tags(body, Some(token.email().unwrap_or("").to_string()))
+        .handle_create_category_with_tags(body, actor.email.clone())
         .await;
 
     match result {

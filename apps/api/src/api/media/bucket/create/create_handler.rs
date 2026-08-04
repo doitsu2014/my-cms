@@ -1,10 +1,10 @@
-use crate::common::supabase_auth::SupabaseToken;
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
 use application_core::commands::media::bucket::create::{
     create_handler::{CreateBucketHandler, CreateBucketHandlerTrait},
     create_request::CreateBucketRequest,
 };
 use axum::{extract::Extension, response::IntoResponse, Json};
+use domain_interface::AuthenticatedActor;
 use tower_cookies::Cookies;
 use tracing::instrument;
 
@@ -12,7 +12,7 @@ use tracing::instrument;
 pub async fn api_create_bucket(
     state: Extension<AppState>,
     _cookies: Cookies,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Json(body): Json<CreateBucketRequest>,
 ) -> impl IntoResponse {
     let handler = CreateBucketHandler {

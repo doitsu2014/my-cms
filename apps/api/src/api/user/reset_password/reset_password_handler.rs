@@ -1,4 +1,3 @@
-use crate::common::supabase_auth::SupabaseToken;
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
 use application_core::commands::user::reset_password::{
     ResetPasswordHandler, ResetPasswordHandlerTrait, ResetPasswordRequest,
@@ -8,6 +7,7 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+use domain_interface::AuthenticatedActor;
 use sea_orm::sqlx::types::Uuid;
 use tracing::instrument;
 
@@ -15,7 +15,7 @@ use tracing::instrument;
 pub async fn api_reset_password(
     state: Extension<AppState>,
     Path(user_id): Path<Uuid>,
-    Extension(token): Extension<SupabaseToken>,
+    Extension(actor): Extension<AuthenticatedActor>,
     Json(body): Json<ResetPasswordRequest>,
 ) -> impl IntoResponse {
     let handler = ResetPasswordHandler {
@@ -23,7 +23,7 @@ pub async fn api_reset_password(
     };
 
     let result = handler
-        .handle_reset_password(user_id, body, token.user_id())
+        .handle_reset_password(user_id, body, actor.user_id.as_str())
         .await;
 
     match result {

@@ -1,13 +1,9 @@
-use crate::common::supabase_auth::SupabaseToken;
 use application_core::commands::media::bucket::dto::bucket_name_error;
 use application_core::commands::media::list::list_handler::{
     ListMediaHandler, ListMediaHandlerTrait,
 };
-use axum::{
-    extract::{Query, State},
-    response::IntoResponse,
-    Extension,
-};
+use axum::{extract::Query, response::IntoResponse, Extension};
+use domain_interface::AuthenticatedActor;
 use serde::Deserialize;
 use tower_cookies::Cookies;
 use tracing::instrument;
@@ -24,7 +20,7 @@ pub struct ListQueryParams {
 pub async fn api_list_media(
     state: Extension<AppState>,
     _cookies: Cookies,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Query(params): Query<ListQueryParams>,
 ) -> impl IntoResponse {
     if let Some(name) = &params.bucket {

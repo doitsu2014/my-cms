@@ -5,24 +5,21 @@ use tracing::instrument;
 
 use crate::handlers::post::create::create_handler::{PostCreateHandler, PostCreateHandlerTrait};
 use crate::handlers::post::create::create_request::CreatePostRequest;
-use domain_interface::DomainContext;
+use domain_interface::{AuthenticatedActor, DomainContext};
 
-use crate::domain::auth::SupabaseToken;
 use crate::domain::response::{ApiResponseError, ApiResponseWith, AxumResponse};
 
 #[instrument]
 pub async fn api_create_post(
     State(ctx): State<DomainContext>,
-    Extension(token): Extension<SupabaseToken>,
+    Extension(actor): Extension<AuthenticatedActor>,
     Json(body): Json<CreatePostRequest>,
 ) -> impl IntoResponse {
     let handler = PostCreateHandler {
         db: ctx.conn.clone(),
     };
 
-    let result = handler
-        .handle_create_post(body, Some(token.email().unwrap_or("").to_string()))
-        .await;
+    let result = handler.handle_create_post(body, actor.email.clone()).await;
 
     match result {
         Ok(inserted_id) => ApiResponseWith::new(inserted_id.to_string()).to_axum_response(),

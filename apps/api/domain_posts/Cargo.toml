@@ -22,6 +22,7 @@ axum = { version = "0.8.9", features = ["http2", "tracing", "multipart"] }
 axum-tracing-opentelemetry = { version = "0.30.1" }
 chrono = { version = "0.4.44", features = ["serde"] }
 dotenv = "0.15.0"
+domain_auth = { path = "../domain_auth" }
 domain_interface = { path = "../domain_interface" }
 fake = { version = "4.4.0", features = ["derive"] }
 futures = "0.3"
@@ -32,7 +33,6 @@ init-tracing-opentelemetry = { version = "0.30.1", features = [
   "otlp",
   "tracing_subscriber_ext",
 ] }
-jsonwebtoken = { version = "9.3.1" }
 lazy_static = "1.5.0"
 markup5ever_rcdom = "0.3"
 moka = { version = "0.12.15", features = ["future"] }

@@ -123,6 +123,31 @@ pub enum DomainConfigError {
     StartupHealth(String),
 }
 
+/// Domain-agnostic authenticated actor identity extracted from a validated
+/// request by an auth-domain layer.
+#[derive(Clone, Debug)]
+pub struct AuthenticatedActor {
+    /// Stable user identifier from the JWT `sub` claim.
+    pub user_id: String,
+    /// Optional email from the JWT `email` claim.
+    pub email: Option<String>,
+    /// Primary role from the JWT `role` claim.
+    pub primary_role: String,
+    /// Application roles from the JWT `app_metadata.roles` claim.
+    pub app_roles: Vec<String>,
+}
+
+impl AuthenticatedActor {
+    /// Returns whether no role gate was requested or any required role matches.
+    pub fn has_any_role(&self, required: &[&str]) -> bool {
+        required.is_empty()
+            || self
+                .app_roles
+                .iter()
+                .any(|role| required.contains(&role.as_str()))
+    }
+}
+
 /// Stable dyn-compatible contract every domain must implement.
 ///
 /// `DomainService` is intentionally minimal: only the surface the gateway
@@ -148,9 +173,14 @@ pub trait DomainService: Send + Sync {
     /// routers and then applies the cross-cutting layers once.
     fn register_routes(&self, ctx: &DomainContext) -> Vec<RouteRegistration>;
 
-    /// Async startup check (e.g. `SELECT 1` against the database). The
-    /// gateway calls this after constructing the domain.
-    async fn startup_health(&self, ctx: &DomainContext) -> Result<(), DomainConfigError>;
+    /// Async startup check. Domains that own database state MUST override this
+    /// to perform a `SELECT 1` probe (or equivalent). Infrastructure-only
+    /// domains (auth, observability, rate-limiting, ...) MAY use the default
+    /// `Ok(())` implementation. The gateway calls this for every registered
+    /// domain after constructing the domain.
+    async fn startup_health(&self, _ctx: &DomainContext) -> Result<(), DomainConfigError> {
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -201,6 +231,30 @@ mod tests {
         };
         let h2 = h;
         assert_eq!(h.name, h2.name);
+    }
+
+    #[test]
+    fn authenticated_actor_has_any_role_returns_true_when_role_matches() {
+        let actor = AuthenticatedActor {
+            user_id: "user-id".to_string(),
+            email: Some("user@example.com".to_string()),
+            primary_role: "authenticated".to_string(),
+            app_roles: vec!["writer".to_string()],
+        };
+
+        assert!(actor.has_any_role(&["writer", "administrator"]));
+    }
+
+    #[test]
+    fn authenticated_actor_has_any_role_returns_false_when_no_match() {
+        let actor = AuthenticatedActor {
+            user_id: "user-id".to_string(),
+            email: None,
+            primary_role: "authenticated".to_string(),
+            app_roles: vec!["reader".to_string()],
+        };
+
+        assert!(!actor.has_any_role(&["writer", "administrator"]));
     }
 
     #[test]

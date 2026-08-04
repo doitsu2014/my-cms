@@ -21,7 +21,8 @@ use std::{
 };
 use tracing::instrument;
 
-use crate::{common::supabase_auth::SupabaseClaims, AppState};
+use crate::AppState;
+use domain_auth::SupabaseClaims;
 
 #[derive(Debug, Deserialize)]
 pub struct ImageQueryParams {

@@ -5,24 +5,21 @@ use tracing::instrument;
 
 use crate::handlers::post::modify::modify_handler::{PostModifyHandler, PostModifyHandlerTrait};
 use crate::handlers::post::modify::modify_request::ModifyPostRequest;
-use domain_interface::DomainContext;
+use domain_interface::{AuthenticatedActor, DomainContext};
 
-use crate::domain::auth::SupabaseToken;
 use crate::domain::response::{ApiResponseError, ApiResponseWith, AxumResponse};
 
 #[instrument]
 pub async fn api_modify_post(
     State(ctx): State<DomainContext>,
-    Extension(token): Extension<SupabaseToken>,
+    Extension(actor): Extension<AuthenticatedActor>,
     Json(body): Json<ModifyPostRequest>,
 ) -> impl IntoResponse {
     let handler = PostModifyHandler {
         db: ctx.conn.clone(),
     };
 
-    let result = handler
-        .handle_modify_post(body, Some(token.email().unwrap_or("").to_string()))
-        .await;
+    let result = handler.handle_modify_post(body, actor.email.clone()).await;
 
     match result {
         Ok(inserted_id) => ApiResponseWith::new(inserted_id.to_string()).to_axum_response(),

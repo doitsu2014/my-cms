@@ -1,13 +1,9 @@
-use crate::common::supabase_auth::SupabaseToken;
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
 use application_core::commands::media::bucket::get::get_handler::{
     GetBucketHandler, GetBucketHandlerTrait,
 };
-use axum::{
-    extract::{Path, State},
-    response::IntoResponse,
-    Extension,
-};
+use axum::{extract::Path, response::IntoResponse, Extension};
+use domain_interface::AuthenticatedActor;
 use tower_cookies::Cookies;
 use tracing::instrument;
 
@@ -15,7 +11,7 @@ use tracing::instrument;
 pub async fn api_get_bucket(
     state: Extension<AppState>,
     _cookies: Cookies,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Path(name): Path<String>,
 ) -> impl IntoResponse {
     let handler = GetBucketHandler {

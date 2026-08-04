@@ -1,9 +1,9 @@
-use crate::common::supabase_auth::SupabaseToken;
 use axum::{
     extract::{Path, State},
     response::IntoResponse,
     Extension,
 };
+use domain_interface::AuthenticatedActor;
 use sea_orm::sqlx::types::Uuid;
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
@@ -42,7 +42,7 @@ pub struct ActiveJobsResponse {
 #[instrument]
 pub async fn api_get_job_status(
     state: State<AppState>,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Path((post_id, job_id)): Path<(Uuid, Uuid)>,
 ) -> impl IntoResponse {
     let job_result = translation_jobs::Entity::find_by_id(job_id)
@@ -88,7 +88,7 @@ pub async fn api_get_job_status(
 #[instrument]
 pub async fn api_get_active_jobs(
     state: State<AppState>,
-    Extension(_token): Extension<SupabaseToken>,
+    Extension(_actor): Extension<AuthenticatedActor>,
     Path(post_id): Path<Uuid>,
 ) -> impl IntoResponse {
     let jobs_result = translation_jobs::Entity::find()
