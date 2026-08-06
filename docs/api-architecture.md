@@ -1,20 +1,20 @@
 # My-CMS API Architecture (Implemented)
 
-This document captures the **as-built** state of the API architecture after the `refactor-api-into-pluggable-domain-libraries` change. It is the visual companion to `pluggable-domain-refactor.md`.
+This document captures the **as-built** state of the API architecture after `refactor-api-into-pluggable-domain-libraries`, `consolidate-category-ai-translate-into-domain-posts`, and `merge-graphql-into-posts-domain`. It is the visual companion to `pluggable-domain-refactor.md`.
+
+> **Note on legacy shims:** `apps/api/application_core/` and `apps/api/migration/` are transitional crates retained only to keep `legacy_bootstrap` compiling. They have **no architectural responsibility** in the current picture — the pluggable domain composition shown below is self-contained. Both are slated for removal as the first concrete step in the staged cutover (see §12).
 
 ## 1. Cargo Workspace
 
 ```mermaid
 graph LR
     subgraph ws["apps/api/  Cargo workspace"]
-        DI["<b>domain_interface</b><br/>(publishable)<br/>DomainService trait<br/>DomainContext<br/>Mount, RouteRegistration<br/>HealthDescriptor<br/>MigrationDescriptor<br/>DomainConfigError<br/>AuthenticatedActor (actor value type)"]
+        DI["<b>domain_interface</b><br/>(publishable contract)<br/>DomainService trait<br/>DomainContext<br/>Mount, RouteRegistration<br/>HealthDescriptor<br/>MigrationDescriptor<br/>DomainConfigError<br/>AuthenticatedActor (actor value type)"]
         DA["<b>domain_auth</b><br/>cross-cutting infrastructure crate<br/>SupabaseAuthLayer,<br/>SupabaseAuthConfig,<br/>SupabaseClaims, SupabaseToken<br/>construct_supabase_auth_layer<br/>DomainAuthService impl<br/>(empty routes, default startup_health,<br/>no sea-orm, no business deps)"]
         DP["<b>domain_posts</b><br/>lib + bin<br/>api/{post,category,ai}/* (HTTP adapters)<br/>handlers/{post,tag_helper,<br/>category,ai,vector_store,<br/>translation_jobs}/* (commands)<br/>handlers/post::translate (pipeline)<br/>domain/{response,error,<br/>layers,graphql,postgres}<br/>entities/* (canonical)<br/>migrations/* (4 identities)<br/>service.rs (DomainPostService)"]
         GW["<b>gateway</b><br/>bin: my-cms-api<br/>manifest() → Box&lt;dyn<br/>DomainService&gt;<br/>orchestrator<br/>compose_routers<br/>(applies domain_auth layer to<br/>protected + administrator)"]
-        AC["<b>application_core</b><br/>(transitional shim)<br/>commands/{tag,media,user,ai::translate,<br/>ai::vector_store_pg}<br/>entities/* = re-export<br/>from domain_posts<br/>graphql/query_root<br/>common/{app_error,<br/>datetime_generator,extensions}"]
-        MIG["<b>migration</b><br/>(transitional shim)<br/>re-exports Migrator from<br/>domain_posts::migrations"]
         TH["<b>test_helpers</b><br/>testcontainers + Postgres +<br/>pgvector"]
-        CMS["<b>cms</b><br/>(legacy bootstrap lib)<br/>api/{tag,media,user,<br/>administrator}/*<br/>api/post/* (legacy post translate)<br/>lib.rs → AppState (legacy)<br/>bin: legacy_bootstrap"]
+        CMS["<b>cms</b><br/>(legacy bootstrap root package)<br/>src/api/{tag,media,user,<br/>administrator}/*<br/>src/api/post/* (legacy post translate)<br/>src/lib.rs → AppState (legacy)<br/>bin: legacy_bootstrap<br/>(depends on legacy shims; see §11)"]
     end
 
     subgraph ext["External / Platform"]
@@ -27,7 +27,6 @@ graph LR
     GW --> DI
     GW --> DP
     GW --> DA
-    GW --> AC
     GW --> TH
 
     DP --> DI
@@ -35,16 +34,9 @@ graph LR
 
     DA --> DI
 
-    AC --> MIG
-    AC --> TH
-    AC --> DP
-
-    MIG --> DP
-
-    CMS --> AC
-    CMS --> MIG
-    CMS --> TH
     CMS --> DA
+    CMS --> TH
+    CMS --> DP
 
     DP -- "SeaORM, OpenAI,<br/>pgvector" --> DB
     DP -- "OpenAI / pgvector" --> OAI
@@ -68,10 +60,15 @@ graph LR
     class DP domain
     class DA infra
     class GW gateway
-    class AC,MIG,CMS shim
+    class CMS shim
     class TH helper
     class DB,STORE,AUTH,OAI ext
 ```
+
+**Workspace member legend:**
+- **Pluggable domain architecture** (the architecture): `domain_interface`, `domain_auth`, `domain_posts`, `gateway`, `test_helpers`.
+- **Legacy bootstrap** (transitional): `cms` root package — retains the `legacy_bootstrap` binary until tags/media/users/administrator are extracted into their own domains.
+- **Legacy shims** (no architectural responsibility; see §11): `application_core`, `migration`.
 
 ## 2. Deployment Modes — Two Binaries
 
@@ -130,8 +127,8 @@ graph LR
         PR1["GET  /"]
         PR2["GET  /health"]
         PR3["GET  /healthz"]
-        PR4["GET  /graphql/immutable  (playground)<br/>POST /graphql/immutable  (handler)"]
-        PR5["GET  /graphql/mutable    (playground)<br/>POST /graphql/mutable    (handler)"]
+        PR4["GET  /posts/graphql/immutable  (playground)<br/>POST /posts/graphql/immutable  (handler)"]
+        PR5["GET  /posts/graphql/mutable    (playground)<br/>POST /posts/graphql/mutable    (handler)"]
     end
 
     subgraph protected_routes["Protected Router (auth)"]
@@ -156,6 +153,8 @@ graph LR
         DPSR3["RouteRegistration { mount: Protected, prefix: /categories }"]
         DPSR4["RouteRegistration { mount: Protected, prefix: /ai }"]
         DPSR5["RouteRegistration { mount: Administrator, prefix: /posts-admin }"]
+        DPSR6["RouteRegistration { mount: Public, prefix: /posts/graphql }"]
+        DPSR7["RouteRegistration { mount: Protected, prefix: /posts/graphql }"]
     end
 
     GW --> CTX
@@ -164,13 +163,15 @@ graph LR
     COMP --> SERV
     COMP --> PR1 & PR2 & PR3 & PR4 & PR5
     COMP --> AR1
-    MAN --> DPSR1 & DPSR2 & DPSR3 & DPSR4 & DPSR5
+    MAN --> DPSR1 & DPSR2 & DPSR3 & DPSR4 & DPSR5 & DPSR6 & DPSR7
     MAN --> AUTH["domain_auth::DomainAuthService<br/>(registered; empty routes,<br/>validate_config only)"]
     DPSR1 --> PR1
     DPSR2 --> PPR1 & PPR2 & PPR3 & PPR4 & PPR5 & PPR6
     DPSR3 --> PPR7
     DPSR4 --> PPR8
     DPSR5 --> AR1
+    DPSR6 --> PR4
+    DPSR7 --> PR5
 
     classDef domain fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
     classDef infra fill:#fff7e6,stroke:#b07000,stroke-width:2px,color:#6b4500
@@ -180,7 +181,7 @@ graph LR
 
     class CTX,ORCH,COMP,SERV gateway
     class PR1,PR2,PR3,PR4,PR5,PPR1,PPR2,PPR3,PPR4,PPR5,PPR6,PPR7,PPR8,AR1 route
-    class MAN,DPSR1,DPSR2,DPSR3,DPSR4,DPSR5 domain
+    class MAN,DPSR1,DPSR2,DPSR3,DPSR4,DPSR5,DPSR6,DPSR7 domain
     class AUTH infra
 ```
 
@@ -192,8 +193,8 @@ graph TB
         direction TB
         LSTATE["AppState {<br/>  conn, media_config,<br/>  media_cache, bucket_visibility_cache,<br/>  graphql_immutable_schema,<br/>  graphql_mutable_schema,<br/>  supabase_admin_client<br/>}"]
         LPR["public_router()<br/>+ cors_layer + otel_layers"]
-        LPRR["protected_router()<br/>+ auth + cookie + body-limit<br/>+ cors + otel"]
-        LPAR["protected_administrator_router()<br/>+ auth + cookie<br/>+ cors + otel"]
+        LPRR["protected_router()<br/>+ auth (writer or admin)<br/>+ cookie + body-limit<br/>+ cors + otel"]
+        LPAR["protected_administrator_router()<br/>+ auth (admin only)<br/>+ cookie + cors + otel"]
         LSERV["axum::serve(listener, app)"]
     end
 
@@ -203,8 +204,8 @@ graph TB
         LP3["GET /healthz"]
         LP4["GET /media/images/{*path}"]
         LP5["GET /media/{*path}"]
-        LP6["GET /graphql/immutable<br/>POST /graphql/immutable"]
-        LP7["GET /graphql/mutable<br/>POST /graphql/mutable"]
+        LP6["GET /posts/graphql/immutable<br/>POST /posts/graphql/immutable"]
+        LP7["GET /posts/graphql/mutable<br/>POST /posts/graphql/mutable"]
     end
 
     subgraph lprot["Protected (writer or admin)"]
@@ -212,7 +213,7 @@ graph TB
         LPR3["POST /posts/{post_id}/translate<br/>POST /posts/{post_id}/translate/background<br/>GET /posts/{post_id}/translate/jobs/{job_id}<br/>GET /posts/{post_id}/translate/jobs"]
         LPR5["DELETE /tags"]
         LPR6["GET/POST/DELETE /media<br/>GET /media/info/{*path}<br/>DELETE /media/delete/{*path}"]
-        LPR7["GET/POST /graphql/mutable"]
+        LPR7["GET/POST /posts/graphql/mutable"]
     end
 
     subgraph ladmin["Administrator (admin only)"]
@@ -248,6 +249,7 @@ graph LR
             APIR["post/read/read_handler.rs"]
             APIT["post/translate/translate_handler.rs"]
             APIJ["post/translate/job_handler.rs"]
+            APIG["post/graphql/mod.rs<br/>(playground_immutable,<br/>playground_mutable)"]
             APICC["category/{create,read,modify,delete}/*"]
             APII["ai/models/models_handler.rs"]
         end
@@ -303,6 +305,7 @@ graph LR
     APIR --> HR
     APIT --> HT
     APIJ --> HTT
+    APIG --> DGQ
     APICC --> HCA
     APII --> HAI
     HC -->|uses tag_helper<br/>for tag create-in-tx| HTG
@@ -319,11 +322,9 @@ graph LR
 
     classDef domain fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
     classDef infra fill:#fff7e6,stroke:#b07000,stroke-width:2px,color:#6b4500
-    classDef reexport fill:#fff4e6,stroke:#d97706,stroke-width:1px,color:#7c2d12
 
-    class APIC,APID,APIM,APIR,APIT,APIJ,APICC,APII,HC,HD,HM,HR,HT,HV,HTG,HTT,HCA,HAI,DERR,DRES,DLA,DPG,DGQ,DVS,DEX,DEV,MM,M1,M2,M3,M4,SVC,MCL,OBS,ENT domain
+    class APIC,APID,APIM,APIR,APIT,APIJ,APIG,APICC,APII,HC,HD,HM,HR,HT,HV,HTG,HTT,HCA,HAI,DERR,DRES,DLA,DPG,DGQ,DVS,DEX,DEV,MM,M1,M2,M3,M4,SVC,MCL,OBS,ENT domain
     class DAU infra
-    class ERE reexport
 ```
 
 ## 6. Migration Identities — `domain_posts`
@@ -455,14 +456,14 @@ graph LR
     class PCH_NEW,TH_NEW,THR_NEW good
 ```
 
-> `domain_posts` no longer depends on `application_core::commands::tag::*`. The tag create + read handlers are owned by `domain_posts::handlers::tag_helper::*`.
+> `domain_posts` no longer depends on `application_core::commands::tag::*`. The tag create + read handlers are owned by `domain_posts::handlers::tag_helper::*`. The `application_core` references in this diagram are **historical** (pre-`refactor-api-into-pluggable-domain-libraries`) and only exist today as legacy re-exports for the `legacy_bootstrap` path (see §11).
 
 ## 10. What Each Binary Actually Serves Today
 
 | Route prefix | `my-cms-api` (gateway) | `legacy_bootstrap` | `domain_posts` (standalone) |
 |---|---|---|---|
 | `/`, `/health`, `/healthz` | ✅ | ✅ | ✅ |
-| `/graphql/immutable`, `/graphql/mutable` | ✅ | ✅ | ❌ |
+| `/posts/graphql/immutable`, `/posts/graphql/mutable` | ✅ | ✅ | ✅ |
 | `/posts/**`, `/posts/{post_id}` | ✅ | ✅ | ✅ |
 | `/posts/{post_id}/translate{,/background}` | ✅ | ✅ | ✅ |
 | `/posts/{post_id}/translate/jobs{,/**}` | ✅ | ✅ | ✅ |
@@ -475,35 +476,78 @@ graph LR
 
 > `/categories/**` and `/ai/models` moved from `legacy_bootstrap` to the gateway (`my-cms-api`) and to the standalone `domain_posts` bin per the `consolidate-category-ai-translate-into-domain-posts` change. The `legacy_bootstrap` binary still serves the not-yet-extracted tags/media/users/administrator routes.
 
-## 11. Future Staged Cutover
+> **Note (`merge-graphql-into-posts-domain`):** The GraphQL HTTP surface moved from `/graphql/{immutable,mutable}` to `/posts/graphql/{immutable,mutable}`. The mutable mount now accepts the Supabase app roles `my-headless-cms-writer` and `my-headless-cms-administrator` (the gateway's pre-change administrator-only gate was widened to writer + administrator so all three deployment modes expose identical authorization behaviour). The post domain is the sole owner of the GraphQL playground handlers and the `Arc<Schema>` wiring.
+
+## 11. Legacy Shims — `application_core` & `migration`
+
+Two workspace members exist **only** to keep `legacy_bootstrap` compiling. They have no architectural responsibility in the pluggable domain picture above. They are slated for deletion as the first concrete step in the staged cutover (§12).
+
+### `apps/api/application_core/`
+
+- **Workspace member:** `application_core` (path-dep of the `cms` root package).
+- **What it still exposes:**
+  - `commands/{tag,media,user,ai::translate,ai::vector_store_pg}` — handler structs and traits that the legacy handlers in `apps/api/src/api/...` import.
+  - `entities/*` — **re-exports** of `domain_posts::entities::*` (the canonical entities live in `domain_posts`; `application_core` only re-exports them for the legacy path).
+  - `common/{app_error, datetime_generator, extensions}` — small utilities the legacy handlers depend on.
+- **Where it's referenced:** `apps/api/src/bin/legacy_bootstrap.rs`, every legacy handler under `apps/api/src/api/{tag,media,user,...}/*`, and the legacy `apps/api/src/api/post/*` handlers (which are slated to be replaced by `domain_posts::api::post::*`).
+- **Why it still exists:** to avoid a sweeping rewrite of the legacy `apps/api/src/api/...` tree during the pluggable-domain cutover. Each handler will be replaced wholesale as tags/media/users/administrator are extracted into their own domains.
+
+### `apps/api/migration/`
+
+- **Workspace member:** `migration` (path-dep of the `cms` root package and of `test_helpers`).
+- **What it still exposes:**
+  - `lib.rs` — re-exports `Migrator` from `domain_posts::migrations`.
+  - `m{20240409_151952_release_100, 20250330_151455_release_110, 20260126_040610_release_300, 20260531_000001_pgvector}.rs` — **duplicate copies** of the four migration modules that live canonically in `domain_posts::migrations::*`. These are kept for the `migration` standalone binary (`apps/api/migration/src/main.rs`) and for `test_helpers` to run migrations against a testcontainer.
+  - `constants.rs` — small constants used by the duplicate migration modules.
+- **Where it's referenced:** `apps/api/src/bin/legacy_bootstrap.rs`, `apps/api/test_helpers/src/lib.rs`, the `migration` standalone binary, and the legacy `/administrator/database/migration` handler.
+- **Why it still exists:** the legacy bootstrap ships a `migration` binary that operators can invoke to run schema migrations. The canonical migrator is `domain_posts::migrations::Migrator`; `migration` is a thin re-export. Once the legacy bootstrap is removed, both `application_core` and `migration` go with it.
+
+### Removal order (see §12)
+
+1. `domain_media` extracted → `application_core::commands::media::*` becomes empty.
+2. `domain_users` extracted → `application_core::commands::user::*` becomes empty.
+3. `domain_tags` extracted → `application_core::commands::tag::*` becomes empty.
+4. `domain_administrator` extracted → `application_core::commands::ai::*` becomes empty; `apps/api/migration/` becomes empty (no more `/administrator/database/migration` route).
+5. `apps/api/application_core/` deleted from workspace; `apps/api/migration/` deleted; `legacy_bootstrap` deleted.
+6. `domain_posts` migrator remains the only migrator; the `migration` binary is replaced by `cargo run -p domain_posts --bin migrations_cli` (or the orchestrator's `run_orchestrator()` handles migrations at gateway startup).
+
+## 12. Future Staged Cutover
 
 ```mermaid
 graph TB
     subgraph now["Today (after consolidation)"]
         N1["my-cms-api serves post + categories + AI + translation routes"]
-        N2["legacy_bootstrap serves<br/>tags/media/users/administrator"]
+        N2["legacy_bootstrap serves<br/>tags/media/users/administrator<br/>(depends on application_core & migration shims; see §11)"]
     end
 
-    subgraph next["After domain_media, domain_users, domain_administrator extraction"]
+    subgraph step0["Step 0 — Delete legacy shims (prerequisite)"]
+        S0["Once legacy handlers are gone,<br/>delete apps/api/application_core/<br/>and apps/api/migration/<br/>from the workspace.<br/>Unblocks clean domain extractions."]
+    end
+
+    subgraph next["Step 1 — domain_media, domain_users, domain_administrator extraction"]
         X1["Box::new(DomainMediaService),<br/>Box::new(DomainUsersService),<br/>Box::new(DomainAdministratorService)<br/>appended to gateway::manifest()"]
         X2["legacy_bootstrap loses /media/**, /users/**, /administrator/**<br/>gateway gains those routes"]
     end
 
-    subgraph future["After domain_tags extraction"]
+    subgraph future["Step 2 — domain_tags extraction + legacy bootstrap removal"]
         F1["domain_tags registered in manifest()"]
-        F2["legacy_bootstrap deleted"]
+        F2["legacy_bootstrap deleted;<br/>apps/api/src/ tree removed"]
         F3["single my-cms-api deployment image<br/>serves ALL routes via DomainService composition"]
     end
 
-    now --> next --> future
+    now --> step0 --> next --> future
 
     classDef current fill:#fff,stroke:#888,stroke-width:1px
+    classDef prereq fill:#ffe6e6,stroke:#cc0000,stroke-width:1px,color:#660000
     classDef nextStage fill:#fff4e6,stroke:#d97706,stroke-width:1px,color:#7c2d12
     classDef futureStage fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
 
     class N1,N2 current
+    class S0 prereq
     class X1,X2 nextStage
     class F1,F2,F3 futureStage
 ```
+
+> **Prerequisite note:** Step 0 must be repeated for each domain extraction — `application_core::commands::<domain>_*` becomes empty as each handler migrates into its new domain crate. The workspace deletion of `application_core` and `migration` only happens after **all** legacy handler trees are gone. The `migration` binary in particular can be deleted once `/administrator/database/migration` and the `legacy_bootstrap` migrator CLI are both removed.
 
 See `docs/adding-a-domain.md` for the recipe and `docs/pluggable-domain-refactor.md` for the full architectural overview.

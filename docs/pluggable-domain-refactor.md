@@ -23,15 +23,17 @@ Three binaries are produced:
 
 | Binary | Backing crate | Routes served | When to use |
 |---|---|---|---|
-| `my-cms-api` | `gateway` | `/`, `/health`, `/healthz`, `/graphql/**`, `/posts/**`, `/posts/{post_id}/translate*`, `/categories/**`, `/ai/models` | Composed gateway (single domain: post + categories + AI + translation) |
-| `legacy_bootstrap` | `cms` | `/`, `/health`, `/healthz`, `/tags`, `/media/**`, `/users/**`, `/administrator/**`, `/graphql/**` | Staged cutover — covers not-yet-extracted domains (tags, media, users, administrator) |
-| `domain_posts` | `domain_posts` | `/posts/**`, `/posts/{post_id}/translate*`, `/categories/**`, `/ai/models` | Standalone post microservice (same surface as the composed gateway) |
+| `my-cms-api` | `gateway` | `/`, `/health`, `/healthz`, `/posts/graphql/**`, `/posts/**`, `/posts/{post_id}/translate*`, `/categories/**`, `/ai/models` | Composed gateway (single domain: post + categories + AI + translation) |
+| `legacy_bootstrap` | `cms` | `/`, `/health`, `/healthz`, `/tags`, `/media/**`, `/users/**`, `/administrator/**`, `/posts/graphql/**` | Staged cutover — covers not-yet-extracted domains (tags, media, users, administrator) |
+| `domain_posts` | `domain_posts` | `/posts/graphql/**`, `/posts/**`, `/posts/{post_id}/translate*`, `/categories/**`, `/ai/models` | Standalone post microservice (same surface as the composed gateway) |
 
 ## Staged Cutover
 
 The cutover is **staged**:
 
 1. **Stage 1 (DONE)** — `domain_posts` is fully extracted as the single Cargo crate that owns every post-related capability: post CRUD, post translation, post-related categories, post-related AI model registry, post-related tag helper, post GraphQL contribution, post migrations, and post-related cross-cutting layers (auth, response, error, OpenTelemetry). The gateway serves the consolidated post-domain routes via `DomainPostService`. The legacy bootstrap (`legacy_bootstrap` binary) continues to serve the remaining tags/media/users/administrator routes.
+
+> **Note (`merge-graphql-into-posts-domain`):** The post domain is the **sole** owner of the GraphQL HTTP surface. The playground handlers (`playground_immutable`, `playground_mutable`) and the `Arc<Schema>` wiring live exclusively under `apps/api/domain_posts/src/api/post/graphql/`. The `legacy_bootstrap` binary re-mounts `/posts/graphql/{immutable,mutable}` by importing the handlers directly from `domain_posts::api::post::graphql` — it does NOT recreate a parallel `apps/api/src/api/post/graphql/` module tree.
 
 2. **Stage 2 (next)** — Extract `domain_media`, `domain_users`, `domain_administrator`, and `domain_tags` as self-contained crates (per `docs/adding-a-domain.md`). Each new domain's `Domain<Name>Service` is appended to `gateway::manifest()`. **Categories, AI, and translation are intentionally NOT extracted** — they are integral to the post vertical slice (per the `consolidate-category-ai-translate-into-domain-posts` change). `domain_posts` is the canonical owner of these.
 

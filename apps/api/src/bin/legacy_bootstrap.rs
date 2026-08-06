@@ -7,7 +7,6 @@ use application_core::{
         read::read_handler::create_media_cache, MediaConfig, SupabaseStorage,
     },
     commands::user::supabase_admin_client::SupabaseAdminClient,
-    graphql::query_root::schema,
 };
 use async_graphql_axum::GraphQL;
 use axum::{
@@ -20,6 +19,8 @@ use cms::{
     tag::delete::delete_handler::api_delete_tags, AppState,
 };
 use domain_auth::legacy_bootstrap::construct_supabase_auth_layer;
+use domain_posts::api::post::graphql::{playground_immutable, playground_mutable};
+use domain_posts::domain::graphql::contribute_post_schema;
 use dotenv::{dotenv, from_filename};
 use hyper::Method;
 use init_tracing_opentelemetry::{
@@ -102,8 +103,8 @@ pub async fn public_router() -> Router {
             get(api::media::read::read_handler::api_get_media),
         )
         .route(
-            "/graphql/immutable",
-            get(api::graphql::graphql_immutable).post_service(GraphQL::new(
+            "/posts/graphql/immutable",
+            get(playground_immutable).post_service(GraphQL::new(
                 app_state.graphql_immutable_schema.as_ref().to_owned(),
             )),
         )
@@ -161,8 +162,8 @@ pub async fn protected_router() -> Router {
             delete(api::media::delete::delete_handler::api_delete_media),
         )
         .route(
-            "/graphql/mutable",
-            get(api::graphql::graphql_mutable).post_service(GraphQL::new(
+            "/posts/graphql/mutable",
+            get(playground_mutable).post_service(GraphQL::new(
                 app_state.graphql_mutable_schema.as_ref().to_owned(),
             )),
         )
@@ -263,8 +264,8 @@ async fn construct_app_state() -> AppState {
         supabase_service_role_key,
     ));
 
-    let graphql_immutable_schema = schema(conn.clone(), None, None, false).unwrap();
-    let graphql_mutable_schema = schema(conn.clone(), None, None, true).unwrap();
+    let graphql_immutable_schema = contribute_post_schema(conn.clone(), None, None, false).unwrap();
+    let graphql_mutable_schema = contribute_post_schema(conn.clone(), None, None, true).unwrap();
 
     AppState {
         conn: Arc::new(conn),

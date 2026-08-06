@@ -3,6 +3,7 @@
 
 pub mod create;
 pub mod delete;
+pub mod graphql;
 pub mod modify;
 pub mod read;
 pub mod translate;

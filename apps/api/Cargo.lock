@@ -1472,6 +1472,7 @@ dependencies = [
  "http",
  "hyper",
  "init-tracing-opentelemetry",
+ "jsonwebtoken",
  "lazy_static",
  "markup5ever_rcdom",
  "moka",

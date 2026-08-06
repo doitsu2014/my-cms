@@ -19,7 +19,7 @@ export const getRestApiBaseUrl = (): string => {
  * Get the GraphQL API URL from runtime config
  */
 export const getGraphQLApiUrl = (): string => {
-  return config().graphqlApiUrl || 'http://localhost:8989/graphql';
+  return config().graphqlApiUrl || 'http://localhost:8989/posts/graphql';
 };
 
 /**

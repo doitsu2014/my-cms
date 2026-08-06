@@ -5,6 +5,20 @@
 //! `my-cms-api` deployment image, iterates a `Vec<Box<dyn DomainService>>` to
 //! compose the public/protected/administrator Axum routers, applies the
 //! cross-cutting layers, and serves the listener.
+//!
+//! # GraphQL mount authorization (merged by `merge-graphql-into-posts-domain`)
+//!
+//! The post domain registers `/posts/graphql/{immutable,mutable}` into the
+//! public / protected router slots. The mutable mount accepts requests that
+//! hold either the `my-headless-cms-writer` or the
+//! `my-headless-cms-administrator` Supabase app role — this matches the
+//! pre-existing role set on the `legacy_bootstrap` binary's mutable mount.
+//!
+//! Prior to the `merge-graphql-into-posts-domain` change the gateway only
+//! accepted the administrator role on `/graphql/mutable`; the role set is
+//! widened here to align with the legacy bootstrap and the standalone
+//! `domain_posts` binary. Do not silently revert to administrator-only —
+//! writers that talk to the gateway's GraphQL endpoint depend on it.
 
 #![deny(unsafe_code)]
 
@@ -12,8 +26,6 @@ use std::env;
 use std::process::ExitCode;
 use std::sync::Arc;
 
-use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql_axum::GraphQL;
 use axum::{
     response::{self, IntoResponse},
     routing::get,
@@ -155,7 +167,13 @@ async fn main() -> ExitCode {
 
 /// Compose the public/protected/administrator routers from the registered
 /// domains' `RouteRegistration`s, plus the gateway's own routes
-/// (`/`, `/health`, `/healthz`, `/graphql/**`).
+/// (`/`, `/health`, `/healthz`, `/posts/graphql/**`).
+///
+/// The post domain registers the two `/posts/graphql/**` endpoints through
+/// `register_routes`, so the gateway does NOT add them inline — it only
+/// composes the auth layer over the merged protected router. The mutable
+/// mount's role set is widened from administrator-only to
+/// writer + administrator (see module doc-comment).
 fn compose_routers(
     services: &[Box<dyn DomainService>],
     ctx: &DomainContext,
@@ -164,17 +182,7 @@ fn compose_routers(
         .route("/", get(root_handler))
         .route("/health", get(health_handler))
         .route("/healthz", get(health_handler));
-    let mut protected: Router<DomainContext> = Router::new()
-        .route(
-            "/graphql/immutable",
-            get(graphql_immutable_playground)
-                .post_service(GraphQL::new(ctx.graphql_immutable.as_ref().clone())),
-        )
-        .route(
-            "/graphql/mutable",
-            get(graphql_mutable_playground)
-                .post_service(GraphQL::new(ctx.graphql_mutable.as_ref().clone())),
-        );
+    let mut protected: Router<DomainContext> = Router::new();
     let mut administrator: Router<DomainContext> = Router::new();
 
     for service in services.iter() {
@@ -191,7 +199,10 @@ fn compose_routers(
         .merge(protected.layer(
             domain_auth::legacy_bootstrap::construct_supabase_auth_layer(
                 env::var("AUTHORIZATION_AUDIENCE").unwrap_or_else(|_| "authenticated".to_string()),
-                vec![],
+                vec![
+                    "my-headless-cms-writer".to_string(),
+                    "my-headless-cms-administrator".to_string(),
+                ],
             ),
         ))
         .merge(administrator.layer(
@@ -210,20 +221,6 @@ async fn root_handler() -> &'static str {
 /// `GET /health` and `GET /healthz` — readiness probe.
 async fn health_handler() -> impl IntoResponse {
     response::Html("CMS is running successfully!")
-}
-
-/// `GET /graphql/immutable` — GraphQL playground (read-only schema).
-async fn graphql_immutable_playground() -> impl IntoResponse {
-    response::Html(playground_source(GraphQLPlaygroundConfig::new(
-        "/graphql/immutable",
-    )))
-}
-
-/// `GET /graphql/mutable` — GraphQL playground (read-write schema).
-async fn graphql_mutable_playground() -> impl IntoResponse {
-    response::Html(playground_source(GraphQLPlaygroundConfig::new(
-        "/graphql/mutable",
-    )))
 }
 
 async fn connect_database() -> Result<Arc<sea_orm::DatabaseConnection>, String> {

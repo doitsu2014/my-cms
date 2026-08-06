@@ -39,7 +39,7 @@ export const getConfig = (): AppConfig => {
   return {
     supabaseUrl: import.meta.env.PUBLIC_SUPABASE_URL || 'http://localhost:8001',
     supabaseAnonKey: import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '',
-    graphqlApiUrl: import.meta.env.PUBLIC_GRAPHQL_API_URL || 'http://localhost:4000/graphql',
+    graphqlApiUrl: import.meta.env.PUBLIC_GRAPHQL_API_URL || 'http://localhost:8989/posts/graphql',
     graphqlCacheApiUrl: import.meta.env.PUBLIC_GRAPHQL_CACHE_API_URL,
     restApiUrl: import.meta.env.PUBLIC_REST_API_URL || '',
     mediaUploadApiUrl: import.meta.env.PUBLIC_MEDIA_UPLOAD_API_URL,

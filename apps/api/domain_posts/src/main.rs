@@ -12,10 +12,12 @@ use std::env;
 use std::process::ExitCode;
 use std::sync::Arc;
 
-use domain_interface::{DomainContext, DomainService};
+use domain_auth::legacy_bootstrap::construct_supabase_auth_layer;
+use domain_interface::{DomainContext, DomainService, Mount, RouteRegistration};
 use domain_posts::service::DomainPostService;
 use tracing::info;
 
+use domain_posts::api;
 use domain_posts::domain::graphql::contribute_post_schema;
 use domain_posts::domain::layers;
 use domain_posts::domain::postgres::connect_database;
@@ -70,7 +72,7 @@ async fn main() -> ExitCode {
         return ExitCode::FAILURE;
     }
 
-    let app = domain_posts::api::routes(&ctx);
+    let app = build_app(&ctx);
 
     let host = env::var("HOST").unwrap_or("127.0.0.1".to_string());
     let port = env::var("PORT").unwrap_or("8989".to_string());
@@ -88,21 +90,63 @@ async fn main() -> ExitCode {
         }
     };
 
-    // The routers returned by `register_routes` are bare; layers are applied
-    // by the gateway in composed mode. In standalone mode the binary is the
-    // listener, so it is responsible for applying the cross-cutting layers.
-    // Task 7 final wiring will compose the public/protected/administrator
-    // sub-routers from `app` and attach `cors_layer`, `cookie_layer`,
-    // `body_limit_layer`, and `otel_layers` here.
-    let _ = (layers::otel_layers(), layers::cors_layer());
-
     info!("ready");
-    if let Err(e) = axum::serve(listener, axum::Router::new()).await {
+    let app = app.with_state(ctx.clone());
+    if let Err(e) = axum::serve(listener, app).await {
         eprintln!("serve error: {}", e);
         return ExitCode::FAILURE;
     }
 
     ExitCode::SUCCESS
+}
+
+/// Compose the standalone binary's `Router` from the post-domain
+/// `RouteRegistration`s plus the cross-cutting layers. The mutable GraphQL
+/// mount (`/posts/graphql/mutable`) and the other `Mount::Protected`
+/// routes are gated by the Supabase auth layer with the role vector
+/// `["my-headless-cms-writer", "my-headless-cms-administrator"]` — the
+/// same role set the gateway composition and the legacy bootstrap
+/// binary apply at the new mount point. See
+/// `openspec/changes/merge-graphql-into-posts-domain/design.md` Decision 6.
+fn build_app(ctx: &DomainContext) -> axum::Router<DomainContext> {
+    use axum::Router;
+
+    let mut public: Router<DomainContext> = Router::new();
+    let mut protected: Router<DomainContext> = Router::new();
+    let mut administrator: Router<DomainContext> = Router::new();
+
+    for RouteRegistration {
+        mount,
+        router,
+        prefix: _,
+    } in api::routes(ctx)
+    {
+        match mount {
+            Mount::Public => public = public.merge(router),
+            Mount::Protected => protected = protected.merge(router),
+            Mount::Administrator => administrator = administrator.merge(router),
+        }
+    }
+
+    let (otel_in_response, otel_axum) = layers::otel_layers();
+
+    public
+        .merge(protected.layer(construct_supabase_auth_layer(
+            env::var("AUTHORIZATION_AUDIENCE").unwrap_or_else(|_| "authenticated".to_string()),
+            vec![
+                "my-headless-cms-writer".to_string(),
+                "my-headless-cms-administrator".to_string(),
+            ],
+        )))
+        .merge(administrator.layer(construct_supabase_auth_layer(
+            env::var("AUTHORIZATION_AUDIENCE").unwrap_or_else(|_| "authenticated".to_string()),
+            vec!["my-headless-cms-administrator".to_string()],
+        )))
+        .layer(layers::cookie_layer())
+        .layer(layers::body_limit_layer())
+        .layer(layers::cors_layer())
+        .layer(otel_in_response)
+        .layer(otel_axum)
 }
 
 async fn run_migrate_cli(args: &[String]) -> ExitCode {
