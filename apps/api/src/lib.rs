@@ -3,12 +3,9 @@ pub mod common;
 pub mod presentation_models;
 
 pub use api::*;
-use application_core::commands::media::{
-    read::read_handler::{CachedMedia, MediaCacheKey},
-    MediaConfig,
-};
-use application_core::commands::user::supabase_admin_client::SupabaseAdminClient;
 use async_graphql::dynamic::*;
+use domain_media::handlers::{CachedMedia, MediaCacheKey, MediaConfig};
+use domain_user::handlers::supabase_admin_client::SupabaseAdminClient;
 use moka::future::Cache;
 pub use presentation_models::*;
 

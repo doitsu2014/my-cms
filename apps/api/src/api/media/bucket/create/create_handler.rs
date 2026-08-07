@@ -1,10 +1,10 @@
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
-use application_core::commands::media::bucket::create::{
+use axum::{extract::Extension, response::IntoResponse, Json};
+use domain_interface::AuthenticatedActor;
+use domain_media::handlers::bucket::create::{
     create_handler::{CreateBucketHandler, CreateBucketHandlerTrait},
     create_request::CreateBucketRequest,
 };
-use axum::{extract::Extension, response::IntoResponse, Json};
-use domain_interface::AuthenticatedActor;
 use tower_cookies::Cookies;
 use tracing::instrument;
 

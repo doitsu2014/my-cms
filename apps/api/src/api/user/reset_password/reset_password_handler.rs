@@ -1,13 +1,13 @@
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
-use application_core::commands::user::reset_password::{
-    ResetPasswordHandler, ResetPasswordHandlerTrait, ResetPasswordRequest,
-};
 use axum::{
     extract::{Extension, Path},
     response::IntoResponse,
     Json,
 };
 use domain_interface::AuthenticatedActor;
+use domain_user::handlers::reset_password::{
+    ResetPasswordHandler, ResetPasswordHandlerTrait, ResetPasswordRequest,
+};
 use sea_orm::sqlx::types::Uuid;
 use tracing::instrument;
 

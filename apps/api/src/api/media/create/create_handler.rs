@@ -1,14 +1,14 @@
-use application_core::commands::media::bucket::dto::bucket_name_error;
-use application_core::commands::media::{
-    create::create_handler::{CreateMediaHandler, CreateMediaHandlerTrait},
-    is_supported_content_type, MediaConfig,
-};
 use axum::{
     extract::{Multipart, Query},
     response::IntoResponse,
     Extension,
 };
 use domain_interface::AuthenticatedActor;
+use domain_media::handlers::bucket::dto::bucket_name_error;
+use domain_media::handlers::{
+    create::create_handler::{CreateMediaHandler, CreateMediaHandlerTrait},
+    is_supported_content_type, MediaConfig,
+};
 use serde::Deserialize;
 use tower_cookies::Cookies;
 use tracing::instrument;

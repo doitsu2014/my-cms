@@ -1,9 +1,7 @@
-use application_core::commands::media::bucket::dto::bucket_name_error;
-use application_core::commands::media::list::list_handler::{
-    ListMediaHandler, ListMediaHandlerTrait,
-};
 use axum::{extract::Query, response::IntoResponse, Extension};
 use domain_interface::AuthenticatedActor;
+use domain_media::handlers::bucket::dto::bucket_name_error;
+use domain_media::handlers::list::list_handler::{ListMediaHandler, ListMediaHandlerTrait};
 use serde::Deserialize;
 use tower_cookies::Cookies;
 use tracing::instrument;
@@ -33,7 +31,7 @@ pub async fn api_list_media(
     }
 
     let storage = state.media_config.storage.clone();
-    let media_config = std::sync::Arc::new(application_core::commands::media::MediaConfig {
+    let media_config = std::sync::Arc::new(domain_media::handlers::MediaConfig {
         storage,
         bucket: params
             .bucket

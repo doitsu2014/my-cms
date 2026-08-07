@@ -1,5 +1,7 @@
 use application_core::common::app_error::AppError;
 use axum::{http::StatusCode, response::Response};
+use domain_media::AppError as MediaAppError;
+use domain_user::AppError as UserAppError;
 use hyper::header::CONTENT_TYPE;
 use serde::Serialize;
 
@@ -159,6 +161,74 @@ impl From<AppError> for ApiResponseError {
 impl From<domain_posts::domain::error::AppError> for ApiResponseError {
     fn from(app_error: domain_posts::domain::error::AppError) -> Self {
         use domain_posts::domain::error::AppError as CanonicalAppError;
+        match app_error {
+            CanonicalAppError::Db(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err.to_string()),
+            CanonicalAppError::DbTx(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err.to_string()),
+            CanonicalAppError::StorageError(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err),
+            CanonicalAppError::Validation(field, message) => Self::new()
+                .with_error_code(ErrorCode::ValidationError)
+                .add_error(format!("{}: {}", field, message)),
+            CanonicalAppError::Logical(m) => {
+                Self::new().with_error_code(ErrorCode::Logical).add_error(m)
+            }
+            CanonicalAppError::Conflict(m) => Self::new()
+                .with_error_code(ErrorCode::Conflict)
+                .add_error(m),
+            CanonicalAppError::ConcurrencyOptimistic(m) => Self::new()
+                .with_error_code(ErrorCode::ConcurrencyOptimistic)
+                .add_error(m),
+            CanonicalAppError::OpenAIError(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err),
+            CanonicalAppError::Unknown => Self::new().with_error_code(ErrorCode::UnknownError),
+            CanonicalAppError::NotFound => Self::new().with_error_code(ErrorCode::NotFound),
+        }
+    }
+}
+
+impl From<MediaAppError> for ApiResponseError {
+    fn from(app_error: MediaAppError) -> Self {
+        use MediaAppError as CanonicalAppError;
+        match app_error {
+            CanonicalAppError::Db(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err.to_string()),
+            CanonicalAppError::DbTx(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err.to_string()),
+            CanonicalAppError::StorageError(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err),
+            CanonicalAppError::Validation(field, message) => Self::new()
+                .with_error_code(ErrorCode::ValidationError)
+                .add_error(format!("{}: {}", field, message)),
+            CanonicalAppError::Logical(m) => {
+                Self::new().with_error_code(ErrorCode::Logical).add_error(m)
+            }
+            CanonicalAppError::Conflict(m) => Self::new()
+                .with_error_code(ErrorCode::Conflict)
+                .add_error(m),
+            CanonicalAppError::ConcurrencyOptimistic(m) => Self::new()
+                .with_error_code(ErrorCode::ConcurrencyOptimistic)
+                .add_error(m),
+            CanonicalAppError::OpenAIError(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err),
+            CanonicalAppError::Unknown => Self::new().with_error_code(ErrorCode::UnknownError),
+            CanonicalAppError::NotFound => Self::new().with_error_code(ErrorCode::NotFound),
+        }
+    }
+}
+
+impl From<UserAppError> for ApiResponseError {
+    fn from(app_error: UserAppError) -> Self {
+        use UserAppError as CanonicalAppError;
         match app_error {
             CanonicalAppError::Db(err) => Self::new()
                 .with_error_code(ErrorCode::ConnectionError)

@@ -1,9 +1,7 @@
 use crate::{ApiResponseError, AppState, AxumResponse};
-use application_core::commands::user::delete::delete_handler::{
-    DeleteUserHandler, DeleteUserHandlerTrait,
-};
 use axum::{extract::Path, http::StatusCode, response::Response, Extension};
 use domain_interface::AuthenticatedActor;
+use domain_user::handlers::delete::delete_handler::{DeleteUserHandler, DeleteUserHandlerTrait};
 use sea_orm::sqlx::types::Uuid;
 use tracing::instrument;
 

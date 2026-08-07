@@ -1,18 +1,18 @@
-use application_core::commands::media::bucket::access::access_handler::{
-    BucketAccessPolicy, BucketAccessPolicyTrait,
-};
-use application_core::commands::media::bucket::dto::{bucket_name_error, is_valid_bucket_name};
-use application_core::commands::media::read::read_handler::{
-    ReadMediaHandler, ReadMediaHandlerTrait, ResizeParams,
-};
-use application_core::commands::media::{MediaConfig, SupabaseStorage};
-use application_core::common::app_error::AppError;
 use axum::{
     body::Body,
     extract::{Extension, Path, Query},
     http::{header, HeaderMap, StatusCode},
     response::{IntoResponse, Response},
 };
+use domain_media::handlers::bucket::access::access_handler::{
+    BucketAccessPolicy, BucketAccessPolicyTrait,
+};
+use domain_media::handlers::bucket::dto::{bucket_name_error, is_valid_bucket_name};
+use domain_media::handlers::read::read_handler::{
+    ReadMediaHandler, ReadMediaHandlerTrait, ResizeParams,
+};
+use domain_media::handlers::{MediaConfig, SupabaseStorage};
+use domain_media::AppError;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use serde::Deserialize;
 use std::{
@@ -341,7 +341,7 @@ mod tests {
 
         let result = enforce_bucket_visibility_gate(
             make_storage(&server.uri()),
-            Arc::new(application_core::commands::media::bucket::access::access_cache::create_bucket_visibility_cache()),
+            Arc::new(domain_media::handlers::bucket::access::access_cache::create_bucket_visibility_cache()),
             "private-docs",
             &HeaderMap::new(),
         )
@@ -363,7 +363,7 @@ mod tests {
 
         let result = enforce_bucket_visibility_gate(
             make_storage(&server.uri()),
-            Arc::new(application_core::commands::media::bucket::access::access_cache::create_bucket_visibility_cache()),
+            Arc::new(domain_media::handlers::bucket::access::access_cache::create_bucket_visibility_cache()),
             "private-docs",
             &admin_headers(),
         )
@@ -385,7 +385,7 @@ mod tests {
 
         let result = enforce_bucket_visibility_gate(
             make_storage(&server.uri()),
-            Arc::new(application_core::commands::media::bucket::access::access_cache::create_bucket_visibility_cache()),
+            Arc::new(domain_media::handlers::bucket::access::access_cache::create_bucket_visibility_cache()),
             "media",
             &HeaderMap::new(),
         )

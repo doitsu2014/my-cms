@@ -959,7 +959,9 @@ dependencies = [
  "chrono",
  "domain_auth",
  "domain_interface",
+ "domain_media",
  "domain_posts",
+ "domain_user",
  "dotenv",
  "hyper",
  "hyper-util",
@@ -1451,6 +1453,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "domain_media"
+version = "0.1.0"
+dependencies = [
+ "application_core",
+ "async-std",
+ "async-trait",
+ "chrono",
+ "domain_interface",
+ "lazy_static",
+ "moka",
+ "nanoid",
+ "regex",
+ "reqwest",
+ "sea-orm",
+ "serde",
+ "serde_json",
+ "slugify",
+ "test_helpers",
+ "tokio",
+ "tokio-test",
+ "tracing",
+ "wiremock",
+]
+
+[[package]]
 name = "domain_posts"
 version = "0.1.0"
 dependencies = [
@@ -1501,6 +1528,28 @@ dependencies = [
  "tracing-opentelemetry",
  "tracing-opentelemetry-instrumentation-sdk 0.30.0",
  "tracing-subscriber",
+ "uuid",
+ "wiremock",
+]
+
+[[package]]
+name = "domain_user"
+version = "0.1.0"
+dependencies = [
+ "application_core",
+ "async-std",
+ "async-trait",
+ "chrono",
+ "domain_interface",
+ "regex",
+ "reqwest",
+ "sea-orm",
+ "serde",
+ "serde_json",
+ "test_helpers",
+ "tokio",
+ "tokio-test",
+ "tracing",
  "uuid",
  "wiremock",
 ]

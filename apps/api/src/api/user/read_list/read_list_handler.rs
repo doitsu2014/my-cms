@@ -1,8 +1,8 @@
-use application_core::commands::user::read_list::read_list_handler::{
-    ReadListUserHandler, ReadListUserHandlerTrait,
-};
 use axum::extract::{Extension, Query};
 use axum::response::IntoResponse;
+use domain_user::handlers::read_list::read_list_handler::{
+    ReadListUserHandler, ReadListUserHandlerTrait,
+};
 use serde::Deserialize;
 use tracing::instrument;
 

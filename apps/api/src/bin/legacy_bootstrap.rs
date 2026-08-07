@@ -1,13 +1,6 @@
 use std::env;
 use std::sync::Arc;
 
-use application_core::{
-    commands::media::{
-        bucket::access::access_cache::create_bucket_visibility_cache,
-        read::read_handler::create_media_cache, MediaConfig, SupabaseStorage,
-    },
-    commands::user::supabase_admin_client::SupabaseAdminClient,
-};
 use async_graphql_axum::GraphQL;
 use axum::{
     extract::DefaultBodyLimit,
@@ -19,8 +12,13 @@ use cms::{
     tag::delete::delete_handler::api_delete_tags, AppState,
 };
 use domain_auth::legacy_bootstrap::construct_supabase_auth_layer;
+use domain_media::handlers::{
+    bucket::access::access_cache::create_bucket_visibility_cache,
+    read::read_handler::create_media_cache, MediaConfig, SupabaseStorage,
+};
 use domain_posts::api::post::graphql::{playground_immutable, playground_mutable};
 use domain_posts::domain::graphql::contribute_post_schema;
+use domain_user::handlers::supabase_admin_client::SupabaseAdminClient;
 use dotenv::{dotenv, from_filename};
 use hyper::Method;
 use init_tracing_opentelemetry::{

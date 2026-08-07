@@ -1,10 +1,10 @@
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
-use application_core::commands::user::create::{
+use axum::{extract::Extension, response::IntoResponse, Json};
+use domain_interface::AuthenticatedActor;
+use domain_user::handlers::create::{
     create_handler::{CreateUserHandler, CreateUserHandlerTrait},
     create_request::CreateUserRequest,
 };
-use axum::{extract::Extension, response::IntoResponse, Json};
-use domain_interface::AuthenticatedActor;
 use tracing::instrument;
 
 #[instrument]

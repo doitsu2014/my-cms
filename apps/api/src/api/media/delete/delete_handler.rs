@@ -1,14 +1,12 @@
-use application_core::commands::media::bucket::dto::bucket_name_error;
-use application_core::commands::media::delete::delete_handler::{
-    DeleteMediaHandler, DeleteMediaHandlerTrait,
-};
-use application_core::commands::media::MediaConfig;
 use axum::{
     extract::{Path, Query},
     response::IntoResponse,
     Extension, Json,
 };
 use domain_interface::AuthenticatedActor;
+use domain_media::handlers::bucket::dto::bucket_name_error;
+use domain_media::handlers::delete::delete_handler::{DeleteMediaHandler, DeleteMediaHandlerTrait};
+use domain_media::handlers::MediaConfig;
 use serde::Deserialize;
 use std::sync::Arc;
 use tower_cookies::Cookies;

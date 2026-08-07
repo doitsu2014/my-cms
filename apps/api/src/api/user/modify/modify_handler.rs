@@ -1,10 +1,10 @@
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
-use application_core::commands::user::modify::{
+use axum::{extract::Path, response::IntoResponse, Extension, Json};
+use domain_interface::AuthenticatedActor;
+use domain_user::handlers::modify::{
     modify_handler::{ModifyUserHandler, ModifyUserHandlerTrait},
     modify_request::ModifyUserRequest,
 };
-use axum::{extract::Path, response::IntoResponse, Extension, Json};
-use domain_interface::AuthenticatedActor;
 use sea_orm::sqlx::types::Uuid;
 use tracing::instrument;
 

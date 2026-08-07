@@ -95,11 +95,10 @@ mod tests {
     use std::sync::Arc;
     use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
 
-    use application_core::commands::tag::delete::delete_handler::{
+    use crate::domain::error::AppError;
+    use crate::handlers::tag_helper::delete::delete_handler::{
         TagDeleteHandler, TagDeleteHandlerTrait,
     };
-
-    use crate::domain::error::AppError;
 
     use super::{TagReadHandler, TagReadHandlerTrait};
     use crate::handlers::tag_helper::create::create_handler::{
@@ -176,10 +175,7 @@ mod tests {
                             Some("System".to_string()),
                             tx,
                         )
-                        .await
-                        .map_err(|legacy: application_core::common::app_error::AppError| {
-                            AppError::Db(sea_orm::DbErr::Custom(legacy.to_string()))
-                        })?;
+                        .await?;
                     Ok(x)
                 })
             })

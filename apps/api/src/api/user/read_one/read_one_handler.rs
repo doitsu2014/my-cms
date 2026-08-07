@@ -1,8 +1,8 @@
-use application_core::commands::user::read_one::read_one_handler::{
-    ReadOneUserHandler, ReadOneUserHandlerTrait,
-};
 use axum::extract::{Extension, Path};
 use axum::response::IntoResponse;
+use domain_user::handlers::read_one::read_one_handler::{
+    ReadOneUserHandler, ReadOneUserHandlerTrait,
+};
 use sea_orm::sqlx::types::Uuid;
 use tracing::instrument;
 

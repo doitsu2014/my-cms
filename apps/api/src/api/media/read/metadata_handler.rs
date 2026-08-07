@@ -1,14 +1,14 @@
-use application_core::commands::media::bucket::dto::bucket_name_error;
-use application_core::commands::media::read::metadata_handler::{
-    MetadataMediaHandler, MetadataMediaHandlerTrait,
-};
-use application_core::commands::media::MediaConfig;
 use axum::{
     extract::{Path, Query},
     response::IntoResponse,
     Extension,
 };
 use domain_interface::AuthenticatedActor;
+use domain_media::handlers::bucket::dto::bucket_name_error;
+use domain_media::handlers::read::metadata_handler::{
+    MetadataMediaHandler, MetadataMediaHandlerTrait,
+};
+use domain_media::handlers::MediaConfig;
 use serde::Deserialize;
 use std::sync::Arc;
 use tower_cookies::Cookies;

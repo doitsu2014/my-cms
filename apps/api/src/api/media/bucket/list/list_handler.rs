@@ -1,9 +1,9 @@
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
-use application_core::commands::media::bucket::list::list_handler::{
-    ListBucketsHandler, ListBucketsHandlerTrait,
-};
 use axum::{extract::Extension, response::IntoResponse};
 use domain_interface::AuthenticatedActor;
+use domain_media::handlers::bucket::list::list_handler::{
+    ListBucketsHandler, ListBucketsHandlerTrait,
+};
 use tower_cookies::Cookies;
 use tracing::instrument;
 

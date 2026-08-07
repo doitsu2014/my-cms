@@ -1,13 +1,13 @@
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
-use application_core::commands::media::bucket::delete::delete_handler::{
-    DeleteBucketHandler, DeleteBucketHandlerTrait,
-};
 use axum::{
     extract::{Path, Query},
     response::IntoResponse,
     Extension,
 };
 use domain_interface::AuthenticatedActor;
+use domain_media::handlers::bucket::delete::delete_handler::{
+    DeleteBucketHandler, DeleteBucketHandlerTrait,
+};
 use serde::Deserialize;
 use tower_cookies::Cookies;
 use tracing::instrument;

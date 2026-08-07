@@ -1,8 +1,11 @@
 //! Shared test fixtures for the post domain's category handlers.
 //!
-//! Moved from `application_core::commands::category::test` and
+//! Originally sourced from `application_core::commands::category::test` and
 //! `application_core::commands::tag::tests` per the
-//! `consolidate-category-ai-translate-into-domain-posts` change. The fixtures
+//! `consolidate-category-ai-translate-into-domain-posts` change. Both legacy
+//! modules have since been deleted; the canonical fixtures now live only in
+//! this file (verified by the
+//! `split-media-and-user-domains-merge-tags-into-posts` change). The fixtures
 //! are `pub(crate)` so the surrounding `#[cfg(test)]` modules in
 //! `handlers/category/**` can call them without leaking out of the crate.
 
