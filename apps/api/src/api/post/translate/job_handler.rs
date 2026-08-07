@@ -14,7 +14,7 @@ use crate::{
     AxumResponse,
 };
 
-use application_core::entities::translation_jobs;
+use domain_posts::entities::translation_jobs;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -141,8 +141,8 @@ mod tests {
     use test_helpers::{setup_test_space, ContainerAsyncPostgresEx};
 
     async fn create_test_post(db: Arc<DatabaseConnection>) -> Uuid {
-        use application_core::entities::{categories, posts, sea_orm_active_enums::CategoryType};
         use chrono::Utc;
+        use domain_posts::entities::{categories, posts, sea_orm_active_enums::CategoryType};
         use sea_orm::{ActiveModelTrait, Set};
 
         // Create a category first
@@ -189,7 +189,7 @@ mod tests {
         let post_id = create_test_post(arc_conn.clone()).await;
 
         // Create a test job
-        use application_core::entities::translation_jobs;
+        use domain_posts::entities::translation_jobs;
         let job_id = Uuid::new_v4();
 
         let job = translation_jobs::ActiveModel {
@@ -252,7 +252,7 @@ mod tests {
         let post_id = create_test_post(arc_conn.clone()).await;
 
         // Create jobs with different statuses
-        use application_core::entities::translation_jobs;
+        use domain_posts::entities::translation_jobs;
 
         let jobs_data = vec![
             ("pending", 0, "vi"),
@@ -309,7 +309,7 @@ mod tests {
         // Create a test post first to satisfy foreign key constraint
         let post_id = create_test_post(arc_conn.clone()).await;
 
-        use application_core::entities::translation_jobs;
+        use domain_posts::entities::translation_jobs;
         let job_id = Uuid::new_v4();
 
         // Create job at 0%
@@ -378,7 +378,7 @@ mod tests {
         let post_id = create_test_post(arc_conn.clone()).await;
 
         // Create jobs for different languages
-        use application_core::entities::translation_jobs;
+        use domain_posts::entities::translation_jobs;
         let languages = vec!["vi", "ja", "ko", "zh", "fr"];
 
         for lang in languages.iter() {

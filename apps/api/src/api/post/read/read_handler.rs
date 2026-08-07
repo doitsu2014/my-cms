@@ -1,7 +1,7 @@
-use application_core::commands::post::read::read_handler::{PostReadHandler, PostReadHandlerTrait};
-use application_core::entities::sea_orm_active_enums::CategoryType;
 use axum::extract::{Path, Query};
 use axum::{extract::State, response::IntoResponse};
+use domain_posts::entities::sea_orm_active_enums::CategoryType;
+use domain_posts::handlers::post::read::read_handler::{PostReadHandler, PostReadHandlerTrait};
 use sea_orm::sqlx::types::Uuid;
 use serde::Deserialize;
 use tracing::instrument;

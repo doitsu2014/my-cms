@@ -2,7 +2,7 @@ use crate::{
     ApiResponseError, ApiResponseWith, AppState,
     AxumResponse,
 };
-use application_core::commands::post::delete::delete_handler::{
+use domain_posts::handlers::post::delete::delete_handler::{
     PostDeleteHandler, PostDeleteHandlerTrait,
 };
 use axum::{extract::Extension, response::IntoResponse, Json};

@@ -1,9 +1,9 @@
-use application_core::commands::post::create::{
+use axum::{extract::State, response::IntoResponse, Extension, Json};
+use domain_interface::AuthenticatedActor;
+use domain_posts::handlers::post::create::{
     create_handler::{PostCreateHandler, PostCreateHandlerTrait},
     create_request::CreatePostRequest,
 };
-use axum::{extract::State, response::IntoResponse, Extension, Json};
-use domain_interface::AuthenticatedActor;
 use tower_cookies::Cookies;
 use tracing::instrument;
 

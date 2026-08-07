@@ -1,9 +1,9 @@
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
-use application_core::commands::post::delete::delete_handler::{
-    PostDeleteHandler, PostDeleteHandlerTrait,
-};
 use axum::{extract::Extension, response::IntoResponse, Json};
 use domain_interface::AuthenticatedActor;
+use domain_posts::handlers::post::delete::delete_handler::{
+    PostDeleteHandler, PostDeleteHandlerTrait,
+};
 use sea_orm::sqlx::types::Uuid;
 use tower_cookies::Cookies;
 use tracing::instrument;

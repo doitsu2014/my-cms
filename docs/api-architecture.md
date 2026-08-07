@@ -1,8 +1,8 @@
 # My-CMS API Architecture (Implemented)
 
-This document captures the **as-built** state of the API architecture after `refactor-api-into-pluggable-domain-libraries`, `consolidate-category-ai-translate-into-domain-posts`, and `merge-graphql-into-posts-domain`. It is the visual companion to `pluggable-domain-refactor.md`.
+This document captures the **as-built** state of the API architecture after `refactor-api-into-pluggable-domain-libraries`, `consolidate-category-ai-translate-into-domain-posts`, `merge-graphql-into-posts-domain`, and `migrate-legacy-to-domain-posts`. It is the visual companion to `pluggable-domain-refactor.md`.
 
-> **Note on legacy shims:** `apps/api/application_core/` and `apps/api/migration/` are transitional crates retained only to keep `legacy_bootstrap` compiling. They have **no architectural responsibility** in the current picture — the pluggable domain composition shown below is self-contained. Both are slated for removal as the first concrete step in the staged cutover (see §12).
+> **Note on legacy shims (post `migrate-legacy-to-domain-posts`):** `apps/api/application_core/` and `apps/api/migration/` are transitional crates retained only to keep `legacy_bootstrap` compiling. Post, AI translation, vector-store, and pgvector code are **no longer** duplicated inside `application_core` — they live exclusively in `domain_posts`. `application_core::entities` and `apps/api/migration/` are pure re-export shims; `application_core::commands::{post,ai}` have been deleted. Neither crate has architectural responsibility in the current picture. Both remain slated for removal as legacy handlers in tags/media/users/administrator are extracted (see §12).
 
 ## 1. Cargo Workspace
 
@@ -14,7 +14,7 @@ graph LR
         DP["<b>domain_posts</b><br/>lib + bin<br/>api/{post,category,ai}/* (HTTP adapters)<br/>handlers/{post,tag_helper,<br/>category,ai,vector_store,<br/>translation_jobs}/* (commands)<br/>handlers/post::translate (pipeline)<br/>domain/{response,error,<br/>layers,graphql,postgres}<br/>entities/* (canonical)<br/>migrations/* (4 identities)<br/>service.rs (DomainPostService)"]
         GW["<b>gateway</b><br/>bin: my-cms-api<br/>manifest() → Box&lt;dyn<br/>DomainService&gt;<br/>orchestrator<br/>compose_routers<br/>(applies domain_auth layer to<br/>protected + administrator)"]
         TH["<b>test_helpers</b><br/>testcontainers + Postgres +<br/>pgvector"]
-        CMS["<b>cms</b><br/>(legacy bootstrap root package)<br/>src/api/{tag,media,user,<br/>administrator}/*<br/>src/api/post/* (legacy post translate)<br/>src/lib.rs → AppState (legacy)<br/>bin: legacy_bootstrap<br/>(depends on legacy shims; see §11)"]
+        CMS["<b>cms</b><br/>(legacy bootstrap root package)<br/>src/api/{tag,media,user,<br/>administrator}/*<br/>src/api/post/* (HTTP adapters<br/>importing from domain_posts)<br/>src/api/{delete,tag/delete}/*<br/>src/lib.rs → AppState (legacy)<br/>bin: legacy_bootstrap<br/>(depends on legacy shims; see §11)"]
     end
 
     subgraph ext["External / Platform"]
@@ -486,29 +486,30 @@ Two workspace members exist **only** to keep `legacy_bootstrap` compiling. They 
 
 - **Workspace member:** `application_core` (path-dep of the `cms` root package).
 - **What it still exposes:**
-  - `commands/{tag,media,user,ai::translate,ai::vector_store_pg}` — handler structs and traits that the legacy handlers in `apps/api/src/api/...` import.
+  - `commands/{tag,media,user}` — handler structs and traits that the legacy handlers in `apps/api/src/api/...` import.
   - `entities/*` — **re-exports** of `domain_posts::entities::*` (the canonical entities live in `domain_posts`; `application_core` only re-exports them for the legacy path).
   - `common/{app_error, datetime_generator, extensions}` — small utilities the legacy handlers depend on.
-- **Where it's referenced:** `apps/api/src/bin/legacy_bootstrap.rs`, every legacy handler under `apps/api/src/api/{tag,media,user,...}/*`, and the legacy `apps/api/src/api/post/*` handlers (which are slated to be replaced by `domain_posts::api::post::*`).
+  - `commands::{post,ai}` were deleted in `migrate-legacy-to-domain-posts`; their canonical replacements live under `domain_posts::handlers::post::*` and `domain_posts::handlers::vector_store::*`.
+- **Where it's referenced:** `apps/api/src/bin/legacy_bootstrap.rs`, every legacy handler under `apps/api/src/api/{tag,media,user,...}/*`, and `apps/api/src/api/{delete,tag/delete}/*` (which import `PostDeleteHandler` from `domain_posts`). The legacy `apps/api/src/api/post/*` handlers still exist as thin HTTP adapters but their command-handler imports now point at `domain_posts` (no `application_core::commands::post::*` import remains).
 - **Why it still exists:** to avoid a sweeping rewrite of the legacy `apps/api/src/api/...` tree during the pluggable-domain cutover. Each handler will be replaced wholesale as tags/media/users/administrator are extracted into their own domains.
 
 ### `apps/api/migration/`
 
 - **Workspace member:** `migration` (path-dep of the `cms` root package and of `test_helpers`).
-- **What it still exposes:**
-  - `lib.rs` — re-exports `Migrator` from `domain_posts::migrations`.
-  - `m{20240409_151952_release_100, 20250330_151455_release_110, 20260126_040610_release_300, 20260531_000001_pgvector}.rs` — **duplicate copies** of the four migration modules that live canonically in `domain_posts::migrations::*`. These are kept for the `migration` standalone binary (`apps/api/migration/src/main.rs`) and for `test_helpers` to run migrations against a testcontainer.
-  - `constants.rs` — small constants used by the duplicate migration modules.
-- **Where it's referenced:** `apps/api/src/bin/legacy_bootstrap.rs`, `apps/api/test_helpers/src/lib.rs`, the `migration` standalone binary, and the legacy `/administrator/database/migration` handler.
-- **Why it still exists:** the legacy bootstrap ships a `migration` binary that operators can invoke to run schema migrations. The canonical migrator is `domain_posts::migrations::Migrator`; `migration` is a thin re-export. Once the legacy bootstrap is removed, both `application_core` and `migration` go with it.
+- **What it still exposes (post `migrate-legacy-to-domain-posts`):**
+  - `lib.rs` — `pub use domain_posts::migrations::*; pub use domain_posts::migrations::Migrator;` re-export shim. No migration source files live here.
+  - `main.rs` — `cli::run_cli(migration::Migrator).await` entry point for the `migration` standalone binary.
+  - The four previously-duplicate migration source files (`m20240409_151952_release_100.rs`, `m20250330_151455_release_110.rs`, `m20260126_040610_release_300.rs`, `m20260531_000001_pgvector.rs`) and `constants.rs` were deleted in `migrate-legacy-to-domain-posts`. The canonical, authoritative copies live in `domain_posts::migrations::*`, so `cargo run -p migration -- migrate --list` still prints the same four migration IDs in the same order.
+- **Where it's referenced:** `apps/api/src/bin/legacy_bootstrap.rs` (none), `apps/api/test_helpers/src/lib.rs` (`use migration::{Migrator, MigratorTrait}`), the `migration` standalone binary, and the legacy `/administrator/database/migration` handler.
+- **Why it still exists:** the legacy bootstrap ships a `migration` binary that operators can invoke to run schema migrations, and `test_helpers` resolves `Migrator` through this shim. The canonical migrator is `domain_posts::migrations::Migrator`; `migration` is a thin re-export. Once `legacy_bootstrap` and the `/administrator/database/migration` route are removed, the `migration` binary also goes.
 
 ### Removal order (see §12)
 
 1. `domain_media` extracted → `application_core::commands::media::*` becomes empty.
 2. `domain_users` extracted → `application_core::commands::user::*` becomes empty.
 3. `domain_tags` extracted → `application_core::commands::tag::*` becomes empty.
-4. `domain_administrator` extracted → `application_core::commands::ai::*` becomes empty; `apps/api/migration/` becomes empty (no more `/administrator/database/migration` route).
-5. `apps/api/application_core/` deleted from workspace; `apps/api/migration/` deleted; `legacy_bootstrap` deleted.
+4. `domain_administrator` extracted → the legacy `/administrator/database/migration` route is removed; the `migration` standalone binary is no longer needed and `apps/api/migration/` can be deleted.
+5. `apps/api/application_core/` deleted from workspace; `legacy_bootstrap` deleted.
 6. `domain_posts` migrator remains the only migrator; the `migration` binary is replaced by `cargo run -p domain_posts --bin migrations_cli` (or the orchestrator's `run_orchestrator()` handles migrations at gateway startup).
 
 ## 12. Future Staged Cutover

@@ -1,13 +1,13 @@
-use application_core::commands::ai::translate::{
-    translate_handler::{PostTranslateHandler, PostTranslateHandlerTrait},
-    translate_request::TranslatePostRequest,
-};
 use axum::{
     extract::{Path, State},
     response::IntoResponse,
     Extension, Json,
 };
 use domain_interface::AuthenticatedActor;
+use domain_posts::handlers::post::translate::{
+    translate_handler::{PostTranslateHandler, PostTranslateHandlerTrait},
+    translate_request::TranslatePostRequest,
+};
 use sea_orm::sqlx::types::Uuid;
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
@@ -44,12 +44,9 @@ pub struct TranslatePostResponse {
 async fn initialize_vector_store(
     db: Arc<DatabaseConnection>,
     openai_api_key: &str,
-) -> Option<Arc<application_core::commands::ai::vector_store_pg::VectorStore>> {
-    match application_core::commands::ai::vector_store_pg::VectorStore::new(
-        db,
-        openai_api_key.to_string(),
-    )
-    .await
+) -> Option<Arc<domain_posts::handlers::vector_store::VectorStore>> {
+    match domain_posts::handlers::vector_store::VectorStore::new(db, openai_api_key.to_string())
+        .await
     {
         Ok(vs) => {
             if let Err(e) = vs.initialize_collection().await {

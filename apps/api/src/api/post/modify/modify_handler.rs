@@ -1,10 +1,10 @@
 use crate::{ApiResponseError, ApiResponseWith, AppState, AxumResponse};
-use application_core::commands::post::modify::{
+use axum::{extract::State, response::IntoResponse, Extension, Json};
+use domain_interface::AuthenticatedActor;
+use domain_posts::handlers::post::modify::{
     modify_handler::{PostModifyHandler, PostModifyHandlerTrait},
     modify_request::ModifyPostRequest,
 };
-use axum::{extract::State, response::IntoResponse, Extension, Json};
-use domain_interface::AuthenticatedActor;
 use tower_cookies::Cookies;
 use tracing::instrument;
 

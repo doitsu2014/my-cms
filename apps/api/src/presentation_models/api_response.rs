@@ -156,6 +156,40 @@ impl From<AppError> for ApiResponseError {
     }
 }
 
+impl From<domain_posts::domain::error::AppError> for ApiResponseError {
+    fn from(app_error: domain_posts::domain::error::AppError) -> Self {
+        use domain_posts::domain::error::AppError as CanonicalAppError;
+        match app_error {
+            CanonicalAppError::Db(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err.to_string()),
+            CanonicalAppError::DbTx(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err.to_string()),
+            CanonicalAppError::StorageError(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err),
+            CanonicalAppError::Validation(field, message) => Self::new()
+                .with_error_code(ErrorCode::ValidationError)
+                .add_error(format!("{}: {}", field, message)),
+            CanonicalAppError::Logical(m) => {
+                Self::new().with_error_code(ErrorCode::Logical).add_error(m)
+            }
+            CanonicalAppError::Conflict(m) => Self::new()
+                .with_error_code(ErrorCode::Conflict)
+                .add_error(m),
+            CanonicalAppError::ConcurrencyOptimistic(m) => Self::new()
+                .with_error_code(ErrorCode::ConcurrencyOptimistic)
+                .add_error(m),
+            CanonicalAppError::OpenAIError(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err),
+            CanonicalAppError::Unknown => Self::new().with_error_code(ErrorCode::UnknownError),
+            CanonicalAppError::NotFound => Self::new().with_error_code(ErrorCode::NotFound),
+        }
+    }
+}
+
 impl Default for ApiResponseError {
     fn default() -> Self {
         Self::new()
