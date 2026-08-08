@@ -111,7 +111,7 @@ This change SHALL serve as the **reference migration** for extracting any future
 - **WHEN** the gateway boots with `DomainPostService` and `DomainAuthService` in the manifest
 - **THEN** the gateway validates both domains' config before binding the listener
 - **AND** the gateway calls `startup_health` on both domains and aborts if either fails
-- **AND** the auth layer is applied to the protected router via `domain_auth::legacy_bootstrap::construct_supabase_auth_layer`
+- **AND** the auth layer is applied to the protected router via `domain_auth::factory::auth_layer_from_env`
 - **AND** the public router is unchanged (no auth layer)
 
 #### Scenario: Auth domain is deployable as a standalone microservice

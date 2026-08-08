@@ -89,7 +89,7 @@ value type to every business domain. It depends only on
 
 Auth is HTTP-middleware, not routes: `DomainAuthService::register_routes`
 returns an empty `Vec<RouteRegistration>` and the gateway applies
-`domain_auth::legacy_bootstrap::construct_supabase_auth_layer(...)` to
+`domain_auth::factory::auth_layer_from_env(...)` to
 the protected and administrator merged routers in `compose_routers`.
 Auth is also infrastructure-only: it uses the default
 `DomainService::startup_health` implementation (no `SELECT 1` probe —

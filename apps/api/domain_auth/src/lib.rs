@@ -2,10 +2,10 @@
 //!
 //! Owns the JWT validation layer (`SupabaseAuthLayer`, `SupabaseAuthConfig`,
 //! `SupabaseClaims`, `SupabaseToken`), the role-checking middleware, the
-//! `construct_supabase_auth_layer` factory, the env-var surface validation,
-//! and the `DomainAuthService` composition entry point. The crate depends
-//! only on `domain_interface` (plus its own infrastructure dependencies)
-//! and SHALL NOT depend on any concrete business domain.
+//! `auth_layer_from_env` factory, the env-var surface validation, and the
+//! `DomainAuthService` composition entry point. The crate depends only on
+//! `domain_interface` (plus its own infrastructure dependencies) and
+//! SHALL NOT depend on any concrete business domain.
 //!
 //! See `openspec/changes/extract-auth-into-domain-auth/design.md` for the
 //! architectural context.
@@ -14,7 +14,7 @@
 #![warn(missing_debug_implementations)]
 
 pub mod domain;
-pub mod legacy_bootstrap;
+pub mod factory;
 pub mod observability;
 pub mod service;
 

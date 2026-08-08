@@ -12,13 +12,13 @@
 //! public / protected router slots. The mutable mount accepts requests that
 //! hold either the `my-headless-cms-writer` or the
 //! `my-headless-cms-administrator` Supabase app role — this matches the
-//! pre-existing role set on the `legacy_bootstrap` binary's mutable mount.
+//! pre-existing role set on the `domain_posts` standalone binary's mutable mount.
 //!
 //! Prior to the `merge-graphql-into-posts-domain` change the gateway only
 //! accepted the administrator role on `/graphql/mutable`; the role set is
-//! widened here to align with the legacy bootstrap and the standalone
-//! `domain_posts` binary. Do not silently revert to administrator-only —
-//! writers that talk to the gateway's GraphQL endpoint depend on it.
+//! widened here to align with the standalone `domain_posts` binary. Do not
+//! silently revert to administrator-only — writers that talk to the
+//! gateway's GraphQL endpoint depend on it.
 
 #![deny(unsafe_code)]
 
@@ -31,10 +31,11 @@ use axum::{
     routing::get,
     Router,
 };
+use domain_auth::factory::auth_layer_from_env;
 use domain_auth::service::DomainAuthService;
 use domain_interface::{DomainContext, DomainService, Mount};
 use domain_posts::service::DomainPostService;
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
 /// Manifest of domain services registered into the gateway.
 ///
@@ -142,7 +143,14 @@ async fn main() -> ExitCode {
         }
     }
 
-    let app = compose_routers(&services, &ctx);
+    let app = match compose_routers(&services, &ctx) {
+        Ok(a) => a,
+        Err(e) => {
+            error!("auth layer construction failed: {}", e);
+            eprintln!("auth layer construction failed: {}", e);
+            return ExitCode::FAILURE;
+        }
+    };
 
     let host = env::var("HOST").unwrap_or("127.0.0.1".to_string());
     let port = env::var("PORT").unwrap_or("8989".to_string());
@@ -174,10 +182,14 @@ async fn main() -> ExitCode {
 /// composes the auth layer over the merged protected router. The mutable
 /// mount's role set is widened from administrator-only to
 /// writer + administrator (see module doc-comment).
+///
+/// Returns `Err(DomainConfigError)` if the auth-layer factory cannot
+/// resolve the required env vars (`SUPABASE_URL`, `SUPABASE_JWT_SECRET`).
+/// The caller (`main`) propagates the error to `ExitCode::FAILURE`.
 fn compose_routers(
     services: &[Box<dyn DomainService>],
     ctx: &DomainContext,
-) -> Router<DomainContext> {
+) -> Result<Router<DomainContext>, domain_interface::DomainConfigError> {
     let mut public: Router<DomainContext> = Router::new()
         .route("/", get(root_handler))
         .route("/health", get(health_handler))
@@ -195,22 +207,22 @@ fn compose_routers(
         }
     }
 
-    public
-        .merge(protected.layer(
-            domain_auth::legacy_bootstrap::construct_supabase_auth_layer(
-                env::var("AUTHORIZATION_AUDIENCE").unwrap_or_else(|_| "authenticated".to_string()),
-                vec![
-                    "my-headless-cms-writer".to_string(),
-                    "my-headless-cms-administrator".to_string(),
-                ],
-            ),
-        ))
-        .merge(administrator.layer(
-            domain_auth::legacy_bootstrap::construct_supabase_auth_layer(
-                env::var("AUTHORIZATION_AUDIENCE").unwrap_or_else(|_| "authenticated".to_string()),
-                vec!["my-headless-cms-administrator".to_string()],
-            ),
-        ))
+    let audience =
+        env::var("AUTHORIZATION_AUDIENCE").unwrap_or_else(|_| "authenticated".to_string());
+
+    let protected_layer = auth_layer_from_env(
+        audience.clone(),
+        vec![
+            "my-headless-cms-writer".to_string(),
+            "my-headless-cms-administrator".to_string(),
+        ],
+    )?;
+    let administrator_layer =
+        auth_layer_from_env(audience, vec!["my-headless-cms-administrator".to_string()])?;
+
+    Ok(public
+        .merge(protected.layer(protected_layer))
+        .merge(administrator.layer(administrator_layer)))
 }
 
 /// `GET /` — root banner.

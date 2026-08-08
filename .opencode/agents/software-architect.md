@@ -80,7 +80,7 @@ Migration ownership (apps/api/domain_posts/) — canonical Migrator + operator C
 - **AppError for all errors** — variant per error type.
 - **Use existing patterns** — no new abstractions without clear justification.
 
-> **Historical (retired):** `apps/api/application_core/`, `apps/api/migration/`, and `apps/api/src/` (legacy `cms` library + `legacy_bootstrap` binary) were removed by [`purge-legacy-cms-and-application-core`](../../openspec/changes/purge-legacy-cms-and-application-core/). The `legacy_bootstrap` binary no longer exists; the `domain_auth::legacy_bootstrap` module is a separately labelled historical name on the auth-layer factory.
+> **Historical (retired):** `apps/api/application_core/`, `apps/api/migration/`, and `apps/api/src/` (legacy `cms` library + `legacy_bootstrap` binary) were removed by [`purge-legacy-cms-and-application-core`](../../openspec/changes/purge-legacy-cms-and-application-core/). The `legacy_bootstrap` binary no longer exists; the `domain_auth::factory::auth_layer_from_env` function is the auth-layer factory (formerly `legacy_bootstrap::construct_supabase_auth_layer` before the `rename-legacy-bootstrap-auth-factory` change).
 
 ## Quality gate
 

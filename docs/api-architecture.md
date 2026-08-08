@@ -14,7 +14,7 @@ This document captures the **as-built** state of the API architecture after `ref
 graph LR
     subgraph ws["apps/api/  Cargo workspace"]
         DI["<b>domain_interface</b><br/>(publishable contract)<br/>DomainService trait<br/>DomainContext<br/>Mount, RouteRegistration<br/>HealthDescriptor<br/>MigrationDescriptor<br/>DomainConfigError<br/>AuthenticatedActor (actor value type)"]
-        DA["<b>domain_auth</b><br/>cross-cutting infrastructure crate<br/>SupabaseAuthLayer,<br/>SupabaseAuthConfig,<br/>SupabaseClaims, SupabaseToken<br/>construct_supabase_auth_layer<br/>DomainAuthService impl<br/>(empty routes, default startup_health,<br/>no sea-orm, no business deps)"]
+        DA["<b>domain_auth</b><br/>cross-cutting infrastructure crate<br/>SupabaseAuthLayer,<br/>SupabaseAuthConfig,<br/>SupabaseClaims, SupabaseToken<br/>auth_layer_from_env<br/>DomainAuthService impl<br/>(empty routes, default startup_health,<br/>no sea-orm, no business deps)"]
         DP["<b>domain_posts</b><br/>lib + bin + canonical migrations<br/>api/{post,category,ai}/* (HTTP adapters)<br/>handlers/{post,tag_helper,<br/>category,ai,vector_store,<br/>translation_jobs}/* (commands)<br/>domain/{response,error,<br/>layers,graphql,postgres}<br/>entities/* (canonical)<br/>migrations/* (4 identities)<br/>migrations_cli.rs<br/>service.rs (DomainPostService)"]
         DM["<b>domain_media</b><br/>lib<br/>handlers/{bucket,create,<br/>delete,list,read,<br/>supabase_storage}/*<br/>api/{media/{read,list,create,<br/>delete},bucket/{create,list,<br/>get,update,delete,empty}}<br/>/*_handler.rs (HTTP adapters)<br/>api/{state.rs,routes.rs,mod.rs}<br/>service.rs (DomainMediaService)<br/>domain/{error,extensions,<br/>response (ApiResponseWith/<br/>Error, ErrorCode,<br/>AxumResponse)}<br/>entities/media (re-export)<br/>observability"]
         DU["<b>domain_user</b><br/>lib<br/>dto.rs (AppUserModel,<br/>BAN_DURATION,<br/>is_recognised_role)<br/>handlers/{create,modify,<br/>read_one,read_list,delete,<br/>reset_password,<br/>supabase_admin_client}/*<br/>domain::error<br/>observability"]
@@ -52,7 +52,7 @@ graph LR
     DP -- "SupabaseStorage" --> STORE
     DM -- "SupabaseStorage" --> STORE
     DU -- "SupabaseAdminClient" --> AUTH
-     DA -- "SupabaseAuthLayer<br/>(construct_supabase_auth_layer)" --> AUTH
+     DA -- "SupabaseAuthLayer<br/>(auth_layer_from_env)" --> AUTH
      GW -- "OTLP / tracing" --> OAI
 
 
@@ -330,7 +330,7 @@ graph LR
         end
     end
 
-    DAU["<b>domain_auth</b><br/>cross-cutting Supabase JWT layer<br/>SupabaseAuthLayer<br/>SupabaseAuthConfig<br/>SupabaseClaims<br/>SupabaseToken<br/>construct_supabase_auth_layer<br/>DomainAuthService impl<br/>(empty routes, default startup_health)"]
+    DAU["<b>domain_auth</b><br/>cross-cutting Supabase JWT layer<br/>SupabaseAuthLayer<br/>SupabaseAuthConfig<br/>SupabaseClaims<br/>SupabaseToken<br/>auth_layer_from_env<br/>DomainAuthService impl<br/>(empty routes, default startup_health)"]
 
     APIC --> HC
     APID --> HD

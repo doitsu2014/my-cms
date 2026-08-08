@@ -29,24 +29,7 @@ pub fn validate() -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_lock::ENV_LOCK;
-
-    fn with_env_var<F, R>(var: &str, value: Option<&str>, f: F) -> R
-    where
-        F: FnOnce() -> R,
-    {
-        let previous = std::env::var(var).ok();
-        match value {
-            Some(v) => std::env::set_var(var, v),
-            None => std::env::remove_var(var),
-        }
-        let result = f();
-        match previous {
-            Some(v) => std::env::set_var(var, v),
-            None => std::env::remove_var(var),
-        }
-        result
-    }
+    use crate::test_lock::{with_env_var, ENV_LOCK};
 
     #[test]
     fn validate_succeeds_when_all_required_vars_are_set() {
