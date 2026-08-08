@@ -1,0 +1,172 @@
+//! `response` — Axum response envelope shared by every media endpoint.
+//!
+//! Mirrors the canonical envelope owned by `domain_posts::domain::response` so
+//! the gateway presents a single observable API surface. Each domain owns its
+//! own copy of the envelope types and the `From<AppError>` conversion for its
+//! local `AppError` so the gateway can compose them without a shared crate.
+
+use crate::domain::error::AppError;
+use axum::{http::StatusCode, response::Response};
+use hyper::header::CONTENT_TYPE;
+use serde::Serialize;
+
+pub trait AxumResponse {
+    fn to_axum_response(self) -> Response<String>;
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiResponseWith<TData>
+where
+    TData: Serialize,
+{
+    message: String,
+    data: TData,
+}
+
+impl<TData> ApiResponseWith<TData>
+where
+    TData: Serialize,
+{
+    pub fn new(data: TData) -> Self {
+        Self {
+            message: "".to_string(),
+            data,
+        }
+    }
+
+    pub fn with_message(self, message: String) -> Self {
+        Self { message, ..self }
+    }
+}
+
+impl<TData> AxumResponse for ApiResponseWith<TData>
+where
+    TData: Serialize,
+{
+    fn to_axum_response(self) -> Response<String> {
+        let json_body = serde_json::to_string(&self).unwrap();
+        Response::builder()
+            .status(StatusCode::OK)
+            .header(CONTENT_TYPE, "application/json")
+            .body(json_body)
+            .unwrap()
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiResponseError {
+    error_code: ErrorCode,
+    errors: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Clone, Copy, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum ErrorCode {
+    #[serde(rename = "0")]
+    UnknownError,
+    #[serde(rename = "401")]
+    UnAuthorized,
+    #[serde(rename = "401")]
+    ForBidden,
+    #[serde(rename = "404")]
+    NotFound,
+    #[serde(rename = "409")]
+    Conflict,
+    #[serde(rename = "10000")]
+    ValidationError,
+    #[serde(rename = "10001")]
+    ConnectionError,
+    #[serde(rename = "10002")]
+    Logical,
+    #[serde(rename = "99999")]
+    ConcurrencyOptimistic,
+}
+
+impl AxumResponse for ApiResponseError {
+    fn to_axum_response(self) -> Response<String> {
+        let status_code = match self.error_code {
+            ErrorCode::UnknownError => StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorCode::ConnectionError => StatusCode::INTERNAL_SERVER_ERROR,
+            ErrorCode::UnAuthorized => StatusCode::UNAUTHORIZED,
+            ErrorCode::ForBidden => StatusCode::FORBIDDEN,
+            ErrorCode::NotFound => StatusCode::NOT_FOUND,
+            ErrorCode::Conflict => StatusCode::CONFLICT,
+            ErrorCode::ValidationError => StatusCode::BAD_REQUEST,
+            ErrorCode::Logical => StatusCode::BAD_REQUEST,
+            ErrorCode::ConcurrencyOptimistic => StatusCode::BAD_REQUEST,
+        };
+
+        let json_body = serde_json::to_string(&self).unwrap();
+        Response::builder()
+            .status(status_code)
+            .header(CONTENT_TYPE, "application/json")
+            .body(json_body)
+            .unwrap()
+    }
+}
+
+impl ApiResponseError {
+    pub fn with_error_code(self, error_code: ErrorCode) -> Self {
+        Self {
+            error_code,
+            errors: self.errors,
+        }
+    }
+
+    pub fn add_error(self, error: String) -> Self {
+        let mut errors = self.errors;
+        errors.push(error);
+        Self {
+            error_code: self.error_code,
+            errors,
+        }
+    }
+
+    pub fn new() -> Self {
+        Self {
+            error_code: ErrorCode::UnknownError,
+            errors: vec![],
+        }
+    }
+}
+
+impl Default for ApiResponseError {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl From<AppError> for ApiResponseError {
+    fn from(app_error: AppError) -> Self {
+        match app_error {
+            AppError::Db(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err.to_string()),
+            AppError::DbTx(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err.to_string()),
+            AppError::StorageError(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err),
+            AppError::Validation(field, message) => Self::new()
+                .with_error_code(ErrorCode::ValidationError)
+                .add_error(format!("{}: {}", field, message)),
+            AppError::Logical(m) => Self::new()
+                .with_error_code(ErrorCode::Logical)
+                .add_error(m),
+            AppError::Conflict(m) => Self::new()
+                .with_error_code(ErrorCode::Conflict)
+                .add_error(m),
+            AppError::ConcurrencyOptimistic(m) => Self::new()
+                .with_error_code(ErrorCode::ConcurrencyOptimistic)
+                .add_error(m),
+            AppError::OpenAIError(err) => Self::new()
+                .with_error_code(ErrorCode::ConnectionError)
+                .add_error(err),
+            AppError::Unknown => Self::new().with_error_code(ErrorCode::UnknownError),
+            AppError::NotFound => Self::new().with_error_code(ErrorCode::NotFound),
+        }
+    }
+}

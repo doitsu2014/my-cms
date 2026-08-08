@@ -13,18 +13,22 @@ path = "src/lib.rs"
 [dependencies]
 async-std = "1.13.2"
 async-trait = "0.1"
+axum = { version = "0.8.9", features = ["http2", "tracing", "multipart"] }
 chrono = { version = "0.4.44", features = ["serde"] }
 domain_interface = { path = "../domain_interface" }
+hyper = { version = "1.10.1" }
 reqwest = { version = "0.12.28", features = ["json"] }
 sea-orm = { version = "1.1.20", features = ["debug-print"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
+thiserror = "2.0"
 tokio = { version = "1.52.3", features = ["full"] }
+tower-cookies = "0.11.0"
 tracing = { version = "0.1.44", default-features = false, features = [
   "std",
   "attributes",
 ] }
-uuid = { version = "1.23.2", features = ["v4"] }
+uuid = { version = "1.23.2", features = ["v4", "serde"] }
 regex = "1"
 
 [dev-dependencies]

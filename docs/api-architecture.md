@@ -1,8 +1,10 @@
-# My-CMS API Architecture (Implemented)
+# My-CMS API Architecture (Implemented + In-Progress)
 
 This document captures the **as-built** state of the API architecture after `refactor-api-into-pluggable-domain-libraries`, `consolidate-category-ai-translate-into-domain-posts`, `merge-graphql-into-posts-domain`, `migrate-legacy-to-domain-posts`, and `split-media-and-user-domains-merge-tags-into-posts`. It is the visual companion to `pluggable-domain-refactor.md`.
 
-> **Note on legacy shims (post `split-media-and-user-domains-merge-tags-into-posts`):** `apps/api/application_core/` and `apps/api/migration/` are transitional crates retained only to keep `legacy_bootstrap` compiling. Post, AI translation, vector-store, and pgvector code live exclusively in `domain_posts`. Media, user, and tag handlers live in `domain_media`, `domain_user`, and `domain_posts::handlers::tag_helper` respectively. `application_core::entities` and `apps/api/migration/` are pure re-export shims; `application_core::commands::{post,ai,tag,media,user}` have all been deleted. Neither crate has architectural responsibility in the current picture. Both remain slated for removal once the legacy `/administrator/database/migration` route is extracted (see §12).
+> **In-progress: `relocate-legacy-api-adapters-to-domains`.** A bounded follow-up is currently executing to retire the `legacy_bootstrap` binary entirely. Status (1/21 tasks done): `domain_media/src/api/**` adapters (`media/{read,list,create,delete}/*_handler.rs`, `bucket/{create,list,get,update,delete,empty}/*_handler.rs`, `state.rs`, `routes.rs`) and `DomainMediaService` are written; `cargo check -p domain_media --all-targets` exits 0. Still pending: mirror the structure for `domain_user` (`domain_user/src/api/user/{create,read_list,read_one,modify,delete,reset_password}/*` + `DomainUserService`), register both services in `gateway::manifest()`, add the gateway-owned `/administrator/database/migration` adapter, run TDD parity tests, then delete the legacy HTTP adapters, `legacy_bootstrap`, `application_core`, and `migration` shims (see §12). Until that change is verified end-to-end, the gateway (`my-cms-api`) still serves only the post-domain surface listed in §10; media, user, and admin migration routes remain on `legacy_bootstrap`.
+
+> **Note on legacy shims (post `split-media-and-user-domains-merge-tags-into-posts`):** `apps/api/application_core/` and `apps/api/migration/` are transitional crates retained only to keep `legacy_bootstrap` compiling. Post, AI translation, vector-store, and pgvector code live exclusively in `domain_posts`. Media, user, and tag handlers live in `domain_media`, `domain_user`, and `domain_posts::handlers::tag_helper` respectively. `application_core::entities` and `apps/api/migration/` are pure re-export shims; `application_core::commands::{post,ai,tag,media,user}` have all been deleted. Neither crate has architectural responsibility in the current picture. Both are slated for deletion by the in-progress `relocate-legacy-api-adapters-to-domains` change (see §12).
 
 ## 1. Cargo Workspace
 
@@ -12,9 +14,9 @@ graph LR
         DI["<b>domain_interface</b><br/>(publishable contract)<br/>DomainService trait<br/>DomainContext<br/>Mount, RouteRegistration<br/>HealthDescriptor<br/>MigrationDescriptor<br/>DomainConfigError<br/>AuthenticatedActor (actor value type)"]
         DA["<b>domain_auth</b><br/>cross-cutting infrastructure crate<br/>SupabaseAuthLayer,<br/>SupabaseAuthConfig,<br/>SupabaseClaims, SupabaseToken<br/>construct_supabase_auth_layer<br/>DomainAuthService impl<br/>(empty routes, default startup_health,<br/>no sea-orm, no business deps)"]
         DP["<b>domain_posts</b><br/>lib + bin<br/>api/{post,category,ai}/* (HTTP adapters)<br/>handlers/{post,tag_helper,<br/>category,ai,vector_store,<br/>translation_jobs}/* (commands)<br/>handlers/post::translate (pipeline)<br/>domain/{response,error,<br/>layers,graphql,postgres}<br/>entities/* (canonical)<br/>migrations/* (4 identities)<br/>service.rs (DomainPostService)"]
-        DM["<b>domain_media</b><br/>lib<br/>handlers/{bucket,create,<br/>delete,list,read,<br/>supabase_storage}/*<br/>domain/{error,extensions}<br/>entities/media (re-export)<br/>observability"]
-        DU["<b>domain_user</b><br/>lib<br/>dto.rs (AppUserModel,<br/>BAN_DURATION,<br/>is_recognised_role)<br/>handlers/{create,modify,<br/>read_one,read_list,delete,<br/>reset_password,<br/>supabase_admin_client}/*<br/>domain::error<br/>observability"]
-        GW["<b>gateway</b><br/>bin: my-cms-api<br/>manifest() → Box&lt;dyn<br/>DomainService&gt;<br/>orchestrator<br/>compose_routers<br/>(applies domain_auth layer to<br/>protected + administrator)"]
+        DM["<b>domain_media</b><br/>lib<br/>handlers/{bucket,create,<br/>delete,list,read,<br/>supabase_storage}/*<br/>api/{media/{read,list,create,<br/>delete},bucket/{create,list,<br/>get,update,delete,empty}}<br/>/*_handler.rs (HTTP adapters)<br/>api/{state.rs,routes.rs,mod.rs}<br/>service.rs (DomainMediaService)<br/>domain/{error,extensions,<br/>response (ApiResponseWith/<br/>Error, ErrorCode,<br/>AxumResponse)}<br/>entities/media (re-export)<br/>observability"]
+        DU["<b>domain_user</b><br/>lib<br/>dto.rs (AppUserModel,<br/>BAN_DURATION,<br/>is_recognised_role)<br/>handlers/{create,modify,<br/>read_one,read_list,delete,<br/>reset_password,<br/>supabase_admin_client}/*<br/>api/user/{create,read_list,<br/>read_one,modify,delete,<br/>reset_password}/*_handler.rs<br/>(HTTP adapters; planned)<br/>api/{state.rs,routes.rs,<br/>mod.rs} (planned)<br/>service.rs (DomainUserService;<br/>planned)<br/>domain::error<br/>observability"]
+        GW["<b>gateway</b><br/>bin: my-cms-api<br/>manifest() → Box&lt;dyn<br/>DomainService&gt;<br/>target composition:<br/>DomainPostService<br/>+ DomainAuthService<br/>+ DomainMediaService<br/>+ DomainUserService<br/>+ gateway-owned<br/>/administrator/database/migration<br/>orchestrator<br/>compose_routers<br/>(applies domain_auth layer to<br/>protected + administrator)"]
         TH["<b>test_helpers</b><br/>testcontainers + Postgres +<br/>pgvector"]
         CMS["<b>cms</b><br/>(legacy bootstrap root package)<br/>src/api/{tag,media,user,<br/>administrator}/*<br/>(HTTP adapters now backed by<br/>domain_posts::tag_helper,<br/>domain_media, domain_user,<br/>domain_posts)<br/>src/api/post/* (HTTP adapters<br/>importing from domain_posts)<br/>src/api/{delete,tag/delete}/*<br/>src/lib.rs → AppState (legacy)<br/>bin: legacy_bootstrap<br/>(depends on legacy shims; see §11)"]
     end
@@ -29,6 +31,8 @@ graph LR
     GW --> DI
     GW --> DP
     GW --> DA
+    GW --> DM
+    GW --> DU
     GW --> TH
 
     DP --> DI
@@ -95,7 +99,7 @@ graph TB
     subgraph binA["Binary: my-cms-api  (gateway composition)"]
         direction TB
         GA["gateway/src/main.rs<br/>• env + tracing init<br/>• connect_database()<br/>• run_orchestrator()<br/>• build schemas<br/>• compose_routers()<br/>• bind listener"]
-        MA["Manifest:<br/>vec![<br/>  Box::new(DomainPostService::new()),<br/>  Box::new(DomainAuthService::new()),<br/>]"]
+        MA["Manifest (target after relocate-legacy-api-adapters-to-domains):<br/>vec![<br/>  Box::new(DomainPostService::new()),<br/>  Box::new(DomainAuthService::new()),<br/>  Box::new(DomainMediaService::new(...)),<br/>  Box::new(DomainUserService::new(...)),<br/>  // + gateway-owned /administrator/database/migration Mount::Administrator route<br/>]"]
         GA --> MA
     end
 
@@ -141,6 +145,8 @@ graph LR
         PR3["GET  /healthz"]
         PR4["GET  /posts/graphql/immutable  (playground)<br/>POST /posts/graphql/immutable  (handler)"]
         PR5["GET  /posts/graphql/mutable    (playground)<br/>POST /posts/graphql/mutable    (handler)"]
+        PR6["GET  /media/images/{*path}"]
+        PR7["GET  /media/{*path}"]
     end
 
     subgraph protected_routes["Protected Router (auth)"]
@@ -152,10 +158,14 @@ graph LR
         PPR6["GET    /posts/{post_id}/translate/jobs"]
         PPR7["GET/POST/PUT/DELETE /categories<br/>GET /categories/{category_id}"]
         PPR8["GET /ai/models"]
+        PPR9["DELETE /tags"]
+        PPR10["GET/POST/DELETE /media<br/>GET /media/info/{*path}<br/>DELETE /media/delete/{*path}"]
     end
 
     subgraph administrator_routes["Administrator Router (admin auth)"]
-        AR1["(placeholder —<br/>post domain contributes<br/>no administrator routes)"]
+        AR1["POST /administrator/database/migration<br/>(gateway-owned adapter)"]
+        AR2["GET/POST /users<br/>GET/PUT/DELETE /users/{user_id}<br/>POST /users/{user_id}/reset-password"]
+        AR3["GET/POST /media/buckets<br/>GET/PUT/DELETE /media/buckets/{name}<br/>POST /media/buckets/{name}/empty"]
     end
 
     MAN["DomainPostService.register_routes(&ctx)"]
@@ -169,14 +179,27 @@ graph LR
         DPSR7["RouteRegistration { mount: Protected, prefix: /posts/graphql }"]
     end
 
+    subgraph dms["domain_media::api::routes() (target)"]
+        DMSR1["RouteRegistration { mount: Public, prefix: /media }"]
+        DMSR2["RouteRegistration { mount: Protected, prefix: /media }"]
+        DMSR3["RouteRegistration { mount: Administrator, prefix: /media/buckets }"]
+    end
+
+    subgraph dus["domain_user::api::routes() (planned)"]
+        DUSR1["RouteRegistration { mount: Administrator, prefix: /users }"]
+    end
+
     GW --> CTX
     CTX --> ORCH
     ORCH --> COMP
     COMP --> SERV
-    COMP --> PR1 & PR2 & PR3 & PR4 & PR5
-    COMP --> AR1
+    COMP --> PR1 & PR2 & PR3 & PR4 & PR5 & PR6 & PR7
+    COMP --> PPR1 & PPR2 & PPR3 & PPR4 & PPR5 & PPR6 & PPR7 & PPR8 & PPR9 & PPR10
+    COMP --> AR1 & AR2 & AR3
     MAN --> DPSR1 & DPSR2 & DPSR3 & DPSR4 & DPSR5 & DPSR6 & DPSR7
     MAN --> AUTH["domain_auth::DomainAuthService<br/>(registered; empty routes,<br/>validate_config only)"]
+    MAN --> DMSR1 & DMSR2 & DMSR3
+    MAN --> DUSR1
     DPSR1 --> PR1
     DPSR2 --> PPR1 & PPR2 & PPR3 & PPR4 & PPR5 & PPR6
     DPSR3 --> PPR7
@@ -184,6 +207,11 @@ graph LR
     DPSR5 --> AR1
     DPSR6 --> PR4
     DPSR7 --> PR5
+    DMSR1 --> PR6 & PR7
+    DMSR2 --> PPR10
+    DMSR3 --> AR3
+    DUSR1 --> AR2
+    AR1 -. "gateway-owned<br/>(no domain)" .-> AR1
 
     classDef domain fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
     classDef infra fill:#fff7e6,stroke:#b07000,stroke-width:2px,color:#6b4500
@@ -192,8 +220,8 @@ graph LR
     classDef shim fill:#fff4e6,stroke:#d97706,stroke-width:1px,color:#7c2d12
 
     class CTX,ORCH,COMP,SERV gateway
-    class PR1,PR2,PR3,PR4,PR5,PPR1,PPR2,PPR3,PPR4,PPR5,PPR6,PPR7,PPR8,AR1 route
-    class MAN,DPSR1,DPSR2,DPSR3,DPSR4,DPSR5,DPSR6,DPSR7 domain
+    class PR1,PR2,PR3,PR4,PR5,PR6,PR7,PPR1,PPR2,PPR3,PPR4,PPR5,PPR6,PPR7,PPR8,PPR9,PPR10,AR1,AR2,AR3 route
+    class MAN,DPSR1,DPSR2,DPSR3,DPSR4,DPSR5,DPSR6,DPSR7,DMSR1,DMSR2,DMSR3,DUSR1 domain
     class AUTH infra
 ```
 
@@ -481,10 +509,12 @@ graph LR
 | `/posts/{post_id}/translate/jobs{,/**}` | ✅ | ✅ | ✅ |
 | `/categories/**` | ✅ | ❌ | ✅ |
 | `/ai/models` | ✅ | ❌ | ✅ |
-| `/tags` | ❌ | ✅ | ❌ |
-| `/media/**`, `/media/buckets/**`, `/media/info/**`, `/media/delete/**`, `/media/images/**` | ❌ | ✅ | ❌ |
-| `/users/**` | ❌ | ✅ | ❌ |
-| `/administrator/database/migration` | ❌ | ✅ | ❌ |
+| `/tags` | 🟡 | ✅ | ❌ |
+| `/media/**`, `/media/buckets/**`, `/media/info/**`, `/media/delete/**`, `/media/images/**` | 🟡 | ✅ | ❌ |
+| `/users/**` | 🟡 | ✅ | ❌ |
+| `/administrator/database/migration` | 🟡 | ✅ | ❌ |
+
+> 🟡 = target route is fully wired in the new domain adapters + gateway composition (see §3) but the gateway binary has not yet been deployed with these services registered. Verification gate is `cargo check -p domain_media --all-targets` exits 0 (green as of last attempt); `domain_user` adapter tree, `gateway::manifest()` registration, TDD parity tests, and the deletion of legacy `apps/api/src/api/**` + `legacy_bootstrap` + `application_core` + `migration` are still pending tasks 1.2 → 6.4 of `openspec/changes/relocate-legacy-api-adapters-to-domains/tasks.md`.
 
 > `/categories/**` and `/ai/models` moved from `legacy_bootstrap` to the gateway (`my-cms-api`) and to the standalone `domain_posts` bin per the `consolidate-category-ai-translate-into-domain-posts` change. The `legacy_bootstrap` binary still serves the not-yet-extracted tags/media/users/administrator routes.
 
@@ -516,43 +546,50 @@ Two workspace members exist **only** to keep `legacy_bootstrap` compiling. They 
 - **Where it's referenced:** `apps/api/src/bin/legacy_bootstrap.rs` (none), `apps/api/test_helpers/src/lib.rs` (`use migration::{Migrator, MigratorTrait}`), the `migration` standalone binary, and the legacy `/administrator/database/migration` handler.
 - **Why it still exists:** the legacy bootstrap ships a `migration` binary that operators can invoke to run schema migrations, and `test_helpers` resolves `Migrator` through this shim. The canonical migrator is `domain_posts::migrations::Migrator`; `migration` is a thin re-export. Once `legacy_bootstrap` and the `/administrator/database/migration` route are removed, the `migration` binary also goes.
 
-### Removal order (see §12)
+### Removal order (in-progress: `relocate-legacy-api-adapters-to-domains`, tasks 5.1–5.4)
 
-1. ✅ `domain_media` extracted → `application_core::commands::media::*` deleted (**complete** in `split-media-and-user-domains-merge-tags-into-posts`).
-2. ✅ `domain_users` extracted → `application_core::commands::user::*` deleted (**complete** in `split-media-and-user-domains-merge-tags-into-posts`).
+1. ✅ `domain_media` extracted → `application_core::commands::media::*` deleted (**complete** in `split-media-and-user-domains-merge-tags-into-posts`). Domain-local HTTP adapters added at `domain_media/src/api/{media,bucket}/**` + `DomainMediaService`.
+2. ✅ `domain_users` extracted → `application_core::commands::user::*` deleted (**complete** in `split-media-and-user-domains-merge-tags-into-posts`). Domain-local HTTP adapter structure still pending in `domain_user/src/api/user/**` + `DomainUserService`.
 3. ✅ `domain_tags` merged into `domain_posts::handlers::tag_helper::*` (no separate `domain_tags` crate) → `application_core::commands::tag::*` deleted (**complete** in `split-media-and-user-domains-merge-tags-into-posts`).
-4. `domain_administrator` extracted → the legacy `/administrator/database/migration` route is removed; the `migration` standalone binary is no longer needed and `apps/api/migration/` can be deleted.
-5. `apps/api/application_core/` deleted from workspace; `legacy_bootstrap` deleted.
-6. `domain_posts` migrator remains the only migrator; the `migration` binary is replaced by `cargo run -p domain_posts --bin migrations_cli` (or the orchestrator's `run_orchestrator()` handles migrations at gateway startup).
+4. Gateway registers `DomainMediaService`, `DomainUserService`, and a gateway-owned `/administrator/database/migration` `Mount::Administrator` adapter; the legacy HTTP adapter trees under `apps/api/src/api/{tag,media,user,post,delete,tag/delete}/**` are deleted (task 5.1–5.2).
+5. `apps/api/src/bin/legacy_bootstrap.rs`, `apps/api/src/lib.rs`, `apps/api/src/{common,presentation_models}/**` deleted (task 5.3); `apps/api/application_core/` removed from the workspace (task 5.4) once importers reach zero.
+6. `apps/api/migration/` deleted from the workspace once `test_helpers` no longer resolves `Migrator` through it (the canonical migrator is `domain_posts::migrations::Migrator` and the gateway's `run_orchestrator()` handles migrations at startup; the standalone `migration` binary is replaced by `cargo run -p domain_posts --bin migrations_cli`).
 
-## 12. Future Staged Cutover
+## 12. Staged Cutover — In-Progress
 
 ```mermaid
 graph TB
     subgraph now["Today (post split-media-and-user-domains-merge-tags-into-posts)"]
         N1["my-cms-api serves post + categories + AI + translation routes"]
-        N2["legacy_bootstrap serves<br/>tags/media/users/administrator<br/>(HTTP adapters now backed by<br/>domain_posts::tag_helper,<br/>domain_media, domain_user,<br/>domain_posts; see §10)"]
+        N2["legacy_bootstrap serves<br/>tags/media/users/administrator<br/>(HTTP adapters backed by<br/>domain_posts::tag_helper,<br/>domain_media, domain_user,<br/>domain_posts; see §10)"]
     end
 
-    subgraph done["Completed extractions (since this doc's prior revision)"]
+    subgraph done["Completed extractions"]
         D1["✅ domain_media extracted<br/>(apps/api/domain_media/)"]
         D2["✅ domain_users extracted<br/>(apps/api/domain_user/)"]
         D3["✅ tags merged into domain_posts::handlers::tag_helper"]
     end
 
-    subgraph next["Next — domain_administrator extraction"]
-        X1["Box::new(DomainAdministratorService)<br/>appended to gateway::manifest()"]
-        X2["legacy_bootstrap loses /administrator/database/migration<br/>gateway gains that route"]
+    subgraph inprog["In progress — relocate-legacy-api-adapters-to-domains  (1/21 tasks done)"]
+        I1["✅ domain_media/src/api/{media,bucket}/** HTTP adapters + DomainMediaService written; cargo check -p domain_media --all-targets exits 0"]
+        I2["⏳ Mirror structure for domain_user (api/user/** adapters + DomainUserService) — task group 3"]
+        I3["⏳ Register DomainMediaService + DomainUserService in gateway::manifest() — task 4.1"]
+        I4["⏳ Add gateway-owned /administrator/database/migration Mount::Administrator adapter — task 4.2"]
+        I5["⏳ Middleware/auth/role/CORS/body-limit/telemetry parity tests — task 4.3"]
+        I6["⏳ Full route/contract parity matrix (release gate) — task 4.4"]
+        I1 --> I2 --> I3 --> I4 --> I5 --> I6
     end
 
-    subgraph future["Final — legacy bootstrap removal"]
-        F1["legacy_bootstrap deleted;<br/>apps/api/src/ tree removed"]
-        F2["application_core/ and migration/<br/>deleted from workspace"]
-        F3["single my-cms-api deployment image<br/>serves ALL routes via DomainService composition"]
+    subgraph future["Final — legacy bootstrap removal (tasks 5.1–6.4)"]
+        F1["Delete legacy HTTP adapter trees under apps/api/src/api/{tag,media,user,post,delete,tag/delete}/**"]
+        F2["Delete apps/api/src/bin/legacy_bootstrap.rs, src/lib.rs, src/{common,presentation_models}/**"]
+        F3["Remove application_core/ and migration/ from workspace once importers reach zero"]
+        F4["Single my-cms-api deployment image serves ALL routes via DomainService composition"]
+        F1 --> F2 --> F3 --> F4
     end
 
-    now --> next
-    next --> future
+    now --> inprog
+    inprog --> future
     done -. "completed in split-media-and-user-domains-merge-tags-into-posts" .- now
 
     classDef current fill:#fff,stroke:#888,stroke-width:1px
@@ -562,10 +599,12 @@ graph TB
 
     class N1,N2 current
     class D1,D2,D3 completed
-    class X1,X2 nextStage
-    class F1,F2,F3 futureStage
+    class I1,I2,I3,I4,I5,I6 nextStage
+    class F1,F2,F3,F4 futureStage
 ```
 
-> **Remaining work:** Only `domain_administrator` extraction stands between today and the final state. Once that is done, the workspace deletion of `application_core` and `migration` unlocks the deletion of `legacy_bootstrap` and the `apps/api/src/` tree entirely. The `migration` binary can be removed once `/administrator/database/migration` is extracted. Tags were merged directly into `domain_posts::handlers::tag_helper::*` rather than extracted into a separate `domain_tags` crate — they are conceptually owned by the post domain (post create-in-transaction uses tag create), so a separate crate would have introduced an artificial boundary. The legacy `/tags` DELETE route is still served by `legacy_bootstrap` but now imports `PostDeleteHandler` from `domain_posts`.
+> **Remaining work:** The `relocate-legacy-api-adapters-to-domains` change collapses the last remaining `cms::api` adapter tree into the domain crates and registers media + user + admin-migration in the gateway composition, then deletes the `legacy_bootstrap` binary and the `application_core` / `migration` shims. No standalone `domain_administrator` crate is needed: the `/administrator/database/migration` route is a single gateway-owned adapter that delegates to the canonical `domain_posts::migrations::Migrator` via `run_orchestrator()`. Tags were merged directly into `domain_posts::handlers::tag_helper::*` rather than extracted into a separate `domain_tags` crate — they are conceptually owned by the post domain (post create-in-transaction uses tag create), so a separate crate would have introduced an artificial boundary. The legacy `/tags` DELETE route is still served by `legacy_bootstrap` but now imports `PostDeleteHandler` from `domain_posts`.
+
+> **PO open questions blocking deletions (tasks 5.1–5.4):** (1) deprecate `/administrator/database/migration` after cutover or preserve long-term? — default preserve; (2) when to delete `application_core` / `migration` crates once importer search reaches zero? — default delete in this change; (3) staging traffic-shift thresholds (error rate, p99 latency, 401/403 ratio)? — document before deploying the gateway image alongside `legacy_bootstrap`.
 
 See `docs/adding-a-domain.md` for the recipe and `docs/pluggable-domain-refactor.md` for the full architectural overview.
