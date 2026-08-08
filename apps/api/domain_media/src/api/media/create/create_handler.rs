@@ -17,7 +17,10 @@ use tracing::instrument;
 
 use crate::{
     api::state::MediaApiState,
-    domain::{error::AppError, response::ApiResponseError, response::ApiResponseWith, response::AxumResponse, response::ErrorCode},
+    domain::{
+        error::AppError, response::ApiResponseError, response::ApiResponseWith,
+        response::AxumResponse, response::ErrorCode,
+    },
     handlers::{
         bucket::dto::bucket_name_error,
         create::create_handler::{CreateMediaHandler, CreateMediaHandlerTrait},
@@ -108,8 +111,6 @@ pub async fn api_create_media(
 
     ApiResponseError::new()
         .with_error_code(ErrorCode::ValidationError)
-        .add_error(
-            "No file found in request. Use 'file' or 'image' field name.".to_string(),
-        )
+        .add_error("No file found in request. Use 'file' or 'image' field name.".to_string())
         .to_axum_response()
 }

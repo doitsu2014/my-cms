@@ -16,7 +16,10 @@ use tracing::instrument;
 
 use crate::{
     api::state::MediaApiState,
-    domain::{error::AppError, response::ApiResponseError, response::ApiResponseWith, response::AxumResponse, response::ErrorCode},
+    domain::{
+        error::AppError, response::ApiResponseError, response::ApiResponseWith,
+        response::AxumResponse, response::ErrorCode,
+    },
     handlers::{
         bucket::dto::bucket_name_error,
         read::metadata_handler::{MetadataMediaHandler, MetadataMediaHandlerTrait},

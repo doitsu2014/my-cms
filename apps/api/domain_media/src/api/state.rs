@@ -10,7 +10,10 @@ use std::sync::Arc;
 
 use moka::future::Cache;
 
-use crate::handlers::{bucket::access::access_cache::create_bucket_visibility_cache, CachedMedia, MediaCacheKey, MediaConfig};
+use crate::handlers::{
+    bucket::access::access_cache::create_bucket_visibility_cache, CachedMedia, MediaCacheKey,
+    MediaConfig,
+};
 
 /// Wrapper struct so the router's `State<MediaApiState>` is a single
 /// `Clone`-able value. All inner fields are `Arc`-shared.

@@ -153,9 +153,7 @@ impl From<AppError> for ApiResponseError {
             AppError::Validation(field, message) => Self::new()
                 .with_error_code(ErrorCode::ValidationError)
                 .add_error(format!("{}: {}", field, message)),
-            AppError::Logical(m) => Self::new()
-                .with_error_code(ErrorCode::Logical)
-                .add_error(m),
+            AppError::Logical(m) => Self::new().with_error_code(ErrorCode::Logical).add_error(m),
             AppError::Conflict(m) => Self::new()
                 .with_error_code(ErrorCode::Conflict)
                 .add_error(m),

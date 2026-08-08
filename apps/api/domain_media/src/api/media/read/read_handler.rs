@@ -102,7 +102,8 @@ fn validate_bucket(name: Option<&str>) -> Result<Option<String>, Response> {
         None => return Ok(None),
     };
     if !is_valid_bucket_name(&bucket) {
-        let reason = bucket_name_error(&bucket).unwrap_or_else(|| "invalid bucket name".to_string());
+        let reason =
+            bucket_name_error(&bucket).unwrap_or_else(|| "invalid bucket name".to_string());
         return Err((
             StatusCode::BAD_REQUEST,
             [(header::CONTENT_TYPE, "application/json")],
