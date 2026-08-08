@@ -70,15 +70,17 @@ Before drafting or revising specs, design, or tasks, call `get_minimal_context(t
 ## Architecture principles
 
 ```
-API Layer (apps/api/src/api/)              — thin: extract request, call handler, return response
-Application Core (apps/api/application_core/) — Command Pattern: trait + struct per operation
-Database Layer (entities/)                — SeaORM auto-generated, schema-first via migrations
+Gateway (apps/api/gateway/)                 — composition root and HTTP entrypoint
+Domain crates (apps/api/domain_*/)          — API adapters, command handlers, entities, integrations
+Migration ownership (apps/api/domain_posts/) — canonical Migrator + operator CLI (`domain_posts migrate`) + test-helper access
 ```
 
-- **No business logic in API handlers** — always delegate to command handlers.
+- **No business logic in gateway composition** — delegate to domain services.
 - **Schema-first DB**: migration → run → generate entities.
 - **AppError for all errors** — variant per error type.
 - **Use existing patterns** — no new abstractions without clear justification.
+
+> **Historical (retired):** `apps/api/application_core/`, `apps/api/migration/`, and `apps/api/src/` (legacy `cms` library + `legacy_bootstrap` binary) were removed by [`purge-legacy-cms-and-application-core`](../../openspec/changes/purge-legacy-cms-and-application-core/). The `legacy_bootstrap` binary no longer exists; the `domain_auth::legacy_bootstrap` module is a separately labelled historical name on the auth-layer factory.
 
 ## Quality gate
 
@@ -88,12 +90,14 @@ Run OpenSpec validation/status checks. Confirm every proposal outcome is specifi
 
 | What | Where |
 |------|-------|
-| API handlers | `apps/api/src/api/{domain}/{action}/` |
-| Command handlers | `apps/api/application_core/src/commands/{domain}/{action}/` |
-| Entities (auto-gen) | `apps/api/application_core/src/entities/` |
-| Migrations | `apps/api/migration/src/` |
-| AppState | `apps/api/src/lib.rs` |
-| Auth middleware | `apps/api/src/common/supabase_auth.rs` |
+| API adapters and routes | `apps/api/domain_*/src/api/` |
+| Command handlers | `apps/api/domain_*/src/handlers/` |
+| Entities (auto-gen) | `apps/api/domain_posts/src/entities/` |
+| Migrations (canonical) | `apps/api/domain_posts/src/migrations/` |
+| Migration CLI | `apps/api/domain_posts/src/main.rs` (`migrate` subcommand via `domain_posts::migrations_cli::handle_args`) |
+| Test helper migration access | `apps/api/test_helpers/src/lib.rs` (imports `domain_posts::migrations::{Migrator, MigratorTrait}`) |
+| Gateway composition | `apps/api/gateway/src/main.rs` |
+| Auth middleware | `apps/api/domain_auth/src/` |
 | Frontend pages | `apps/web/src/app/admin/` |
 | Frontend schemas | `apps/web/src/schemas/` |
 | Frontend components | `apps/web/src/components/` |

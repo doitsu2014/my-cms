@@ -5,11 +5,9 @@ runtime behavior with `$map-my-cms-api-architecture`.
 
 ## REST capability slice
 
-- Register the route in the correct public, writer/admin, or administrator
-  router in `apps/api/src/bin/my-cms-api.rs`.
-- Keep extraction/serialization in `apps/api/src/api/<capability>/`.
-- Put validation and business behavior in a trait-backed handler under
-  `apps/api/application_core/src/commands/<capability>/`.
+- Register the route in the correct domain service under `apps/api/domain_*/src/service.rs`, then compose it through `apps/api/gateway/src/main.rs`.
+- Keep extraction/serialization in `apps/api/domain_*/src/api/<capability>/`.
+- Put validation and business behavior in a trait-backed handler under `apps/api/domain_*/src/handlers/<capability>/`.
 - Define camelCase request/response behavior and actor propagation.
 - Specify `AppError` and HTTP mappings, including conflict and not-found
   information-disclosure behavior.
@@ -109,7 +107,9 @@ Ensure the final artifacts can be followed as:
 proposal outcome
   -> spec requirement/scenario
   -> design decision
-  -> migration/API/application-core task
+  -> migration/API/domain-posts task
   -> focused test
   -> full verification
 ```
+
+> **Historical:** the legacy `apps/api/application_core/` task shorthand previously listed in this checklist is gone — `application_core` was retired by [`purge-legacy-cms-and-application-core`](../../../../openspec/changes/purge-legacy-cms-and-application-core/). Use `domain_posts::migrations_cli` for migration-related task shorthand; the standalone migration binary is the `domain_posts` bin's `migrate` subcommand.

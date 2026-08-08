@@ -10,7 +10,7 @@ RUN cargo build --release --workspace
 FROM rust:1.97-slim
 WORKDIR /app
 COPY --from=build /usr/local/my-cms/target/release/my-cms-api .
-COPY --from=build /usr/local/my-cms/target/release/migration .
+COPY --from=build /usr/local/my-cms/target/release/domain_posts .
 
 EXPOSE 8989
 CMD ["/app/my-cms-api"]

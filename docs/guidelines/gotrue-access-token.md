@@ -415,7 +415,7 @@ Full GoTrue API reference: https://supabase.com/docs/reference/gotrue
 ## Backend Token Validation
 
 The My-CMS backend (`SupabaseAuthLayer` in
-`apps/api/src/common/supabase_auth.rs`) validates tokens as follows:
+`apps/api/domain_auth/src/`) validates tokens as follows:
 
 1. **HS256** — Attempts validation using `SUPABASE_JWT_SECRET` as the
    symmetric key. Checks `aud` claim matches the configured audience

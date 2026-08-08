@@ -68,12 +68,14 @@ Before handoff, verify that every requested outcome is represented, conflicts ar
 
 ## Domain knowledge
 
-- Backend: Command Pattern in `apps/api/application_core/src/commands/`, API handlers in `apps/api/src/api/`
-- DB: SeaORM entities (auto-generated from schema), migrations in `apps/api/migration/src/`
+- Backend: domain-owned API adapters and command handlers in `apps/api/domain_*/src/`, composed by `apps/api/gateway/`
+- DB: SeaORM entities (auto-generated from schema), canonical migrations in `apps/api/domain_posts/src/migrations/`, CLI in `domain_posts` (`cargo run -p domain_posts -- migrate` / `/app/domain_posts migrate up` in containers)
 - Frontend: Pages in `apps/web/src/app/admin/`, components in `apps/web/src/components/`
-- Auth: Supabase GoTrue JWT middleware in `apps/api/src/common/supabase_auth.rs`
-- AI: 3-tier lookup (DB → pgvector → OpenAI) in `apps/api/application_core/src/commands/ai/`
-- Media: Supabase Storage REST client in `apps/api/application_core/src/commands/media/supabase_storage.rs`
+- Auth: Supabase GoTrue JWT middleware in `apps/api/domain_auth/src/`
+- AI: 3-tier lookup (DB → pgvector → OpenAI) in `apps/api/domain_posts/src/handlers/`
+- Media: Supabase Storage REST client in `apps/api/domain_media/src/`
+
+> **Historical (retired):** `apps/api/application_core/`, `apps/api/migration/`, and `apps/api/src/` (legacy `cms` library + `legacy_bootstrap` binary) were removed by [`purge-legacy-cms-and-application-core`](../../openspec/changes/purge-legacy-cms-and-application-core/). Canonical migrations and the operator CLI both live under `domain_posts`; `test_helpers` imports `domain_posts::migrations` directly.
 
 ## Handoff
 

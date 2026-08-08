@@ -18,7 +18,7 @@ For comprehensive coding guidelines and best practices, see the [.github directo
 
 - **[Main README](../README.md)** - Project setup and overview
 - **[Postman Collection](./postman_collection/)** - API testing collection
-- **[AI Translation Documentation](../apps/api/application_core/src/commands/ai/README.md)** - Detailed AI service documentation
+- **[AI Translation Documentation](./ai-platform.md)** - Detailed AI service documentation
 
 ## Key Features
 
@@ -136,16 +136,16 @@ Database Layer (SeaORM + PostgreSQL)
 See [Architecture Guide](../.github/copilot-instructions-architecture.md) for detailed information.
 
 ## Special Features
-
 ### AI Translation Service
 
 Intelligent post translation with cost optimization:
+
 - **3-Tier Lookup**: Database cache → Vector similarity → OpenAI translation
 - **95% Similarity Threshold**: Reuse existing translations when similar
 - **Parallel Processing**: Concurrent chunk translation with Tokio JoinSet
 - **Background Jobs**: Non-blocking translation for large content
 
-[Learn more](../apps/api/application_core/src/commands/ai/README.md)
+[Learn more](./ai-platform.md)
 
 ### Media Management
 

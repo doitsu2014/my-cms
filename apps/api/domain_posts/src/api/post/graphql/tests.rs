@@ -526,60 +526,47 @@ fn legacy_apps_api_tree_has_no_post_graphql() {
 
 #[test]
 fn legacy_post_mod_rs_does_not_declare_graphql_submodule() {
-    // Companion assertion — guards against a future contributor
-    // re-introducing `pub mod graphql;` in the legacy tree without
-    // recreating the directory.
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
     let repo_root = std::path::Path::new(manifest_dir)
         .ancestors()
         .nth(3)
         .expect("CARGO_MANIFEST_DIR should resolve to repo root");
     let legacy_post_mod_path = repo_root.join("apps/api/src/api/post/mod.rs");
-    let contents = std::fs::read_to_string(&legacy_post_mod_path)
-        .unwrap_or_else(|e| panic!("failed to read {}: {}", legacy_post_mod_path.display(), e));
     assert!(
-        !contents.contains("pub mod graphql"),
-        "legacy `apps/api/src/api/post/mod.rs` must NOT declare `pub mod graphql;`; the new domain tree is the single source of truth"
+        !legacy_post_mod_path.exists(),
+        "legacy `apps/api/src/api/post/mod.rs` must not exist"
     );
 }
 
 #[test]
 fn legacy_api_mod_rs_does_not_declare_graphql_submodule() {
-    // Companion assertion for the top-level legacy graphql module.
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
     let repo_root = std::path::Path::new(manifest_dir)
         .ancestors()
         .nth(3)
         .expect("CARGO_MANIFEST_DIR should resolve to repo root");
     let legacy_api_mod_path = repo_root.join("apps/api/src/api/mod.rs");
-    let contents = std::fs::read_to_string(&legacy_api_mod_path)
-        .unwrap_or_else(|e| panic!("failed to read {}: {}", legacy_api_mod_path.display(), e));
     assert!(
-        !contents.contains("pub mod graphql"),
-        "legacy `apps/api/src/api/mod.rs` must NOT declare `pub mod graphql;`; the new domain tree is the single source of truth"
+        !legacy_api_mod_path.exists(),
+        "legacy `apps/api/src/api/mod.rs` must not exist"
     );
 }
 
 #[test]
 fn application_core_lib_rs_does_not_declare_graphql_submodule() {
-    // The legacy `apps/api/application_core/src/graphql/` module was
-    // deleted by Phase 5; this guards against a future contributor
-    // resurrecting it.
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
     let repo_root = std::path::Path::new(manifest_dir)
         .ancestors()
         .nth(3)
         .expect("CARGO_MANIFEST_DIR should resolve to repo root");
     let app_core_lib_path = repo_root.join("apps/api/application_core/src/lib.rs");
-    let contents = std::fs::read_to_string(&app_core_lib_path)
-        .unwrap_or_else(|e| panic!("failed to read {}: {}", app_core_lib_path.display(), e));
     assert!(
-        !contents.contains("pub mod graphql"),
-        "`apps/api/application_core/src/lib.rs` must NOT declare `pub mod graphql;`; the legacy schema-builder duplicate is deleted"
+        !app_core_lib_path.exists(),
+        "legacy `application_core/src/lib.rs` must not exist"
     );
     let app_core_graphql_path = repo_root.join("apps/api/application_core/src/graphql");
     assert!(
         !app_core_graphql_path.exists(),
-        "`apps/api/application_core/src/graphql/` directory must NOT exist; the legacy schema-builder duplicate is deleted"
+        "legacy `application_core/src/graphql/` directory must not exist"
     );
 }

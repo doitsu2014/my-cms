@@ -15,9 +15,6 @@ domain_interface = { path = "../domain_interface" }
 domain_posts = { path = "../domain_posts" }
 domain_auth = { path = "../domain_auth" }
 
-application_core = { path = "../application_core" }
-migration = { path = "../migration" }
-
 axum = { version = "0.8.9", features = ["http2", "tracing", "multipart"] }
 tokio = { version = "1.52.3", features = ["full"] }
 async-trait = "0.1"

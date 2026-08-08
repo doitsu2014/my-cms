@@ -6,52 +6,42 @@ My-CMS has been refactored into a **pluggable domain library** architecture. Eac
 
 ```
 apps/api/
-├── Cargo.toml              # workspace root — declares all members
+├── Cargo.toml              # workspace root — declares all members (pure virtual workspace)
 ├── domain_interface/       # publishable contract crate (no domain deps)
-├── domain_auth/            # cross-cutting Supabase JWT validation (lib + bin) — see `extract-auth-into-domain-auth`
-├── domain_posts/           # self-contained Blog Post Service (lib + bin)
+├── domain_auth/            # cross-cutting Supabase JWT validation (lib) — see `extract-auth-into-domain-auth`
+├── domain_posts/           # self-contained Blog Post Service (lib + bin); owns canonical migrations and the operator CLI
+├── domain_media/           # self-contained Media Service (lib) — extracted by `split-media-and-user-domains-merge-tags-into-posts`
+├── domain_user/            # self-contained User Service (lib) — extracted by `split-media-and-user-domains-merge-tags-into-posts`
 ├── gateway/                # thin composition root (bin: my-cms-api)
-├── application_core/       # transitional shim — re-exports from domain_posts
-├── migration/              # transitional shim — re-exports from domain_posts
-├── test_helpers/          # shared test utilities
-└── src/                    # transitional shim — legacy bootstrap (bin: legacy_bootstrap)
+└── test_helpers/           # shared test utilities; imports `domain_posts::migrations` directly
 ```
+
+> **Historical (retired):** `apps/api/application_core/`, `apps/api/migration/`, and `apps/api/src/` (legacy `cms` library + `legacy_bootstrap` binary) were removed by [`purge-legacy-cms-and-application-core`](../openspec/changes/purge-legacy-cms-and-application-core/). All retired paths retain only explicitly labeled historical references.
 
 ## Deployment Modes
 
-Three binaries are produced:
+Two binaries are produced:
 
 | Binary | Backing crate | Routes served | When to use |
 |---|---|---|---|
 | `my-cms-api` | `gateway` | `/`, `/health`, `/healthz`, `/posts/graphql/**`, `/posts/**`, `/posts/{post_id}/translate*`, `/categories/**`, `/ai/models` | Composed gateway (single domain: post + categories + AI + translation) |
-| `legacy_bootstrap` | `cms` | `/`, `/health`, `/healthz`, `/tags`, `/media/**`, `/users/**`, `/administrator/**`, `/posts/graphql/**` | Staged cutover — covers not-yet-extracted domains (tags, media, users, administrator) |
-| `domain_posts` | `domain_posts` | `/posts/graphql/**`, `/posts/**`, `/posts/{post_id}/translate*`, `/categories/**`, `/ai/models` | Standalone post microservice (same surface as the composed gateway) |
+| `domain_posts` | `domain_posts` | `/posts/graphql/**`, `/posts/**`, `/posts/{post_id}/translate*`, `/categories/**`, `/ai/models`; `migrate [--list]` for operator migrations | Standalone post microservice (same HTTP surface as the composed gateway) and operator-facing migration CLI |
+
+> **Historical (retired):** `legacy_bootstrap` (the `cms`-backed binary) was retired with the `cms` library. The staged cutover is complete: media and user business logic was extracted into `domain_media` and `domain_user`; their gateway `manifest()` registration is the only remaining follow-up.
 
 ## Staged Cutover
 
 The cutover is **staged**:
 
-1. **Stage 1 (DONE)** — `domain_posts` is fully extracted as the single Cargo crate that owns every post-related capability: post CRUD, post translation, post-related categories, post-related AI model registry, post-related tag helper, post GraphQL contribution, post migrations, and post-related cross-cutting layers (auth, response, error, OpenTelemetry). The gateway serves the consolidated post-domain routes via `DomainPostService`. The legacy bootstrap (`legacy_bootstrap` binary) continues to serve the remaining tags/media/users/administrator routes.
+1. **Stage 1 (DONE)** — `domain_posts` is fully extracted as the single Cargo crate that owns every post-related capability: post CRUD, post translation, post-related categories, post-related AI model registry, post-related tag helper, post GraphQL contribution, post migrations, and post-related cross-cutting layers (auth, response, error, OpenTelemetry). The gateway serves the consolidated post-domain routes via `DomainPostService`.
 
-> **Note (`merge-graphql-into-posts-domain`):** The post domain is the **sole** owner of the GraphQL HTTP surface. The playground handlers (`playground_immutable`, `playground_mutable`) and the `Arc<Schema>` wiring live exclusively under `apps/api/domain_posts/src/api/post/graphql/`. The `legacy_bootstrap` binary re-mounts `/posts/graphql/{immutable,mutable}` by importing the handlers directly from `domain_posts::api::post::graphql` — it does NOT recreate a parallel `apps/api/src/api/post/graphql/` module tree.
+> **Note (`merge-graphql-into-posts-domain`):** The post domain is the **sole** owner of the GraphQL HTTP surface. The playground handlers (`playground_immutable`, `playground_mutable`) and the `Arc<Schema>` wiring live exclusively under `apps/api/domain_posts/src/api/post/graphql/`.
 
-2. **Stage 2 (next)** — Extract `domain_media`, `domain_users`, `domain_administrator`, and `domain_tags` as self-contained crates (per `docs/adding-a-domain.md`). Each new domain's `Domain<Name>Service` is appended to `gateway::manifest()`. **Categories, AI, and translation are intentionally NOT extracted** — they are integral to the post vertical slice (per the `consolidate-category-ai-translate-into-domain-posts` change). `domain_posts` is the canonical owner of these.
+2. **Stage 2 (DONE)** — `domain_media` and `domain_user` extracted as self-contained crates (per `docs/adding-a-domain.md`). Each new domain's `Domain<Name>Service` is ready to be appended to `gateway::manifest()`. **Categories, AI, and translation are intentionally NOT extracted** — they are integral to the post vertical slice (per the `consolidate-category-ai-translate-into-domain-posts` change). `domain_posts` is the canonical owner of these. Tags are merged into `domain_posts::handlers::tag_helper` per `split-media-and-user-domains-merge-tags-into-posts`.
 
-3. **Stage 3** — The `LegacyShimService` (Task 8.2 from the change plan) integrates the remaining legacy routes into the gateway composition. Once all non-post domains are extracted, the `legacy_bootstrap` binary is removed and only `my-cms-api` survives.
+3. **Stage 3 (DONE)** — The legacy `cms::api::*` adapter tree, the `cms` library, the `legacy_bootstrap` binary, and the `application_core` and `migration` transitional crates have all been removed (see `purge-legacy-cms-and-application-core`). The gateway composition is the sole production runtime.
 
-4. **Stage 4** — `application_core` and `migration` crates become pure re-export shims and are eventually removed. After Stage 1, `application_core::entities::*` is already a pure `pub use domain_posts::entities::*;` shim; `application_core::commands::*` keeps only the non-post command modules (`media`, `user`) plus `common::*` for the legacy `cms::api::{media,user,administrator}::*` adapters.
-
-## Why Two Binaries Today
-
-The gateway composition uses `Vec<Box<dyn DomainService>>` where each domain registers its own routes via `DomainService::register_routes(&ctx) -> Vec<RouteRegistration>`. The `RouteRegistration.router` is `Router<DomainContext>`.
-
-The legacy handlers in `apps/api/src/api/{tag,media,user,administrator}/*` use `Router<AppState>` (the legacy state type with `media_config`, `supabase_admin_client`, etc.). The category HTTP adapters are now owned by `domain_posts::api::category::*` and use `State<DomainContext>`. Bridging the remaining `Router<AppState>` legacy routers to `Router<DomainContext>` requires either:
-
-- **Option A**: A `LegacyShimService` that wraps the legacy routers with a middleware translating `DomainContext` → `AppState` and re-exposes the result as `Router<DomainContext>`. Each legacy handler would receive `AppState` via `Extension` instead of `State`. **Status: implementation requires touching ~25 handler files; documented in Task 8.2**.
-
-- **Option B**: Make `RouteRegistration.router` generic over `Router<S>` so each domain can use its own state type. The gateway composition adapts the resulting routers to a common state. **Status: requires a breaking change to `domain_interface`.**
-
-- **Option C**: Run two binaries behind Traefik — the gateway for new routes, the legacy bootstrap for non-migrated routes. **Status: implemented; this is the current approach.** Once all domains are extracted, the legacy bootstrap is removed.
+4. **Stage 4 (DONE)** — `application_core` and `migration` crates have been deleted. `test_helpers` imports `domain_posts::migrations` directly; the operator migration CLI is `domain_posts migrate up` (or `cargo run -p domain_posts -- migrate` locally).
 
 ## Per-Domain Ownership
 
@@ -93,7 +83,9 @@ value type to every business domain. It depends only on
 `domain_interface` (plus its own infrastructure dependencies —
 `axum`, `tower`, `jsonwebtoken`, `serde`, `tokio`, `reqwest`,
 `async-trait`) and SHALL NOT depend on any concrete business domain
-(`domain-posts`, `application_core`, `cms`).
+(`domain-posts`, `domain_media`, `domain_user`).
+
+> **Historical:** The `domain_auth::legacy_bootstrap` module name is a legacy reference to the deleted `apps/api/src/bin/legacy_bootstrap.rs` bootstrap binary. The module is the only remaining bearer of the `legacy_bootstrap` name; it currently exposes `construct_supabase_auth_layer(...)`, which `gateway::main` and `domain_posts::main` apply to the protected/administrator routers.
 
 Auth is HTTP-middleware, not routes: `DomainAuthService::register_routes`
 returns an empty `Vec<RouteRegistration>` and the gateway applies
@@ -121,11 +113,11 @@ Each identity is preserved exactly. The database `up` history is unchanged.
 
 ```bash
 cargo check --workspace
-cargo test --workspace          # 204 tests pass (post-change baseline)
-cargo fmt --check
-cargo build --bin my-cms-api   # gateway
-cargo build --bin legacy_bootstrap   # legacy bootstrap
+cargo test --workspace
+cargo fmt -- --check
+cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo build --release --workspace --bins   # produces my-cms-api + domain_posts
 cargo run -p domain_posts -- migrate --list   # 4 IDs in original order
-cargo run --bin my-cms-api      # composed gateway
-cargo run --bin legacy_bootstrap  # legacy bootstrap
+cargo run -p gateway                            # composed gateway
+cargo run -p domain_posts                       # standalone post microservice
 ```

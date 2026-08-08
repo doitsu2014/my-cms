@@ -42,7 +42,7 @@ Add `domain_<name>` to `apps/api/Cargo.toml` `[workspace] members`:
 
 ```toml
 [workspace]
-members = ["application_core", "domain_<name>", "domain_interface", "domain_posts", "gateway", "migration", "test_helpers"]
+members = ["domain_<name>", "domain_auth", "domain_interface", "domain_media", "domain_posts", "domain_user", "gateway", "test_helpers"]
 ```
 
 Add `domain_<name> = { path = "domain_<name>" }` to `apps/api/gateway/Cargo.toml` `[dependencies]`.
@@ -132,7 +132,7 @@ cargo run -p gateway                             # composed boot test
 ## Pattern Compliance Checklist
 
 - [ ] `domain_<name>` has its own `Cargo.toml` declaring `domain_interface` as a dependency
-- [ ] `domain_<name>` does NOT depend on `domain_posts`, `application_core`, or any sibling domain
+- [ ] `domain_<name>` does NOT depend on `domain_posts`, any sibling domain, or the retired `application_core` / `migration` crates
 - [ ] `lib.rs` re-exports the canonical `Domain<Name>Service` via `pub use service::Domain<Name>Service;`
 - [ ] `main.rs` boots Axum, applies its own auth/CORS/cookie/body-limit/Otel layers, and binds the listener
 - [ ] `migrations_cli.rs` supports `cargo run -p domain_<name> -- migrate [--list]`
@@ -143,17 +143,13 @@ cargo run -p gateway                             # composed boot test
 
 ## When a domain is extracted
 
-The legacy `application_core` and `migration` crates become pure re-export shims. Each non-post domain (`categories`, `tags`, `media`, `users`, `ai`) follows the same recipe.
-
 Once `domain_<name>` is in place:
 
-1. `application_core::commands::<name>` becomes `pub use domain_<name>::handlers::*;`
-2. `application_core::entities::<name>` re-exports from `domain_<name>::entities`
-3. The legacy HTTP adapter at `apps/api/src/api/<name>/*` is removed
-4. `cargo run -p gateway` now serves `<name>` from the new domain crate
-5. `cargo run -p domain_<name>` standalone serves only the new domain's routes
+1. The legacy HTTP adapter tree (`apps/api/src/api/<name>/*`) and the `cms::api::<name>` adapters are already gone — `apps/api/src/` was retired by [`purge-legacy-cms-and-application-core`](../openspec/changes/purge-legacy-cms-and-application-core/). The `legacy_bootstrap` binary is also retired; there is no fallback path to remove.
+2. `cargo run -p gateway` serves `<name>` from the new domain crate after `Box::new(Domain<Name>Service::new(...))` is appended to `gateway::manifest()`.
+3. `cargo run -p domain_<name>` standalone serves only the new domain's routes and supports the operator `migrate` subcommand.
 
-The `domain_<name>` crate is fully removable when the gateway no longer needs to fall back to the legacy `cms::api::<name>` handlers.
+> **Historical:** the `application_core::commands::<name>` → `pub use domain_<name>::handlers::*;` re-export shim and the `application_core::entities::<name>` re-export are no longer needed — both transitional crates (`application_core` and `migration`) were retired by `purge-legacy-cms-and-application-core`. `test_helpers` now imports `domain_posts::migrations::{Migrator, MigratorTrait}` directly.
 
 ## Domain implementation checklist
 
