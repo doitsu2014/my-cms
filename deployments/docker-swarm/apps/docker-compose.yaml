@@ -183,6 +183,8 @@ services:
       context: ../../../apps/ducth-dev-website
       dockerfile: Dockerfile
     restart: unless-stopped
+    ports:
+      - "3001:3001"
     depends_on:
       my-cms-api:
         condition: service_started
