@@ -157,10 +157,7 @@ mod tests {
         assert_eq!(cfg.bucket, "media");
         assert_eq!(cfg.media_base_url, "http://example.com/media");
         assert_eq!(cfg.storage.supabase_url, "http://example.com");
-        assert_eq!(
-            cfg.storage.service_role_key.as_deref(),
-            Some("svc-key")
-        );
+        assert_eq!(cfg.storage.service_role_key.as_deref(), Some("svc-key"));
     }
 
     #[test]
