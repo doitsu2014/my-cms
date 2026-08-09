@@ -55,6 +55,9 @@ services:
   # ========================================
   migrate:
     container_name: my-cms-migrate
+    build:
+      context: ../../../apps/api
+      dockerfile: Dockerfile
     image: my-cms-api:dev
     restart: "no"
     depends_on:
@@ -98,6 +101,9 @@ services:
   # ========================================
   my-cms-api:
     container_name: my-cms-api
+    build:
+      context: ../../../apps/api
+      dockerfile: Dockerfile
     image: my-cms-api:dev
     restart: unless-stopped
     ports:
