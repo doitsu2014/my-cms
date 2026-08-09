@@ -72,7 +72,7 @@ Before drafting or revising specs, design, or tasks, call `get_minimal_context(t
 ```
 Gateway (apps/api/gateway/)                 — composition root and HTTP entrypoint
 Domain crates (apps/api/domain_*/)          — API adapters, command handlers, entities, integrations
-Migration ownership (apps/api/domain_posts/) — canonical Migrator + operator CLI (`domain_posts migrate`) + test-helper access
+Migration ownership (apps/api/domain_posts/) — canonical Migrator + operator CLI (`my-cms-api migrate`) + test-helper access
 ```
 
 - **No business logic in gateway composition** — delegate to domain services.
@@ -94,7 +94,7 @@ Run OpenSpec validation/status checks. Confirm every proposal outcome is specifi
 | Command handlers | `apps/api/domain_*/src/handlers/` |
 | Entities (auto-gen) | `apps/api/domain_posts/src/entities/` |
 | Migrations (canonical) | `apps/api/domain_posts/src/migrations/` |
-| Migration CLI | `apps/api/domain_posts/src/main.rs` (`migrate` subcommand via `domain_posts::migrations_cli::handle_args`) |
+| Migration CLI | `apps/api/gateway/src/migrate_cli.rs` (forwarded by `apps/api/gateway/src/main.rs` when invoked as `my-cms-api migrate <verb>`) |
 | Test helper migration access | `apps/api/test_helpers/src/lib.rs` (imports `domain_posts::migrations::{Migrator, MigratorTrait}`) |
 | Gateway composition | `apps/api/gateway/src/main.rs` |
 | Auth middleware | `apps/api/domain_auth/src/` |

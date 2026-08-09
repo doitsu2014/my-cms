@@ -69,7 +69,7 @@ Before handoff, verify that every requested outcome is represented, conflicts ar
 ## Domain knowledge
 
 - Backend: domain-owned API adapters and command handlers in `apps/api/domain_*/src/`, composed by `apps/api/gateway/`
-- DB: SeaORM entities (auto-generated from schema), canonical migrations in `apps/api/domain_posts/src/migrations/`, CLI in `domain_posts` (`cargo run -p domain_posts -- migrate` / `/app/domain_posts migrate up` in containers)
+- DB: SeaORM entities (auto-generated from schema), canonical migrations in `apps/api/domain_posts/src/migrations/`, CLI in `gateway` (`cargo run -p gateway -- migrate` / `/app/my-cms-api migrate up` in containers)
 - Frontend: Pages in `apps/web/src/app/admin/`, components in `apps/web/src/components/`
 - Auth: Supabase GoTrue JWT middleware in `apps/api/domain_auth/src/`
 - AI: 3-tier lookup (DB → pgvector → OpenAI) in `apps/api/domain_posts/src/handlers/`

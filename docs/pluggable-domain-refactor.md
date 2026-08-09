@@ -41,7 +41,7 @@ The cutover is **staged**:
 
 3. **Stage 3 (DONE)** — The legacy `cms::api::*` adapter tree, the `cms` library, the `legacy_bootstrap` binary, and the `application_core` and `migration` transitional crates have all been removed (see `purge-legacy-cms-and-application-core`). The gateway composition is the sole production runtime.
 
-4. **Stage 4 (DONE)** — `application_core` and `migration` crates have been deleted. `test_helpers` imports `domain_posts::migrations` directly; the operator migration CLI is `domain_posts migrate up` (or `cargo run -p domain_posts -- migrate` locally).
+4. **Stage 4 (DONE)** — `application_core` and `migration` crates have been deleted. `test_helpers` imports `domain_posts::migrations` directly. The operator migration CLI is `my-cms-api migrate up` (or `cargo run -p gateway -- migrate` locally) — see `gateway-migrate-cli-and-delete-domain-posts-bin`.
 
 ## Per-Domain Ownership
 
@@ -116,8 +116,8 @@ cargo check --workspace
 cargo test --workspace
 cargo fmt -- --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
-cargo build --release --workspace --bins   # produces my-cms-api + domain_posts
-cargo run -p domain_posts -- migrate --list   # 4 IDs in original order
+cargo build --release --workspace --bins   # produces only my-cms-api
+cargo run -p gateway -- migrate --list   # 4 IDs in original order
 cargo run -p gateway                            # composed gateway
-cargo run -p domain_posts                       # standalone post microservice
+cargo run -p gateway                            # operator migration CLI
 ```

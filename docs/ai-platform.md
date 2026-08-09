@@ -55,7 +55,7 @@ For the deep dive — architecture flows, configuration, API reference, Qdrant c
 
 - Source folder: [`apps/api/domain_posts/src/handlers/post/translate/`](apps/api/domain_posts/src/handlers/post/translate/) (canonical AI translation handlers; the 3-tier lookup lives here)
 - Vector store adapter: [`apps/api/domain_posts/src/handlers/vector_store/`](apps/api/domain_posts/src/handlers/vector_store/)
-- Migration CLI: `cargo run -p domain_posts -- migrate [--list]` (operator-facing; the standalone migration binary is part of the `domain_posts` crate)
+- Migration CLI: `cargo run -p gateway -- migrate [--list]` (operator-facing; the migrate subcommand is part of the `gateway` binary's CLI surface)
 
 > **Historical:** the AI translation pipeline lived under `apps/api/application_core/src/commands/ai/`. The `application_core` crate was retired by [`purge-legacy-cms-and-application-core`](../openspec/changes/purge-legacy-cms-and-application-core/); the handlers were moved verbatim into `domain_posts::handlers::{post::translate, vector_store}`.
 
