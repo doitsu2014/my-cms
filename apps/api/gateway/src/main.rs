@@ -42,6 +42,7 @@ use domain_posts::service::DomainPostService;
 use domain_user::api::state::UserApiState;
 use domain_user::handlers::supabase_admin_client::SupabaseAdminClient;
 use domain_user::service::DomainUserService;
+use tower_cookies::CookieManagerLayer;
 use tracing::{error, info};
 
 /// Manifest of domain services registered into the gateway.
@@ -267,9 +268,20 @@ fn compose_routers(
     let administrator_layer =
         auth_layer_from_env(audience, vec!["my-headless-cms-administrator".to_string()])?;
 
-    Ok(public
-        .merge(protected.layer(protected_layer))
-        .merge(administrator.layer(administrator_layer)))
+    Ok(with_cookie_manager(
+        public
+            .merge(protected.layer(protected_layer))
+            .merge(administrator.layer(administrator_layer)),
+    ))
+}
+
+/// Supply the request extension required by handlers that extract `Cookies`.
+/// Domain routers remain bare, so this belongs at the gateway boundary.
+fn with_cookie_manager<S>(router: Router<S>) -> Router<S>
+where
+    S: Clone + Send + Sync + 'static,
+{
+    router.layer(CookieManagerLayer::new())
 }
 
 /// `GET /` — root banner.
@@ -335,7 +347,98 @@ pub(crate) fn build_media_config() -> Result<MediaConfig, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+    };
+    use domain_interface::{HealthDescriptor, RouteRegistration};
     use domain_user::handlers::supabase_admin_client::SupabaseAdminClient;
+    use std::{ffi::OsString, sync::Mutex};
+    use tower::ServiceExt;
+
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
+
+    struct ScopedEnvVar {
+        name: &'static str,
+        previous: Option<OsString>,
+    }
+
+    impl ScopedEnvVar {
+        fn set(name: &'static str, value: &str) -> Self {
+            let previous = std::env::var_os(name);
+            std::env::set_var(name, value);
+            Self { name, previous }
+        }
+    }
+
+    impl Drop for ScopedEnvVar {
+        fn drop(&mut self) {
+            if let Some(value) = &self.previous {
+                std::env::set_var(self.name, value);
+            } else {
+                std::env::remove_var(self.name);
+            }
+        }
+    }
+
+    struct CookieProbeService;
+
+    impl DomainService for CookieProbeService {
+        fn health(&self) -> HealthDescriptor {
+            HealthDescriptor {
+                name: "cookie-probe",
+                version: "test",
+            }
+        }
+
+        fn required_env(&self) -> &'static [&'static str] {
+            &[]
+        }
+
+        fn validate_config(&self) -> Result<(), domain_interface::DomainConfigError> {
+            Ok(())
+        }
+
+        fn migrations(&self) -> Vec<domain_interface::MigrationDescriptor> {
+            Vec::new()
+        }
+
+        fn register_routes(&self, _ctx: &DomainContext) -> Vec<RouteRegistration> {
+            vec![RouteRegistration {
+                mount: Mount::Public,
+                router: Router::new().route("/cookie-probe", get(cookie_probe)),
+                prefix: "/cookie-probe",
+            }]
+        }
+    }
+
+    async fn cookie_probe(_cookies: tower_cookies::Cookies) -> StatusCode {
+        StatusCode::OK
+    }
+
+    fn stub_domain_context() -> DomainContext {
+        use async_graphql::dynamic::{Field, FieldFuture, Object, Schema, TypeRef};
+        use async_graphql::Value;
+
+        let schema = || {
+            Arc::new(
+                Schema::build("Query", None, None)
+                    .register(Object::new("Query").field(Field::new(
+                        "placeholder",
+                        TypeRef::named_nn("Boolean"),
+                        |_| FieldFuture::new(async { Ok(Some(Value::from(true))) }),
+                    )))
+                    .finish()
+                    .unwrap(),
+            )
+        };
+
+        DomainContext {
+            conn: Arc::new(sea_orm::DatabaseConnection::default()),
+            graphql_immutable: schema(),
+            graphql_mutable: schema(),
+        }
+    }
 
     fn stub_media_config() -> Arc<MediaConfig> {
         use domain_media::handlers::supabase_storage::SupabaseStorage;
@@ -356,6 +459,32 @@ mod tests {
             "http://localhost:9999".to_string(),
             "service-role-test-key".to_string(),
         ))
+    }
+
+    #[tokio::test]
+    async fn compose_routers_supplies_cookie_extractor_to_domain_routes() {
+        let _env_lock = ENV_LOCK.lock().unwrap_or_else(|error| error.into_inner());
+        let supabase_url = ScopedEnvVar::set("SUPABASE_URL", "http://localhost:8000");
+        let jwt_secret = ScopedEnvVar::set("SUPABASE_JWT_SECRET", "test-secret");
+
+        let ctx = stub_domain_context();
+        let services: Vec<Box<dyn DomainService>> = vec![Box::new(CookieProbeService)];
+        let app = compose_routers(&services, &ctx).unwrap().with_state(ctx);
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/cookie-probe")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        drop(jwt_secret);
+        drop(supabase_url);
     }
 
     #[test]
