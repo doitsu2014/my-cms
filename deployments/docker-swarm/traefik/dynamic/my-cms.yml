@@ -107,6 +107,8 @@ http:
         accessControlAllowOriginList:
           - '{{ env "CMS_ADMIN_ORIGIN" | default "https://cms-admin.ducth.dev" }}'
           - "https://ducth.dev"
+          - "http://localhost:3001"
+          - "http://localhost:3002"
         accessControlAllowMethods:
           - GET
           - POST
