@@ -11,7 +11,7 @@ name = "domain_user"
 path = "src/lib.rs"
 
 [dependencies]
-async-std = "1.13.2"
+async-std = { version = "1.13.2", features = ["attributes"] }
 async-trait = "0.1"
 axum = { version = "0.8.9", features = ["http2", "tracing", "multipart"] }
 chrono = { version = "0.4.44", features = ["serde"] }
