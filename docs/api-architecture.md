@@ -1,4 +1,4 @@
-> **Phase A and migration cleanup completed:** `apps/api/application_core/`, the legacy `apps/api/src/**` runtime, and `apps/api/migration/` were removed by [`purge-legacy-cms-and-application-core`](../openspec/changes/purge-legacy-cms-and-application-core/). Canonical migrations remain in `domain_posts`; operators use `domain_posts migrate up`, and `test_helpers` imports `domain_posts::migrations` directly.
+> **Phase A and migration cleanup completed:** `apps/api/application_core/`, the legacy `apps/api/src/**` runtime, and `apps/api/migration/` were removed by [`purge-legacy-cms-and-application-core`](../openspec/changes/purge-legacy-cms-and-application-core/). Canonical migrations remain in `domain_posts`; operators use `my-cms-api migrate up` (or `cargo run -p gateway -- migrate up` locally), and `test_helpers` imports `domain_posts::migrations` directly.
 
  (Implemented + In-Progress)
 
@@ -6,7 +6,7 @@ This document captures the **as-built** state of the API architecture after `ref
 
 > **Current state:** `legacy_bootstrap`, `cms`, `application_core`, and `migration` have been removed. The remaining domain-adapter work is to register media and user services in `gateway::manifest()`; until that follow-up lands, the gateway serves the route surface shown in §10.
 
-> **Note on retired legacy crates:** `application_core`, `migration`, `cms`, and `legacy_bootstrap` are no longer workspace members or runtime artifacts. Post, AI translation, vector-store, pgvector, media, user, and tag business logic remains in the domain crates. The operator migration workflow is `domain_posts migrate up`; canonical migration identities live under `domain_posts::migrations`.
+> **Note on retired legacy crates:** `application_core`, `migration`, `cms`, and `legacy_bootstrap` are no longer workspace members or runtime artifacts. Post, AI translation, vector-store, pgvector, media, user, and tag business logic remains in the domain crates. The operator migration workflow is `my-cms-api migrate up` (see `apps/api/gateway/src/migrate_cli.rs`); canonical migration identities live under `domain_posts::migrations`.
 
 ## 1. Cargo Workspace
 
@@ -73,7 +73,7 @@ graph LR
 
 **Workspace member legend:**
 - **Pluggable domain architecture:** `domain_interface`, `domain_auth`, `domain_posts`, `domain_media`, `domain_user`, `gateway`, `test_helpers`.
-- **Canonical migrations and operator CLI:** `domain_posts::migrations` and `domain_posts migrate`.
+- **Canonical migrations and operator CLI:** `domain_posts::migrations` and `my-cms-api migrate` (via `apps/api/gateway/src/migrate_cli.rs`).
 - **Retired:** `cms`, `legacy_bootstrap`, `application_core`, and `migration` are no longer workspace members or runtime artifacts.
 
 ## 2. Deployment Modes — API and Migration Binaries
@@ -95,7 +95,7 @@ graph TB
 
     subgraph binB["Binary: domain_posts  (operator migration CLI)"]
         direction TB
-        LA["apps/api/domain_posts/src/main.rs<br/>• domain_posts migrate up<br/>• domain_posts migrate --list<br/>• canonical migrations from<br/>domain_posts::migrations"]
+        LA["apps/api/gateway/src/migrate_cli.rs<br/>• my-cms-api migrate up<br/>• my-cms-api migrate --list<br/>• canonical migrations from<br/>domain_posts::migrations"]
     end
 
     subgraph dp["domain_posts (standalone)"]
@@ -104,7 +104,7 @@ graph TB
 
     LB --> binA
     LB --> binB
-    DA -. "operator migration command<br/>(domain_posts migrate up)" .-> DB
+    DA -. "operator migration command<br/>(my-cms-api migrate up)" .-> DB
 
     classDef gateway fill:#f3e8ff,stroke:#6f42c1,stroke-width:2px,color:#3a1d63
     classDef domain fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
@@ -506,7 +506,7 @@ graph LR
 | `/media/**`, `/media/buckets/**`, `/media/info/**`, `/media/delete/**`, `/media/images/**` | 🟡 | ❌ |
 | `/users/**` | 🟡 | ❌ |
 | `/administrator/database/migration` | 🟡 | ❌ |
-| `domain_posts migrate up` | operator CLI | operator CLI |
+| `my-cms-api migrate up` | operator CLI | operator CLI |
 
 > 🟡 = domain adapters exist but the corresponding service is not yet registered in `gateway::manifest()`. No legacy runtime serves these routes.
 
@@ -520,7 +520,7 @@ graph LR
 `application_core` and `migration` have been deleted. Their former responsibilities now live in the domain crates:
 
 - canonical SeaORM entities and migrations: `apps/api/domain_posts/src/entities/` and `apps/api/domain_posts/src/migrations/`;
-- operator migration CLI: `apps/api/domain_posts/src/main.rs` via `domain_posts migrate`;
+- operator migration CLI: `apps/api/gateway/src/migrate_cli.rs` via `my-cms-api migrate` (dispatched at the top of `apps/api/gateway/src/main.rs`);
 - test migration access: `apps/api/test_helpers/src/lib.rs` imports `domain_posts::migrations` directly.
 
 No compatibility re-export or standalone legacy migration crate remains.
@@ -575,7 +575,7 @@ graph TB
     class F1,F2,F3,F4 futureStage
 ```
 
-> **Remaining work:** Register `DomainMediaService` and `DomainUserService` in `gateway::manifest()`, then add route, authorization, and deployment parity tests. The migration CLI is already `domain_posts migrate up`; no legacy migration crate remains.
+> **Status:** `DomainMediaService` and `DomainUserService` are now registered in `gateway::manifest()` (see `wire-domain-user-and-domain-media-into-gateway`). The migration CLI is `my-cms-api migrate up` (see `gateway-migrate-cli-and-delete-domain-posts-bin`); no legacy migration crate remains.
 
 
 See `docs/adding-a-domain.md` for the recipe and `docs/pluggable-domain-refactor.md` for the full architectural overview.

@@ -2,7 +2,7 @@
 name = "gateway"
 version = "0.1.0"
 edition = "2021"
-description = "Thin composition root for pluggable domain services. Produces the my-cms-api binary and iterates a Vec<Box<dyn DomainService>> to compose Axum routers."
+description = "Thin composition root for pluggable domain services (posts, auth, media, user). Produces the my-cms-api binary and iterates a Vec<Box<dyn DomainService>> to compose Axum routers."
 license = "MIT OR Apache-2.0"
 publish = false
 
@@ -14,6 +14,8 @@ path = "src/main.rs"
 domain_interface = { path = "../domain_interface" }
 domain_posts = { path = "../domain_posts" }
 domain_auth = { path = "../domain_auth" }
+domain_media = { path = "../domain_media" }
+domain_user = { path = "../domain_user" }
 
 axum = { version = "0.8.9", features = ["http2", "tracing", "multipart"] }
 tokio = { version = "1.52.3", features = ["full"] }

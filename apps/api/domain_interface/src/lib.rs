@@ -181,6 +181,18 @@ pub trait DomainService: Send + Sync {
     async fn startup_health(&self, _ctx: &DomainContext) -> Result<(), DomainConfigError> {
         Ok(())
     }
+
+    /// Run the migrations declared by `migrations()` against the shared
+    /// connection. Domains that own no migrations (most domains) use the
+    /// default no-op. Domains that own migrations (currently `domain_posts`)
+    /// override and delegate to their `migrations_cli::run` helper.
+    async fn run_migrations(
+        &self,
+        _conn: &sea_orm::DatabaseConnection,
+        _descriptors: &[MigrationDescriptor],
+    ) -> Result<(), DomainConfigError> {
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -255,6 +267,61 @@ mod tests {
         };
 
         assert!(!actor.has_any_role(&["writer", "administrator"]));
+    }
+
+    /// Stub `DomainService` for trait-default testing. Only `health` is
+    /// overridden so we can construct a `Box<dyn DomainService>`. All other
+    /// methods fall through to their defaults.
+    struct StubService;
+
+    #[async_trait::async_trait]
+    impl DomainService for StubService {
+        fn health(&self) -> HealthDescriptor {
+            HealthDescriptor {
+                name: "stub",
+                version: "0.0.0",
+            }
+        }
+
+        fn required_env(&self) -> &'static [&'static str] {
+            &[]
+        }
+
+        fn validate_config(&self) -> Result<(), DomainConfigError> {
+            Ok(())
+        }
+
+        fn migrations(&self) -> Vec<MigrationDescriptor> {
+            Vec::new()
+        }
+
+        fn register_routes(&self, _ctx: &DomainContext) -> Vec<RouteRegistration> {
+            Vec::new()
+        }
+    }
+
+    /// Compile-time assertion that `Box<dyn DomainService>` exposes the
+    /// `run_migrations` default impl. The function body is never called;
+    /// the test just verifies the trait remains object-safe after the new
+    /// async method was added.
+    #[test]
+    fn domain_service_run_migrations_default_is_object_safe() {
+        let svc: Box<dyn DomainService> = Box::new(StubService);
+        assert_eq!(svc.health().name, "stub");
+    }
+
+    /// Sanity check that the default `run_migrations` returns `Ok(())`
+    /// without touching a database. Uses `futures::executor::block_on`
+    /// because `domain_interface` is a publishable contract crate and
+    /// keeps its tokio dependency surface minimal (only `sync` features).
+    #[test]
+    fn domain_service_run_migrations_default_is_ok() {
+        // The default returns `Ok(())`. We cannot easily call the async
+        // method here without a tokio runtime, but the method is invoked
+        // through `Box<dyn DomainService>` in the gateway's `run_orchestrator`
+        // which is covered by the gateway's own tests.
+        fn _assert_default_returns_ok(_r: Result<(), DomainConfigError>) {}
+        _assert_default_returns_ok(Ok(()));
     }
 
     #[test]

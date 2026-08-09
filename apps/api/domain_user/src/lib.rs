@@ -13,9 +13,15 @@
 #![deny(unsafe_code)]
 #![warn(missing_debug_implementations)]
 
+pub mod api;
 pub mod domain;
 pub mod dto;
 pub mod handlers;
 pub mod observability;
+pub mod service;
+
+#[cfg(test)]
+pub mod test_lock;
 
 pub use domain::error::AppError;
+pub use service::DomainUserService;
