@@ -74,4 +74,14 @@ impl DomainService for DomainPostService {
         })?;
         Ok(())
     }
+
+    async fn run_migrations(
+        &self,
+        conn: &sea_orm::DatabaseConnection,
+        _descriptors: &[MigrationDescriptor],
+    ) -> Result<(), DomainConfigError> {
+        crate::migrations_cli::run(conn)
+            .await
+            .map_err(|e| DomainConfigError::MigrationExecution(format!("domain_posts: {}", e)))
+    }
 }

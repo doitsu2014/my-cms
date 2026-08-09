@@ -22,6 +22,8 @@
 
 #![deny(unsafe_code)]
 
+mod migrate_cli;
+
 use std::env;
 use std::process::ExitCode;
 use std::sync::Arc;
@@ -40,7 +42,7 @@ use domain_posts::service::DomainPostService;
 use domain_user::api::state::UserApiState;
 use domain_user::handlers::supabase_admin_client::SupabaseAdminClient;
 use domain_user::service::DomainUserService;
-use tracing::{error, info, warn};
+use tracing::{error, info};
 
 /// Manifest of domain services registered into the gateway.
 ///
@@ -62,38 +64,46 @@ pub fn manifest(
 
 /// Collect `MigrationDescriptor`s from every registered domain and run them
 /// against the shared `DatabaseConnection`. The descriptors are
-/// topologically sorted by `id` (and `depends_on`), deduplicated, and run
-/// sequentially. Errors are surfaced as `String` so the caller can convert
-/// them to `DomainConfigError::MigrationExecution` or to a 5xx HTTP
-/// response.
+/// deduplicated by `id` and dispatched per-domain via the
+/// `DomainService::run_migrations` trait method — no domain name is
+/// hard-coded here.
 pub async fn run_orchestrator(
     services: &[Box<dyn DomainService>],
     conn: &sea_orm::DatabaseConnection,
-) -> Result<(), String> {
-    use domain_interface::MigrationDescriptor;
-
-    let mut all: Vec<MigrationDescriptor> = services.iter().flat_map(|s| s.migrations()).collect();
+) -> Result<(), domain_interface::DomainConfigError> {
+    let mut all: Vec<domain_interface::MigrationDescriptor> =
+        services.iter().flat_map(|s| s.migrations()).collect();
 
     // Deduplicate by id, preserving the first occurrence.
     all.sort_by_key(|d| d.id);
     all.dedup_by_key(|d| d.id);
 
-    info!("running {} migration(s)", all.len());
+    info!(
+        "running {} migration(s) across {} service(s)",
+        all.len(),
+        services.len()
+    );
     for d in &all {
         info!("  - {} (depends_on={:?})", d.id, d.depends_on);
     }
 
-    // Each domain's migration runner is invoked via the per-domain CLI.
-    // For now, only `domain_posts` owns migrations; future domains will
-    // extend this with their own runner.
-    for d in &all {
-        if d.id.starts_with("m2024") || d.id.starts_with("m2026") {
-            domain_posts::migrations_cli::run(conn)
-                .await
-                .map_err(|e| format!("{} failed: {}", d.id, e))?;
-        } else {
-            warn!("migration {} has no runner registered", d.id);
+    for service in services {
+        let descriptors = service.migrations();
+        if descriptors.is_empty() {
+            continue;
         }
+        let name = service.health().name;
+        info!(
+            "dispatching {} migration(s) for {}",
+            descriptors.len(),
+            name
+        );
+        service
+            .run_migrations(conn, &descriptors)
+            .await
+            .map_err(|e| {
+                domain_interface::DomainConfigError::MigrationExecution(format!("{}: {}", name, e))
+            })?;
     }
 
     Ok(())
@@ -102,6 +112,15 @@ pub async fn run_orchestrator(
 #[tokio::main]
 async fn main() -> ExitCode {
     let _ = dotenv::dotenv();
+
+    // CLI dispatch: `my-cms-api migrate <verb>` runs migrations without
+    // binding the HTTP listener. Must happen before observability init
+    // so the migration output stays clean.
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.first().map(|s| s.as_str()) == Some("migrate") {
+        return migrate_cli::handle_args(&args[1..]).await;
+    }
+
     init_observability();
 
     let media_config = match MediaConfig::from_env() {
@@ -263,7 +282,7 @@ async fn health_handler() -> impl IntoResponse {
     response::Html("CMS is running successfully!")
 }
 
-async fn connect_database() -> Result<Arc<sea_orm::DatabaseConnection>, String> {
+pub(crate) async fn connect_database() -> Result<Arc<sea_orm::DatabaseConnection>, String> {
     use sea_orm::Database;
     let database_url =
         std::env::var("DATABASE_URL").map_err(|_| "DATABASE_URL must be set".to_string())?;
@@ -298,12 +317,19 @@ fn init_observability() {
 
 /// Build the `UserApiState` from `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`.
 /// Fails fast with a clear message if either is missing.
-fn build_user_state() -> Result<UserApiState, String> {
+pub(crate) fn build_user_state() -> Result<UserApiState, String> {
     let url = env::var("SUPABASE_URL").map_err(|_| "SUPABASE_URL must be set".to_string())?;
     let key = env::var("SUPABASE_SERVICE_ROLE_KEY")
         .map_err(|_| "SUPABASE_SERVICE_ROLE_KEY must be set".to_string())?;
     let client = SupabaseAdminClient::new(url, key);
     Ok(UserApiState::new(client))
+}
+
+/// Build the `MediaConfig` from process env vars. Re-exported so
+/// `migrate_cli::run_up_orchestrator` can compose the same config the HTTP
+/// listener uses.
+pub(crate) fn build_media_config() -> Result<MediaConfig, String> {
+    MediaConfig::from_env().map_err(|e| format!("{}", e))
 }
 
 #[cfg(test)]
