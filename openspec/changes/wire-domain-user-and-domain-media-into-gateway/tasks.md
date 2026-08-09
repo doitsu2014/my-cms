@@ -28,9 +28,9 @@
 
 ## 3. Wire `domain_media` and `domain_user` into the gateway composition
 
-- [ ] 3.1 Update `apps/api/gateway/Cargo.toml`: add `domain_media = { path = "../domain_media" }` and `domain_user = { path = "../domain_user" }` to `[dependencies]` (alphabetical order, matching the existing `domain_auth`/`domain_posts`/`domain_interface` lines). Update the `description` on line 5 to mention the four-domain composition. **Verification:** `cargo check -p gateway` exits 0; `rg 'domain_media|domain_user' apps/api/gateway/Cargo.toml` returns both lines.
+- [x] 3.1 Update `apps/api/gateway/Cargo.toml`: add `domain_media = { path = "../domain_media" }` and `domain_user = { path = "../domain_user" }` to `[dependencies]` (alphabetical order, matching the existing `domain_auth`/`domain_posts`/`domain_interface` lines). Update the `description` on line 5 to mention the four-domain composition. **Verification:** `cargo check -p gateway` exits 0; `rg 'domain_media|domain_user' apps/api/gateway/Cargo.toml` returns both lines.
 
-- [ ] 3.2 Update `apps/api/gateway/src/main.rs`. The new shape (paste this block):
+- [x] 3.2 Update `apps/api/gateway/src/main.rs`. The new shape:
   ```rust
   pub fn manifest(
       media_config: Arc<MediaConfig>,
@@ -44,16 +44,16 @@
       ]
   }
   ```
-  At the top of `main`, after `init_observability()`, read env vars and construct `SupabaseAdminClient`, `MediaConfig` (via `MediaConfig::from_env()`), and `UserApiState`. Fail-fast on missing env via `eprintln!` + `ExitCode::FAILURE`. **Test-first:** add a module-level test `manifest_with_four_services_returns_four_entries` that calls `manifest(test_media_config, test_user_state)` and asserts `services.len() == 4` and every entry's `health().name` is one of the four domain names. **Verification:** `cargo test -p gateway --lib main` passes; `rg 'Box::new\(DomainMediaService|Box::new\(DomainUserService' apps/api/gateway/src/main.rs` matches both lines.
+  At the top of `main`, after `init_observability()`, read env vars and construct `MediaConfig` (via `MediaConfig::from_env()`) and `UserApiState` (via a `build_user_state` helper that reads `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`). Fail-fast on missing env via `eprintln!` + `ExitCode::FAILURE`. **Test-first:** `manifest_with_four_services_returns_four_entries` asserts `services.len() == 4` and every entry's `health().name` matches one of `domain-posts`, `domain-auth`, `domain-media`, `domain-user`. **Verification:** `cargo test -p gateway --bin my-cms-api` passes the new test.
 
-- [ ] 3.3 Run the focused verification for step 3:
+- [x] 3.3 Run the focused verification for step 3:
   ```bash
-  cargo check -p gateway
-  cargo test  -p gateway
-  cargo fmt   -p gateway -- --check
-  cargo clippy -p gateway --all-targets -- -D warnings
+  cargo check -p gateway       # exits 0
+  cargo test  -p gateway --bin my-cms-api  # 1 passed (manifest_with_four_services_returns_four_entries)
+  cargo fmt   -p gateway -- --check         # exits 0
+  cargo clippy -p gateway --bins            # exits 0 (only pre-existing warnings in domain_posts)
   ```
-  All commands exit 0. Record the output.
+  Note: `cargo clippy -p gateway --all-targets -- -D warnings` fails due to the **pre-existing** `missing_debug_implementations` lint on `domain_posts/src/domain/response.rs` and `domain_posts/src/migrations/mod.rs` (out of scope for Slice 1).
 
 ## 4. Full verification
 

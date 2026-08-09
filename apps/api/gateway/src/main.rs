@@ -34,17 +34,29 @@ use axum::{
 use domain_auth::factory::auth_layer_from_env;
 use domain_auth::service::DomainAuthService;
 use domain_interface::{DomainContext, DomainService, Mount};
+use domain_media::handlers::MediaConfig;
+use domain_media::service::DomainMediaService;
 use domain_posts::service::DomainPostService;
+use domain_user::api::state::UserApiState;
+use domain_user::handlers::supabase_admin_client::SupabaseAdminClient;
+use domain_user::service::DomainUserService;
 use tracing::{error, info, warn};
 
 /// Manifest of domain services registered into the gateway.
 ///
-/// Each future domain (`domain_categories`, `domain_tags`, `domain_media`,
-/// `domain_users`) is appended here as a `Box<dyn DomainService>`.
-pub fn manifest() -> Vec<Box<dyn DomainService>> {
+/// Each future domain (`domain_categories`, `domain_tags`, ...) is appended
+/// here as a `Box<dyn DomainService>`. Slice 1 of
+/// `wire-all-domains-and-collapse-to-gateway-binary` adds `DomainMediaService`
+/// and `DomainUserService` so the gateway exposes every route-owning domain.
+pub fn manifest(
+    media_config: Arc<MediaConfig>,
+    user_state: UserApiState,
+) -> Vec<Box<dyn DomainService>> {
     vec![
         Box::new(DomainPostService::new()),
         Box::new(DomainAuthService::new()),
+        Box::new(DomainMediaService::new(media_config)),
+        Box::new(DomainUserService::from_state(user_state)),
     ]
 }
 
@@ -92,7 +104,23 @@ async fn main() -> ExitCode {
     let _ = dotenv::dotenv();
     init_observability();
 
-    let services = manifest();
+    let media_config = match MediaConfig::from_env() {
+        Ok(c) => Arc::new(c),
+        Err(e) => {
+            eprintln!("media config failed: {}", e);
+            return ExitCode::FAILURE;
+        }
+    };
+
+    let user_state = match build_user_state() {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("user state construction failed: {}", e);
+            return ExitCode::FAILURE;
+        }
+    };
+
+    let services = manifest(media_config, user_state);
     info!(
         "gateway booting with {} registered domain service(s)",
         services.len()
@@ -266,4 +294,52 @@ fn init_observability() {
         .with(filter)
         .with(tracing_subscriber::fmt::layer().with_target(true));
     let _ = tracing::subscriber::set_global_default(subscriber);
+}
+
+/// Build the `UserApiState` from `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`.
+/// Fails fast with a clear message if either is missing.
+fn build_user_state() -> Result<UserApiState, String> {
+    let url = env::var("SUPABASE_URL").map_err(|_| "SUPABASE_URL must be set".to_string())?;
+    let key = env::var("SUPABASE_SERVICE_ROLE_KEY")
+        .map_err(|_| "SUPABASE_SERVICE_ROLE_KEY must be set".to_string())?;
+    let client = SupabaseAdminClient::new(url, key);
+    Ok(UserApiState::new(client))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use domain_user::handlers::supabase_admin_client::SupabaseAdminClient;
+
+    fn stub_media_config() -> Arc<MediaConfig> {
+        use domain_media::handlers::supabase_storage::SupabaseStorage;
+        use domain_media::handlers::MediaConfig;
+        Arc::new(MediaConfig {
+            storage: SupabaseStorage::new(
+                "http://localhost:9999".to_string(),
+                "anon".to_string(),
+                Some("service-role-test-key".to_string()),
+            ),
+            bucket: "test-bucket".to_string(),
+            media_base_url: "http://localhost:9999".to_string(),
+        })
+    }
+
+    fn stub_user_state() -> UserApiState {
+        UserApiState::new(SupabaseAdminClient::new(
+            "http://localhost:9999".to_string(),
+            "service-role-test-key".to_string(),
+        ))
+    }
+
+    #[test]
+    fn manifest_with_four_services_returns_four_entries() {
+        let services = manifest(stub_media_config(), stub_user_state());
+        assert_eq!(services.len(), 4);
+        let names: Vec<&str> = services.iter().map(|s| s.health().name).collect();
+        assert!(names.contains(&"domain-posts"));
+        assert!(names.contains(&"domain-auth"));
+        assert!(names.contains(&"domain-media"));
+        assert!(names.contains(&"domain-user"));
+    }
 }
