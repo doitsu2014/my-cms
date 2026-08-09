@@ -398,7 +398,7 @@ mod tests {
 
     use super::Posts;
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_create_post_testcase_01() {
         assert_eq!(Posts::Table.to_string(), "posts");
     }

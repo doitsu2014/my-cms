@@ -143,7 +143,7 @@ pub mod tests {
         fake_create_category_request, fake_create_category_request_as_child,
     };
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_create_cartegory_testcase_01() {
         let beginning_test_timestamp = chrono::Utc::now();
         let test_space = setup_test_space().await;
@@ -174,7 +174,7 @@ pub mod tests {
         assert!(first.tags.len() == number_of_tags);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_create_cartegory_testcase_parent() {
         let test_space = setup_test_space().await;
         let conn = test_space.postgres.get_database_connection().await;

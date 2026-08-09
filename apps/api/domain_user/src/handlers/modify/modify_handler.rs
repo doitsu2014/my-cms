@@ -107,7 +107,7 @@ mod tests {
         (ModifyUserHandler { supabase: client }, server)
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_modify_user_rejects_unknown_role() {
         let (handler, _server) = setup_handler_with_mock().await;
         let id = Uuid::parse_str("33333333-3333-3333-3333-333333333333").unwrap();
@@ -125,7 +125,7 @@ mod tests {
         assert!(matches!(err, AppError::Validation(_, _)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_modify_user_returns_not_found_on_404() {
         let (handler, server) = setup_handler_with_mock().await;
         let id = Uuid::parse_str("33333333-3333-3333-3333-333333333333").unwrap();
@@ -152,7 +152,7 @@ mod tests {
         assert!(matches!(err, AppError::NotFound));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_modify_user_translates_banned_true_to_update() {
         let (handler, server) = setup_handler_with_mock().await;
         let id = Uuid::parse_str("33333333-3333-3333-3333-333333333333").unwrap();

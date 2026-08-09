@@ -75,7 +75,7 @@ mod tests {
         })
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn rejects_invalid_name() {
         let handler = CreateBucketHandler {
             media_config: make_config(),
@@ -93,7 +93,7 @@ mod tests {
         }
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn rejects_reserved_name() {
         let handler = CreateBucketHandler {
             media_config: make_config(),

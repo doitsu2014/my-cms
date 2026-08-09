@@ -448,7 +448,7 @@ mod tests {
         assert!(!debug_str.contains("super-secret-key"));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn list_users_issues_bearer_and_apikey_headers() {
         let server = MockServer::start().await;
         let client = make_client(&server.uri(), "service-role-test-key");
@@ -489,7 +489,7 @@ mod tests {
         assert!(!users[0].banned);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn get_user_returns_404_on_not_found() {
         let server = MockServer::start().await;
         let client = make_client(&server.uri(), "service-role-test-key");
@@ -508,7 +508,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn create_user_posts_email_confirm_and_app_metadata() {
         let server = MockServer::start().await;
         let client = make_client(&server.uri(), "service-role-test-key");
@@ -545,7 +545,7 @@ mod tests {
         assert_eq!(user.role.as_deref(), Some("my-headless-cms-writer"));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn update_user_translates_banned_true_to_ban_duration() {
         let server = MockServer::start().await;
         let client = make_client(&server.uri(), "service-role-test-key");
@@ -586,7 +586,7 @@ mod tests {
         assert!(user.banned);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn delete_user_issues_delete_to_admin_path() {
         let server = MockServer::start().await;
         let client = make_client(&server.uri(), "service-role-test-key");
@@ -608,7 +608,7 @@ mod tests {
         assert!(result.is_ok(), "expected Ok, got {:?}", result);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn error_messages_never_include_service_role_key() {
         let server = MockServer::start().await;
         let secret = "service-role-leaked-secret-12345";

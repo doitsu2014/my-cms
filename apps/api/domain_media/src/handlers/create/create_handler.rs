@@ -100,7 +100,7 @@ mod tests {
         })
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn response_url_uses_media_base_url_when_bucket_query_included() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
@@ -132,7 +132,7 @@ mod tests {
         );
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn response_url_uses_media_base_url_when_bucket_query_omitted_for_image() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))

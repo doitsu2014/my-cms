@@ -98,7 +98,7 @@ mod tests {
         Arc::new(create_bucket_visibility_cache())
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn ensure_public_or_admin_passes_when_bucket_is_public_and_caller_is_anon() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -118,7 +118,7 @@ mod tests {
         assert!(matches!(result, Ok(())));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn ensure_public_or_admin_rejects_with_not_found_when_bucket_is_private_and_caller_is_anon(
     ) {
         let server = MockServer::start().await;
@@ -141,7 +141,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn ensure_public_or_admin_skips_supabase_when_is_admin_true() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -162,7 +162,7 @@ mod tests {
         assert!(matches!(result, Ok(())));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn ensure_public_or_admin_caches_public_flag_across_calls() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);

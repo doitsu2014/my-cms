@@ -77,7 +77,7 @@ mod tests {
         (ResetPasswordHandler { supabase: client }, server)
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_reset_password_rejects_short_password() {
         let (handler, _server) = setup_handler_with_mock().await;
         let id = Uuid::parse_str("33333333-3333-3333-3333-333333333333").unwrap();
@@ -91,7 +91,7 @@ mod tests {
         assert!(matches!(err, AppError::Validation(_, _)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_reset_password_returns_response_on_success() {
         let (handler, server) = setup_handler_with_mock().await;
         let id = Uuid::parse_str("33333333-3333-3333-3333-333333333333").unwrap();
@@ -124,7 +124,7 @@ mod tests {
         assert_eq!(result.temporary_password, "newsecret123");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_reset_password_returns_not_found_on_404() {
         let (handler, server) = setup_handler_with_mock().await;
         let id = Uuid::parse_str("33333333-3333-3333-3333-333333333333").unwrap();

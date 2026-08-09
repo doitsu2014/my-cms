@@ -48,7 +48,7 @@ mod tests {
         })
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn get_bucket_rejects_uppercase_name() {
         let handler = GetBucketHandler {
             media_config: make_config(),
@@ -60,7 +60,7 @@ mod tests {
         }
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn get_bucket_rejects_name_starting_with_digit() {
         let handler = GetBucketHandler {
             media_config: make_config(),

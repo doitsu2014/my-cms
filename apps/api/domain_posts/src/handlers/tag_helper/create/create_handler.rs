@@ -96,7 +96,7 @@ mod tests {
         CreateTagsResponse, TagCreateHandler, TagCreateHandlerTrait,
     };
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_create_tags_in_transaction_test01() {
         let test_space = setup_test_space().await;
         let database = test_space.postgres.get_database_connection().await;

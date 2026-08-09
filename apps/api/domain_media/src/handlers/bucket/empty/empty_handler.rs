@@ -44,7 +44,7 @@ mod tests {
         })
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn rejects_invalid_name() {
         let handler = EmptyBucketHandler {
             media_config: make_config(),

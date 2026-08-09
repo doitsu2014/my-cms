@@ -287,7 +287,7 @@ mod tests {
         assert_ne!(a, b);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn get_rendered_image_calls_supabase_render_and_caches_bytes() {
         let server = MockServer::start().await;
         let media_config = make_config(&server.uri(), "media");
@@ -328,7 +328,7 @@ mod tests {
         assert_eq!(second.data, b"rendered");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn get_rendered_image_returns_not_found_on_404() {
         let server = MockServer::start().await;
         let media_config = make_config(&server.uri(), "media");
@@ -351,7 +351,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn get_rendered_image_with_different_buckets_does_not_share_cache() {
         let server = MockServer::start().await;
 
@@ -398,7 +398,7 @@ mod tests {
         assert_eq!(avatars.data, b"avatar-bytes");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn get_media_caches_bucket_scoped_keys_separately() {
         let server = MockServer::start().await;
 

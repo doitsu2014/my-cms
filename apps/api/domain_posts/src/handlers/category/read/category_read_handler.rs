@@ -244,7 +244,7 @@ mod tests {
     };
     use crate::handlers::test::fake_create_category_request_with_category_type;
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_get_all_cartegory_testcase_01() {
         let test_space = setup_test_space().await;
         let conn = test_space.postgres.get_database_connection().await;

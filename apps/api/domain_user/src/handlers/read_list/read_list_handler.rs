@@ -102,7 +102,7 @@ mod tests {
         (ReadListUserHandler { supabase: client }, server)
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_list_users_rejects_page_zero() {
         let (handler, _server) = setup_handler_with_mock().await;
         let err = handler
@@ -112,7 +112,7 @@ mod tests {
         assert!(matches!(err, AppError::Validation(_, _)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_list_users_rejects_per_page_zero() {
         let (handler, _server) = setup_handler_with_mock().await;
         let err = handler
@@ -122,7 +122,7 @@ mod tests {
         assert!(matches!(err, AppError::Validation(_, _)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_list_users_rejects_per_page_over_200() {
         let (handler, _server) = setup_handler_with_mock().await;
         let err = handler
@@ -132,7 +132,7 @@ mod tests {
         assert!(matches!(err, AppError::Validation(_, _)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_list_users_rejects_unknown_role_filter() {
         let (handler, _server) = setup_handler_with_mock().await;
         let err = handler
@@ -142,7 +142,7 @@ mod tests {
         assert!(matches!(err, AppError::Validation(_, _)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_list_users_returns_users_and_forwards_query_params() {
         let (handler, server) = setup_handler_with_mock().await;
 
@@ -174,7 +174,7 @@ mod tests {
         assert_eq!(users[0].email, "alice@example.com");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_list_users_filters_by_email_substring_case_insensitively() {
         let (handler, server) = setup_handler_with_mock().await;
 

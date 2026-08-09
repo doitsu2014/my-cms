@@ -865,7 +865,7 @@ mod tests {
         );
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn upload_issues_multipart_post_with_bearer_and_upsert() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -886,7 +886,7 @@ mod tests {
         assert!(result.is_ok(), "expected Ok, got {:?}", result);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn upload_returns_storage_error_on_500() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -906,7 +906,7 @@ mod tests {
         }
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn download_returns_bytes_and_content_type_on_200() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -931,7 +931,7 @@ mod tests {
         assert_eq!(content_type, "image/png");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn download_returns_not_found_on_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -946,7 +946,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn download_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -962,7 +962,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn download_returns_storage_error_on_500() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -980,7 +980,7 @@ mod tests {
         }
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn get_info_parses_json_response() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1013,7 +1013,7 @@ mod tests {
         assert!(info.last_modified.is_some());
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn get_info_returns_not_found_on_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1028,7 +1028,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn get_info_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1044,7 +1044,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn list_objects_posts_with_correct_body_and_returns_list() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1095,7 +1095,7 @@ mod tests {
         assert_eq!(items[1].size, 250);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn delete_issues_delete_to_correct_path() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1113,7 +1113,7 @@ mod tests {
         assert!(result.is_ok(), "expected Ok, got {:?}", result);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn delete_batch_issues_delete_with_body() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1142,7 +1142,7 @@ mod tests {
         assert_eq!(result[1].name, "b.png");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn list_objects_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1158,7 +1158,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn list_objects_returns_not_found_on_does_not_exist_body() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1175,7 +1175,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn list_objects_returns_not_found_on_http_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1191,7 +1191,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn url_patterns_match_spec_single_segment() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1264,7 +1264,7 @@ mod tests {
         );
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn upload_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1282,7 +1282,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn upload_returns_not_found_on_http_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1300,7 +1300,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn delete_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1316,7 +1316,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn delete_returns_not_found_on_http_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1332,7 +1332,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn delete_batch_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1349,7 +1349,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn delete_batch_returns_not_found_on_http_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1366,7 +1366,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn same_storage_targets_two_buckets_via_method_argument() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1399,7 +1399,7 @@ mod tests {
             .expect("second upload ok");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn list_buckets_returns_array() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1434,7 +1434,7 @@ mod tests {
         assert_eq!(buckets[0].created_at, "2026-01-01T00:00:00Z");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn get_bucket_returns_404_as_not_found() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1449,7 +1449,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn create_bucket_posts_body() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1493,7 +1493,7 @@ mod tests {
         assert_eq!(bucket.file_size_limit, Some(5242880));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn create_bucket_returns_conflict_on_409() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1509,7 +1509,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::Conflict(_))));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn update_bucket_posts_to_path() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1544,7 +1544,7 @@ mod tests {
         assert!(bucket.public);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn empty_bucket_posts_to_empty_path() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1561,7 +1561,7 @@ mod tests {
         assert!(result.is_ok(), "expected Ok, got {:?}", result);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn empty_bucket_returns_not_found_on_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1576,7 +1576,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn delete_bucket_purge_true_sends_purge_in_body() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1594,7 +1594,7 @@ mod tests {
         assert!(result.is_ok(), "expected Ok, got {:?}", result);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn delete_bucket_purge_false_sends_purge_false_in_body() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1611,7 +1611,7 @@ mod tests {
         assert!(result.is_ok(), "expected Ok, got {:?}", result);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn delete_bucket_returns_not_found_on_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1626,7 +1626,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn delete_bucket_returns_storage_error_on_400() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1647,7 +1647,7 @@ mod tests {
         }
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn list_buckets_returns_storage_error_on_500() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1665,7 +1665,7 @@ mod tests {
         }
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn list_buckets_returns_storage_error_on_401() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1683,7 +1683,7 @@ mod tests {
         }
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn error_messages_never_include_service_role_key() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1704,7 +1704,7 @@ mod tests {
         }
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn download_render_returns_bytes_and_content_type_on_200_with_both_dimensions() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1732,7 +1732,7 @@ mod tests {
         assert_eq!(content_type, "image/webp");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn download_render_with_only_width_sends_only_width_query() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1756,7 +1756,7 @@ mod tests {
         assert_eq!(bytes, b"resized");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn download_render_with_only_height_sends_only_height_query() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1780,7 +1780,7 @@ mod tests {
         assert_eq!(bytes, b"resized");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn download_render_falls_back_to_anonymous_key_when_service_role_absent() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), false);
@@ -1804,7 +1804,7 @@ mod tests {
         assert!(result.is_ok(), "expected Ok, got {:?}", result);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn download_render_uses_explicit_bucket_argument() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1828,7 +1828,7 @@ mod tests {
         assert_eq!(bytes, b"avatars-bytes");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn download_render_guesses_content_type_when_response_omits_it() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1847,7 +1847,7 @@ mod tests {
         assert_eq!(content_type, "image/png");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn download_render_returns_not_found_on_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1864,7 +1864,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn download_render_returns_not_found_on_supabase_400_with_statuscode_404() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);
@@ -1882,7 +1882,7 @@ mod tests {
         assert!(matches!(result, Err(AppError::NotFound)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn download_render_returns_storage_error_on_500() {
         let server = MockServer::start().await;
         let storage = make_storage(&server.uri(), true);

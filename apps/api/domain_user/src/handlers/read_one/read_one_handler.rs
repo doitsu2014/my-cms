@@ -49,7 +49,7 @@ mod tests {
         (ReadOneUserHandler { supabase: client }, server)
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_get_user_returns_user_on_200() {
         let (handler, server) = setup_handler_with_mock().await;
 
@@ -75,7 +75,7 @@ mod tests {
         assert_eq!(user.role.as_deref(), Some("my-headless-cms-administrator"));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_get_user_returns_not_found_on_404() {
         let (handler, server) = setup_handler_with_mock().await;
 

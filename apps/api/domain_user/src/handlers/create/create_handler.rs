@@ -112,7 +112,7 @@ mod tests {
         (CreateUserHandler { supabase: client }, server)
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_create_user_returns_response_on_success() {
         let (handler, server) = setup_handler_with_mock().await;
 
@@ -147,7 +147,7 @@ mod tests {
         assert_eq!(result.temporary_password, "supersecret");
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_create_user_rejects_short_password() {
         let (handler, _server) = setup_handler_with_mock().await;
         let req = CreateUserRequest {
@@ -164,7 +164,7 @@ mod tests {
         assert!(matches!(err, AppError::Validation(_, _)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_create_user_rejects_unknown_role() {
         let (handler, _server) = setup_handler_with_mock().await;
         let req = CreateUserRequest {
@@ -181,7 +181,7 @@ mod tests {
         assert!(matches!(err, AppError::Validation(_, _)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_create_user_returns_conflict_on_duplicate_email() {
         let (handler, server) = setup_handler_with_mock().await;
 

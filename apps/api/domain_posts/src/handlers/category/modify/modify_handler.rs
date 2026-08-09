@@ -237,7 +237,7 @@ mod tests {
     };
     use crate::handlers::test::fake_create_category_request;
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_modify_category_testcase_successfully() {
         let beginning_test_timestamp = chrono::Utc::now();
         let test_space = setup_test_space().await;
@@ -289,7 +289,7 @@ mod tests {
         assert_eq!(first.tags.len(), 0);
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_modify_category_testcase_failed_due_to_rowversion() {
         let test_space = setup_test_space().await;
         let conn = test_space.postgres.get_database_connection().await;

@@ -325,7 +325,7 @@ mod tests {
     use test_helpers::ContainerAsyncPostgresEx;
 
     /// Integration test: store and retrieve a translation embedding
-    #[async_std::test]
+    #[tokio::test]
     async fn test_store_and_find_translation() {
         let api_key = match require_openai_key() {
             Some(k) => k,
@@ -374,7 +374,7 @@ mod tests {
     }
 
     /// Integration test: search for similar translations
-    #[async_std::test]
+    #[tokio::test]
     async fn test_search_similar_translations() {
         let api_key = match require_openai_key() {
             Some(k) => k,
@@ -437,7 +437,7 @@ mod tests {
     }
 
     /// Integration test: upsert on conflict
-    #[async_std::test]
+    #[tokio::test]
     async fn test_store_translation_upsert() {
         let api_key = match require_openai_key() {
             Some(k) => k,
@@ -500,7 +500,7 @@ mod tests {
     }
 
     /// Integration test: find_translation returns None for non-existent entry
-    #[async_std::test]
+    #[tokio::test]
     async fn test_find_translation_not_found() {
         let api_key = match require_openai_key() {
             Some(k) => k,

@@ -62,7 +62,7 @@ mod tests {
         (DeleteUserHandler { supabase: client }, server)
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_delete_user_blocks_self_delete() {
         let (handler, _server) = setup_handler_with_mock().await;
         let id = Uuid::parse_str("33333333-3333-3333-3333-333333333333").unwrap();
@@ -74,7 +74,7 @@ mod tests {
         assert!(matches!(err, AppError::Logical(_)));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn handle_delete_user_returns_ok_on_success() {
         let (handler, server) = setup_handler_with_mock().await;
         let target = Uuid::parse_str("33333333-3333-3333-3333-333333333333").unwrap();
