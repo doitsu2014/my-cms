@@ -299,7 +299,7 @@ services:
       # subsequent restarts skip the already-applied file cleanly. ON CONFLICT
       # (name) DO NOTHING inside the SQL makes a fresh db reset also a no-op
       # at the row level if storage ever rehydrates the bucket itself.
-      - ./volumes/db/99-my-cms-media-bucket.sql:/app/migrations/tenant/9999-my-cms-media-bucket.sql:Z
+      - ./volumes/db/0-my-cms-media-bucket.sql:/app/migrations/tenant/0061-my-cms-media-bucket.sql:Z
     depends_on:
       db:
         condition: service_healthy

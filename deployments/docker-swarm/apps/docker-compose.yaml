@@ -55,15 +55,22 @@ services:
   # ========================================
   migrate:
     container_name: my-cms-migrate
-    build:
-      context: ../../../apps/api
-      dockerfile: Dockerfile
+    image: my-cms-api:dev
     restart: "no"
     depends_on:
       init-wait:
         condition: service_completed_successfully
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_INTERNAL_URL: ${SUPABASE_INTERNAL_URL:-${SUPABASE_URL}}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      MEDIA_BASE_URL: ${MEDIA_BASE_URL}
+      MEDIA_BUCKET: ${MEDIA_BUCKET:-media}
+      AUTHORIZATION_AUDIENCE: ${AUTHORIZATION_AUDIENCE}
+      RUST_LOG: ${RUST_LOG}
     entrypoint: ["/app/my-cms-api"]
     command: ["migrate", "up"]
     networks:
@@ -91,9 +98,7 @@ services:
   # ========================================
   my-cms-api:
     container_name: my-cms-api
-    build:
-      context: ../../../apps/api
-      dockerfile: Dockerfile
+    image: my-cms-api:dev
     restart: unless-stopped
     ports:
       - "8989:8989"
@@ -110,6 +115,7 @@ services:
       OTEL_TRACES_SAMPLER: ${OTEL_TRACES_SAMPLER}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       MEDIA_BASE_URL: ${MEDIA_BASE_URL}
+      MEDIA_BUCKET: ${MEDIA_BUCKET:-media}
       MAX_BODY_LENGTH: ${MAX_BODY_LENGTH}
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_INTERNAL_URL: ${SUPABASE_INTERNAL_URL:-${SUPABASE_URL}}
