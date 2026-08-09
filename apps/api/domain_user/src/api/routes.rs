@@ -18,7 +18,7 @@
 use axum::{
     extract::{Path, State},
     response::IntoResponse,
-    routing::{delete, get, post, put},
+    routing::{get, post},
     Extension, Json, Router,
 };
 use domain_interface::{AuthenticatedActor, DomainContext, Mount, RouteRegistration};
@@ -35,9 +35,7 @@ use crate::{
         modify::modify_request::ModifyUserRequest,
         read_list::read_list_handler::{ReadListUserHandler, ReadListUserHandlerTrait},
         read_one::read_one_handler::{ReadOneUserHandler, ReadOneUserHandlerTrait},
-        reset_password::{
-            ResetPasswordHandler, ResetPasswordHandlerTrait, ResetPasswordRequest,
-        },
+        reset_password::{ResetPasswordHandler, ResetPasswordHandlerTrait, ResetPasswordRequest},
         supabase_admin_client::SupabaseAdminClient,
     },
 };
@@ -52,9 +50,7 @@ pub async fn api_create_user(
         supabase: state.supabase_admin_client.clone(),
     };
 
-    let result = handler
-        .handle_create_user(body, &actor.user_id)
-        .await;
+    let result = handler.handle_create_user(body, &actor.user_id).await;
 
     match result {
         Ok(response) => ApiResponseWith::new(response).to_axum_response(),
@@ -145,7 +141,9 @@ pub async fn api_reset_password(
         supabase: state.supabase_admin_client.clone(),
     };
 
-    let result = handler.handle_reset_password(id, body, &actor.user_id).await;
+    let result = handler
+        .handle_reset_password(id, body, &actor.user_id)
+        .await;
 
     match result {
         Ok(response) => ApiResponseWith::new(response).to_axum_response(),
@@ -157,11 +155,13 @@ pub async fn api_reset_password(
 fn administrator_router(state: UserApiState) -> Router<DomainContext> {
     Router::new()
         .route("/users", post(api_create_user).get(api_list_users))
-        .route("/users/{id}", get(api_get_user).put(api_modify_user).delete(api_delete_user))
         .route(
-            "/users/{id}/reset-password",
-            post(api_reset_password),
+            "/users/{id}",
+            get(api_get_user)
+                .put(api_modify_user)
+                .delete(api_delete_user),
         )
+        .route("/users/{id}/reset-password", post(api_reset_password))
         .with_state(state)
 }
 
