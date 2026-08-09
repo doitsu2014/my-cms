@@ -5,7 +5,7 @@ import { config } from '../../config/runtime-config';
 
 // HTTP link to my-cms GraphQL API
 const httpLink = createHttpLink({
-  uri: config().graphqlApiUrl || 'http://localhost:4000/graphql',
+  uri: config().graphqlApiUrl || 'http://localhost:8989/posts/graphql/mutable',
 });
 
 // Auth link to add Supabase Bearer token to requests
@@ -45,7 +45,7 @@ export const buildGraphQLClient = () =>
 export const buildCacheGraphQLClient = () =>
   new ApolloClient({
     link: authLink.concat(createHttpLink({
-      uri: config().graphqlCacheApiUrl || config().graphqlApiUrl || 'http://localhost:4000/graphql',
+      uri: config().graphqlCacheApiUrl || config().graphqlApiUrl || 'http://localhost:8989/posts/graphql/mutable',
     })),
     cache: new InMemoryCache(),
   });

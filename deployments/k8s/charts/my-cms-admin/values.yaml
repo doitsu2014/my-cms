@@ -30,7 +30,7 @@ adminSide:
     keycloakRealm: "your-realm"
     keycloakClientId: "your-client-id"
     keycloakScope: "my-headless-cms-api-all email openid profile"
-    graphqlApiUrl: "https://your-api/graphql"
+    graphqlApiUrl: "https://your-api/posts/graphql/mutable"
     graphqlCacheApiUrl: ""
     restApiUrl: "https://your-api"
     mediaUploadApiUrl: ""

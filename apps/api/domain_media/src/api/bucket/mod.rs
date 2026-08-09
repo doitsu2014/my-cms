@@ -1,0 +1,8 @@
+//! Bucket API adapters — HTTP boundary for the bucket CRUD/access surface.
+
+pub mod create;
+pub mod delete;
+pub mod empty;
+pub mod get;
+pub mod list;
+pub mod update;

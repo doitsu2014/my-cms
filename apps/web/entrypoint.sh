@@ -8,7 +8,7 @@ set -e
 # (see apps/api/src/bin/my-cms-api.rs → protected_router()).
 PUBLIC_SUPABASE_URL="${PUBLIC_SUPABASE_URL:-http://localhost:8001}"
 PUBLIC_SUPABASE_ANON_KEY="${PUBLIC_SUPABASE_ANON_KEY:-}"
-PUBLIC_GRAPHQL_API_URL="${PUBLIC_GRAPHQL_API_URL:-http://localhost:8989/graphql}"
+PUBLIC_GRAPHQL_API_URL="${PUBLIC_GRAPHQL_API_URL:-http://localhost:8989/posts/graphql/mutable}"
 PUBLIC_GRAPHQL_CACHE_API_URL="${PUBLIC_GRAPHQL_CACHE_API_URL:-}"
 PUBLIC_REST_API_URL="${PUBLIC_REST_API_URL:-http://localhost:8989}"
 PUBLIC_MEDIA_UPLOAD_API_URL="${PUBLIC_MEDIA_UPLOAD_API_URL:-http://localhost:8989/media}"

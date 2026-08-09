@@ -16,7 +16,7 @@
 window.__APP_CONFIG__ = {
   supabaseUrl: "https://your-project.supabase.co",
   supabaseAnonKey: "your-anon-key",
-  graphqlApiUrl: "https://your-api/graphql",
+  graphqlApiUrl: "https://your-api/posts/graphql/mutable",
   graphqlCacheApiUrl: "",
   restApiUrl: "https://your-api",
   mediaUploadApiUrl: ""

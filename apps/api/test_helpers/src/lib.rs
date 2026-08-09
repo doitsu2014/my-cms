@@ -1,6 +1,6 @@
 use std::future::Future;
 
-use migration::{Migrator, MigratorTrait};
+use domain_posts::migrations::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
 use testcontainers::{
     core::{IntoContainerPort, WaitFor},

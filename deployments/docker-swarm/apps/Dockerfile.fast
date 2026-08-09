@@ -1,0 +1,6 @@
+FROM rust:1.97-slim
+WORKDIR /app
+COPY apps/api/target/release/my-cms-api /app/my-cms-api
+
+EXPOSE 8989
+CMD ["/app/my-cms-api"]

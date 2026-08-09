@@ -26,11 +26,11 @@ OpenSpec as the intended behavior. Report differences instead of blending them.
 
 Follow the real execution path in this order:
 
-1. Locate route registration in `apps/api/src/bin/my-cms-api.rs`.
+1. Locate gateway composition and route registration in `apps/api/gateway/src/main.rs` and the relevant `apps/api/domain_*/src/service.rs`.
 2. Record router class, HTTP contract, middleware, auth audience, and roles.
-3. Trace the Axum API handler under `apps/api/src/api/`.
-4. Trace the application-core handler trait and implementation under
-   `apps/api/application_core/src/commands/`.
+3. Trace the Axum API adapter under the relevant `apps/api/domain_*/src/api/`.
+4. Trace the domain handler trait and implementation under the relevant
+   `apps/api/domain_*/src/handlers/`.
 5. Trace request/response DTO conversion, validation, actor propagation, and
    `AppError` handling.
 6. Trace every database entity, relation, transaction, migration, cache, task,
@@ -49,8 +49,7 @@ test helpers even when the initial request names only one handler.
 - Cite repository paths and symbols for every material observed claim.
 - Do not treat comments, generated entities, or an OpenSpec proposal as proof
   of runtime behavior without checking the implementation.
-- Do not edit generated files under
-  `apps/api/application_core/src/entities/`.
+- Do not edit generated files under `apps/api/domain_*/src/entities/`.
 - Call out stale comments or policy/source drift without silently correcting it.
 - Distinguish in-process state from durable state and request-time calls from
   background work.

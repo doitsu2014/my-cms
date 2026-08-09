@@ -7,69 +7,51 @@ before making decisions.
 
 | Area | Source anchor | Observed responsibility |
 |---|---|---|
-| Runtime/API | `apps/api/src/` | Axum entrypoint, routers, middleware, HTTP handlers, response mapping, shared `AppState` |
-| Application core | `apps/api/application_core/src/` | Command-handler business logic, DTO conversion, SeaORM queries/transactions, entities, GraphQL schema, external clients |
-| Migrations | `apps/api/migration/src/` | Ordered SeaORM migrations, PostgreSQL schema, translation jobs, optional pgvector storage |
-| Test support | `apps/api/test_helpers/src/lib.rs` | PostgreSQL/pgvector testcontainers and migration refresh |
+| Runtime/API | `apps/api/gateway/src/main.rs` and `apps/api/domain_*/src/` | Gateway composition, routers, middleware, domain-owned HTTP handlers, response mapping, and domain state |
+| Domain handlers and entities | `apps/api/domain_*/src/handlers/`, `apps/api/domain_posts/src/entities/` | Domain business logic, DTO conversion, SeaORM queries/transactions, and canonical generated entities |
+| Migrations | `apps/api/domain_posts/src/migrations/` | Canonical ordered SeaORM migrations; the operator CLI is the `domain_posts` bin's `migrate` subcommand (`apps/api/domain_posts/src/main.rs` → `domain_posts::migrations_cli::handle_args`) |
+| Test support | `apps/api/test_helpers/src/lib.rs` | PostgreSQL/pgvector testcontainers and migration refresh; imports `domain_posts::migrations::{Migrator, MigratorTrait}` directly |
 
-`apps/api/Cargo.toml` defines the workspace. The `cms` runtime depends on
-`application_core` and `migration`; `application_core` uses `migration` only as
-a development dependency.
+> **Phase A and migration-crate cleanup status:** `application_core`, the legacy `apps/api/src/**` runtime, and `apps/api/migration/` were all removed by [`purge-legacy-cms-and-application-core`](../../../../openspec/changes/purge-legacy-cms-and-application-core/). Canonical migrations and the operator CLI both live under `domain_posts`; `test_helpers` imports `domain_posts::migrations` directly. References to `legacy_bootstrap` below are historical: the binary is gone; the `domain_auth::legacy_bootstrap` module name was further renamed to `factory::auth_layer_from_env` by the `rename-legacy-bootstrap-auth-factory` change (the historical references below are pre-rename and remain useful for archaeology).
 
 ## 2. Runtime composition
 
-`apps/api/src/bin/my-cms-api.rs` constructs three router groups:
+`apps/api/gateway/src/main.rs` composes routes contributed by registered domain services into public, protected, and administrator router groups.
 
 - public: health, public media delivery, immutable GraphQL;
 - protected: category/post/tag/media management, translation, AI models, mutable
   GraphQL; writer or administrator role;
 - administrator: migrations, users, and bucket management; administrator role.
 
-Each router currently calls `construct_app_state()` separately before routers
-are merged. Each state contains:
+Each domain service owns its configuration and state; the gateway supplies shared `DomainContext` dependencies during composition.
 
-- `Arc<DatabaseConnection>`;
-- `MediaConfig` with Supabase Storage client and public media base URL;
-- in-process Moka media cache;
-- in-process bucket-visibility cache;
-- immutable and mutable dynamic Seaography schemas;
-- `SupabaseAdminClient` using the service-role key.
-
-Review startup cost, pool sharing, cache coherence, and schema duplication when
-changing composition.
 
 ## 3. Request and business flow
 
 The dominant REST flow is:
 
 ```text
-Axum route
-  -> API handler in apps/api/src/api/<capability>/
-  -> construct application-core handler with Arc dependencies
+Gateway route composition
+  -> domain API adapter in apps/api/domain_*/src/api/<capability>/
+  -> construct domain handler with Arc dependencies
   -> call *HandlerTrait method
   -> SeaORM transaction/query or external client
-  -> Result<T, AppError>
-  -> ApiResponseWith / ApiResponseError
+  -> Result<T, domain AppError>
+  -> domain response mapping
 ```
 
 Representative anchors:
 
-- API adapter:
-  `apps/api/src/api/category/create/create_handler.rs`
-- transactional command:
-  `apps/api/application_core/src/commands/category/create/create_handler.rs`
-- request-to-model conversion:
-  `apps/api/application_core/src/commands/category/create/create_request.rs`
-- error-to-HTTP mapping:
-  `apps/api/src/presentation_models/api_response.rs`
+- API adapter: `apps/api/domain_posts/src/api/`
+- transactional command: `apps/api/domain_posts/src/handlers/category/create/`
+- request and response models: `apps/api/domain_posts/src/domain/`
+- gateway composition: `apps/api/gateway/src/main.rs`
 
-Handlers generally expose a trait returning `impl Future<Output =
-Result<_, AppError>>`. Business logic belongs in `application_core`; API
-handlers extract state/auth/path/body and translate responses.
+Handlers generally expose traits returning futures. Business logic belongs in the owning domain crate; API adapters extract state/auth/path/body and translate responses.
 
 ## 4. Authentication and authorization
 
-`apps/api/src/common/supabase_auth.rs` implements a Tower layer that:
+`apps/api/domain_auth/src/` implements the Tower authentication layer that:
 
 - validates Supabase JWTs with an audience;
 - supports shared-secret and JWKS-based verification paths;
@@ -86,8 +68,7 @@ key through `SupabaseAdminClient`; its `Debug` implementation redacts the key.
 
 ### Categories, posts, tags, and translations
 
-- SeaORM entities are generated under
-  `apps/api/application_core/src/entities/`; do not edit them manually.
+- SeaORM entities are generated under `apps/api/domain_posts/src/entities/`; do not edit them manually.
 - Categories are self-referencing and have posts, tags through
   `category_tags`, and translations.
 - Posts belong to categories and have tags through `post_tags` and
@@ -109,8 +90,7 @@ upstream contract and secret-redaction expectations.
 
 ### Media and buckets
 
-Media uses a Supabase Storage-compatible client in
-`commands/media/supabase_storage.rs`.
+Media uses a Supabase Storage-compatible client in `apps/api/domain_media/src/handlers/supabase_storage.rs`.
 
 - public media is proxied through `/media/...`;
 - image rendering supports width/height variants;
