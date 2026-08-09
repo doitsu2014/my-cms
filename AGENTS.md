@@ -16,6 +16,66 @@ The SDLC combines two complementary toolchains:
 
 > **OpenSpec** owns *what* and *why*. **Superpowers** owns *how* (the actual coding).
 
+## Prompt Routing & Agent Dispatch
+
+The primary agent (Codex or OpenCode) is the coordinator and must classify every incoming prompt, decide which agent owns the work, and dispatch with enough context for the subagent to act without inventing scope. This section defines the routing rules so the team can apply them consistently.
+
+### 1. Classify the dominant intent
+
+Detect the dominant intent behind the prompt first, then pick the primary agent and any secondary collaborators.
+
+| Intent                          | Primary agent                                       | Secondary collaborators                                         | Cue words / signals |
+|---------------------------------|-----------------------------------------------------|-----------------------------------------------------------------|---------------------|
+| Explore / clarify               | `product-owner`                                     | `software-architect` (feasibility), `product-designer` (UX)     | "explore", "what should we", "do we need", "should we", "investigate" |
+| Propose / kick off a change     | `product-owner`                                     | —                                                               | "propose", "draft a proposal", "kick off", "let's change", "add feature" |
+| Design UX / design language     | `product-designer`                                  | `product-owner` (scope clarifier)                               | "design UX", "responsive", "screen for", "design tokens", "accessibility", "extract our design language" |
+| Map / design API                | `software-architect`                                | —                                                               | "map API", "design API", "architecture for", "API contract", "endpoint shape" |
+| Specs / design / tasks          | `software-architect`                                | `product-designer` (integrate UX brief)                         | "write specs", "draft design", "break down tasks", "openspec-continue", "fast-forward" |
+| Implement / execute change      | `software-engineer` (Codex) or `coder` (OpenCode)   | —                                                               | "implement", "build", "code", "fix bug", "apply change", "execute tasks" |
+| Verify / archive                | `software-engineer` / `coder`                       | `product-owner` (final sign-off)                                | "verify", "archive", "sync specs", "finalize", "wrap up" |
+| Fast fix / hot-patch            | `coder` (Fast Fix mode)                             | —                                                               | "fast fix", "fast implement", "hotfix", "typo", "config tweak", single-file change |
+| Debug / investigate failure     | `coder` (OpenCode) or `software-engineer` (Codex)   | —                                                               | "debug", "why is", "reproduce", "investigate test failure" |
+| Question / explain              | Primary agent answers directly (no dispatch)        | —                                                               | "what is", "how does", "explain", "where is", "what does X mean" |
+| Update this file / docs         | Primary agent edits directly                        | —                                                               | "update AGENTS.md", "rewrite docs", "document this" |
+
+When the prompt mixes intents (e.g. "design and implement"), split it into ordered tasks and let the primary agent run them in sequence. Do not bundle multiple artifacts under a single dispatch.
+
+### 2. Apply routing rules
+
+1. **Skill-driven default.** If the user explicitly names an OpenSpec skill (`openspec-explore`, `openspec-propose`, `openspec-continue`, etc.), honor the skill's intent before re-classifying. The skill is the routing contract.
+2. **Phase-aware override.** When a change is mid-flight in `openspec/changes/<name>/`, use the artifact state (proposal / specs / design / tasks) to pick the next owner rather than the user's literal wording. For example, a prompt like "implement X" during an unarchived change routes to whichever agent owns the next unchecked artifact.
+3. **Single primary owner.** Pick exactly one primary agent per dispatch; secondary collaborators join on demand, never co-own the artifact.
+4. **Serialise writes.** If the dispatch touches a shared artifact (`design.md`, `tasks.md`, an OpenSpec file), the primary agent owns the write; collaborators contribute content but do not edit concurrently.
+5. **Ambiguity → ask.** If intent is unclear or two intents compete, ask one concise question before dispatching. Never guess between ambiguous changes.
+6. **Out-of-scope redirect.** If a subagent discovers the request belongs to another role, it must return the issue to the owning agent rather than silently expanding scope.
+
+### 3. Dispatch contract
+
+Every dispatched subagent receives four mandatory fields plus an optional skills bundle:
+
+- **Goal** — what the subagent is asked to deliver, in one sentence.
+- **Context** — relevant artifacts (proposal/specs/design/tasks), commands already run, and decisions made upstream.
+- **Constraints** — scope boundaries, must-not-touch files, non-goals, verification command expectations.
+- **Done when** — observable acceptance criteria and the verification command(s) the subagent must run before reporting back.
+- **Skills** *(optional)* — the OpenSpec skill(s) to load (e.g. `openspec-propose`, `openspec-apply-change`) or graph queries to run.
+
+### 4. Worked examples
+
+| Prompt                                                | Detected intent | Primary agent                                       | Secondary                                |
+|-------------------------------------------------------|-----------------|-----------------------------------------------------|------------------------------------------|
+| "Should we add dark mode?"                            | Explore         | `product-owner`                                     | `software-architect` (feasibility)       |
+| "Propose a redesign of the post editor"               | Propose         | `product-owner`                                     | `product-designer`, `software-architect` |
+| "Design UX for change-X"                              | Design UX       | `product-designer`                                  | `software-architect` (integrate)         |
+| "Map API architecture for media uploads"              | Map API         | `software-architect`                                | —                                        |
+| "Write specs and tasks for change-X"                  | Specs/tasks     | `software-architect`                                | `product-designer` (UX brief)            |
+| "Implement change rename-legacy-foo"                  | Implement       | `software-engineer` (Codex) / `coder` (OpenCode)     | —                                        |
+| "Fast fix typo on the about page"                     | Fast fix        | `coder` (Fast Fix)                                  | —                                        |
+| "Why is auth middleware failing tests?"               | Debug           | `coder` / `software-engineer`                       | —                                        |
+| "Verify and archive change-X"                         | Verify/archive  | `software-engineer` / `coder`                       | `product-owner` (sign-off)               |
+| "Where do we register domain routes?"                 | Question        | Primary agent (no dispatch)                         | —                                        |
+
+> The "Key Commands / Workflow" section below is a compact alias of this routing table. Keep both in sync when adding new intents.
+
 ## SDLC Phases
 
 ```
@@ -145,6 +205,8 @@ If the graph server is unavailable, record the limitation and substitute `git di
 
 ## Agent Quick Reference
 
+> Routing rules live in **Prompt Routing & Agent Dispatch** (above). This table is the per-agent skill/output summary that the routing rules refer to.
+
 | Agent                | Phase      | Mode(s)      | Primary skills                                                              | Primary outputs                                                                        |
 |----------------------|------------|--------------|-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
 | `product-owner`      | 1, 2, 4    | OpenCode agent or Codex project agent (`.codex/agents/product-owner.toml`) | `openspec-explore`, `openspec-propose`, `openspec-new-change`, `brainstorming` (optional) | Explored result + **`proposal.md`** (Why, What Changes, Capabilities, Impact) — final sign-off |
@@ -167,6 +229,8 @@ For API architecture work, the SA loads `.agents/skills/map-my-cms-api-architect
 - **Fast Fix / Fast Implement** — for small changes (typos, config tweaks, single-file refactors, hot-fixes). No `brainstorming`, no OpenSpec scaffolding, no plan. Follow existing patterns, verify, report. Triggered by an explicit "fast" / "fast fix" / "fast implement" cue, OR inferred when the change is clearly trivial.
 
 ## Key Commands / Workflow
+
+> Compact alias of the **Prompt Routing & Agent Dispatch** table (above). The full table includes cue words, secondary collaborators, and dispatch contracts; this block is the cheat-sheet version.
 
 ```
 "Let's explore <feature>"          → product-owner uses openspec-explore

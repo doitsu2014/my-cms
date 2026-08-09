@@ -19,8 +19,38 @@ DO NOT OWN
 - inventing missing requirements;
 - sync/archive without the requested workflow and Product Owner approval.
 
+OPENSPEC + EXECUTION SKILLS
+
+OpenSpec owns the spec & decision artifacts. Codex does not load the Superpowers
+plugin (used by the OpenCode SE), so use the project-scoped OpenSpec skills and
+Codex-native tools to drive the same disciplined loop.
+
+OpenSpec skills (project-scoped, load via `.codex/skills/<name>/SKILL.md`):
+
+| Skill | When to use |
+|-------|------------|
+| `openspec-apply-change` | **Default execution driver** — walk `tasks.md` step by step, marking `[x]` after each task passes verification |
+| `openspec-verify-change` | **Pre-completion gate** — Completeness + Correctness + Coherence check before handoff |
+| `openspec-sync-specs` | **Phase 4** — merge delta specs from `openspec/changes/<name>/specs/` into canonical `openspec/specs/<capability>/spec.md` |
+| `openspec-archive-change` | **Phase 4** — move the change to `openspec/changes/archive/YYYY-MM-DD-<name>/` |
+
+For the Codex-native mapping of the entire OpenSpec lifecycle, also load
+`.agents/skills/openspec/SKILL.md`.
+
+Codex-native equivalents for the Superpowers execution loop:
+
+| Superpowers skill (OpenCode SE) | Codex-native equivalent |
+|--------------------------------|--------------------------|
+| `executing-plans` | `openspec-apply-change` (primary driver) + `update_plan` for multi-task work |
+| `subagent-driven-development` | `multi_agent_v1__spawn_agent` for read-heavy parallel work; never let two agents write the same file |
+| `test-driven-development` | Manual RED → GREEN → REFACTOR loop with `cargo test` / `pnpm --dir apps/web build` |
+| `requesting-code-review` | Self-review per the checklist below + spawn a subagent for independent review on high-risk changes |
+| `verification-before-completion` | Run the repository verification gate before claiming done; record each command outcome |
+| `finishing-a-development-branch` | Manual git workflow — merge, open a PR, keep, or discard; never force-push protected branches |
+| `systematic-debugging` | Use `multi_agent_v1__spawn_agent` for parallel hypothesis exploration when root cause is unclear |
+
 STARTUP CHECKLIST
-1. Read AGENTS.md and load the project-scoped `openspec` skill.
+1. Read AGENTS.md and load the project-scoped `openspec` skills above.
 2. Identify the exact change; read proposal.md, all delta specs, design.md, and
    tasks.md before editing.
 3. Run `openspec status --change "<change>" --json`. Stop and report if required
@@ -31,12 +61,13 @@ STARTUP CHECKLIST
    Use `update_plan` when work spans multiple task groups.
 
 MANDATORY GRAPH GATE
-Before editing, call get_minimal_context(task="<change>") and inspect callers,
-callees, imports, communities, affected flows, and relevant tests. After each
-task group, run detect_changes, get_affected_flows, tests_for on high-risk
-functions, and get_impact_radius. Resolve material findings or document why
-they are not applicable. If the graph is unavailable, record the limitation
-and use targeted repository search, git diff, and the test suite as evidence.
+Before editing, call get_minimal_context(task="<change>") on code-review-graph
+and inspect callers, callees, imports, communities, affected flows, and
+relevant tests. After each task group, run detect_changes, get_affected_flows,
+tests_for on high-risk functions, and get_impact_radius. Resolve material
+findings or document why they are not applicable. If the graph is unavailable,
+record the limitation and use targeted repository search, git diff, and the
+test suite as evidence.
 
 IMPLEMENTATION LOOP
 For each task or tightly related task group:
@@ -85,6 +116,13 @@ AGENTS.md before claiming implementation complete:
 Also run `openspec verify --change "<change>"`. If a command cannot run, report
 the exact command, failure, and remaining risk. A pre-existing failure must be
 distinguished from a regression with evidence; it is never silently ignored.
+
+PHASE 4 HANDOFF
+After implementation, run `openspec-verify-change` to surface critical issues,
+then `openspec-sync-specs` to merge delta specs into canonical specs, then
+`openspec-archive-change` to move the change into the archive. Only archive
+when the Product Owner has approved finalization; never sync/archive on your
+own authority.
 
 HANDOFF
 Return: change and tasks completed, behavior delivered, files/layers affected,

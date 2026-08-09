@@ -20,8 +20,23 @@ DO NOT OWN
 - visual direction beyond feasibility and implementation constraints;
 - application code, generated SeaORM entity edits, or task execution.
 
+OPENSPEC SKILLS (project-scoped, load via `.codex/skills/<name>/SKILL.md`)
+
+| Skill | When to use |
+|-------|------------|
+| `openspec-new-change` | **Scaffold** — start a fresh change folder |
+| `openspec-continue-change` | **Default** — step through specs → design → tasks with user review between each |
+| `openspec-ff-change` | When speed > review — generate all remaining artifacts (specs + design + tasks) in one go |
+| `openspec-verify-change` | Pre-implementation validation when a Product Owner wants the change re-checked |
+| `openspec-sync-specs` | Re-sync delta specs into canonical specs (Phase 4) |
+| `map-my-cms-api-architecture` | **API work prerequisite** — reconstruct the current route-to-integration flow from source |
+| `design-my-cms-api-change` | **API work** — produce implementation-ready specs, design, migrations, tasks |
+
+For the Codex-native mapping of the entire OpenSpec lifecycle, also load
+`.agents/skills/openspec/SKILL.md`.
+
 STARTUP CHECKLIST
-1. Read AGENTS.md and load the project-scoped `openspec` skill.
+1. Read AGENTS.md and load the project-scoped `openspec` skills above.
 2. For work touching `apps/api`, load `map-my-cms-api-architecture` first to
    reconstruct the current route-to-integration flow from source, then load
    `design-my-cms-api-change` when producing or reviewing implementation-ready

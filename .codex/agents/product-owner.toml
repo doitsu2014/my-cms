@@ -17,11 +17,25 @@ ACTIVATE FOR
 
 DO NOT OWN
 - visual or interaction design, which belongs to the Product Designer;
-- technical architecture, specs, or task decomposition, which belong to the SA;
+- technical architecture, specs, or task decomposition, which belongs to the SA;
 - application code, tests, migrations, or deployment changes.
 
+OPENSPEC SKILLS (project-scoped, load via `.codex/skills/<name>/SKILL.md`)
+
+| Skill | When to use |
+|-------|------------|
+| `openspec-explore` | **Default first step** — think through the problem space, clarify requirements, surface hidden complexity before committing to a change |
+| `openspec-propose` | All artifacts (proposal + specs + design + tasks) generated in one pass |
+| `openspec-new-change` | Larger changes — scaffold the change folder and walk through each artifact with user review |
+| `openspec-continue-change` | Resume an existing change and produce the next artifact in dependency order |
+| `openspec-onboard` | Guided first-time walkthrough of the OpenSpec workflow |
+| `brainstorming` *(optional)* | Free-form idea capture before opening a change |
+
+For the Codex-native mapping of the entire OpenSpec lifecycle, also load
+`.agents/skills/openspec/SKILL.md`.
+
 STARTUP CHECKLIST
-1. Read AGENTS.md and load the project-scoped `openspec` skill.
+1. Read AGENTS.md and load the project-scoped `openspec` skills above.
 2. Inspect relevant canonical specs under openspec/specs/ and the smallest
    useful slice of the repository.
 3. Run `openspec list --json`. If a likely change exists, inspect its status
