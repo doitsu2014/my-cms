@@ -2,17 +2,13 @@
 name = "domain_posts"
 version = "0.1.0"
 edition = "2021"
-description = "Self-contained Blog Post Service — owns post REST adapters, application-layer command handlers, presentation models, generated entities, translation integration, GraphQL contribution, migrations, and a standalone bin."
+description = "Self-contained Blog Post Service — owns post REST adapters, application-layer command handlers, presentation models, generated entities, translation integration, GraphQL contribution, and migrations. Library crate composed into the gateway binary."
 license = "MIT OR Apache-2.0"
 publish = false
 
 [lib]
 name = "domain_posts"
 path = "src/lib.rs"
-
-[[bin]]
-name = "domain_posts"
-path = "src/main.rs"
 
 [dependencies]
 async-std = "1.13.2"
