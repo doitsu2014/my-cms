@@ -253,6 +253,40 @@ a { -webkit-tap-highlight-color: transparent; }
 .article-prose figure img { width: 100%; }
 .article-prose figcaption { margin-top: var(--space-3); color: var(--muted); font-size: 13px; font-style: italic; }
 .article-prose .pull { max-width: 32ch; margin-block: var(--space-7); padding-block: var(--space-5); border-block: 1px solid var(--border); color: var(--ink-deep); font-family: var(--font-display); font-size: clamp(28px, 3.5vw, 38px); line-height: 1.25; }
+
+/* --- TipTap extensions not covered by the StarterKit baseline --- */
+
+/* Tables: TipTap emits <table class="tiptap-table"> with thead/tbody/tr/th/td. */
+.article-prose table.tiptap-table { width: 100%; margin-block: var(--space-6); border-collapse: collapse; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); font-size: 16px; line-height: 1.55; }
+.article-prose table.tiptap-table th,
+.article-prose table.tiptap-table td { padding: var(--space-3) var(--space-4); border: 1px solid var(--border); vertical-align: top; text-align: left; }
+.article-prose table.tiptap-table th { color: var(--ink-deep); font-family: var(--font-display); font-weight: 600; background: color-mix(in oklch, var(--surface) 80%, var(--border)); }
+.article-prose table.tiptap-table tbody tr:nth-child(even) { background: color-mix(in oklch, var(--surface) 90%, var(--bg)); }
+
+/* Task lists: TipTap emits <ul data-type="taskList"> with <li data-type="taskItem">. */
+.article-prose ul[data-type='taskList'] { margin-block: var(--space-5); padding-inline-start: 0; list-style: none; }
+.article-prose li[data-type='taskItem'] { display: flex; align-items: flex-start; gap: var(--space-3); margin-block: var(--space-3); padding-inline-start: 0; font-size: 18px; line-height: 1.7; }
+.article-prose li[data-type='taskItem'] > label { flex: 0 0 auto; margin-top: 0.4em; }
+.article-prose li[data-type='taskItem'] > label > input[type='checkbox'] { width: 1.1em; height: 1.1em; accent-color: var(--accent); }
+.article-prose li[data-type='taskItem'][data-checked='true'] > div,
+.article-prose li[data-type='taskItem'][data-checked='true'] > p { color: var(--muted); text-decoration: line-through; }
+.article-prose li[data-type='taskItem'] > div,
+.article-prose li[data-type='taskItem'] > p { flex: 1 1 auto; min-width: 0; }
+
+/* Inline marks the editor can emit. */
+.article-prose u { text-underline-offset: 2px; text-decoration-thickness: 1px; }
+.article-prose s { color: var(--muted); }
+.article-prose mark { padding: 1px 4px; border-radius: 2px; background: color-mix(in oklch, var(--accent) 22%, var(--surface)); color: var(--ink-deep); }
+.article-prose sub,
+.article-prose sup { font-size: 0.75em; line-height: 0; position: relative; vertical-align: baseline; }
+.article-prose sub { bottom: -0.25em; }
+.article-prose sup { top: -0.5em; }
+
+/* Standalone images and YouTube embeds. */
+.article-prose img { display: block; max-width: 100%; height: auto; margin-block: var(--space-6); border-radius: 4px; }
+.article-prose iframe { display: block; max-width: 100%; margin-block: var(--space-6); border: 0; border-radius: 4px; aspect-ratio: 16 / 9; }
+.article-prose .iframe-wrapper { margin-block: var(--space-6); }
+
 .share-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; max-width: 68ch; margin: var(--space-8) auto 0; padding-block: var(--space-7); border-block: 1px solid var(--border); }
 .share-actions__label { margin-inline-end: var(--space-3); color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; }
 .share-actions__control { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding-inline: 12px; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--ink-deep); cursor: pointer; font-weight: 600; }

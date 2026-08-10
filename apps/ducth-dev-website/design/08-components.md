@@ -31,7 +31,7 @@ Category cards omit imagery and add a rotating semantic badge (`primary`, `secon
 
 **Source:** `src/pages/PostDetailPage.tsx:153-293`.
 
-A `text-sm breadcrumbs` trail precedes the left-aligned 48px title and subdued metadata. Optional featured image is full-width and 384px high. Semantic `<article>` uses `prose prose-lg max-w-none`; highlight.js applies GitHub Dark to code after render. Sharing is a divider plus centered gap-4 circular outline buttons with 24px filled inline SVGs. Related posts reuse a responsive card grid.
+A `text-sm breadcrumbs` trail precedes the left-aligned 48px title and subdued metadata. Optional featured image is full-width and 384px high. The article body uses the custom `.article-prose` contract (no Tailwind Typography); highlight.js applies GitHub Dark to code after render. Sharing is a divider plus centered gap-4 circular outline buttons with 24px filled inline SVGs. Related posts reuse a responsive card grid.
 
 ## Feedback and primitives
 
@@ -46,4 +46,4 @@ A `text-sm breadcrumbs` trail precedes the left-aligned 48px title and subdued m
 
 ## Code blocks
 
-`@tailwindcss/typography` is enabled (`src/App.css:8`), article uses `prose-lg`, and highlight.js GitHub Dark is imported (`PostDetailPage.tsx:5-6`). No app-owned code radius, padding, font, or copy control exists; retain dependency delegation until approved.
+Tailwind Typography is enabled in `src/App.css` but is intentionally not used by the article body; the `.article-prose` contract in the same file is the source of truth. highlight.js GitHub Dark is imported (`PostDetailPage.tsx:5-6`). No app-owned code radius, padding, font, or copy control exists; retain dependency delegation until approved.

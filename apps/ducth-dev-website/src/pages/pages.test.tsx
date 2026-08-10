@@ -26,7 +26,7 @@ const post = {
   title: 'A real article',
   slug: 'real-article',
   previewContent: 'A real preview.',
-  content: '<p>Article content</p><pre><code>const value = 1;</code></pre>',
+  content: '<p>Article content</p><pre><code>const value = 1;</code></pre><table class="tiptap-table"><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table><ul data-type="taskList"><li data-type="taskItem" data-checked="false"><label><input type="checkbox"/></label><div>Draft the spec</div></li><li data-type="taskItem" data-checked="true"><label><input type="checkbox" checked="checked"/></label><div>Ship the patch</div></li></ul><p>Inline <u>underline</u>, <s>strikethrough</s>, and <mark>highlight</mark> marks.</p><img class="rounded max-w-full h-auto" src="https://example.test/img.png" alt="Demo image"/>',
   createdBy: 'Author',
   createdAt: '2025-03-14T00:00:00.000Z',
   lastModifiedBy: null,
@@ -134,6 +134,31 @@ describe('redesigned page data states', () => {
     expect(screen.getByText('Article content')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Share on X' })).toHaveAttribute('rel', 'noopener');
     expect(screen.getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
+  });
+
+  it('wraps every TipTap element in the .article-prose contract without Tailwind Typography', async () => {
+    withProviders(
+      <Routes><Route path="/:lang/posts/:slug" element={<PostDetailPage />} /></Routes>,
+      '/en/posts/real-article',
+      [
+        {
+          request: { query: GET_BLOG_POST_BY_SLUG, variables: { slug: 'real-article' } },
+          result: { data: { posts: { nodes: [post] } } },
+        },
+        { request: { query: GET_BLOG_POSTS }, result: { data: { posts: { nodes: [post] } } } },
+      ],
+    );
+
+    const articleBody = await screen.findByText('Article content');
+    const proseRoot = articleBody.closest('.article-prose');
+    expect(proseRoot).not.toBeNull();
+    expect(proseRoot).not.toHaveClass('prose', 'prose-lg', 'prose-sm', 'prose-xl', 'max-w-none');
+    expect(proseRoot?.querySelector('table.tiptap-table')).not.toBeNull();
+    expect(proseRoot?.querySelector('ul[data-type="taskList"]')).not.toBeNull();
+    expect(proseRoot?.querySelector('li[data-type="taskItem"]')).not.toBeNull();
+    expect(proseRoot?.querySelector('u')).not.toBeNull();
+    expect(proseRoot?.querySelector('mark')).not.toBeNull();
+    expect(proseRoot?.querySelector('img.rounded.max-w-full')).not.toBeNull();
   });
 
   it('renders layout-matched busy and sanitized error states', async () => {
