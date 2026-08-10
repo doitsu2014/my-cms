@@ -12,9 +12,9 @@ The SDLC combines two complementary toolchains:
 | Requirements & spec design      | **OpenSpec**    | Versioned, testable capability specs; machine-checkable artifacts  |
 | Proposal → design → task docs   | **OpenSpec**    | Standardized `proposal.md` / `specs/` / `design.md` / `tasks.md`   |
 | Archive & spec sync             | **OpenSpec**    | Syncs delta specs into canonical `openspec/specs/<capability>/`    |
-| Implementation & code execution  | **Superpowers** | Battle-tested execution skills (TDD, subagents, code review)       |
+| Implementation & code execution  | **Project agents** | `software-engineer` (Codex) / `coder` (OpenCode) drive TDD, subagent dispatch, code review, and the verification gate |
 
-> **OpenSpec** owns *what* and *why*. **Superpowers** owns *how* (the actual coding).
+> **OpenSpec** owns *what* and *why*. **Project agents** (`software-engineer` / `coder`) own *how* (the actual coding).
 
 ## Prompt Routing & Agent Dispatch
 
@@ -102,9 +102,8 @@ Every dispatched subagent receives four mandatory fields plus an optional skills
                                                             │  openspec-sync-specs │
                                                             │  openspec-archive-   │
                                                             │   change             │
-                                                            │ Skill (Superpowers): │
-                                                            │  finishing-a-        │
-                                                            │   development-branch │
+                                                            │ Project agent:       │
+                                                            │  branch wrap-up      │
                                                             └──────────────────────┘
 ```
 
@@ -124,12 +123,12 @@ The primary agent remains the coordinator and owns the final synthesis. For ever
 
 ### Phase 1: Explore Requirements
 **Agents:** `product-owner` (requirements & user intent) + `product-designer` (UX & visual direction) + `software-architect` (technical & architecture feasibility)
-**Primary skills:** `openspec-explore` + `map-my-cms-api-architecture` for API work (+ optional `brainstorming` for free-form idea capture)
+**Primary skills:** `openspec-explore` + `map-my-cms-api-architecture` for API work
 
 - Enter explore mode and investigate the problem space
 - Read the codebase, map integration points, surface hidden complexity
 - Check `openspec list --json` for any active change that may be relevant
-- Optionally use `brainstorming` (Superpowers) for unstructured idea generation
+- Optionally capture unstructured ideas in conversation before formalizing them as proposal scope
 - **`product-owner`** focuses on *what* the user needs — requirements, user stories, scope, success criteria, impact
 - **`product-designer`** focuses on *how the product should feel and work* — responsive information architecture, interaction flows, accessibility, visual language, and reusable frontend patterns
 - **`software-architect`** focuses on *how feasible it is* — current architecture, affected layers (API/Application Core/DB), library & framework fit, perf/security/data-model implications, alternative approaches
@@ -163,16 +162,16 @@ The SA must inject the `code-review-graph` MCP workflow before finalizing the pr
 
 If the graph server is unavailable, record the limitation and use repository inspection instead; never fabricate graph findings.
 
-### Phase 3: Implement (Superpowers-driven)
-**Agent:** `coder` in OpenCode or `software-engineer` / SE in Codex
-**Primary skills:** `executing-plans` + `subagent-driven-development` + `test-driven-development` + `requesting-code-review` + `verification-before-completion`
+### Phase 3: Implement (Agent-driven)
+**Agent:** `software-engineer` / SE in Codex (primary) or `coder` in OpenCode
+**How it works:** The executing agent walks `tasks.md`, dispatches subagents for independent work, applies TDD for behavioral changes, requests code review between task groups, and runs the full verification gate before marking anything done.
 
 - Read the OpenSpec change artifacts from `openspec/changes/<name>/` (proposal, specs, design, **tasks.md**)
-- Use `executing-plans` to walk through `tasks.md` checkboxes step by step
-- For independent tasks, dispatch subagents in parallel (`subagent-driven-development`)
-- Follow RED-GREEN-REFACTOR for every behavioral change (`test-driven-development`)
-- Request a code review between task groups (`requesting-code-review`)
-- Before claiming done, run `verification-before-completion`:
+- Walk through `tasks.md` checkboxes step by step
+- For independent tasks, dispatch subagents in parallel
+- Follow RED-GREEN-REFACTOR for every behavioral change (TDD)
+- Request a code review between task groups
+- Before claiming done, run the full verification gate:
   - `cargo check`
   - `cargo test`
   - `cargo fmt -- --check`
@@ -190,18 +189,18 @@ The SE must inject the `code-review-graph` MCP workflow before implementation an
 
 If the graph server is unavailable, record the limitation and substitute `git diff` plus the repository verification gate.
 
-> **Note:** The OpenSpec `openspec-apply-change` skill is available as a fallback if you want OpenSpec to drive task execution. By default, the project prefers Superpowers `executing-plans` for the actual coding loop.
+> **Note:** The OpenSpec `openspec-apply-change` skill is available as a fallback if you want OpenSpec to drive task execution. By default, the `software-engineer` / `coder` project agent drives the coding loop directly.
 
 ### Phase 4: Verify & Archive
-**Agent:** `coder` in OpenCode or `software-engineer` in Codex (verify + sync) → `product-owner` (final archive approval)
+**Agent:** `software-engineer` in Codex or `coder` in OpenCode (verify + sync) → `product-owner` (final archive approval)
 **Primary skills (OpenSpec):** `openspec-verify-change` → `openspec-sync-specs` → `openspec-archive-change`
-**Plus (Superpowers):** `finishing-a-development-branch`
+**Plus (project agent):** branch wrap-up (merge / PR / keep / discard)
 
 1. **Verify** — Run `openspec-verify-change <name>` to check Completeness (tasks, spec coverage), Correctness (requirement ↔ implementation mapping), and Coherence (design adherence, pattern consistency). Fix all `CRITICAL` issues; review `WARNING` issues.
 2. **Sync specs** — Run `openspec-sync-specs <name>` to merge delta specs from `openspec/changes/<name>/specs/` into the canonical `openspec/specs/<capability>/spec.md`. This is agent-driven and idempotent.
 3. **Archive** — Run `openspec-archive-change <name>`. The change moves to `openspec/changes/archive/YYYY-MM-DD-<name>/` and becomes part of the project's decision history.
-4. **Wrap up branch** — Use `finishing-a-development-branch` (Superpowers) to present options: merge, PR, keep, or discard. Never force-push; respect protected branches.
-5. **Final verification** — `verification-before-completion` once more on the merged result.
+4. **Wrap up branch** — The executing agent presents options: merge, PR, keep, or discard. Never force-push; respect protected branches.
+5. **Final verification** — Run the full verification gate once more on the merged result.
 
 ## Agent Quick Reference
 
@@ -209,11 +208,11 @@ If the graph server is unavailable, record the limitation and substitute `git di
 
 | Agent                | Phase      | Mode(s)      | Primary skills                                                              | Primary outputs                                                                        |
 |----------------------|------------|--------------|-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
-| `product-owner`      | 1, 2, 4    | OpenCode agent or Codex project agent (`.codex/agents/product-owner.toml`) | `openspec-explore`, `openspec-propose`, `openspec-new-change`, `brainstorming` (optional) | Explored result + **`proposal.md`** (Why, What Changes, Capabilities, Impact) — final sign-off |
+| `product-owner`      | 1, 2, 4    | OpenCode agent or Codex project agent (`.codex/agents/product-owner.toml`) | `openspec-explore`, `openspec-propose`, `openspec-new-change` | Explored result + **`proposal.md`** (Why, What Changes, Capabilities, Impact) — final sign-off |
 | `product-designer`   | 1, 2       | Codex project agent (`.codex/agents/product-designer.toml`) | Responsive UX, information architecture, design language, accessibility, UI component guidance | Screen specifications, responsive behavior, interaction states, design tokens, and implementation-ready design guidance |
 | `software-architect` | 1, 2        | Always OpenSpec | `map-my-cms-api-architecture`, `design-my-cms-api-change`, `openspec-new-change`, `openspec-continue-change`, `openspec-ff-change` | Source-backed architecture map, **`specs/<capability>/spec.md`**, **`design.md`**, and **`tasks.md`** |
-| `coder`              | 3, 4        | **Normal** + **Fast Fix/Fast Implement** (see below) | Normal → `executing-plans`, `subagent-driven-development`, `test-driven-development`, `requesting-code-review`, `verification-before-completion`, `finishing-a-development-branch` · Fast Fix → `verification-before-completion`, `systematic-debugging`, `test-driven-development` (only if behavioral) | Implementation, tests, verification, branch wrap-up; Normal mode also drives `openspec-verify-change` → `openspec-sync-specs` → `openspec-archive-change` |
-| `software-engineer` | 3, 4        | Codex project agent (`.codex/agents/software-engineer.toml`) | `executing-plans`, `subagent-driven-development`, `test-driven-development`, code-review-graph, `verification-before-completion` | Implementation, tests, graph impact review, verification, branch wrap-up |
+| `coder`              | 3, 4        | **Normal** + **Fast Fix/Fast Implement** (see below) | Normal → walk `tasks.md`, dispatch subagents in parallel, apply TDD, request code review between task groups, run the full verification gate, wrap up branch · Fast Fix → run the full verification gate, apply TDD only if the change is behavioral | Implementation, tests, verification, branch wrap-up; Normal mode also drives `openspec-verify-change` → `openspec-sync-specs` → `openspec-archive-change` |
+| `software-engineer` | 3, 4        | Codex project agent (`.codex/agents/software-engineer.toml`) | Walk `tasks.md`, dispatch subagents in parallel, apply TDD, code-review-graph, run the full verification gate | Implementation, tests, graph impact review, verification, branch wrap-up |
 
 ### Codex Agent Team Definition
 
@@ -225,8 +224,8 @@ For API architecture work, the SA loads `.agents/skills/map-my-cms-api-architect
 
 ### Coder modes
 
-- **Normal** — default when an active OpenSpec change has `tasks.md` ready. Read `openspec/changes/<name>/`, load `executing-plans`, execute with TDD, request code review, verify, finish.
-- **Fast Fix / Fast Implement** — for small changes (typos, config tweaks, single-file refactors, hot-fixes). No `brainstorming`, no OpenSpec scaffolding, no plan. Follow existing patterns, verify, report. Triggered by an explicit "fast" / "fast fix" / "fast implement" cue, OR inferred when the change is clearly trivial.
+- **Normal** — default when an active OpenSpec change has `tasks.md` ready. Read `openspec/changes/<name>/`, execute with TDD, request code review, run the verification gate, finish.
+- **Fast Fix / Fast Implement** — for small changes (typos, config tweaks, single-file refactors, hot-fixes). No OpenSpec scaffolding, no plan. Follow existing patterns, verify, report. Triggered by an explicit "fast" / "fast fix" / "fast implement" cue, OR inferred when the change is clearly trivial.
 
 ## Key Commands / Workflow
 
@@ -263,7 +262,7 @@ pnpm --dir apps/web build
 
 ## Document Convention
 
-OpenSpec owns the spec & decision artifacts. Superpowers is invoked for execution but does not own any document.
+OpenSpec owns the spec & decision artifacts. Project agents implement but do not own any document.
 
 ```
 openspec/
@@ -288,14 +287,14 @@ openspec/
 openspec new change "<name>"            ──▶  openspec/changes/<name>/
 openspec-ff-change / -propose / -continue   │  proposal.md → specs/ → design.md → tasks.md
                                             │
-executing-plans (Superpowers)           ──▶  │  tasks.md checkboxes ticked off
+software-engineer / coder executes     ──▶  │  tasks.md checkboxes ticked off
                                             │
 openspec-verify-change                   ──▶  │  Completeness + Correctness + Coherence report
 openspec-sync-specs                      ──▶  │  delta specs → openspec/specs/<capability>/
 openspec-archive-change                  ──▶  openspec/changes/archive/YYYY-MM-DD-<name>/
 ```
 
-> **Legacy `docs/superpowers/`** holds pre-OpenSpec historical artifacts. New work uses `openspec/` only. Do not add new files under `docs/superpowers/`.
+> **Legacy `docs/superpowers/`** holds historical artifacts from an earlier workflow. New work uses `openspec/` only. Do not add new files under `docs/superpowers/`.
 
 ---
 
@@ -506,5 +505,5 @@ pnpm --dir apps/web build   # verify frontend builds
 | Auth | Supabase GoTrue JWT (custom middleware) |
 | Observability | OpenTelemetry + Jaeger |
 | Spec Management | OpenSpec 1.4+ (capability specs + change workflow) |
-| SDLC Skills | Superpowers (brainstorming, executing-plans, subagent-driven-development, test-driven-development, requesting-code-review, verification-before-completion, finishing-a-development-branch) |
+| SDLC Skills | OpenSpec (spec, design, task lifecycle) + project agents (`software-engineer` / `coder`: TDD, subagent dispatch, code review, verification gate, branch wrap-up) |
 | Infra | Docker Compose (local), Helm (prod) |
