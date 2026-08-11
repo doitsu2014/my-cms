@@ -50,11 +50,21 @@ const MAX_TOKENS_PER_REQUEST: u16 = 8000;
 // 0.95 means 95% similar - very high similarity, likely same/similar content
 const SIMILARITY_REUSE_THRESHOLD: f32 = 0.95;
 
-// Translation instruction for HTML content
-const TRANSLATION_INSTRUCTION_HTML: &str =
+// Translation instruction for HTML content.
+//
+// `pub(crate)` so the colocated prompt regression test in
+// `translation_validator::prompt_tests` can read it back.
+//
+// Appended clause (per
+// openspec/changes/fix-translator-incomplete-html-output): explicitly tell the
+// model that the translated output must keep every <p> paragraph and must
+// never return a headings-only response.
+pub(crate) const TRANSLATION_INSTRUCTION_HTML: &str =
     "Preserve all HTML tags and structure exactly as they are. Only translate the text content within the tags, \
      never translate HTML tag names, attributes, or structure. Return valid HTML. Translate the ENTIRE content \
-     provided, do not truncate or summarize.";
+     provided, do not truncate or summarize. Return the same number of `<p>` paragraphs as the source. Never \
+     return a response that contains only headings; if the source has paragraphs your response must include \
+     the same paragraphs in the target language.";
 
 // Translation instruction for plain text content
 const TRANSLATION_INSTRUCTION_TEXT: &str =
@@ -234,7 +244,18 @@ impl PostTranslateHandler {
         Ok(None)
     }
 
-    /// OpenAI translation: Translate title, preview, and content
+    /// OpenAI translation: Translate title, preview, and content.
+    ///
+    /// The returned tuple is gated by
+    /// [`super::translation_validator::validate_paragraph_coverage`] before
+    /// the caller hands it to [`Self::save_translation`]. A translation
+    /// that drops too many source paragraphs is rejected with
+    /// `AppError::Validation("translation", ...)` so a broken translation
+    /// never overwrites a valid `post_translations` row.
+    ///
+    /// See `openspec/changes/fix-translator-incomplete-html-output/specs/domain-posts/spec.md`
+    /// (Requirement: Translation output SHALL preserve paragraph coverage)
+    /// and `design.md` Decision 3 for the placement rationale.
     async fn translate_from_openai(
         post: &posts::Model,
         target_language_code: &str,
@@ -267,6 +288,31 @@ impl PostTranslateHandler {
             model,
         )
         .await?;
+
+        // Validate paragraph coverage before returning the tuple. A translation
+        // that drops most of the source's paragraphs is treated as a translation
+        // failure: the caller will not reach `save_translation`, so the existing
+        // row in `post_translations` is preserved.
+        //
+        // See openspec/changes/fix-translator-incomplete-html-output/design.md
+        // (Decision 1) and specs/domain-posts/spec.md
+        // (Requirement: Translation output SHALL preserve paragraph coverage).
+        let source_count = super::translation_validator::count_paragraph_tags(&post.content);
+        let translated_count =
+            super::translation_validator::count_paragraph_tags(&translated_content);
+        if let Err(err) = super::translation_validator::validate_paragraph_coverage(
+            &post.content,
+            &translated_content,
+        ) {
+            tracing::warn!(
+                post_id = %post.id,
+                target_language_code = %target_language_code,
+                source_paragraph_count = source_count,
+                translated_paragraph_count = translated_count,
+                "translation rejected: insufficient paragraph coverage"
+            );
+            return Err(err);
+        }
 
         Ok((
             translated_title,
