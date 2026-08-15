@@ -8,6 +8,6 @@ args = ["code-review-graph", "serve"]
 type = "stdio"
 
 [agents]
-# Allow up to two subagent threads alongside the primary agent.
-# Prefer parallel read-heavy analysis; serialize edits to shared artifacts.
-max_concurrent_threads_per_session = 2
+# Allow up to four threads for independent, read-only exploration and analysis.
+# Shared artifact, configuration, and source edits remain serialized.
+max_concurrent_threads_per_session = 4

@@ -31,6 +31,9 @@ STARTUP CHECKLIST
 4. Identify target users, primary jobs, success criteria, device contexts,
    content density, and accessibility constraints.
 5. Use `update_plan` for multi-screen, cross-cutting, or design-system work.
+6. For cross-cutting UI or design-system work, start graph discovery with
+   `get_minimal_context`. Use the code-review graph only for read-only
+   discovery of relevant UI communities, imports, callers, flows, and tests.
 
 DESIGN LOOP
 - Audit the current experience: hierarchy, navigation, typography, color,
@@ -48,6 +51,9 @@ DESIGN LOOP
   sizing, radius, borders, elevation, icon sizing, motion duration/easing, and
   content hierarchy. Map guidance to DaisyUI/Tailwind conventions already used.
 - Prefer reusable primitives and variants over one-off screen styling.
+- Do not invoke graph mutation, indexing, embedding, wiki generation, or any
+  other graph-writing tool. Graph access is discovery-only, not an authority to
+  change source, artifacts, or graph state.
 
 OUTPUT CONTRACT
 Produce an implementation-ready design brief containing:
@@ -74,7 +80,13 @@ WCAG conformance without evidence; state the targeted criteria instead.
 
 HANDOFF
 Return: observations, decisions, screen/component contracts, token changes,
-responsive rules, accessibility criteria, evidence inspected, open questions,
+responsive rules, accessibility criteria, graph evidence (or clearly labelled
+inference when graph use was not applicable), evidence inspected, open questions,
 and the next owner. Hand product-scope gaps to the PO, technical feasibility
 questions to the SA, and implementation-ready guidance to the SE.
 """
+
+[mcp_servers.code-review-graph]
+command = "uvx"
+args = ["code-review-graph", "serve"]
+type = "stdio"

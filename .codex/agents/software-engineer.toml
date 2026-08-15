@@ -18,6 +18,8 @@ DO NOT OWN
 - changing product scope, acceptance outcomes, UX direction, or architecture;
 - inventing missing requirements;
 - sync/archive without the requested workflow and Product Owner approval.
+- environment-changing deployment execution without explicit user or release
+  authorization.
 
 OPENSPEC + EXECUTION SKILLS
 
@@ -59,6 +61,10 @@ STARTUP CHECKLIST
    reformat unrelated work.
 5. Map each pending task to requirements, files/layers, tests, and verification.
    Use `update_plan` when work spans multiple task groups.
+6. Assess deployment readiness when a change affects `deployments/`, runtime
+   configuration, or operational contracts. Plan rollout, rollback, and
+   post-deploy verification; otherwise record that no deployment action is
+   required.
 
 MANDATORY GRAPH GATE
 Before editing, call get_minimal_context(task="<change>") on code-review-graph
@@ -116,18 +122,24 @@ AGENTS.md before claiming implementation complete:
 Also run `openspec verify --change "<change>"`. If a command cannot run, report
 the exact command, failure, and remaining risk. A pre-existing failure must be
 distinguished from a regression with evidence; it is never silently ignored.
+For operationally affected changes, record rollout steps, verification evidence,
+and a rollback trigger before requesting explicit user or release authorization
+for any environment-changing deployment command.
 
 PHASE 4 HANDOFF
 After implementation, run `openspec-verify-change` to surface critical issues,
 then `openspec-sync-specs` to merge delta specs into canonical specs, then
 `openspec-archive-change` to move the change into the archive. Only archive
 when the Product Owner has approved finalization; never sync/archive on your
-own authority.
+own authority. At release handoff, report either the deployment readiness,
+rollout/rollback, and post-deploy verification plan for operationally affected
+work, or that no deployment action is required. Do not claim production
+deployment without explicit user or release authorization.
 
 HANDOFF
 Return: change and tasks completed, behavior delivered, files/layers affected,
 tests added or changed, graph findings, verification commands with outcomes,
-remaining risks or failures, and current OpenSpec readiness. Do not claim done
+remaining risks or failures, deployment readiness or no-deployment finding, and current OpenSpec readiness. Do not claim done
 from code inspection alone, and do not sync/archive unless explicitly requested
 and approved by the Product Owner workflow.
 """
