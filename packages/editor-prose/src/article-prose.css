@@ -1,0 +1,55 @@
+.article-prose { max-width: 68ch; margin-inline: auto; padding-block: var(--space-6) var(--space-8); text-align: left; }
+.article-prose > * { max-width: 68ch; }
+.article-prose p { margin-block: var(--space-5); color: var(--fg); font-size: 18px; line-height: 1.7; }
+.article-prose h2,
+.article-prose h3 { color: var(--ink-deep); font-family: var(--font-display); }
+.article-prose h2 { margin-block: var(--space-8) var(--space-4); font-size: clamp(26px, 3vw, 34px); line-height: 1.15; }
+.article-prose h3 { margin-block: var(--space-7) var(--space-3); font-size: 22px; line-height: 1.25; }
+.article-prose a { border-bottom: 1px solid var(--accent); color: var(--ink-deep); }
+.article-prose a:hover { color: var(--accent); }
+.article-prose blockquote { margin-block: var(--space-6); padding: var(--space-3) 0 var(--space-3) var(--space-6); border-inline-start: 3px solid var(--accent); color: var(--ink-deep); font-family: var(--font-display); font-size: clamp(22px, 2.4vw, 28px); font-style: italic; line-height: 1.4; }
+.article-prose ul,
+.article-prose ol { margin-block: var(--space-5); padding-inline-start: var(--space-6); }
+.article-prose li { margin-block: var(--space-3); padding-inline-start: var(--space-3); font-size: 18px; line-height: 1.7; }
+.article-prose li::marker { color: var(--accent); }
+.article-prose code { padding: 2px 6px; border-radius: 2px; background: color-mix(in oklch, var(--surface) 70%, var(--border)); color: var(--ink-deep); font-family: var(--font-mono); font-size: 0.88em; }
+.article-prose pre { overflow-x: auto; margin-block: var(--space-6); padding: var(--space-5); border: 1px solid var(--ink-deep); border-radius: 4px; background: var(--ink-deep); color: var(--surface); font-size: 14px; line-height: 1.55; }
+.article-prose pre code { padding: 0; background: transparent; color: inherit; font-size: inherit; }
+.article-prose hr { margin-block: var(--space-7); border: 0; border-top: 1px solid var(--border); }
+.article-prose figure { max-width: 100%; margin-block: var(--space-7); }
+.article-prose figure img { width: 100%; }
+.article-prose figcaption { margin-top: var(--space-3); color: var(--muted); font-size: 13px; font-style: italic; }
+.article-prose .pull { max-width: 32ch; margin-block: var(--space-7); padding-block: var(--space-5); border-block: 1px solid var(--border); color: var(--ink-deep); font-family: var(--font-display); font-size: clamp(28px, 3.5vw, 38px); line-height: 1.25; }
+
+/* --- TipTap extensions not covered by the StarterKit baseline --- */
+
+/* Tables: TipTap emits <table class="tiptap-table"> with thead/tbody/tr/th/td. */
+.article-prose table.tiptap-table { width: 100%; margin-block: var(--space-6); border-collapse: collapse; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); font-size: 16px; line-height: 1.55; }
+.article-prose table.tiptap-table th,
+.article-prose table.tiptap-table td { padding: var(--space-3) var(--space-4); border: 1px solid var(--border); vertical-align: top; text-align: left; }
+.article-prose table.tiptap-table th { color: var(--ink-deep); font-family: var(--font-display); font-weight: 600; background: color-mix(in oklch, var(--surface) 80%, var(--border)); }
+.article-prose table.tiptap-table tbody tr:nth-child(even) { background: color-mix(in oklch, var(--surface) 90%, var(--bg)); }
+
+/* Task lists: TipTap emits <ul data-type="taskList"> with <li data-type="taskItem">. */
+.article-prose ul[data-type='taskList'] { margin-block: var(--space-5); padding-inline-start: 0; list-style: none; }
+.article-prose li[data-type='taskItem'] { display: flex; align-items: flex-start; gap: var(--space-3); margin-block: var(--space-3); padding-inline-start: 0; font-size: 18px; line-height: 1.7; }
+.article-prose li[data-type='taskItem'] > label { flex: 0 0 auto; margin-top: 0.4em; }
+.article-prose li[data-type='taskItem'] > label > input[type='checkbox'] { width: 1.1em; height: 1.1em; accent-color: var(--accent); }
+.article-prose li[data-type='taskItem'][data-checked='true'] > div,
+.article-prose li[data-type='taskItem'][data-checked='true'] > p { color: var(--muted); text-decoration: line-through; }
+.article-prose li[data-type='taskItem'] > div,
+.article-prose li[data-type='taskItem'] > p { flex: 1 1 auto; min-width: 0; }
+
+/* Inline marks the editor can emit. */
+.article-prose u { text-underline-offset: 2px; text-decoration-thickness: 1px; }
+.article-prose s { color: var(--muted); }
+.article-prose mark { padding: 1px 4px; border-radius: 2px; background: color-mix(in oklch, var(--accent) 22%, var(--surface)); color: var(--ink-deep); }
+.article-prose sub,
+.article-prose sup { font-size: 0.75em; line-height: 0; position: relative; vertical-align: baseline; }
+.article-prose sub { bottom: -0.25em; }
+.article-prose sup { top: -0.5em; }
+
+/* Standalone images and YouTube embeds. */
+.article-prose img { display: block; max-width: 100%; height: auto; margin-block: var(--space-6); border-radius: 4px; }
+.article-prose iframe { display: block; max-width: 100%; margin-block: var(--space-6); border: 0; border-radius: 4px; aspect-ratio: 16 / 9; }
+.article-prose .iframe-wrapper { margin-block: var(--space-6); }

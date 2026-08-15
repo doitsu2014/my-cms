@@ -37,6 +37,6 @@ No explicit `leading-*`, `line-height`, `tracking-*`, or `letter-spacing` is pre
 | Intro subtitle | 20px | 16px below title | `opacity-70`. |
 | Section heading | 30px | `mb-6` = 24px before collection | Bold, left-aligned. |
 | Hero copy | 18px | `py-6` = 24px vertical | Center in `max-w-2xl`. |
-| Article | `.article-prose` (custom) | `max-width: 68ch` | Hand-rolled contract in `src/App.css` styles every TipTap node and mark; highlight.js styles code. Tailwind Typography is intentionally not used. |
+| Article | `.article-prose` (custom) | `max-width: 68ch` | Shared `editor-prose` package contract (`packages/editor-prose/src/article-prose.css`) styles every TipTap node and mark; the reader imports it in `src/App.tsx`. Highlight.js styles code. Tailwind Typography is intentionally not used. |
 
 Keep localized headings short enough to wrap gracefully at 48px, and treat metadata/counts as secondary information. The only observed uppercase transformation is the language trigger (`Header.tsx:53`).
