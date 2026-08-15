@@ -56,27 +56,51 @@ MUST NOT invoke graph mutation, indexing, embedding, or write-generating tools.
 - **AND** the instructions forbid graph rebuilding, embedding, wiki generation,
   or other graph-mutating operations
 
-### Requirement: Deployment lifecycle ownership
-The Software Engineer SHALL own deployment readiness, rollout, rollback, and
-post-deploy verification planning for approved OpenSpec changes. The Software
-Engineer MUST record deployment-specific verification and a rollback condition
-when a change affects `deployments/`, runtime configuration, or operational
-contracts. Production deployment execution remains subject to explicit user or
-release authorization.
+### Requirement: Dedicated Release Engineer role
+The project SHALL define a `release-engineer` Codex agent and describe it in
+the workflow routing, phase, and team references. The Release Engineer SHALL
+own deployment readiness assessment, rollout and rollback plans, post-deploy
+verification, and release handoff for approved operationally affected changes.
+The Software Engineer SHALL provide implementation and verification evidence
+to the Release Engineer but MUST NOT own the release lifecycle.
 
-#### Scenario: Operationally affected change is handed off
-- **WHEN** an approved change modifies a deployment, runtime configuration, or
-  operational contract
-- **THEN** the Software Engineer records the rollout steps, verification, and
-  rollback trigger before requesting release authorization
-- **AND** the change is not represented as production-deployed without that
-  authorization
+#### Scenario: Operationally affected change is handed to release engineering
+- **WHEN** an approved change modifies `deployments/`, runtime configuration,
+  or an operational contract
+- **THEN** the Software Engineer supplies the implementation verification and
+  operational-impact evidence to the Release Engineer
+- **AND** the Release Engineer records the rollout steps, verification plan,
+  rollback trigger, and release handoff state
 
-#### Scenario: Non-operational change completes without release action
-- **WHEN** a change affects no deployment, runtime configuration, or
+#### Scenario: Non-operational change has an explicit no-release finding
+- **WHEN** an approved change affects no deployment, runtime configuration, or
   operational contract
-- **THEN** the Software Engineer records that no deployment action is required
-- **AND** still completes the normal implementation and OpenSpec handoff gates
+- **THEN** the Release Engineer records that no deployment action is required
+- **AND** the Software Engineer still completes the normal implementation and
+  OpenSpec handoff gates
+
+### Requirement: Authorization-bounded release execution
+The Release Engineer MUST NOT execute an environment-changing production
+deployment autonomously. Before any such command, the Release Engineer SHALL
+obtain and record explicit user or release authorization. Without authorization,
+the Release Engineer SHALL report readiness, the planned rollout and rollback,
+and the next approving owner; it MUST NOT represent the change as
+production-deployed.
+
+#### Scenario: Authorized production release proceeds
+- **WHEN** a release plan is ready and explicit user or release authorization
+  is recorded
+- **THEN** the Release Engineer may execute the approved environment-changing
+  deployment commands
+- **AND** it records the post-deploy verification result and rollback outcome
+  if triggered
+
+#### Scenario: Authorization is absent
+- **WHEN** a deployment plan is ready but explicit user or release authorization
+  is absent
+- **THEN** the Release Engineer does not run environment-changing deployment
+  commands
+- **AND** it reports the release-ready state and the next approving owner
 
 ### Requirement: Controlled exploration concurrency
 The project configuration SHALL support up to four concurrent agent threads.

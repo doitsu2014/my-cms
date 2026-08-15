@@ -32,6 +32,7 @@ Detect the dominant intent behind the prompt first, then pick the primary agent 
 | Map / design API                | `software-architect`                                | —                                                               | "map API", "design API", "architecture for", "API contract", "endpoint shape" |
 | Specs / design / tasks          | `software-architect`                                | `product-designer` (integrate UX brief)                         | "write specs", "draft design", "break down tasks", "openspec-continue", "fast-forward" |
 | Implement / execute change      | `software-engineer` (Codex) or `coder` (OpenCode)   | —                                                               | "implement", "build", "code", "fix bug", "apply change", "execute tasks" |
+| Release / deploy                | `release-engineer`                                  | `software-engineer` (implementation and operational-impact evidence) | "release", "deploy", "rollout", "rollback", "post-deploy", "deployment readiness" |
 | Verify / archive                | `software-engineer` / `coder`                       | `product-owner` (final sign-off)                                | "verify", "archive", "sync specs", "finalize", "wrap up" |
 | Fast fix / hot-patch            | `coder` (Fast Fix mode, only when eligible)         | —                                                               | "fast fix", "fast implement", "hotfix", "typo", "config tweak", single-file change |
 | Debug / investigate failure     | `coder` (OpenCode) or `software-engineer` (Codex)   | —                                                               | "debug", "why is", "reproduce", "investigate test failure" |
@@ -114,8 +115,9 @@ Every dispatched subagent receives four mandatory fields plus an optional skills
                                                             │  openspec-sync-specs │
                                                             │  openspec-archive-   │
                                                             │   change             │
-                                                            │ Project agent:       │
-                                                            │  branch wrap-up      │
+                                                            │ Project agents:      │
+                                                            │  release-engineer    │
+                                                            │  + branch wrap-up    │
                                                             └──────────────────────┘
 ```
 
@@ -123,7 +125,7 @@ Every dispatched subagent receives four mandatory fields plus an optional skills
 
 The primary agent remains the coordinator and owns the final synthesis. For every delegated task, provide **Goal**, **Context**, **Constraints**, and **Done when** so the subagent can work without inventing scope.
 
-- Use the named agents for their narrow roles; do not send implementation work to PO/PD/SA or product decisions to SE.
+- Use the named agents for their narrow roles; do not send implementation work to PO/PD/SA, product decisions to SE, or operational release work to SE. The SE supplies implementation verification and operational-impact evidence to the Release Engineer, which owns the release finding and handoff.
 - For independent read-only discovery, code-path mapping, test-gap review, and risk analysis, the coordinator may use up to four workers. Record an `update_plan` checkpoint before dispatch and another after synthesizing their results. Serialize all shared edits.
 - Enforce a single writer for every artifact, configuration, and source file at a time. In Phase 2 the default sequence is PO proposal → PD UX/design brief → SA specs/design/tasks.
 - Give each delegated agent a bounded question and expected output. Wait for all requested results, then return a distilled synthesis rather than raw logs.
@@ -184,8 +186,8 @@ If the graph server is unavailable, record the limitation and use repository ins
 - For independent tasks, dispatch subagents in parallel
 - Follow RED-GREEN-REFACTOR for every behavioral change (TDD)
 - Request a code review between task groups
-- For a change affecting `deployments/`, runtime configuration, or an operational contract, the SE owns deployment readiness, rollout and rollback planning, post-deploy verification planning, and release handoff. Record rollout steps, verification, and a rollback trigger before requesting release authorization.
-- Environment-changing deployment commands require explicit user or release authorization. Without it, report readiness and the next owner; never represent the change as production-deployed.
+- For a change affecting `deployments/`, runtime configuration, or an operational contract, the SE prepares implementation verification and operational-impact evidence for the Release Engineer. The Release Engineer owns deployment readiness, rollout and rollback planning, post-deploy verification, and release handoff.
+- The Release Engineer requires explicit user or release authorization before environment-changing production commands. Without it, it reports the release-ready plan, rollback trigger, and next approving owner; it never represents the change as production-deployed.
 - Before claiming done, run the full verification gate:
   - `cargo check`
   - `cargo test`
@@ -207,16 +209,17 @@ If the graph server is unavailable, record the limitation and substitute `git di
 > **Note:** The OpenSpec `openspec-apply-change` skill is available as a fallback if you want OpenSpec to drive task execution. By default, the `software-engineer` / `coder` project agent drives the coding loop directly.
 
 ### Phase 4: Verify & Archive
-**Agent:** `software-engineer` in Codex or `coder` in OpenCode (verify + sync) → `product-owner` (final archive approval)
+**Agents:** `software-engineer` / `coder` (verify + sync) → `release-engineer` (operational release readiness and handoff) → `product-owner` (final archive approval)
 **Primary skills (OpenSpec):** `openspec-verify-change` → `openspec-sync-specs` → `openspec-archive-change`
 **Plus (project agent):** branch wrap-up (merge / PR / keep / discard)
 
-1. **Operational readiness** — The SE assesses deployment readiness. For operationally affected changes, record rollout/rollback and post-deploy verification evidence before requesting explicit user or release authorization for any environment-changing deployment. Otherwise record that no deployment action is required.
-2. **Verify** — Run `openspec-verify-change <name>` to check Completeness (tasks, spec coverage), Correctness (requirement ↔ implementation mapping), and Coherence (design adherence, pattern consistency). Fix all `CRITICAL` issues; review `WARNING` issues.
-3. **Sync specs** — Run `openspec-sync-specs <name>` to merge delta specs from `openspec/changes/<name>/specs/` into the canonical `openspec/specs/<capability>/spec.md`. This is agent-driven and idempotent.
-4. **Archive** — Run `openspec-archive-change <name>`. The change moves to `openspec/changes/archive/YYYY-MM-DD-<name>/` and becomes part of the project's decision history.
-5. **Wrap up branch** — The executing agent presents options: merge, PR, keep, or discard. Never force-push; respect protected branches.
-6. **Final verification** — Run the full verification gate once more on the merged result.
+1. **Implementation handoff** — The SE supplies implementation verification and operational-impact evidence to the Release Engineer for every approved change.
+2. **Operational readiness** — The Release Engineer records either deployment readiness, rollout/rollback, post-deploy verification, and release handoff for an operationally affected change, or that no deployment action is required. Environment-changing production commands require explicit user or release authorization.
+3. **Verify** — Run `openspec-verify-change <name>` to check Completeness (tasks, spec coverage), Correctness (requirement ↔ implementation mapping), and Coherence (design adherence, pattern consistency). Fix all `CRITICAL` issues; review `WARNING` issues.
+4. **Sync specs** — Run `openspec-sync-specs <name>` to merge delta specs from `openspec/changes/<name>/specs/` into the canonical `openspec/specs/<capability>/spec.md`. This is agent-driven and idempotent.
+5. **Archive** — Run `openspec-archive-change <name>`. The change moves to `openspec/changes/archive/YYYY-MM-DD-<name>/` and becomes part of the project's decision history.
+6. **Wrap up branch** — The executing agent presents options: merge, PR, keep, or discard. Never force-push; respect protected branches.
+7. **Final verification** — Run the full verification gate once more on the merged result.
 
 ## Agent Quick Reference
 
@@ -228,11 +231,12 @@ If the graph server is unavailable, record the limitation and substitute `git di
 | `product-designer`   | 1, 2       | Codex project agent (`.codex/agents/product-designer.toml`) | Responsive UX, information architecture, design language, accessibility, UI component guidance | Screen specifications, responsive behavior, interaction states, design tokens, and implementation-ready design guidance |
 | `software-architect` | 1, 2        | Always OpenSpec | `map-my-cms-api-architecture`, `design-my-cms-api-change`, `openspec-new-change`, `openspec-continue-change`, `openspec-ff-change` | Source-backed architecture map, **`specs/<capability>/spec.md`**, **`design.md`**, and **`tasks.md`** |
 | `coder`              | 3, 4        | **Normal** + **Fast Fix/Fast Implement** (see below) | Normal → walk `tasks.md`, dispatch subagents in parallel, apply TDD, request code review between task groups, run the full verification gate, wrap up branch · Fast Fix → run the full verification gate, apply TDD only if the change is behavioral | Implementation, tests, verification, branch wrap-up; Normal mode also drives `openspec-verify-change` → `openspec-sync-specs` → `openspec-archive-change` |
-| `software-engineer` | 3, 4        | Codex project agent (`.codex/agents/software-engineer.toml`) | Walk `tasks.md`, dispatch subagents in parallel, apply TDD, code-review-graph, run the full verification gate, assess deployment readiness | Implementation, tests, graph impact review, rollout/rollback and post-deploy plan when operationally affected, verification, branch wrap-up |
+| `software-engineer` | 3, 4        | Codex project agent (`.codex/agents/software-engineer.toml`) | Walk `tasks.md`, dispatch subagents in parallel, apply TDD, code-review-graph, run the full verification gate, prepare operational-impact evidence | Implementation, tests, graph impact review, operational-impact evidence for Release Engineer, verification, branch wrap-up |
+| `release-engineer` | 3, 4        | Codex project agent (`.codex/agents/release-engineer.toml`) | Assess deployment readiness, plan rollout/rollback and post-deploy verification, enforce authorization boundary | Release-ready plan or no deployment action finding, release handoff, and post-deploy verification result when authorized |
 
 ### Codex Agent Team Definition
 
-Codex loads the project-scoped team from `.codex/agents/` when the repository is trusted. Use `product-owner` (PO) for exploration and proposals, `product-designer` (PD) for responsive UX and design language, `software-architect` (SA) for proposal/spec/design/task review, and `software-engineer` (SE) for implementation. PD, SA, and SE are configured with the `code-review-graph` MCP server in their agent files. PD uses it only for read-only discovery; the graph gates above are mandatory for SA and SE.
+Codex loads the project-scoped team from `.codex/agents/` when the repository is trusted. Use `product-owner` (PO) for exploration and proposals, `product-designer` (PD) for responsive UX and design language, `software-architect` (SA) for proposal/spec/design/task review, `software-engineer` (SE) for implementation, and `release-engineer` (RE) for operational release work. PD, SA, and SE are configured with the `code-review-graph` MCP server in their agent files. PD uses it only for read-only discovery; the graph gates above are mandatory for SA and SE.
 
 Codex loads the repository OpenSpec workflow from `.agents/skills/openspec/SKILL.md`. It is the Codex-native equivalent of the `.opencode/skills/openspec-*` skills and maps multi-step tracking to `update_plan` while preserving the same OpenSpec CLI lifecycle.
 
@@ -256,6 +260,7 @@ For API architecture work, the SA loads `.agents/skills/map-my-cms-api-architect
 "Design API change X"              → software-architect maps current source, then uses design-my-cms-api-change
 "Write specs/design/tasks for X"   → software-architect uses openspec-continue
 "Implement <change-name>"          → software-engineer in Codex or coder in OpenCode executes tasks.md
+"Release <change-name>"            → release-engineer assesses readiness and plans rollout/rollback; explicit authorization is required before production commands
 "Verify and archive <change>"      → software-engineer/coder runs verify → sync → archive
 "Fast fix <request>"               → coder only if every Fast Fix eligibility condition holds; otherwise normal OpenSpec workflow
 ```

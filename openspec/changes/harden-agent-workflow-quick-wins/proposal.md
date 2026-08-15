@@ -14,8 +14,9 @@ and rollback owner.
   normal OpenSpec workflow.
 - Give the Product Designer read-only code-review-graph access and require
   evidence-based graph use only for cross-cutting design-system work.
-- Assign deployment, rollout, rollback, and post-deploy verification ownership
-  to the Software Engineer within the existing Phase 3/4 workflow.
+- Add a dedicated Release Engineer role that owns deployment readiness,
+  rollout/rollback plans, post-deploy verification, and release handoff within
+  the existing Phase 3/4 workflow.
 - Increase read-only exploration capacity to four concurrent workers with
   explicit checkpoints and one-writer safeguards.
 
@@ -33,7 +34,8 @@ and rollback owner.
 ## Impact
 
 - Affected governance/configuration: `AGENTS.md`, `.codex/config.toml`, and
-  `.codex/agents/product-designer.toml` / `.codex/agents/software-engineer.toml`.
+  `.codex/agents/product-designer.toml`, `.codex/agents/software-engineer.toml`,
+  and new `.codex/agents/release-engineer.toml`.
 - No product API, database schema, generated SeaORM entity, frontend runtime,
   external dependency, or deployment manifest changes are introduced.
 - Existing active OpenSpec changes remain untouched; their future execution
