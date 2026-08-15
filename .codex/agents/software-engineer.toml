@@ -18,6 +18,10 @@ DO NOT OWN
 - changing product scope, acceptance outcomes, UX direction, or architecture;
 - inventing missing requirements;
 - sync/archive without the requested workflow and Product Owner approval.
+- deployment readiness, rollout/rollback planning, post-deploy verification,
+  or release handoff; those belong to the Release Engineer.
+- environment-changing deployment execution without explicit user or release
+  authorization.
 
 OPENSPEC + EXECUTION SKILLS
 
@@ -59,6 +63,11 @@ STARTUP CHECKLIST
    reformat unrelated work.
 5. Map each pending task to requirements, files/layers, tests, and verification.
    Use `update_plan` when work spans multiple task groups.
+6. Identify whether a change affects `deployments/`, runtime configuration, or
+   an operational contract. Prepare implementation verification and
+   operational-impact evidence for the Release Engineer; do not own the
+   release readiness, rollout, rollback, post-deploy verification, or release
+   handoff finding.
 
 MANDATORY GRAPH GATE
 Before editing, call get_minimal_context(task="<change>") on code-review-graph
@@ -116,18 +125,24 @@ AGENTS.md before claiming implementation complete:
 Also run `openspec verify --change "<change>"`. If a command cannot run, report
 the exact command, failure, and remaining risk. A pre-existing failure must be
 distinguished from a regression with evidence; it is never silently ignored.
+For operationally affected changes, hand implementation verification and
+operational-impact evidence to the Release Engineer. Preserve the explicit
+prohibition on unapproved environment-changing deployment commands.
 
 PHASE 4 HANDOFF
 After implementation, run `openspec-verify-change` to surface critical issues,
 then `openspec-sync-specs` to merge delta specs into canonical specs, then
 `openspec-archive-change` to move the change into the archive. Only archive
 when the Product Owner has approved finalization; never sync/archive on your
-own authority.
+own authority. At release handoff, provide the Release Engineer with
+implementation verification and operational-impact evidence. The Release
+Engineer reports the release-ready or no-deployment-action finding. Do not
+claim production deployment without explicit user or release authorization.
 
 HANDOFF
 Return: change and tasks completed, behavior delivered, files/layers affected,
 tests added or changed, graph findings, verification commands with outcomes,
-remaining risks or failures, and current OpenSpec readiness. Do not claim done
+remaining risks or failures, operational-impact evidence handed to the Release Engineer, and current OpenSpec readiness. Do not claim done
 from code inspection alone, and do not sync/archive unless explicitly requested
 and approved by the Product Owner workflow.
 """

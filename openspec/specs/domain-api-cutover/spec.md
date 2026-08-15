@@ -6,11 +6,9 @@ The `domain-api-cutover` capability owns the contract that the single-binary
 `DomainService` per owning domain. It also owns the operator-facing migration
 CLI surface (`my-cms-api migrate <verb>`), the per-domain migration
 dispatch contract, and the deployment surface (single shipped binary).
-
 ## Requirements
-
 ### Requirement: Single domain-owned API runtime
-The system SHALL expose every supported CMS API route through the `my-cms-api` gateway using an owning domain service. The gateway's composition root (`gateway::manifest()`) SHALL register exactly one `DomainService` instance per owning domain: `DomainPostService` (post/category/tag/translation/GraphQL), `DomainMediaService` (public media delivery + administrator bucket lifecycle), `DomainUserService` (administrator user CRUD + password reset), and `DomainAuthService` (auth middleware only). After the change the gateway MUST depend on every workspace member that owns routes (`domain_posts`, `domain_media`, `domain_user`) plus `domain_auth` and `domain_interface`; the gateway MUST NOT depend on `domain_*` crates that own no routes without also registering them.
+The system SHALL expose every supported CMS API route through the `my-cms-api` gateway using an owning domain service. The gateway's composition root (`gateway::manifest()`) SHALL register exactly one `DomainService` instance per owning domain: `DomainPostService` (post/category/tag/translation/GraphQL), `DomainMediaService` (public media delivery + administrator bucket lifecycle), `DomainUserService` (administrator user CRUD + password reset), and `DomainAuthService` (auth middleware only). After the change the gateway MUST depend on every workspace member that owns routes (`domain_posts`, `domain_media`, `domain_user`) plus `domain_auth` and `domain_interface`; the gateway MUST NOT depend on `domain_*` crates that own no routes without also registering them. Per-domain `[[bin]]` targets are forbidden as a deployment surface after this change — the only HTTP-serving binary the container ships SHALL be `my-cms-api`.
 
 #### Scenario: Gateway exposes the complete route inventory
 - **WHEN** the gateway is composed with post, media, user, and auth domain services
@@ -29,12 +27,6 @@ The system SHALL expose every supported CMS API route through the `my-cms-api` g
 - **WHEN** the gateway composition is wired
 - **THEN** `apps/api/gateway/Cargo.toml` `[dependencies]` includes `domain_interface`, `domain_posts`, `domain_auth`, `domain_media`, and `domain_user`
 - **AND** no workspace member that owns HTTP routes is omitted from the gateway's `[dependencies]`
-
-#### Scenario: manifest() registers four domain services
-- **WHEN** `gateway::manifest()` is invoked after the change
-- **THEN** the returned `Vec<Box<dyn DomainService>>` has length 4
-- **AND** the four entries are `DomainPostService`, `DomainAuthService`, `DomainMediaService`, `DomainUserService` in that order
-- **AND** every entry's `health().name` is one of `domain-posts`, `domain-auth`, `domain-media`, `domain-user`
 
 ### Requirement: domain_user is composed in the gateway
 The `domain_user` crate SHALL expose a `DomainUserService` that implements `domain_interface::DomainService`, contributes the existing user-handler routes through a new `domain_user::api::routes` aggregator, validates required environment variables (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`), exposes a `HealthDescriptor { name: "domain-user", version: env!("CARGO_PKG_VERSION") }`, and returns an empty `migrations()` vector. The gateway SHALL register this service in `manifest()`. The `domain_user` library surface MUST NOT export a `main` function.
@@ -167,11 +159,11 @@ The `domain_interface::DomainService` trait SHALL expose `async fn run_migration
 - **AND** any error returned by `migrations_cli::run` is mapped to `DomainConfigError::MigrationExecution("domain-posts: <cause>")`
 
 ### Requirement: Generic migration orchestrator dispatch
-The gateway's migration orchestrator SHALL dispatch migrations per-domain via a generic interface (a `run_migrations` method on `DomainService` or an equivalent registry keyed by domain) instead of hard-coding per-domain dispatch arms. The orchestrator SHALL collect `MigrationDescriptor`s from every registered `DomainService`, deduplicate by id preserving first occurrence, sort by `(id, depends_on)`, and invoke each domain's runner for the descriptors it owns. Hard-coded id-prefix dispatch (e.g. `if d.id.starts_with("m2024") || d.id.starts_with("m2026")`) is forbidden after this change.
+The gateway's migration orchestrator SHALL dispatch migrations per-domain via a generic interface (a `MigrationRunner` method on `DomainService` or an equivalent registry keyed by domain) instead of hard-coding per-domain dispatch arms. The orchestrator SHALL collect `MigrationDescriptor`s from every registered `DomainService`, deduplicate by `id` preserving first occurrence, topologically sort by `(id, depends_on)`, and invoke each domain's runner for the descriptors it owns. Hard-coded id-prefix dispatch (e.g. `if d.id.starts_with("m2024") || d.id.starts_with("m2026")`) is forbidden after this change.
 
 #### Scenario: Orchestrator dispatches via the trait surface
 - **WHEN** `gateway::run_orchestrator` is invoked against the registered services
-- **THEN** it iterates every `DomainService` and calls `service.run_migrations(conn, &descriptors)`
+- **THEN** it iterates every `DomainService` and calls a generic runner method on the trait (e.g. `service.run_migrations(conn, &descriptors)`)
 - **AND** `gateway::main.rs` does NOT contain a hard-coded `if d.id.starts_with(...)` branch
 - **AND** the only `domain_posts::migrations_cli::*` reference in the gateway is the call into the runner, not a conditional dispatch
 
@@ -286,3 +278,31 @@ Every operator-facing doc file that names a `domain_posts` migration CLI invocat
 - **WHEN** the file is inspected after the change
 - **THEN** the migration-CLI row (around line 75-97) points at `apps/api/gateway/src/migrate_cli.rs`
 - **AND** no live reference to `apps/api/domain_posts/src/main.rs` remains outside historical notes
+
+### Requirement: Cargo workspace test suite exits 0
+The workspace `cargo test --workspace` command SHALL exit 0 after all pre-existing test runtime-mismatch issues are resolved. Tests that depend on tokio-only APIs SHALL use the `#[tokio::test]` attribute; tests that depend on async-std-only APIs SHALL continue to use `#[async_std::test]`. Mixing the attribute with a runtime that does not match the body's API calls (e.g. `#[async_std::test]` + `wiremock::MockServer::start()`) is forbidden.
+
+#### Scenario: All #[async_std::test] functions use async-std-compatible APIs
+- **WHEN** `cargo test --workspace` runs
+- **THEN** every test annotated with `#[async_std::test]` succeeds OR is one of the explicitly-allowed async-std runtime tests
+- **AND** no test panics with `there is no reactor running, must be called from the context of a Tokio 1.x runtime` from inside `tokio-1.52.3/src/net/tcp/stream.rs`
+
+#### Scenario: All #[tokio::test] functions use tokio-compatible APIs
+- **WHEN** `cargo test --workspace` runs
+- **THEN** every test annotated with `#[tokio::test]` either passes or is one of the explicitly-allowed tokio runtime tests
+- **AND** no test panics with an async-std-specific runtime error
+
+#### Scenario: cargo test --workspace exits 0
+- **WHEN** `cargo test --workspace` is run from `apps/api/`
+- **THEN** the exit code is 0
+- **AND** the summary shows zero failures
+- **AND** the only `ignored` tests are pre-existing (e.g. testcontainer tests requiring Docker)
+
+### Requirement: Verification evidence covers full workspace test suite
+The `domain-api-cutover` "Verification evidence" requirement's "Focused verification succeeds" scenario SHALL be extended to require the full workspace `cargo test --workspace` to pass, not just per-crate gates. Pre-existing test failures that block this command MUST be remediated before archive.
+
+#### Scenario: cargo test --workspace exits 0 with no pre-existing failures
+- **WHEN** `cargo test --workspace` runs from `apps/api/`
+- **THEN** exit code is 0
+- **AND** every test failure that existed prior to this change is fixed or explicitly marked `#[ignore]` with a documented reason
+- **AND** the per-crate gates (`cargo check`, `cargo fmt --check`, `cargo clippy`) still pass

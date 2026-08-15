@@ -21,12 +21,14 @@ import { TaskList } from '@tiptap/extension-task-list';
 import { TaskItem } from '@tiptap/extension-task-item';
 import { all, createLowlight } from 'lowlight';
 import ImageResize from 'tiptap-extension-resize-image';
+import { ArticleProse } from 'editor-prose';
 import { toast } from 'sonner';
 import { getMediaUploadApiUrl, createAuthHeaders } from '@/config/api.config';
 import { useAuth } from '@/auth/AuthContext';
 
 import { Toolbar } from './toolbar/toolbar';
 import './tiptap-editor.css';
+import 'editor-prose/styles.css';
 import 'highlight.js/styles/github-dark.css';
 
 // Create lowlight instance with all languages
@@ -307,10 +309,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
                 ✕
               </button>
             </div>
-            <div
-              className="tiptap-preview flex-1 overflow-auto p-6 bg-base-200 rounded-lg"
-              dangerouslySetInnerHTML={{ __html: editor.getHTML() }}
-            />
+            <ArticleProse html={editor.getHTML()} />
             <div className="modal-action">
               <button
                 type="button"

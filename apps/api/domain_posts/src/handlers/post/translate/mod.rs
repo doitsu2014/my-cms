@@ -10,7 +10,9 @@
 pub mod translate_handler;
 pub mod translate_request;
 pub mod translate_response;
+pub mod translation_validator;
 
 pub use translate_handler::{PostTranslateHandler, PostTranslateHandlerTrait};
 pub use translate_request::TranslatePostRequest;
 pub use translate_response::TranslatePostResponse;
+pub use translation_validator::{count_paragraph_tags, validate_paragraph_coverage};

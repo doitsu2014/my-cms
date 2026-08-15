@@ -63,6 +63,44 @@ describe('redesign content helpers', () => {
     });
   });
 
+  it('falls back to the original content when the matching translation is headings-only', () => {
+    const translationHeadingsOnly = {
+      languageCode: 'en',
+      title: 'Agentic AI - Developer (SDLC)',
+      previewContent: 'What is SDLC in workflow of Agentic AI - Coding?',
+      content: '<h2>Overview</h2><h3>What is SDLC in workflow of Agentic AI - Coding?</h3>',
+    };
+
+    expect(
+      getLocalizedPost(
+        { ...basePost, postTranslations: { nodes: [translationHeadingsOnly] } },
+        'en',
+      ),
+    ).toMatchObject({
+      title: 'Agentic AI - Developer (SDLC)',
+      previewContent: 'What is SDLC in workflow of Agentic AI - Coding?',
+      content: '<p>English body</p>',
+    });
+  });
+
+  it('keeps the translation when it carries at least one paragraph', () => {
+    const translationWithBody = {
+      languageCode: 'vi',
+      title: 'Tiêu đề',
+      previewContent: 'Bản xem trước',
+      content: '<h2>Tổng quan</h2><p>Nội dung đã dịch.</p>',
+    };
+
+    expect(
+      getLocalizedPost(
+        { ...basePost, postTranslations: { nodes: [translationWithBody] } },
+        'vi',
+      ),
+    ).toMatchObject({
+      content: '<h2>Tổng quan</h2><p>Nội dung đã dịch.</p>',
+    });
+  });
+
   it('selects a localized category name and slug', () => {
     const category = {
       id: 'cat-1',
