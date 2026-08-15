@@ -3,11 +3,13 @@ FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY --from=editor-prose / /packages/editor-prose
 RUN corepack enable pnpm && pnpm install --frozen-lockfile
 
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=editor-prose / /packages/editor-prose
 COPY . .
 RUN corepack enable pnpm && pnpm run build
 

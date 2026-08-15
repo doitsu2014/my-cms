@@ -9,6 +9,7 @@ on:
       - "v*.*.*"
     paths:
       - "apps/web/**"
+      - "packages/editor-prose/**"
 
 jobs:
   build_push_image:
@@ -53,6 +54,8 @@ jobs:
         with:
           context: "./apps/web"
           file: "./apps/web/Dockerfile"
+          build-contexts: |
+            editor-prose=./packages/editor-prose
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

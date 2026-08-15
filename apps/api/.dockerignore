@@ -1,4 +1,5 @@
 # Ignore any build artifacts
+target/
 **/*.rs.bk
 **/*.log
 
