@@ -1,4 +1,4 @@
-name: Build and Release my-cms-admin Docker Image
+name: Build and Release Ducth Dev Website Docker Image
 
 on:
   workflow_dispatch:
@@ -6,15 +6,15 @@ on:
     branches:
       - main
     paths:
-      - "apps/web/**"
+      - "apps/ducth-dev-website/**"
       - "packages/editor-prose/**"
-      - ".github/workflows/release-my-cms-admin-image.yml"
+      - ".github/workflows/release-my-cms-ducth-dev-website-image.yml"
 
 permissions:
   contents: read
 
 concurrency:
-  group: docker-hub-my-cms-admin-publish
+  group: docker-hub-my-cms-ducth-dev-website-publish
   cancel-in-progress: true
 
 jobs:
@@ -40,29 +40,21 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: |
-            doitsu2014/my-cms-admin
+          images: doitsu2014/my-cms-ducth-dev-website
           tags: |
             type=sha
             type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
 
-      - name: Build and push Docker images
+      - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: "./apps/web"
-          file: "./apps/web/Dockerfile"
+          context: "./apps/ducth-dev-website"
+          file: "./apps/ducth-dev-website/Dockerfile"
           build-contexts: |
             editor-prose=./packages/editor-prose
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=my-cms-admin
-          cache-to: type=gha,mode=max,scope=my-cms-admin
+          cache-from: type=gha,scope=my-cms-ducth-dev-website
+          cache-to: type=gha,mode=max,scope=my-cms-ducth-dev-website
           platforms: linux/amd64,linux/arm64
-
-# Disable auto deploy
-# deploy:
-#   needs: build_push_image
-#   if: github.event_name != 'pull_request'
-#   uses: ./.github/workflows/deploy-my-cms-admin.yml
-#   secrets: inherit
