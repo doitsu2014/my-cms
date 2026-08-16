@@ -68,6 +68,75 @@ assert_publisher_contract() {
   fi
 }
 
+assert_release_publisher_contract() {
+  local file="$1"
+  local release_workflows
+  local validation_line
+  local login_line
+
+  assert_file_exists "$file"
+  release_workflows="$(find "$workflow_dir" -maxdepth 1 -type f -name '*.yml' -exec rg -l '^  release:' {} + | sort)"
+  [[ "$release_workflows" == "$file" ]] ||
+    fail 'exactly one GitHub Release image publisher workflow is required'
+  assert_file_contains "$file" 'release:' \
+    'release publisher must trigger from published GitHub Releases'
+  assert_file_contains "$file" 'types: [published]' \
+    'release publisher must trigger only after a release is published'
+  assert_file_contains "$file" '^v[0-9]+\.[0-9]+\.[0-9]+$' \
+    'release publisher must validate exact vX.Y.Z tags before publication'
+  assert_file_contains "$file" 'fetch-depth: 0' \
+    'release publisher must check out the complete release ref history'
+  assert_file_contains "$file" 'contents: write' \
+    'release publisher must declare only the GitHub Release-note write permission it needs'
+  assert_file_contains "$file" 'cancel-in-progress: false' \
+    'release publisher must serialize same-version publication without cancellation'
+  assert_file_contains "$file" 'hub.docker.com/v2/repositories' \
+    'release publisher must preflight existing immutable Docker Hub version tags'
+  assert_file_contains "$file" 'flavor: latest=false' \
+    'release publisher must explicitly suppress metadata latest tags'
+  assert_file_contains "$file" 'type=raw,value=${{ needs.validate.outputs.tag }}' \
+    'release publisher must publish the exact release version tag'
+  assert_file_contains "$file" 'type=raw,value=sha-' \
+    'release publisher must publish a source SHA tag'
+  assert_file_contains "$file" 'doitsu2014/my-cms-admin' \
+    'release publisher must target the approved admin Docker Hub repository'
+  assert_file_contains "$file" 'doitsu2014/my-cms-ducth-dev-website' \
+    'release publisher must target the approved Ducth Docker Hub repository'
+  assert_file_contains "$file" 'doitsu2014/my-cms' \
+    'release publisher must target the approved API Docker Hub repository'
+  assert_file_contains "$file" 'context: "./apps/api"' \
+    'release publisher API build must use the app-scoped context'
+  assert_file_contains "$file" 'context: "./apps/web"' \
+    'release publisher admin build must use the app-scoped context'
+  assert_file_contains "$file" 'context: "./apps/ducth-dev-website"' \
+    'release publisher Ducth build must use the app-scoped context'
+  assert_file_contains "$file" 'editor-prose=./packages/editor-prose' \
+    'release publisher frontend builds must provide the editor-prose named context'
+  assert_file_contains "$file" '<!-- image-manifest:start -->' \
+    'release publisher must upsert a marker-delimited image manifest'
+  assert_file_contains "$file" 'gh release edit' \
+    'release publisher must update the associated GitHub Release notes'
+  assert_file_contains "$file" "status='COMPLETE'" \
+    'release publisher must mark a complete image manifest explicitly'
+  assert_file_contains "$file" "status='INCOMPLETE'" \
+    'release publisher must mark a partial image manifest explicitly'
+  validation_line="$(rg -n --fixed-strings '^v[0-9]+\.[0-9]+\.[0-9]+$' "$file" | head -n 1 | cut -d: -f1)"
+  login_line="$(rg -n --fixed-strings 'uses: docker/login-action@v3' "$file" | head -n 1 | cut -d: -f1)"
+  [[ -n "$validation_line" && -n "$login_line" && "$validation_line" -lt "$login_line" ]] ||
+    fail "release tag validation must appear before Docker Hub login ($file)"
+  if rg -q '^  push:' "$file"; then
+    fail "release publisher must not trigger on pushes ($file)"
+  fi
+  assert_file_not_contains "$file" 'pull_request:' \
+    'release publisher must not trigger on pull requests'
+  assert_file_not_contains "$file" 'workflow_dispatch:' \
+    'release publisher must not allow an unbound manual release publication'
+  assert_file_not_contains "$file" 'type=semver' \
+    'release publisher must not enable metadata semver latest behavior'
+  assert_file_not_contains "$file" 'type=raw,value=latest' \
+    'release publisher must never update latest'
+}
+
 assert_file_contains apps/api/.dockerignore 'target/' \
   'API build context must exclude target/'
 
@@ -107,6 +176,7 @@ assert_publisher_contract "$workflow_dir/release-my-cms-admin-image.yml" \
   'doitsu2014/my-cms-admin' 'apps/web/**'
 assert_publisher_contract "$workflow_dir/release-my-cms-ducth-dev-website-image.yml" \
   'doitsu2014/my-cms-ducth-dev-website' 'apps/ducth-dev-website/**'
+assert_release_publisher_contract "$workflow_dir/publish-github-release-images.yml"
 
 if [[ -e "$workflow_dir/validate-app-image-builds.yml" ]]; then
   fail 'dedicated application image validation workflow must be absent'
@@ -124,7 +194,8 @@ done
 if rg -q 'context:[[:space:]]+\.$' \
   deployments/docker-swarm/apps/docker-compose.yaml \
   "$workflow_dir/release-my-cms-admin-image.yml" \
-  "$workflow_dir/release-my-cms-ducth-dev-website-image.yml"; then
+  "$workflow_dir/release-my-cms-ducth-dev-website-image.yml" \
+  "$workflow_dir/publish-github-release-images.yml"; then
   fail 'an image build must not use the repository root as its primary context'
 fi
 
@@ -143,7 +214,8 @@ printf '%s\n' \
   '  API primary context: apps/api (target/ excluded)' \
   '  Admin primary context: apps/web + editor-prose named context' \
   '  Ducth primary context: apps/ducth-dev-website + editor-prose named context' \
-  '  Publishers: main-only, source SHA tags, latest only for main' \
+  '  Main publishers: main-only, source SHA tags, latest only for main' \
+  '  Release publisher: published vX.Y.Z releases only, version/SHA tags, never latest' \
   '  Dedicated image-validation workflow: absent' \
   '  Frontend installs: frozen lockfiles' \
   '  Missing editor-prose context: Dockerfile COPY --from=editor-prose fails before image completion' \

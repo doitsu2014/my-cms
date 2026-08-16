@@ -1,19 +1,19 @@
 ## Context
 
-This change adds reliable, component-scoped Docker Hub publishing without changing an application, a container runtime contract, Compose configuration, or deployment state.
+This change retains reliable, component-scoped `main` Docker Hub publishing and adds an immutable, release-versioned publication path for a manually published GitHub Release. It does not change an application, a container runtime contract, Compose configuration, or deployment state.
 
 ### Current-state evidence
 
-- **Observed:** `.github/workflows/release-my-cms-image.yml` already publishes `doitsu2014/my-cms` from the bounded `apps/api` context on `main` changes under `apps/api/**`. It also declares `v*.*.*` tag triggers, so a version tag is not component-change scoped. It uses Docker Hub repository secrets and produces branch, semver, SHA, and `latest` metadata tags.
-- **Observed:** `.github/workflows/release-my-cms-admin-image.yml` already publishes `doitsu2014/my-cms-admin` from `apps/web` with the required `editor-prose=./packages/editor-prose` named BuildKit context. Its path filter already includes `apps/web/**` and `packages/editor-prose/**`; it also declares tag triggers.
-- **Observed:** `.github/workflows/validate-app-image-builds.yml` is a dedicated non-publishing matrix that builds API, admin, and Ducth images. The user has explicitly removed it from the approved design; it and every tracked reference that makes it a required contract must be deleted or revised.
-- **Observed:** `apps/api/Dockerfile` builds the whole Cargo workspace and ships the gateway `my-cms-api` binary. Graph traversal from `gateway/src/main.rs::main` reaches the migration CLI and the composed domain/service initialization; image publishing must preserve this artifact and its `apps/api` context. The graph has no workflow-YAML nodes (`semantic_search_nodes` found none), so workflow dependencies are established by targeted source reads.
+- **Observed:** `.github/workflows/release-my-cms-image.yml` publishes `doitsu2014/my-cms` from the bounded `apps/api` context only on its selected `main` paths or an intentional dispatch. It produces a SHA tag and emits `latest` only when `github.ref` is `refs/heads/main`.
+- **Observed:** `.github/workflows/release-my-cms-admin-image.yml` and `.github/workflows/release-my-cms-ducth-dev-website-image.yml` respectively publish the approved admin and Ducth repositories from an app-scoped primary context plus the required `editor-prose=./packages/editor-prose` named BuildKit context. Both follow the same SHA/main-`latest` convention.
+- **Observed:** `.github/workflows/validate-app-image-builds.yml` is absent. `scripts/validate-app-image-build-contract.sh` statically validates the three main publishers, their repositories, contexts, tag policy, permissions, concurrency, and the deleted validation workflow without logging in or pushing.
+- **Observed:** `apps/api/Dockerfile` builds the workspace gateway binary from its app-scoped context. The release workflow must preserve that artifact boundary.
 - **Observed:** `apps/web/Dockerfile` and `apps/ducth-dev-website/Dockerfile` each require `packages/editor-prose` through a named BuildKit context at `/packages/editor-prose`. `scripts/validate-app-image-build-contract.sh` asserts this contract and explicitly prevents use of the repository root as the primary image context.
 - **Observed:** Docker Swarm Compose builds all three images locally. Kubernetes chart defaults reference the API and admin Docker Hub repositories; no tracked deployment consumer references a Ducth Docker Hub image. Publishing Ducth is nevertheless explicitly approved in this change and does not add a deployment.
 
-### Graph evidence
+### Graph-gate limitation and fallback evidence
 
-`get_minimal_context(task="automate-docker-hub-image-publishing")` reported a current `main` graph snapshot (1,893 nodes, 18,350 edges; head matches build) with medium risk. Traversing `apps/api/gateway/src/main.rs::main` identified its migration CLI, configuration, domain manifest, schema, router composition, and direct tests as API-image consumers. No graph result represents GitHub Actions or Dockerfile YAML; source inspection of workflows, Dockerfiles, package manifests, Compose, and the image-build contract script is the evidence source for those configuration flows.
+`code-review-graph` is unavailable in this architecture session, so no graph finding is asserted for this amendment. Targeted inspection of the three publisher workflows, local contract script, Dockerfiles, package manifests, Compose consumers, active proposal, and existing delta artifacts is the evidence source. GitHub Actions YAML and Dockerfiles are configuration boundaries rather than source-code call edges.
 
 ### Affected flow
 
@@ -27,6 +27,14 @@ push to main / intentional manual dispatch
        Ducth: apps/ducth-dev-website + editor-prose named context
   -> Buildx image build
   -> Docker Hub SHA tag (+ latest only for main publishers)
+
+published GitHub Release vX.Y.Z
+  -> release-tag validation (no external write if invalid)
+  -> immutable version-tag preflight across all three repositories
+  -> full-depth checkout of the release tag/ref
+  -> Buildx API, admin, and Ducth builds with their existing bounded contexts
+  -> Docker Hub release-version + SHA tags (never latest)
+  -> idempotent complete or explicitly incomplete GitHub Release manifest
 ```
 
 No request, API, database, SeaORM entity, migration, runtime environment, routing, or frontend interaction flow changes.
@@ -36,16 +44,18 @@ No request, API, database, SeaORM entity, migration, runtime environment, routin
 **Goals:**
 
 - Publish the approved API, admin, and Ducth images only after relevant changes reach `main`.
+- Build all three approved images from a manually published valid GitHub Release ref and make that version independently traceable.
 - Retain bounded, reproducible Docker build inputs and use the same frontend named context in every applicable publisher.
 - Remove the dedicated pull-request image-validation workflow while retaining safe repository-local publisher-contract checks.
 - Make every published image traceable to its source revision while retaining `latest` as the explicit current-main convenience tag.
 - Ensure a publisher definition can be locally checked before a registry write.
+- Record Buildx digests in an idempotent GitHub Release-note manifest without overwriting maintainer-authored notes.
 
 **Non-Goals:**
 
 - Deploying, promoting, rolling back, or changing Helm/Docker Swarm image consumers.
 - Changing Dockerfiles, Docker build contexts, Compose, image contents, application behavior, API routes, secrets at runtime, schemas, or migrations.
-- Publishing semantic-version tags, changing Docker Hub visibility/ownership, or adding images for Supabase, Traefik, or other services.
+- Triggering a release from a semantic Git tag push, creating GitHub Releases automatically, moving `latest`, changing Docker Hub visibility/ownership, or adding images for Supabase, Traefik, or other services.
 - Retaining or replacing the deleted workflow with a pull-request image-validation workflow.
 - Introducing a repository-root Docker context or a new external package registry.
 
@@ -75,7 +85,7 @@ No request, API, database, SeaORM entity, migration, runtime environment, routin
 
 **Driver:** Image consumers need a revision-resolvable artifact; the project already exposes a current-image convention through `latest`.
 
-**Decision:** Each successful publisher generates a Docker metadata SHA tag for its commit. For `main` only, it also generates `latest`. The design explicitly recommends retaining `latest`, but treats the SHA tag (or resulting image digest) as the immutable reference for audit, incident response, and any future deployment. No semver tag is generated by this change.
+**Decision:** Each successful main publisher generates a Docker metadata SHA tag for its commit. For `main` only, it also generates `latest`. The design treats the SHA tag (or resulting image digest) as the immutable reference for audit, incident response, and any future deployment. The release publisher described below uses exact raw `vX.Y.Z` plus SHA tags and explicitly disables `latest`; it does not use a Docker metadata semver tag rule.
 
 **Alternatives considered:**
 
@@ -84,6 +94,38 @@ No request, API, database, SeaORM entity, migration, runtime environment, routin
 - Semver tags on Git tag pushes: rejected because a tag may not contain relevant component changes and path filters cannot constrain tag events.
 
 **Consequences:** `latest` can remain mutable without losing traceability. This change does not update deployments to consume immutable tags; that is a separate release/deployment decision.
+
+### Decision: Use one release-only workflow to publish every component from the published release ref
+
+**Driver:** A product release must identify one complete, source-consistent image set. Adding a release trigger to the three existing main publishers would inherit their independent path selection and mutable-`latest` behavior, and would not provide one release manifest.
+
+**Decision:** Add exactly one workflow, `.github/workflows/publish-github-release-images.yml`, triggered only by `release: types: [published]`. It has no `push`, `pull_request`, or `workflow_dispatch` trigger. An initial job validates the tag with `^v[0-9]+\.[0-9]+\.[0-9]+$`; an invalid tag fails before Docker login, Buildx, or release-note mutation. The release workflow builds API, admin, and Ducth regardless of changed paths, because publishing the release represents the entire tagged source revision. Each component job checks out `${{ github.event.release.tag_name }}` with `fetch-depth: 0`, captures `git rev-parse HEAD`, and verifies it is building the release tag/ref rather than the default branch.
+
+The workflow preserves the existing contexts: API `apps/api`; admin `apps/web` plus `editor-prose=./packages/editor-prose`; Ducth `apps/ducth-dev-website` plus the same named context. Metadata uses an exact raw release tag and the established SHA-tag convention, with `flavor: latest=false` explicitly set and no semver rule. This prevents metadata defaults from creating or moving `latest`.
+
+**Alternatives considered:**
+
+- Add `release` triggers to the three main publisher files: rejected because it risks `latest`, cannot atomically report a complete set, and mixes incompatible source-selection rules.
+- Trigger on a semantic-version tag push: rejected because it is not an explicit published release and GitHub does not apply path filters to tag pushes.
+- Build default-branch head: rejected because it can differ from the source represented by the published release.
+
+**Consequences:** Main current-image behavior remains unchanged. A manually published valid GitHub Release is the only automatic release-publication trigger, and all three image records point to the same tagged revision.
+
+### Decision: Enforce a workflow-owned immutable-version and manifest protocol
+
+**Driver:** A release tag must not silently be repointed, and a released GitHub page must not imply a full artifact set when a registry build only partially succeeded.
+
+**Decision:** After validation and Docker login, the workflow inspects all three `repository:vX.Y.Z` manifests before it starts any Buildx push. Any existing version tag fails the run before release publication. Root workflow concurrency is keyed by release version (for example `docker-hub-release-${{ github.event.release.tag_name }}`) with `cancel-in-progress: false`, so retries serialize rather than cancel the in-progress attempt. This enforces immutability for workflow-owned writes; Docker Hub cannot make a check-then-push sequence atomic against an out-of-band registry writer, so the scoped credentials must not be used to mutate release tags manually.
+
+The workflow has a final `always()` manifest job after the component jobs. Successful component jobs expose their checked-out SHA and `docker/build-push-action` `digest` output. The finalizer reads the existing GitHub Release body, replaces an existing marker-delimited block or appends one if absent, and writes it back with the GitHub-provided token. The block has a `COMPLETE` status only when all three builds/pushes succeed; it lists component, repository, exact tag, SHA, and digest. If one or more components started or succeeded but the set is incomplete, it instead writes `INCOMPLETE`, names failed/unavailable components, preserves available evidence, and exits non-zero. Invalid-tag and preflight failures do not update notes because publication did not begin.
+
+**Alternatives considered:**
+
+- Permit Buildx to overwrite a version tag on retry: rejected because release identity would be mutable.
+- Append a note from each build job: rejected because retries duplicate notes and partial runs can appear complete.
+- Write a manifest only after success: rejected because operators lose the evidence needed to diagnose a partial registry publication.
+
+**Consequences:** A GitHub Release can remain published while its image publication workflow fails, but its owned manifest cannot claim completion. Correction requires a newly published release version; it never repoints the old version.
 
 ### Decision: Preserve each image's established bounded build contract
 
@@ -129,9 +171,9 @@ No request, API, database, SeaORM entity, migration, runtime environment, routin
 
 ## Security, operations, and compatibility
 
-- Docker Hub is an external integration. Registry login occurs only after `main` path selection or an intentional manual dispatch. The local workflow-contract check has no login step, no publishing secret references, and no registry side effects.
+- Docker Hub is an external integration. Registry login occurs only after `main` path selection, an intentional manual dispatch, or a validated published GitHub Release. The local workflow-contract check has no login step, no publishing secret references, and no registry side effects.
 - GitHub Actions logs must not echo secret values. The source SHA tag, generated image digest, workflow URL, and selected repository are safe operational telemetry and should be visible in job summaries/logs.
-- This change has no data, request concurrency, cache, authentication, API compatibility, or runtime-config migration. Workflow concurrency is limited to controlling writes to each repository's mutable `latest` tag.
+- This change has no data, request concurrency, cache, authentication, API compatibility, or runtime-config migration. Workflow concurrency protects per-image `latest` updates on `main` and serializes a release-version publication without cancellation.
 - Existing API runtime behavior remains the gateway binary, including `my-cms-api migrate <verb>` and router composition. Existing frontend runtime artifacts, health endpoints, and non-root Ducth container user are unchanged.
 
 ## Verification strategy
@@ -144,31 +186,35 @@ No request, API, database, SeaORM entity, migration, runtime environment, routin
 | Frontend named-context parity | Inspect admin and Ducth publisher `build-contexts`; run direct local frontend builds when needed | Buildx configuration/logs show `editor-prose=./packages/editor-prose` |
 | Traceable publications | Trigger selected main changes for each component and inspect metadata action outputs/Docker Hub | SHA tag and digest exist in the approved repository; `latest` points to the same selected main result |
 | Race protection | Start consecutive main-branch runs for one image or review concurrency configuration | Superseded publisher is cancelled; latest completed selected revision owns `latest` |
+| Release trigger and bounded source | Review `release: types: [published]`, exact `vX.Y.Z` validation, tag checkout, and all three Buildx contexts in the release publisher | Static contract-check output and workflow review show no tag-push trigger, default-branch checkout, or repository-root build context |
+| Release tag safety and audit evidence | Exercise a valid release in an authorized repository and inspect the resulting GitHub Release and Docker Hub repositories | One `vX.Y.Z` tag plus SHA tag per image; release-note manifest names the common SHA and each Buildx digest; `latest` is unchanged |
+| Incomplete release handling | Review the finalizer's `always()` path and, in an authorized non-production release test, force or observe one component failure | The release-note block is `INCOMPLETE`, names unavailable components, and the workflow fails without a complete claim |
 
 The full application verification gate remains applicable after the CI configuration edits: `cargo check`, `cargo test`, `cargo fmt -- --check`, `cargo clippy` from `apps/api`, plus `pnpm --dir apps/web build`. Frontend test/build commands and the Ducth build should also be run when Docker or package build inputs are affected.
 
 ## Migration Plan
 
-1. Add the Ducth publishing workflow and update API/admin trigger, tag, permission, concurrency, and metadata configuration without changing build contexts or image contents.
-2. Delete `.github/workflows/validate-app-image-builds.yml` and revise the local image-build contract script so it no longer expects that workflow while it checks every publisher.
-3. Run workflow lint/YAML review and the local image-build contract script; run direct local Buildx builds if Docker build inputs are changed.
-4. Configure/confirm a scoped Docker Hub access token and run a selected `main` publication for each image. Record source SHA tag and digest.
+1. Retain the existing three main-only publishers and add the release-only publisher without changing Dockerfiles, app code, Compose, or existing image contexts.
+2. Extend the local image-build contract script to distinguish the three main publishers from the release publisher and to reject a release path that could update `latest` or run on a semantic tag push.
+3. Run workflow YAML review and the local image-build contract script. Run direct local Buildx builds only if Docker build inputs have changed.
+4. Configure/confirm the scoped Docker Hub token and GitHub Actions release-note authority, then use an authorized manually published test `vX.Y.Z` release to record source SHA tags, version tags, digests, and release manifest behavior.
 5. No environment rollout is authorized or required. Any later deployment uses a separately approved immutable SHA tag or digest and has its own release plan.
 
 ### Rollback
 
-Revert the relevant publishing-workflow and local contract-check commits to stop future automated publication or restore a prior contract. The deleted validation workflow remains absent. If `latest` must be restored, an authorized operator retags the previously recorded SHA/digest in the affected Docker Hub repository; no database, application, or deployment rollback is required. Existing immutable SHA-tagged images remain available unless an operator separately deletes them.
+Revert the release publisher and local contract-check changes to stop future release-triggered publication while retaining the existing `main` publishers. The deleted validation workflow remains absent. If `latest` must be restored, an authorized operator retags the previously recorded SHA/digest in the affected Docker Hub repository; a GitHub Release build never moves `latest`. A partial release must be superseded with a newly published version; its existing version tags are not repointed. No database, application, or deployment rollback is required.
 
 ## Risks / Trade-offs
 
-- **[GitHub tag events bypass path filtering]** → Remove semantic-version tag triggers; release selection is only `main` path-filtered pushes.
+- **[GitHub tag events bypass path filtering]** → Keep semantic-version tag pushes out of the main publishers; use only an explicit published GitHub Release to request a whole-release image set.
 - **[Incorrect filter leaves a public image stale]** → Include every declared Docker input and publisher workflow definition in the local contract check; verify path cases with controlled main runs.
 - **[Shared package is omitted from a frontend build]** → Preserve the named BuildKit context and run the existing contract script plus real image builds.
-- **[Docker Hub/base image/package registry outage]** → Treat the job as an external infrastructure failure, retain source SHA evidence, and rerun after remediation rather than bypassing publication controls.
+- **[Docker Hub/base image/package registry outage]** → Treat the job as an external infrastructure failure, record any incomplete release-manifest evidence, and publish a new release version after remediation rather than bypassing immutable version controls.
 - **[Mutable `latest` is overwritten out of order]** → Use per-image concurrency and regard SHA/digest as the rollback/audit reference.
 - **[Token has excessive scope or leaks into tracked configuration]** → Use a scoped revocable token only in publisher jobs; the local contract check has no login or secret reference.
 - **[Ducth image is published but not deployed]** → This is intentional approved artifact publication; a deployment consumer is a separate change with release authorization.
+- **[A release is published but its image set is incomplete]** → The finalizer writes only an `INCOMPLETE` block and fails the workflow; operators must not promote the release and must publish a new version after remediation.
 
 ## Open Questions
 
-None block implementation. The approved repositories, main-only publishing policy, Ducth publication, SHA tagging, retention of `latest`, and removal of the pull-request image-validation workflow are explicit. The implementation owner must verify repository-secret configuration before enabling publishing; missing or unauthorized credentials are a release-configuration failure, not a reason to weaken the local contract check.
+None block implementation. The approved repositories, main-only publishing policy, Ducth publication, SHA tagging, retention of `latest`, GitHub Release event contract, and removal of the pull-request image-validation workflow are explicit. The implementation owner must verify repository-secret configuration and release-note write authority before enabling publishing; missing or unauthorized credentials are a release-configuration failure, not a reason to weaken the local contract check.

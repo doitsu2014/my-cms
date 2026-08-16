@@ -1,0 +1,274 @@
+name: Publish GitHub Release Docker Images
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-hub-release-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      source-sha: ${{ steps.release.outputs.source-sha }}
+    steps:
+      - name: Validate release tag
+        id: tag
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Published release tag must use the exact vX.Y.Z format." >&2
+            exit 1
+          fi
+          printf 'tag=%s\n' "$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Check out published release ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+
+      - name: Resolve release revision and preflight immutable version tags
+        id: release
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          source_sha="$(git rev-parse "${RELEASE_TAG}^{commit}")"
+          git merge-base --is-ancestor "$source_sha" HEAD
+          printf 'source-sha=%s\n' "$source_sha" >> "$GITHUB_OUTPUT"
+
+          for repository in \
+            doitsu2014/my-cms \
+            doitsu2014/my-cms-admin \
+            doitsu2014/my-cms-ducth-dev-website; do
+            status="$(curl --fail --silent --show-error --output /dev/null --write-out '%{http_code}' \
+              "https://hub.docker.com/v2/repositories/${repository}/tags/${RELEASE_TAG}" || true)"
+            case "$status" in
+              404) ;;
+              200)
+                echo "Refusing to overwrite existing ${repository}:${RELEASE_TAG}." >&2
+                exit 1
+                ;;
+              *)
+                echo "Unable to determine whether ${repository}:${RELEASE_TAG} exists (HTTP ${status:-none})." >&2
+                exit 1
+                ;;
+            esac
+          done
+
+  api:
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+      source-sha: ${{ steps.source.outputs.sha }}
+    steps:
+      - name: Check out published release ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.tag }}
+          fetch-depth: 0
+      - name: Capture checked-out source revision
+        id: source
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Docker Setup QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: doitsu2014/my-cms
+          flavor: latest=false
+          tags: |
+            type=raw,value=${{ needs.validate.outputs.tag }}
+            type=raw,value=sha-${{ steps.source.outputs.sha }}
+      - name: Build and push API image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: "./apps/api"
+          file: "./apps/api/Dockerfile"
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=my-cms-api-release
+          cache-to: type=gha,mode=max,scope=my-cms-api-release
+
+  admin:
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+      source-sha: ${{ steps.source.outputs.sha }}
+    steps:
+      - name: Check out published release ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.tag }}
+          fetch-depth: 0
+      - name: Capture checked-out source revision
+        id: source
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Docker Setup QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: doitsu2014/my-cms-admin
+          flavor: latest=false
+          tags: |
+            type=raw,value=${{ needs.validate.outputs.tag }}
+            type=raw,value=sha-${{ steps.source.outputs.sha }}
+      - name: Build and push admin image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: "./apps/web"
+          file: "./apps/web/Dockerfile"
+          build-contexts: |
+            editor-prose=./packages/editor-prose
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=my-cms-admin-release
+          cache-to: type=gha,mode=max,scope=my-cms-admin-release
+          platforms: linux/amd64,linux/arm64
+
+  ducth:
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+      source-sha: ${{ steps.source.outputs.sha }}
+    steps:
+      - name: Check out published release ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate.outputs.tag }}
+          fetch-depth: 0
+      - name: Capture checked-out source revision
+        id: source
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Docker Setup QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Docker Setup Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: doitsu2014/my-cms-ducth-dev-website
+          flavor: latest=false
+          tags: |
+            type=raw,value=${{ needs.validate.outputs.tag }}
+            type=raw,value=sha-${{ steps.source.outputs.sha }}
+      - name: Build and push Ducth image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: "./apps/ducth-dev-website"
+          file: "./apps/ducth-dev-website/Dockerfile"
+          build-contexts: |
+            editor-prose=./packages/editor-prose
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=my-cms-ducth-dev-website-release
+          cache-to: type=gha,mode=max,scope=my-cms-ducth-dev-website-release
+          platforms: linux/amd64,linux/arm64
+
+  record-manifest:
+    if: ${{ always() && needs.validate.result == 'success' }}
+    needs: [validate, api, admin, ducth]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Upsert GitHub Release image manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.validate.outputs.tag }}
+          API_RESULT: ${{ needs.api.result }}
+          API_SHA: ${{ needs.api.outputs.source-sha }}
+          API_DIGEST: ${{ needs.api.outputs.digest }}
+          ADMIN_RESULT: ${{ needs.admin.result }}
+          ADMIN_SHA: ${{ needs.admin.outputs.source-sha }}
+          ADMIN_DIGEST: ${{ needs.admin.outputs.digest }}
+          DUCTH_RESULT: ${{ needs.ducth.result }}
+          DUCTH_SHA: ${{ needs.ducth.outputs.source-sha }}
+          DUCTH_DIGEST: ${{ needs.ducth.outputs.digest }}
+        run: |
+          set -euo pipefail
+          complete=true
+          for result in "$API_RESULT" "$ADMIN_RESULT" "$DUCTH_RESULT"; do
+            [[ "$result" == success ]] || complete=false
+          done
+
+          body_file="$(mktemp)"
+          manifest_file="$(mktemp)"
+          notes_file="$(mktemp)"
+          trap 'rm -f "$body_file" "$manifest_file" "$notes_file"' EXIT
+
+          gh release view "$RELEASE_TAG" --json body --jq .body > "$body_file"
+          perl -0pe 's{\n?<!-- image-manifest:start -->.*?<!-- image-manifest:end -->\n?}{}gs' \
+            "$body_file" > "$notes_file"
+
+          if [[ "$complete" == true ]]; then
+            status='COMPLETE'
+          else
+            status='INCOMPLETE'
+          fi
+
+          {
+            printf '\n<!-- image-manifest:start -->\n'
+            printf '## Container image manifest — %s (%s)\n\n' "$RELEASE_TAG" "$status"
+            printf '| Component | Repository | Version tag | Source SHA | Digest | Status |\n'
+            printf '| --- | --- | --- | --- | --- | --- |\n'
+            printf '| API | `doitsu2014/my-cms` | `%s` | `%s` | `%s` | %s |\n' \
+              "$RELEASE_TAG" "${API_SHA:-unavailable}" "${API_DIGEST:-unavailable}" "$API_RESULT"
+            printf '| Admin | `doitsu2014/my-cms-admin` | `%s` | `%s` | `%s` | %s |\n' \
+              "$RELEASE_TAG" "${ADMIN_SHA:-unavailable}" "${ADMIN_DIGEST:-unavailable}" "$ADMIN_RESULT"
+            printf '| Ducth | `doitsu2014/my-cms-ducth-dev-website` | `%s` | `%s` | `%s` | %s |\n' \
+              "$RELEASE_TAG" "${DUCTH_SHA:-unavailable}" "${DUCTH_DIGEST:-unavailable}" "$DUCTH_RESULT"
+            if [[ "$complete" != true ]]; then
+              printf '\nThis image set is incomplete. Do not promote it; publish a new release version after remediation.\n'
+            fi
+            printf '<!-- image-manifest:end -->\n'
+          } > "$manifest_file"
+
+          cat "$manifest_file" >> "$notes_file"
+          gh release edit "$RELEASE_TAG" --notes-file "$notes_file"
+
+          if [[ "$complete" != true ]]; then
+            echo 'Release image publication was incomplete.' >&2
+            exit 1
+          fi
