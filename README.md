@@ -14,7 +14,7 @@ The current backend is a **pluggable domain-service workspace**. One deployable 
 - **Editorial workflow** — a React 19 admin interface with DaisyUI, Tailwind CSS, TipTap, Apollo Client, Supabase authentication, and shared `editor-prose` rendering.
 - **Public reader** — the `ducth-dev-website` React application reads the public GraphQL API and renders the same prose package used by the admin.
 - **Domain-owned backend** — posts own content, categories, tags, translations, GraphQL contribution, and canonical migrations; media owns Supabase Storage access; users own Supabase Admin operations; auth owns JWT verification.
-- **AI translation** — HTML-aware post translation uses OpenAI and can reuse cached or vector-similar results. See the [AI platform guide](docs/ai-platform.md).
+- **AI translation** — HTML-aware post translation uses OpenAI and can reuse cached or vector-similar results. See [AI translation](docs/features/ai-translation.md).
 - **Self-hosted platform** — Docker Compose runs Supabase (PostgreSQL + pgvector, GoTrue, Storage, Kong, Studio, and supporting services), Traefik, Jaeger, the API, and both web apps.
 
 ## Architecture
@@ -72,7 +72,7 @@ At startup, the gateway creates one database connection and builds immutable and
 
 The gateway applies cross-cutting authentication and cookie handling once, rather than embedding them in every domain router. It also collects domain migration descriptors and runs their migrations against the shared connection. The operator CLI is available as `my-cms-api migrate up`, `down`, `status`, or `--list`.
 
-For the detailed source map and API route topology, see [API architecture](docs/api-architecture.md).
+For the detailed source map and API route topology, see [Software architecture](docs/architecture/software-architecture.md).
 
 ## Repository layout
 
@@ -166,8 +166,11 @@ pnpm --dir ../ducth-dev-website build
 
 ## Documentation and change process
 
-- [API architecture](docs/api-architecture.md) — workspace, gateway, and domain ownership details.
-- [AI translation platform](docs/ai-platform.md) — translation behavior, reuse strategy, and jobs.
+- [Documentation index](docs/README.md) — entry point for current project documentation.
+- [Software architecture](docs/architecture/software-architecture.md) — workspace, gateway, and domain ownership details.
+- [AI translation](docs/features/ai-translation.md) — translation behavior, reuse strategy, and jobs.
+- [Editor prose contract](docs/features/editor-prose-contract.md) — shared TipTap reader rendering across the admin and public website.
+- [Agent-team workflow](docs/development/agent-team.md) — role ownership and the OpenSpec delivery lifecycle.
 - [Postman collection](docs/postman_collection/) — REST and GraphQL request examples.
 - [Local Docker stack](deployments/docker-swarm/README.md) — Compose setup and operational commands.
 - [OpenSpec](openspec/) — capability specifications and the proposal → design → task → verification workflow.
