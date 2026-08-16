@@ -6,11 +6,12 @@ import { buildGraphQLClient } from './infrastructure/graphql/graphql-client';
 import AppContent from './AppContent';
 import { resolveRuntimeConfig } from './config/validate-env';
 import { setRuntimeConfigForServer } from './config/get-runtime-config';
-import { getRouteLanguage, type RouteLanguage } from './lib/i18n/getRouteLanguage';
+import { metadataInputFromApolloState, resolvePublicMetadata, type PublicMetadataProfile } from './metadata/public-metadata';
+import { serializePublicHead } from './metadata/public-head';
 import './App.css';
 import './i18n/i18n';
 
-export default async function render(url: string): Promise<{ html: string; apolloState: object; documentLang: RouteLanguage }> {
+export default async function render(url: string): Promise<{ html: string; apolloState: object; documentLang: 'en' | 'vi'; metadata: PublicMetadataProfile; metadataHead: string }> {
   const config = resolveRuntimeConfig(process.env);
   setRuntimeConfigForServer(config);
   const client = buildGraphQLClient();
@@ -22,9 +23,7 @@ export default async function render(url: string): Promise<{ html: string; apoll
     </ApolloProvider>
   );
   await getDataFromTree(app);
-  return {
-    html: renderToString(app),
-    apolloState: client.extract(),
-    documentLang: getRouteLanguage(url),
-  };
+  const apolloState = client.extract();
+  const metadata = resolvePublicMetadata(metadataInputFromApolloState(url, config, apolloState));
+  return { html: renderToString(app), apolloState, documentLang: metadata.lang, metadata, metadataHead: serializePublicHead(metadata) };
 }

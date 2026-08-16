@@ -18,11 +18,13 @@ import AdminUsersListPage from './app/admin/users/page';
 import AdminCreateUserPage from './app/admin/users/create/page';
 import AdminEditUserPage from './app/admin/users/edit/page';
 import AdminLoginPage from './app/admin/login/page';
+import AdminMetadataBoundary from './metadata/AdminMetadataBoundary';
 
 const App = () => {
   return (
     <ToastProvider>
       <BrowserRouter>
+        <AdminMetadataBoundary />
         <AuthProvider>
           <Routes>
             {/* All admin routes are protected */}
@@ -48,5 +50,4 @@ const App = () => {
 };
 
 export default App;
-
 

@@ -42,7 +42,7 @@ const PostDetailPage = () => {
 
   if (postQuery.loading || allPostsQuery.loading) return <ContentSkeleton variant="post" />;
   if (postQuery.error || allPostsQuery.error) return <ContentError lang={currentLang} onRetry={() => { void postQuery.refetch(); void allPostsQuery.refetch(); }} />;
-  if (!post) return <NotFoundState lang={currentLang} message={currentLang === 'vi' ? 'Không tìm thấy bài viết này.' : 'This post could not be found.'} />;
+  if (!post || post.published === false) return <NotFoundState lang={currentLang} message={currentLang === 'vi' ? 'Không tìm thấy bài viết này.' : 'This post could not be found.'} />;
 
   const localizedPost = getLocalizedPost(post, currentLang);
   const localizedCategory = post.categories ? getLocalizedCategory(post.categories, currentLang) : undefined;

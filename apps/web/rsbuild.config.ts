@@ -5,12 +5,18 @@ const { publicVars } = loadEnv();
 
 export default defineConfig({
   html: {
+    title: 'My-CMS Admin',
     // Set DaisyUI theme on the html element
     htmlAttrs: {
       'data-theme': 'emerald',
     },
     // Inject runtime config script before app scripts
     tags: [
+      {
+        tag: 'meta',
+        attrs: { name: 'robots', content: 'noindex, nofollow' },
+        head: true,
+      },
       {
         tag: 'script',
         attrs: { src: '/config.js' },

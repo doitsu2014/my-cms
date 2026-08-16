@@ -123,6 +123,14 @@ NEXTAUTH_SECRET=your-secret-key
 UPLOAD_URL=http://localhost:4000/upload
 ```
 
+## Document metadata policy
+
+The admin document starts with the product title `My-CMS Admin` and a
+`noindex, nofollow` robots directive. Route navigation refines the title for login,
+dashboard, list, create, and edit tasks while preserving that private robots policy.
+The admin app intentionally emits no public-site canonical, Open Graph, or Twitter
+metadata.
+
 ## Project Structure
 
 ```

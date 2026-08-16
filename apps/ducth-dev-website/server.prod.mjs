@@ -42,8 +42,9 @@ app.get('/{*path}', async (req, res) => {
     const rendered = await render(req.path);
     const state = `<script id="app-config" type="application/json">${escapeJsonForScript(CONFIG)}</script>`;
     const documentLang = rendered.documentLang === 'vi' ? 'vi' : 'en';
-    const html = template.replace(/<html lang="[^"]*"/, `<html lang="${documentLang}"`)
-      .replace('<!--app-content-->', rendered.html).replace('</head>', `${state}</head>`)
+    const html = template.replace(/<title>[\s\S]*?<\/title>/i, '')
+      .replace(/<html lang="[^"]*"/, `<html lang="${documentLang}"`)
+      .replace('<!--app-content-->', rendered.html).replace('</head>', `${rendered.metadataHead}${state}</head>`)
       .replace('</body>', `<script>window.__APOLLO_STATE__=${escapeJsonForScript(rendered.apolloState)}</script></body>`);
     if (req.path === '/') {
       res.redirect(302, '/en');

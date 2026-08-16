@@ -52,7 +52,7 @@ const appConfigTags = devConfig
   : [];
 
 export default defineConfig({
-  html: { template: './index.html', tags: appConfigTags },
+  html: { template: './index.html', title: 'Duc Tran\'s Blog', tags: appConfigTags },
   server: { port: 3001, historyApiFallback: true },
   resolve: { alias: { '@': './src' } },
   plugins: [pluginReact()],
