@@ -35,6 +35,11 @@ const templatePath = path.join(root, 'dist/client/index.html');
 const render = (await import('./dist/server/index.mjs')).default;
 app.use('/static', express.static(path.join(root, 'dist/client/static')));
 app.use('/images', express.static(path.join(root, 'dist/client/images')));
+app.get('/favicon.ico', (req, res, next) => {
+  res.sendFile(path.join(root, 'dist/client/favicon.ico'), (err) => {
+    if (err) next(err);
+  });
+});
 app.get('/{*path}', async (req, res) => {
   const correlationId = crypto.randomUUID();
   try {
