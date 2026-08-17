@@ -6,11 +6,20 @@ interface PostArtworkProps {
   slug: string;
   title: string;
   aspect?: string;
+  fit?: 'cover' | 'natural';
 }
 
-const PostArtwork = ({ src, slug, title, aspect = '4 / 3' }: PostArtworkProps) => {
+const PostArtwork = ({ src, slug, title, aspect = '4 / 3', fit = 'cover' }: PostArtworkProps) => {
   if (src) {
-    return <EditorialImage src={src} alt={title} aspect={aspect} className="post-artwork" />;
+    return (
+      <EditorialImage
+        src={src}
+        alt={title}
+        aspect={fit === 'natural' ? undefined : aspect}
+        fit={fit}
+        className="post-artwork"
+      />
+    );
   }
   return (
     <div

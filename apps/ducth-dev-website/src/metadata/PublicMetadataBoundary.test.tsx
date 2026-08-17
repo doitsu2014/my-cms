@@ -3,7 +3,7 @@ import { MockedProvider } from '@apollo/client/testing';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Link, Route, Routes } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { expect, it } from 'vitest';
 import PublicMetadataBoundary from './PublicMetadataBoundary';
 
 const config = {

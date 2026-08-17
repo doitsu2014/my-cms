@@ -183,6 +183,7 @@ a { -webkit-tap-highlight-color: transparent; }
 .pull-quote cite { display: block; margin-top: var(--space-3); color: var(--muted); font-family: var(--font-body); font-size: 13px; font-style: normal; }
 .editorial-image { margin: 0; overflow: hidden; border: 1px solid var(--border); background: var(--surface); }
 .editorial-image img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
+.editorial-image--natural img { height: auto; object-fit: initial; object-position: initial; }
 
 .post-card { min-width: 0; border-top: 1px solid var(--border); padding-top: var(--space-5); }
 .post-card__link { display: block; height: 100%; }

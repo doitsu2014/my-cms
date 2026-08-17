@@ -70,7 +70,13 @@ const PostDetailPage = () => {
         </Container>
       </Section>
       <Container>
-        <PostArtwork src={thumbnail} slug={post.slug} title={localizedPost.title} aspect="21 / 9" />
+        <PostArtwork
+          src={thumbnail}
+          slug={post.slug}
+          title={localizedPost.title}
+          aspect="21 / 9"
+          fit="natural"
+        />
         <div ref={contentRef}>
           <ArticleProse html={localizedPost.content} />
         </div>
