@@ -2,6 +2,8 @@
 [![codecov](https://codecov.io/gh/doitsu2014/my-cms/branch/main/graph/badge.svg?token=7V6BYO0TJO)](https://codecov.io/gh/doitsu2014/my-cms)
 [![Coverage Status](https://coveralls.io/repos/github/doitsu2014/my-cms/badge.svg?branch=main)](https://coveralls.io/github/doitsu2014/my-cms?branch=main)
 
+![My-CMS architecture overview](docs/assets/my-cms-repository-thumbnail.jpg)
+
 # My-CMS
 
 My-CMS is a self-hosted, API-first publishing platform. It provides a Rust gateway API, a React administrative console, a public reader website, and a self-hosted Supabase platform for PostgreSQL, authentication, and object storage.
