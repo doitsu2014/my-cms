@@ -122,7 +122,9 @@ async fn main() -> ExitCode {
         return migrate_cli::handle_args(&args[1..]).await;
     }
 
-    init_observability();
+    // Keep the OTLP guard alive until the HTTP server finishes so its exporter
+    // can continue receiving spans and flush on shutdown.
+    let _otel_guard = init_observability();
 
     let media_config = match MediaConfig::from_env() {
         Ok(c) => Arc::new(c),
@@ -268,11 +270,14 @@ fn compose_routers(
     let administrator_layer =
         auth_layer_from_env(audience, vec!["my-headless-cms-administrator".to_string()])?;
 
+    let (otel_in_response, otel_axum) = domain_posts::domain::layers::otel_layers();
     Ok(with_cookie_manager(
         public
             .merge(protected.layer(protected_layer))
             .merge(administrator.layer(administrator_layer)),
-    ))
+    )
+    .layer(otel_in_response)
+    .layer(otel_axum))
 }
 
 /// Supply the request extension required by handlers that extract `Cookies`.
@@ -316,15 +321,26 @@ fn build_schema(
     )
 }
 
-fn init_observability() {
-    use tracing_subscriber::layer::SubscriberExt;
-    use tracing_subscriber::EnvFilter;
+fn init_observability() -> Option<init_tracing_opentelemetry::otlp::OtelGuard> {
+    init_observability_with(
+        domain_posts::observability::init,
+        domain_posts::observability::init_text_logging,
+    )
+}
 
-    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
-    let subscriber = tracing_subscriber::registry()
-        .with(filter)
-        .with(tracing_subscriber::fmt::layer().with_target(true));
-    let _ = tracing::subscriber::set_global_default(subscriber);
+fn init_observability_with<F, G>(
+    init_otel: F,
+    init_text_logging: G,
+) -> Option<init_tracing_opentelemetry::otlp::OtelGuard>
+where
+    F: FnOnce() -> Option<init_tracing_opentelemetry::otlp::OtelGuard>,
+    G: FnOnce(),
+{
+    let guard = init_otel();
+    if guard.is_none() {
+        init_text_logging();
+    }
+    guard
 }
 
 /// Build the `UserApiState` from `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`.
@@ -353,8 +369,15 @@ mod tests {
     };
     use domain_interface::{HealthDescriptor, RouteRegistration};
     use domain_user::handlers::supabase_admin_client::SupabaseAdminClient;
-    use std::{ffi::OsString, sync::Mutex};
+    use std::{
+        ffi::OsString,
+        sync::{Arc, Mutex},
+    };
     use tower::ServiceExt;
+    use tracing_subscriber::{
+        layer::{Context, SubscriberExt},
+        registry::LookupSpan,
+    };
 
     static ENV_LOCK: Mutex<()> = Mutex::new(());
 
@@ -367,6 +390,12 @@ mod tests {
         fn set(name: &'static str, value: &str) -> Self {
             let previous = std::env::var_os(name);
             std::env::set_var(name, value);
+            Self { name, previous }
+        }
+
+        fn unset(name: &'static str) -> Self {
+            let previous = std::env::var_os(name);
+            std::env::remove_var(name);
             Self { name, previous }
         }
     }
@@ -414,6 +443,144 @@ mod tests {
 
     async fn cookie_probe(_cookies: tower_cookies::Cookies) -> StatusCode {
         StatusCode::OK
+    }
+
+    #[derive(Clone, Default)]
+    struct CapturedHttpSpans {
+        spans: Arc<Mutex<Vec<CapturedSpan>>>,
+    }
+
+    #[derive(Debug, Default)]
+    struct CapturedSpan {
+        name: String,
+        fields: Vec<(String, String)>,
+    }
+
+    impl CapturedHttpSpans {
+        fn has_request(&self, route: &str, status: StatusCode) -> bool {
+            self.spans.lock().unwrap().iter().any(|span| {
+                span.name == "HTTP request"
+                    && span
+                        .fields
+                        .iter()
+                        .any(|(field, value)| field == "http.route" && value == route)
+                    && span.fields.iter().any(|(field, value)| {
+                        field == "http.response.status_code"
+                            && value == &status.as_u16().to_string()
+                    })
+            })
+        }
+    }
+
+    impl<S> tracing_subscriber::Layer<S> for CapturedHttpSpans
+    where
+        S: tracing::Subscriber + for<'a> LookupSpan<'a>,
+    {
+        fn on_new_span(
+            &self,
+            attrs: &tracing::span::Attributes<'_>,
+            id: &tracing::span::Id,
+            ctx: Context<'_, S>,
+        ) {
+            let mut visitor = FieldVisitor::default();
+            attrs.record(&mut visitor);
+            let span = ctx.span(id).expect("span exists");
+            span.extensions_mut().insert(CapturedSpan {
+                name: attrs.metadata().name().to_string(),
+                fields: visitor.0,
+            });
+        }
+
+        fn on_record(
+            &self,
+            id: &tracing::span::Id,
+            values: &tracing::span::Record<'_>,
+            ctx: Context<'_, S>,
+        ) {
+            let mut visitor = FieldVisitor::default();
+            values.record(&mut visitor);
+            let span = ctx.span(id).expect("span exists");
+            let mut extensions = span.extensions_mut();
+            extensions
+                .get_mut::<CapturedSpan>()
+                .expect("captured span fields inserted")
+                .fields
+                .extend(visitor.0);
+        }
+
+        fn on_close(&self, id: tracing::span::Id, ctx: Context<'_, S>) {
+            let span = ctx.span(&id).expect("span exists");
+            let captured = span
+                .extensions_mut()
+                .remove::<CapturedSpan>()
+                .expect("captured span fields inserted");
+            self.spans.lock().unwrap().push(captured);
+        }
+    }
+
+    #[derive(Default)]
+    struct FieldVisitor(Vec<(String, String)>);
+
+    impl tracing::field::Visit for FieldVisitor {
+        fn record_str(&mut self, field: &tracing::field::Field, value: &str) {
+            self.0.push((field.name().to_string(), value.to_string()));
+        }
+
+        fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn std::fmt::Debug) {
+            self.0
+                .push((field.name().to_string(), format!("{value:?}")));
+        }
+
+        fn record_i64(&mut self, field: &tracing::field::Field, value: i64) {
+            self.0.push((field.name().to_string(), value.to_string()));
+        }
+
+        fn record_u64(&mut self, field: &tracing::field::Field, value: u64) {
+            self.0.push((field.name().to_string(), value.to_string()));
+        }
+    }
+
+    struct ProtectedProbeService {
+        handler_calls: Arc<std::sync::atomic::AtomicUsize>,
+    }
+
+    impl DomainService for ProtectedProbeService {
+        fn health(&self) -> HealthDescriptor {
+            HealthDescriptor {
+                name: "protected-probe",
+                version: "test",
+            }
+        }
+
+        fn required_env(&self) -> &'static [&'static str] {
+            &[]
+        }
+
+        fn validate_config(&self) -> Result<(), domain_interface::DomainConfigError> {
+            Ok(())
+        }
+
+        fn migrations(&self) -> Vec<domain_interface::MigrationDescriptor> {
+            Vec::new()
+        }
+
+        fn register_routes(&self, _ctx: &DomainContext) -> Vec<RouteRegistration> {
+            let handler_calls = self.handler_calls.clone();
+            vec![RouteRegistration {
+                mount: Mount::Protected,
+                router: Router::new().route(
+                    "/protected-probe",
+                    get(move || {
+                        let handler_calls = handler_calls.clone();
+                        async move {
+                            handler_calls.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                            StatusCode::OK
+                        }
+                    }),
+                ),
+                prefix: "/protected-probe",
+            }]
+        }
     }
 
     fn stub_domain_context() -> DomainContext {
@@ -470,6 +637,9 @@ mod tests {
         let ctx = stub_domain_context();
         let services: Vec<Box<dyn DomainService>> = vec![Box::new(CookieProbeService)];
         let app = compose_routers(&services, &ctx).unwrap().with_state(ctx);
+        drop(jwt_secret);
+        drop(supabase_url);
+        drop(_env_lock);
 
         let response = app
             .oneshot(
@@ -482,9 +652,101 @@ mod tests {
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::OK);
+    }
 
+    #[test]
+    fn compose_routers_traces_health_requests_without_changing_response() {
+        let _env_lock = ENV_LOCK.lock().unwrap_or_else(|error| error.into_inner());
+        let supabase_url = ScopedEnvVar::set("SUPABASE_URL", "http://localhost:8000");
+        let jwt_secret = ScopedEnvVar::set("SUPABASE_JWT_SECRET", "test-secret");
+        let captured = CapturedHttpSpans::default();
+        let subscriber = tracing_subscriber::registry()
+            .with(tracing::level_filters::LevelFilter::TRACE)
+            .with(captured.clone());
+
+        let ctx = stub_domain_context();
+        let app = compose_routers(&[], &ctx).unwrap().with_state(ctx);
         drop(jwt_secret);
         drop(supabase_url);
+        drop(_env_lock);
+        let response = tracing::subscriber::with_default(subscriber, || {
+            tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap()
+                .block_on(
+                    app.oneshot(
+                        Request::builder()
+                            .uri("/health")
+                            .body(Body::empty())
+                            .unwrap(),
+                    ),
+                )
+                .unwrap()
+        });
+
+        assert_eq!(response.status(), StatusCode::OK);
+        assert!(captured.has_request("/health", StatusCode::OK));
+    }
+
+    #[test]
+    fn compose_routers_traces_rejected_protected_requests_without_calling_handler() {
+        let _env_lock = ENV_LOCK.lock().unwrap_or_else(|error| error.into_inner());
+        let supabase_url = ScopedEnvVar::set("SUPABASE_URL", "http://localhost:8000");
+        let jwt_secret = ScopedEnvVar::set("SUPABASE_JWT_SECRET", "test-secret");
+        let captured = CapturedHttpSpans::default();
+        let subscriber = tracing_subscriber::registry()
+            .with(tracing::level_filters::LevelFilter::TRACE)
+            .with(captured.clone());
+        let handler_calls = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+
+        let ctx = stub_domain_context();
+        let services: Vec<Box<dyn DomainService>> = vec![Box::new(ProtectedProbeService {
+            handler_calls: handler_calls.clone(),
+        })];
+        let app = compose_routers(&services, &ctx).unwrap().with_state(ctx);
+        drop(jwt_secret);
+        drop(supabase_url);
+        drop(_env_lock);
+        let response = tracing::subscriber::with_default(subscriber, || {
+            tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .unwrap()
+                .block_on(
+                    app.oneshot(
+                        Request::builder()
+                            .uri("/protected-probe")
+                            .body(Body::empty())
+                            .unwrap(),
+                    ),
+                )
+                .unwrap()
+        });
+
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+        assert_eq!(handler_calls.load(std::sync::atomic::Ordering::SeqCst), 0);
+        assert!(captured.has_request("/protected-probe", StatusCode::UNAUTHORIZED));
+    }
+
+    #[test]
+    fn disabled_or_invalid_otlp_exporter_uses_text_logging_fallback() {
+        let _env_lock = ENV_LOCK.lock().unwrap_or_else(|error| error.into_inner());
+
+        for enabled in [Some("false"), None, Some("not-a-boolean")] {
+            let _enabled = match enabled {
+                Some(value) => ScopedEnvVar::set("ENABLED_OTLP_EXPORTER", value),
+                None => ScopedEnvVar::unset("ENABLED_OTLP_EXPORTER"),
+            };
+            let mut text_logging_initialized = false;
+
+            let guard = init_observability_with(domain_posts::observability::init, || {
+                text_logging_initialized = true;
+            });
+
+            assert!(guard.is_none());
+            assert!(text_logging_initialized);
+        }
     }
 
     #[test]

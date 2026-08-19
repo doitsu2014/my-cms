@@ -16,6 +16,9 @@ ACTIVATE FOR
 - visual direction, design tokens, component patterns, and UI consistency;
 - accessibility requirements and design acceptance criteria;
 - auditing an existing site or reference to extract its design language.
+- `/implement-feature <change>`: inspect the ready OpenSpec plan and current
+  UI, then give the SE implementation-time clarification for responsive
+  behavior, components, interaction states, and accessibility.
 
 DO NOT OWN
 - business scope or product priority, which belongs to the Product Owner;
@@ -70,6 +73,10 @@ OpenSpec Phase 2, contribute UX/visual decisions to design.md only when the
 parent explicitly assigns you as the sole writer for that artifact. Otherwise
 return a paste-ready brief for the SA to integrate. Never concurrently edit an
 artifact another agent is writing.
+
+For `/implement-feature`, return the implementation-time brief to the SE; do
+not change production code or silently revise the approved plan. Escalate a
+material conflict with the proposal, specification, or design to the PO/SA.
 
 QUALITY GATE
 Check every primary flow at narrow mobile, tablet, and wide desktop widths;

@@ -1,0 +1,22 @@
+## 1. Regression Tests — `api-gateway-bootstrap`
+
+- [x] 1.1 In `apps/api/gateway/src/main.rs` tests, first add a deterministic local tracing/capture test for `compose_routers` that proves a public or health request traverses the OpenTelemetry HTTP request layer and retains its existing successful response. Use the existing `ENV_LOCK` for environment-sensitive setup; do not require a live OTLP collector or mutate the process-global subscriber from parallel tests. Verify the test fails before the router-layer wiring is restored and passes after it is added. (Requirement: “Cross-cutting authorization and middleware are applied in every deployment mode” — enabled public/health scenario.)
+- [x] 1.2 In the same focused test module, first add a protected-route probe that proves an unauthenticated request remains HTTP 401 without invoking the handler and traverses the outer HTTP tracing layer. Verify it fails before the router-layer wiring is restored and passes afterward. (Requirement: same — gateway-composed rejected-auth scenario.)
+- [x] 1.3 Add focused coverage, using a testable startup/configuration seam where required, that disabled, absent, and invalid `ENABLED_OTLP_EXPORTER` values retain the text-logging fallback without requiring a collector. Keep exporter/subscriber lifecycle tests serialized and do not leak environment values or credentials into test output. Verify with `cd apps/api && cargo test -p gateway`.
+
+## 2. Gateway OTLP Lifecycle and Router Wiring
+
+- [x] 2.1 Update `apps/api/gateway/src/main.rs` so gateway startup delegates to `domain_posts::observability::init()` and uses `domain_posts::observability::init_text_logging()` only when the initializer returns no guard. Retain the returned `OtelGuard` in `main` until the awaited `axum::serve` lifecycle completes; preserve migration-command dispatch before observability initialization and retain non-fatal fallback behavior. (Requirement: enabled and disabled scenarios; Design decision 1.)
+- [x] 2.2 Update `compose_routers` in `apps/api/gateway/src/main.rs` to obtain `domain_posts::domain::layers::otel_layers()` and apply `OtelInResponseLayer` plus `OtelAxumLayer` exactly once around the fully merged, cookie-managed gateway router. Preserve the established pair ordering, existing per-mount authentication layers, cookie middleware, routes, response behavior, and state typing. (Requirement: all gateway request classes; Design decision 2.)
+- [x] 2.3 Run the focused gateway suite and inspect the resulting diff for the lifecycle/layer ordering, hidden router consumers, and sensitive-field exposure. Confirm no changes are made to generated entities, API/GraphQL contracts, schema/migrations, or deployment configuration. Verify with `cd apps/api && cargo test -p gateway` and `git diff --check`.
+
+## 3. Build and Repository Verification
+
+- [ ] 3.1 Format and compile the changed API workspace after the focused tests pass. Verify with `cd apps/api && cargo fmt -- --check && cargo check -p gateway && cargo clippy -p gateway --all-targets -- -D warnings`.
+- [x] 3.2 Run the API regression suite and the repository-required frontend build to demonstrate the cross-workspace gate remains green. Verify with `cd apps/api && cargo test` and `pnpm --dir apps/web build`.
+
+## 4. Rollout and Operational Acceptance
+
+- [ ] 4.1 Build and deploy the normal `my-cms-api` image through the approved release path with the current OTLP environment configuration unchanged. Before any environment-changing production command, obtain release/user authorization; record the image/version, service name, collector endpoint class (without secrets), and rollout start time. (Design migration plan.)
+- [ ] 4.2 After deployment, send a real public or authenticated gateway request and verify the configured collector/Jaeger receives a trace for `OTEL_SERVICE_NAME` that includes the request operation and response outcome. Also verify startup, health, auth-rejected behavior, request error rate, and latency remain normal. Record the evidence and ingestion window. (Requirement: enabled public/health and rejected-auth scenarios.)
+- [ ] 4.3 If startup fails, route/auth behavior changes, request failures or latency regress, or telemetry overhead is unacceptable, roll back to the prior API image or set `ENABLED_OTLP_EXPORTER=false`; verify text logging and normal HTTP behavior after rollback. No data migration or cleanup is required. (Design rollback plan.)

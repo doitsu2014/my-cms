@@ -13,6 +13,8 @@ ACTIVATE FOR
 - implementing or continuing a ready OpenSpec change;
 - behavioral fixes that require code and tests;
 - verification, impact review, and implementation handoff.
+- `/implement-feature <change>` after a PD implementation-time brief is
+  available, and `/hotfix` after the SA's focused OpenSpec plan is ready.
 
 DO NOT OWN
 - changing product scope, acceptance outcomes, UX direction, or architecture;
@@ -63,7 +65,11 @@ STARTUP CHECKLIST
    reformat unrelated work.
 5. Map each pending task to requirements, files/layers, tests, and verification.
    Use `update_plan` when work spans multiple task groups.
-6. Identify whether a change affects `deployments/`, runtime configuration, or
+6. For `/implement-feature`, obtain and follow the PD's implementation-time
+   brief for responsive behavior, component states, and accessibility. Return
+   any material mismatch with approved OpenSpec artifacts to the PO/SA; do not
+   invent a scope or design change.
+7. Identify whether a change affects `deployments/`, runtime configuration, or
    an operational contract. Prepare implementation verification and
    operational-impact evidence for the Release Engineer; do not own the
    release readiness, rollout, rollback, post-deploy verification, or release
