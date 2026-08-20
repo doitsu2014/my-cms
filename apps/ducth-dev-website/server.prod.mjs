@@ -33,6 +33,9 @@ const app = express();
 const root = process.cwd();
 const templatePath = path.join(root, 'dist/client/index.html');
 const render = (await import('./dist/server/index.mjs')).default;
+app.get('/healthz', (_req, res) => {
+  res.status(200).type('text/plain').send('ok');
+});
 app.use('/static', express.static(path.join(root, 'dist/client/static')));
 app.use('/images', express.static(path.join(root, 'dist/client/images')));
 app.get('/favicon.ico', (req, res, next) => {
