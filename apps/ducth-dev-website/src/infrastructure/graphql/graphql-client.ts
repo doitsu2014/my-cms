@@ -31,7 +31,10 @@ function resolveGraphqlApiUrl(): string {
  * lazily — after the SSR-injected `<script id="app-config">` is in the DOM
  * on the client, and after the per-request global is set on the server.
  */
-export function buildGraphQLClient(initialState?: NormalizedCacheObject) {
+export function buildGraphQLClient(
+  initialState?: NormalizedCacheObject,
+  serverFetch?: typeof fetch,
+) {
   const cache = new InMemoryCache();
 
   // Restore cache from SSR data (client-side only)
@@ -41,6 +44,7 @@ export function buildGraphQLClient(initialState?: NormalizedCacheObject) {
 
   const httpLink = createHttpLink({
     uri: resolveGraphqlApiUrl,
+    ...(isBrowser || !serverFetch ? {} : { fetch: serverFetch }),
   });
 
   return new ApolloClient({
@@ -60,6 +64,7 @@ export function buildGraphQLClient(initialState?: NormalizedCacheObject) {
 
 // Client-side: Restore from window.__APOLLO_STATE__ if available
 const initialState = isBrowser
-  ? (window as unknown as { __APOLLO_STATE__?: NormalizedCacheObject }).__APOLLO_STATE__
+  ? (window as unknown as { __APOLLO_STATE__?: NormalizedCacheObject })
+      .__APOLLO_STATE__
   : undefined;
 export const graphqlClient = buildGraphQLClient(initialState);

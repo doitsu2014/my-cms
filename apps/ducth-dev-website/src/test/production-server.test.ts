@@ -2,6 +2,8 @@
 
 import { once } from 'node:events';
 import { createServer, type Server } from 'node:http';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -35,11 +37,14 @@ async function getAvailablePort(): Promise<number> {
   return port;
 }
 
-async function waitForResponse(url: string): Promise<Response> {
+async function waitForResponse(
+  url: string,
+  init?: RequestInit,
+): Promise<Response> {
   let lastError: unknown;
   for (let attempt = 0; attempt < 50; attempt += 1) {
     try {
-      return await fetch(url);
+      return await fetch(url, init);
     } catch (error) {
       lastError = error;
       await wait(50);
@@ -66,22 +71,32 @@ afterEach(async () => {
 function startProductionServer(
   port: number,
   graphqlApiUrl: string,
+  options: { enabled?: boolean; otlpEndpoint?: string } = {},
 ): ChildProcess {
-  const child = spawn(process.execPath, ['server.prod.mjs'], {
-    cwd: websiteRoot,
-    env: {
-      ...process.env,
-      NODE_ENV: 'production',
-      WEBSITE_PORT: String(port),
-      WEBSITE_SITE_NAME: 'Test website',
-      WEBSITE_SITE_URL: 'https://website.test',
-      WEBSITE_DEFAULT_TITLE: 'Test title',
-      WEBSITE_DEFAULT_DESCRIPTION: 'Test description',
-      WEBSITE_PUBLIC_GRAPHQL_API_URL: graphqlApiUrl,
-      WEBSITE_PUBLIC_MEDIA_BASE_URL: 'https://media.test',
+  const child = spawn(
+    process.execPath,
+    ['--import', './instrumentation.mjs', 'server.prod.mjs'],
+    {
+      cwd: websiteRoot,
+      env: {
+        ...process.env,
+        NODE_ENV: 'production',
+        WEBSITE_PORT: String(port),
+        WEBSITE_SITE_NAME: 'Test website',
+        WEBSITE_SITE_URL: 'https://website.test',
+        WEBSITE_DEFAULT_TITLE: 'Test title',
+        WEBSITE_DEFAULT_DESCRIPTION: 'Test description',
+        WEBSITE_PUBLIC_GRAPHQL_API_URL: graphqlApiUrl,
+        WEBSITE_PUBLIC_MEDIA_BASE_URL: 'https://media.test',
+        ENABLED_OTLP_EXPORTER: options.enabled ? 'true' : 'false',
+        OTEL_SERVICE_NAME: 'ducth-dev-website',
+        OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
+          options.otlpEndpoint || 'http://127.0.0.1:9/v1/traces',
+        OTEL_TRACES_SAMPLER: 'always_on',
+      },
+      stdio: 'pipe',
     },
-    stdio: 'pipe',
-  });
+  );
   processes.push(child);
   return child;
 }
@@ -138,6 +153,113 @@ describe('production website server', () => {
       expect(graphqlRequests).toBeGreaterThan(0);
     } finally {
       await closeServer(graphqlServer);
+    }
+  });
+
+  it('propagates a traceparent from an enabled SSR request to GraphQL', async () => {
+    let graphQlTraceparent;
+    const graphqlServer = createServer((_request, response) => {
+      graphQlTraceparent = _request.headers.traceparent;
+      response.writeHead(200, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ data: {} }));
+    });
+    const graphqlPort = await listen(graphqlServer);
+    const websitePort = await getAvailablePort();
+    try {
+      startProductionServer(
+        websitePort,
+        `http://127.0.0.1:${graphqlPort}/posts/graphql/immutable`,
+        { enabled: true },
+      );
+      const response = await waitForResponse(
+        `http://127.0.0.1:${websitePort}/en`,
+      );
+      expect(response.status).toBe(200);
+      expect(graphQlTraceparent).toMatch(/^00-[\da-f]{32}-[\da-f]{16}-0[01]$/);
+    } finally {
+      await closeServer(graphqlServer);
+    }
+  });
+
+  it('continues a valid incoming trace context for downstream GraphQL', async () => {
+    let graphQlTraceparent;
+    const graphqlServer = createServer((_request, response) => {
+      graphQlTraceparent = _request.headers.traceparent;
+      response.writeHead(200, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ data: {} }));
+    });
+    const graphqlPort = await listen(graphqlServer);
+    const websitePort = await getAvailablePort();
+    const incoming = '00-0123456789abcdef0123456789abcdef-0123456789abcdef-01';
+    try {
+      startProductionServer(
+        websitePort,
+        `http://127.0.0.1:${graphqlPort}/posts/graphql/immutable`,
+        { enabled: true },
+      );
+      const response = await waitForResponse(
+        `http://127.0.0.1:${websitePort}/en`,
+        { headers: { traceparent: incoming } },
+      );
+      expect(response.status).toBe(200);
+      expect(graphQlTraceparent).toMatch(
+        /^00-0123456789abcdef0123456789abcdef-[\da-f]{16}-01$/,
+      );
+      expect(graphQlTraceparent).not.toBe(incoming);
+    } finally {
+      await closeServer(graphqlServer);
+    }
+  });
+
+  it('keeps enabled health checks dependency-free and leaves the browser bundle uninstrumented', async () => {
+    let graphqlRequests = 0;
+    let telemetryRequests = 0;
+    const graphqlServer = createServer((_request, response) => {
+      graphqlRequests += 1;
+      response.writeHead(200, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ data: {} }));
+    });
+    const otlpServer = createServer((_request, response) => {
+      telemetryRequests += 1;
+      response.writeHead(200);
+      response.end();
+    });
+    const graphqlPort = await listen(graphqlServer);
+    const otlpPort = await listen(otlpServer);
+    const websitePort = await getAvailablePort();
+    try {
+      startProductionServer(
+        websitePort,
+        `http://127.0.0.1:${graphqlPort}/posts/graphql/immutable`,
+        {
+          enabled: true,
+          otlpEndpoint: `http://127.0.0.1:${otlpPort}/v1/traces`,
+        },
+      );
+      const response = await waitForResponse(
+        `http://127.0.0.1:${websitePort}/healthz`,
+      );
+      expect(response.status).toBe(200);
+      expect(graphqlRequests).toBe(0);
+      const clientFiles = await fs.readdir(
+        path.join(websiteRoot, 'dist/client/static/js'),
+      );
+      const clientBundle = (
+        await Promise.all(
+          clientFiles.map((file) =>
+            fs.readFile(
+              path.join(websiteRoot, 'dist/client/static/js', file),
+              'utf8',
+            ),
+          ),
+        )
+      ).join('\n');
+      expect(clientBundle.toLowerCase()).not.toContain('opentelemetry');
+      expect(clientBundle.toLowerCase()).not.toContain('instrumentation.mjs');
+      expect(telemetryRequests).toBe(0);
+    } finally {
+      await closeServer(graphqlServer);
+      await closeServer(otlpServer);
     }
   });
 });
