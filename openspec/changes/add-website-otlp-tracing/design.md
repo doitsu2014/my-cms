@@ -76,7 +76,7 @@ The bootstrap validates only what it needs to avoid unsafe telemetry behavior. A
 
 **Decision:** Implement a small server-only telemetry module with two explicit boundaries:
 
-1. The catch-all SSR route extracts W3C context from the request and runs the existing render/template/response work in a bounded server span. Its attributes are limited to stable method, route path (not query string), protocol, and response/error outcome. It records an error status without an exception message or body.
+1. The catch-all SSR route extracts W3C context from the request and runs the existing render/template/response work in a bounded server span named `METHOD /requested/path`. Its attributes include the requested path component as both `http.route` and `url.path` (not its query string), plus method, protocol, and response/error outcome. The trace ID remains the OpenTelemetry-generated identifier required for cross-service correlation. It records an error status without an exception message or body.
 2. The server-side Apollo `HttpLink` receives a telemetry-aware `fetch` wrapper. That wrapper starts a child client span, injects W3C context into outgoing headers, and records only the GraphQL HTTP method, endpoint origin/path, response status, and bounded error outcome. Browser client creation continues to use normal fetch with no SDK or propagation wrapper.
 
 The `/healthz` route remains before this SSR boundary; therefore it has no server span, no client span, and no GraphQL work. The bootstrap installs Node async context management and a W3C trace-context propagator before these modules load. Termination handlers shut down the SDK once without changing Express's established response behavior.

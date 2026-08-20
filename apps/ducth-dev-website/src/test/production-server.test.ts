@@ -238,7 +238,7 @@ describe('production website server', () => {
           otlpEndpoint: `http://127.0.0.1:${otlpPort}/v1/traces`,
         },
       );
-      const response = await waitForResponse(`http://127.0.0.1:${websitePort}/en`, {
+      const response = await waitForResponse(`http://127.0.0.1:${websitePort}/en?authorization=secret`, {
         headers: {
           'x-forwarded-for': '203.0.113.9, 198.51.100.10',
           'user-agent':
@@ -250,6 +250,11 @@ describe('production website server', () => {
 
       const exported = telemetryPayload.toString('utf8');
       expect(exported).toContain('203.0.113.9');
+      expect(exported).toContain('GET /en');
+      expect(exported).not.toContain('website.ssr.request');
+      expect(exported).toContain('url.path');
+      expect(exported).toContain('/en');
+      expect(exported).not.toContain('authorization=secret');
       expect(exported).toContain('user_agent.original');
       expect(exported).toContain('user_agent.browser.name');
       expect(exported).toContain('Safari');

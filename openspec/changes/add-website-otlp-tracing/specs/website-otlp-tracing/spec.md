@@ -47,6 +47,11 @@ Website telemetry SHALL NOT record or export request or response bodies, rendere
 
 The change SHALL instrument server-side website execution only. It SHALL NOT add browser telemetry, analytics, browser exporter configuration, or browser-to-API trace propagation.
 
+#### Scenario: SSR span identifies the exact requested path component
+- **WHEN** a reader requests a non-health SSR path, including a nested localized page path
+- **THEN** the website server span name is `METHOD /requested/path` and it records that requested path component in `url.path` and `http.route`
+- **AND** query-string values are not recorded
+
 #### Scenario: Health check remains untraced and dependency-free
 - **WHEN** Docker or another caller sends `GET /healthz` to an enabled website process
 - **THEN** the endpoint returns its established HTTP 200 shallow response without a website span or downstream GraphQL request

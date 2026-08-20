@@ -76,14 +76,17 @@ function installBridge() {
         input.headers,
         headersGetter,
       );
+      const method = input.method.slice(0, 16);
+      const route = boundedRoute(input.route);
       return context.with(parent, () =>
         tracer.startActiveSpan(
-          'website.ssr.request',
+          `${method} ${route}`,
           {
             kind: SpanKind.SERVER,
             attributes: {
-              'http.method': input.method.slice(0, 16),
-              'http.route': boundedRoute(input.route),
+              'http.method': method,
+              'http.route': route,
+              'url.path': route,
               'network.protocol.version': safeProtocol(input.protocol),
               ...visitorAttributes(input),
             },
