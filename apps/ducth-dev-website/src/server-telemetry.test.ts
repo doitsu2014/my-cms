@@ -5,6 +5,8 @@ import { getServerFetch, withServerSpan } from './server-telemetry';
 
 // @ts-expect-error The preload-only ESM seam intentionally has no browser-facing TypeScript entry.
 const { boundedRoute, readWebsiteTelemetryConfig } = await import('../telemetry-config.mjs');
+// @ts-expect-error The preload-only ESM seam intentionally has no browser-facing TypeScript entry.
+const { visitorAttributes } = await import('../visitor-telemetry.mjs');
 
 afterEach(() => {
   delete globalThis.__WEBSITE_OTEL_BRIDGE__;
@@ -52,6 +54,39 @@ describe('website telemetry configuration', () => {
 });
 
 describe('server telemetry boundary', () => {
+  it('exports the approved raw visitor attributes only on the server-span input', () => {
+    expect(
+      visitorAttributes({
+        headers: {
+          'x-forwarded-for': 'not-an-ip, 203.0.113.9, 198.51.100.10',
+          'x-real-ip': '198.51.100.11',
+          'user-agent':
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 Version/18.1 Mobile/15E148 Safari/604.1',
+        },
+        peerAddress: '127.0.0.1',
+      }),
+    ).toMatchObject({
+      'client.address': '203.0.113.9',
+      'user_agent.original':
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 Version/18.1 Mobile/15E148 Safari/604.1',
+      'user_agent.browser.name': 'Safari',
+      'user_agent.browser.version': '18.1',
+      'os.name': 'iOS',
+      'os.version': '18.1',
+      'device.type': 'mobile',
+      'device.model': 'iPhone',
+    });
+  });
+
+  it('falls back from absent proxy headers to the direct peer address', () => {
+    expect(visitorAttributes({
+      headers: { 'x-real-ip': '198.51.100.11' },
+      peerAddress: '::1',
+    })).toEqual({
+      'client.address': '::1',
+    });
+  });
+
   it('is a no-op when the Node preload is absent or disabled', async () => {
     let called = false;
     await withServerSpan(

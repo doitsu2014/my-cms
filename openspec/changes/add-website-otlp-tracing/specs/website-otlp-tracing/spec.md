@@ -37,9 +37,13 @@ When the existing My-CMS API accepts that W3C context with its deployed OpenTele
 - **THEN** the website preserves its existing SSR response and error behavior
 - **AND** the website does not retry, alter, or fail the GraphQL request because of telemetry
 
-### Requirement: Shallow health probing and privacy-safe website telemetry
+### Requirement: Shallow health probing and restricted website telemetry
 
-The exact unauthenticated `GET /healthz` endpoint SHALL remain a shallow availability check and SHALL not create website telemetry spans, initiate SSR, invoke Apollo, or contact GraphQL or another external dependency. Website telemetry for other requests SHALL use bounded operational HTTP attributes only and SHALL NOT record or export request or response bodies, rendered HTML, GraphQL documents, GraphQL variables, cookies, authorization headers, other authentication material, telemetry configuration secrets, or complete query-string values. Failed SSR or GraphQL work SHALL mark the relevant span as failed without adding those prohibited values.
+The exact unauthenticated `GET /healthz` endpoint SHALL remain a shallow availability check and SHALL not create website telemetry spans, initiate SSR, invoke Apollo, or contact GraphQL or another external dependency. For every other traced SSR request, the server span SHALL record the approved raw client IP as `client.address`, raw User-Agent as `user_agent.original`, and bounded derived `user_agent.browser.name`, `user_agent.browser.version`, `os.name`, `os.version`, `device.type`, and `device.model` attributes. It SHALL use the first syntactically valid IP address in Traefik-normalized `x-forwarded-for`, then the direct TCP peer address, and SHALL ignore `x-real-ip`.
+
+Traefik's `web` entry point SHALL trust inbound `X-Forwarded-*` only from the current Cloudflare CIDRs through `TRAEFIK_ENTRYPOINTS_WEB_FORWARDEDHEADERS_TRUSTEDIPS`; it SHALL NOT enable insecure forwarded-header mode. The website's published host port SHALL be bound to loopback only, preventing public traffic from bypassing the Traefik trust boundary. The raw IP and User-Agent are restricted operational data; Jaeger access and retention SHALL be limited to authorized operators.
+
+Website telemetry SHALL NOT record or export request or response bodies, rendered HTML, GraphQL documents, GraphQL variables, cookies, authorization headers, other authentication material, telemetry configuration secrets, or complete query-string values. Failed SSR or GraphQL work SHALL mark the relevant span as failed without adding those prohibited values.
 
 The change SHALL instrument server-side website execution only. It SHALL NOT add browser telemetry, analytics, browser exporter configuration, or browser-to-API trace propagation.
 
@@ -47,6 +51,16 @@ The change SHALL instrument server-side website execution only. It SHALL NOT add
 - **WHEN** Docker or another caller sends `GET /healthz` to an enabled website process
 - **THEN** the endpoint returns its established HTTP 200 shallow response without a website span or downstream GraphQL request
 - **AND** the container health-check behavior remains independent of the API and collector
+
+#### Scenario: Visitor client attributes identify the SSR requester
+- **WHEN** a non-health traced SSR request arrives through Traefik from a Cloudflare CIDR with `x-forwarded-for` and a User-Agent
+- **THEN** its website server span contains the first valid forwarded raw client IP, the raw User-Agent, and bounded derived browser, OS, and device attributes
+- **AND** it does not attach those visitor attributes to the GraphQL client span or browser bundle
+
+#### Scenario: Untrusted forwarding headers do not control client identity
+- **WHEN** a request reaches Traefik from an address outside its Cloudflare CIDR trust list with a supplied `X-Forwarded-For` or `X-Real-IP`
+- **THEN** Traefik does not trust the supplied forwarded value when constructing the request forwarded to the website
+- **AND** the website obtains its client address from Traefik-normalized `X-Forwarded-For` or the direct peer address only
 
 #### Scenario: Sensitive request and GraphQL data are excluded
 - **WHEN** a traced reader request contains cookies, authorization material, URL query values, or a GraphQL request has a document and variables

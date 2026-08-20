@@ -211,6 +211,57 @@ describe('production website server', () => {
     }
   });
 
+  it('exports raw visitor client attributes on an enabled SSR trace', async () => {
+    let telemetryPayload = Buffer.alloc(0);
+    const graphqlServer = createServer((_request, response) => {
+      response.writeHead(200, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ data: {} }));
+    });
+    const otlpServer = createServer((request, response) => {
+      const chunks: Buffer[] = [];
+      request.on('data', (chunk: Buffer) => chunks.push(chunk));
+      request.on('end', () => {
+        telemetryPayload = Buffer.concat(chunks);
+        response.writeHead(200);
+        response.end();
+      });
+    });
+    const graphqlPort = await listen(graphqlServer);
+    const otlpPort = await listen(otlpServer);
+    const websitePort = await getAvailablePort();
+    try {
+      const website = startProductionServer(
+        websitePort,
+        `http://127.0.0.1:${graphqlPort}/posts/graphql/immutable`,
+        {
+          enabled: true,
+          otlpEndpoint: `http://127.0.0.1:${otlpPort}/v1/traces`,
+        },
+      );
+      const response = await waitForResponse(`http://127.0.0.1:${websitePort}/en`, {
+        headers: {
+          'x-forwarded-for': '203.0.113.9, 198.51.100.10',
+          'user-agent':
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 Version/18.1 Mobile/15E148 Safari/604.1',
+        },
+      });
+      expect(response.status).toBe(200);
+      await stopProcess(website);
+
+      const exported = telemetryPayload.toString('utf8');
+      expect(exported).toContain('203.0.113.9');
+      expect(exported).toContain('user_agent.original');
+      expect(exported).toContain('user_agent.browser.name');
+      expect(exported).toContain('Safari');
+      expect(exported).toContain('device.type');
+      expect(exported).toContain('mobile');
+      expect(exported).not.toContain('198.51.100.10');
+    } finally {
+      await closeServer(graphqlServer);
+      await closeServer(otlpServer);
+    }
+  });
+
   it('keeps enabled health checks dependency-free and leaves the browser bundle uninstrumented', async () => {
     let graphqlRequests = 0;
     let telemetryRequests = 0;

@@ -20,6 +20,7 @@ import {
   boundedRoute,
   readWebsiteTelemetryConfig,
 } from './telemetry-config.mjs';
+import { visitorAttributes } from './visitor-telemetry.mjs';
 
 const telemetryConfig = readWebsiteTelemetryConfig();
 const enabled = telemetryConfig.enabled;
@@ -84,6 +85,7 @@ function installBridge() {
               'http.method': input.method.slice(0, 16),
               'http.route': boundedRoute(input.route),
               'network.protocol.version': safeProtocol(input.protocol),
+              ...visitorAttributes(input),
             },
           },
           async (span) => {

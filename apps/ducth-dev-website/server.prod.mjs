@@ -62,6 +62,7 @@ app.get('/{*path}', async (req, res) => {
       route: req.path,
       protocol: req.httpVersion,
       headers: req.headers,
+      peerAddress: req.socket.remoteAddress,
     },
     async (span) => {
       try {

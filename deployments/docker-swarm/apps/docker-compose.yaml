@@ -188,7 +188,9 @@ services:
         editor-prose: ../../../packages/editor-prose
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      # Keep the SSR server reachable for host-local debugging without
+      # creating a public path that bypasses Traefik's trusted IP boundary.
+      - "127.0.0.1:3001:3001"
     depends_on:
       my-cms-api:
         condition: service_started

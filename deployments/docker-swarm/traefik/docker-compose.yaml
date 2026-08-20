@@ -1,6 +1,8 @@
 # docker-compose.yaml (Traefik proxy stack)
 # Traefik reverse proxy with file-based routing (no Docker socket needed).
-# Cloudflare terminates SSL, so HTTP-only on port 80.
+# Cloudflare terminates SSL, so HTTP-only on port 80. The Cloudflare CIDRs in
+# .env are passed to Traefik's native trusted-forwarder setting; do not enable
+# forwardedHeaders.insecure, which would make visitor-IP headers spoofable.
 #
 # Lives under deployments/docker-swarm/traefik/ so the proxy deployment
 # surface stays isolated from the apps and Supabase stacks. Paths in this
@@ -17,6 +19,10 @@ services:
     container_name: traefik
     restart: unless-stopped
     env_file: ./.env
+    environment:
+      # Compose interpolation makes the trusted-CIDR deployment input explicit;
+      # the loopback default fails closed for origin visitor-IP restoration.
+      TRAEFIK_ENTRYPOINTS_WEB_FORWARDEDHEADERS_TRUSTEDIPS: ${TRAEFIK_ENTRYPOINTS_WEB_FORWARDEDHEADERS_TRUSTEDIPS:-127.0.0.1/32,::1/128}
     command:
       - "--api.dashboard=true"
       - "--api.insecure=true"

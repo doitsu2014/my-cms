@@ -18,6 +18,7 @@ type TelemetryBridge = {
       route: string;
       protocol: string;
       headers: Record<string, string | string[] | undefined>;
+      peerAddress?: string;
     },
     callback: (span: ServerSpanHandle) => Promise<T>,
   ) => Promise<T>;
@@ -41,6 +42,7 @@ export function withServerSpan<T>(
     route: string;
     protocol: string;
     headers: Record<string, string | string[] | undefined>;
+    peerAddress?: string;
   },
   callback: (span: ServerSpanHandle) => Promise<T>,
 ): Promise<T> {
