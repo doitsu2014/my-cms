@@ -19,6 +19,7 @@ RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 expressjs
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server.prod.mjs ./server.prod.mjs
 COPY --from=builder /app/instrumentation.mjs ./instrumentation.mjs
+COPY --from=builder /app/telemetry-config.mjs ./telemetry-config.mjs
 COPY --from=builder /app/package.json ./package.json
 COPY --from=deps /app/node_modules ./node_modules
 RUN chown -R expressjs:nodejs /app
