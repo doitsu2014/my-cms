@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import render, { withServerSpan } from './dist/server/index.mjs';
+import { createSitemapService } from './sitemap.mjs';
 
 const requiredUrl = (name) => {
   const value = process.env[name]?.trim();
@@ -44,8 +45,37 @@ const escapeJsonForScript = (value) =>
 const app = express();
 const root = process.cwd();
 const templatePath = path.join(root, 'dist/client/index.html');
+const sitemapService = createSitemapService({
+  siteUrl: CONFIG.siteUrl,
+  graphqlApiUrl: CONFIG.graphqlApiUrl,
+});
 app.get('/healthz', (_req, res) => {
   res.status(200).type('text/plain').send('ok');
+});
+app.get('/robots.txt', async (_req, res, next) => {
+  try {
+    const source = await fs.readFile(
+      path.join(root, 'dist/client/robots.txt'),
+      'utf8',
+    );
+    const sitemapUrl = `${CONFIG.siteUrl.replace(/\/+$/, '')}/sitemap.xml`;
+    const robots = /^Sitemap:\s*.*$/im.test(source)
+      ? source.replace(/^Sitemap:\s*.*$/im, `Sitemap: ${sitemapUrl}`)
+      : `${source.trimEnd()}\nSitemap: ${sitemapUrl}\n`;
+    res
+      .set('Cache-Control', 'public, max-age=3600')
+      .type('text/plain')
+      .send(robots);
+  } catch (error) {
+    next(error);
+  }
+});
+app.get('/sitemap.xml', async (_req, res) => {
+  const xml = await sitemapService.getSitemapXml();
+  res
+    .set('Cache-Control', 'public, max-age=300')
+    .type('application/xml; charset=utf-8')
+    .send(xml);
 });
 app.use('/static', express.static(path.join(root, 'dist/client/static')));
 app.use('/images', express.static(path.join(root, 'dist/client/images')));

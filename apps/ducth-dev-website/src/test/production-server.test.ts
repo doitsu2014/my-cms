@@ -129,6 +129,71 @@ describe('production website server', () => {
     }
   });
 
+  it('serves the crawler policy instead of rendering the SPA fallback', async () => {
+    const graphqlServer = createServer((_request, response) => {
+      response.writeHead(500);
+      response.end();
+    });
+    const graphqlPort = await listen(graphqlServer);
+    const websitePort = await getAvailablePort();
+
+    try {
+      startProductionServer(
+        websitePort,
+        `http://127.0.0.1:${graphqlPort}/posts/graphql/immutable`,
+      );
+
+      const response = await waitForResponse(
+        `http://127.0.0.1:${websitePort}/robots.txt`,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-type')).toMatch(/^text\/plain/);
+      expect(response.headers.get('cache-control')).toBe(
+        'public, max-age=3600',
+      );
+      const body = await response.text();
+      expect(body).toContain('User-agent: ClaudeBot');
+      expect(body).toContain('Disallow: /');
+      expect(body).toContain('Sitemap: https://website.test/sitemap.xml');
+    } finally {
+      await closeServer(graphqlServer);
+    }
+  });
+
+  it('serves a static-route sitemap fallback instead of rendering the SPA', async () => {
+    const graphqlServer = createServer((_request, response) => {
+      response.writeHead(500);
+      response.end();
+    });
+    const graphqlPort = await listen(graphqlServer);
+    const websitePort = await getAvailablePort();
+
+    try {
+      startProductionServer(
+        websitePort,
+        `http://127.0.0.1:${graphqlPort}/posts/graphql/immutable`,
+      );
+
+      const response = await waitForResponse(
+        `http://127.0.0.1:${websitePort}/sitemap.xml`,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-type')).toMatch(/^application\/xml/);
+      expect(response.headers.get('cache-control')).toBe('public, max-age=300');
+      const body = await response.text();
+      expect(body).toContain(
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      );
+      expect(body).toContain('<loc>https://website.test/en</loc>');
+      expect(body).toContain('<loc>https://website.test/vi/about</loc>');
+      expect(body).not.toContain('<!doctype html>');
+    } finally {
+      await closeServer(graphqlServer);
+    }
+  });
+
   it('keeps the /en reader route SSR-backed', async () => {
     let graphqlRequests = 0;
     const graphqlServer = createServer((_request, response) => {

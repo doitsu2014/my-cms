@@ -18,6 +18,7 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 expressjs
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server.prod.mjs ./server.prod.mjs
+COPY --from=builder /app/sitemap.mjs ./sitemap.mjs
 COPY --from=builder /app/instrumentation.mjs ./instrumentation.mjs
 COPY --from=builder /app/telemetry-config.mjs ./telemetry-config.mjs
 COPY --from=builder /app/visitor-telemetry.mjs ./visitor-telemetry.mjs

@@ -1,0 +1,10 @@
+# Public reader crawler policy.
+# Public pages remain available to search engines.
+User-agent: *
+Allow: /
+
+# Do not allow Anthropic's Claude crawler to collect this site.
+User-agent: ClaudeBot
+Disallow: /
+
+Sitemap: /sitemap.xml
