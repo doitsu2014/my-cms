@@ -19,6 +19,9 @@ import AdminCreateUserPage from './app/admin/users/create/page';
 import AdminEditUserPage from './app/admin/users/edit/page';
 import AdminLoginPage from './app/admin/login/page';
 import AdminMetadataBoundary from './metadata/AdminMetadataBoundary';
+import AdminSeoHeadAssetsPage from './app/admin/seo/head-assets/page';
+import AdminCreateSeoHeadAssetPage from './app/admin/seo/head-assets/create/page';
+import AdminEditSeoHeadAssetPage from './app/admin/seo/head-assets/edit/page';
 
 const App = () => {
   return (
@@ -40,6 +43,9 @@ const App = () => {
             <Route path="/admin/users" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminUsersListPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/users/create" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminCreateUserPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/users/edit/:id" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminEditUserPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/seo/head-assets" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminSeoHeadAssetsPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/seo/head-assets/create" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminCreateSeoHeadAssetPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/seo/head-assets/edit/:id" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminEditSeoHeadAssetPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route path="/" element={<Navigate to="/admin" replace />} />
           </Routes>
@@ -50,4 +56,3 @@ const App = () => {
 };
 
 export default App;
-

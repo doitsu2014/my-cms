@@ -71,7 +71,7 @@ afterEach(async () => {
 function startProductionServer(
   port: number,
   graphqlApiUrl: string,
-  options: { enabled?: boolean; otlpEndpoint?: string } = {},
+  options: { enabled?: boolean; otlpEndpoint?: string; seoApiUrl?: string } = {},
 ): ChildProcess {
   const child = spawn(
     process.execPath,
@@ -88,6 +88,8 @@ function startProductionServer(
         WEBSITE_DEFAULT_DESCRIPTION: 'Test description',
         WEBSITE_PUBLIC_GRAPHQL_API_URL: graphqlApiUrl,
         WEBSITE_PUBLIC_MEDIA_BASE_URL: 'https://media.test',
+        WEBSITE_SEO_HEAD_ASSETS_API_URL:
+          options.seoApiUrl || 'http://127.0.0.1:9/seo/head-assets/ducth-dev',
         ENABLED_OTLP_EXPORTER: options.enabled ? 'true' : 'false',
         OTEL_SERVICE_NAME: 'ducth-dev-website',
         OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
@@ -218,6 +220,38 @@ describe('production website server', () => {
       expect(graphqlRequests).toBeGreaterThan(0);
     } finally {
       await closeServer(graphqlServer);
+    }
+  });
+
+  it('injects ordered public SEO assets once while preserving typed metadata and app config', async () => {
+    const graphqlServer = createServer((_request, response) => {
+      response.writeHead(200, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ data: {} }));
+    });
+    const seoServer = createServer((_request, response) => {
+      response.writeHead(200, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ data: [
+        { id: 'a', label: 'first', html: '<meta name="verification-a" content="a">', sortOrder: 1, updatedAt: '2026-08-22T00:00:00Z' },
+        { id: 'b', label: 'second', html: '<script>window.__seoAsset = true;</script>', sortOrder: 2, updatedAt: '2026-08-22T00:00:00Z' },
+      ] }));
+    });
+    const graphqlPort = await listen(graphqlServer);
+    const seoPort = await listen(seoServer);
+    const websitePort = await getAvailablePort();
+    try {
+      startProductionServer(websitePort, `http://127.0.0.1:${graphqlPort}/posts/graphql/immutable`, { seoApiUrl: `http://127.0.0.1:${seoPort}/seo/head-assets/ducth-dev` });
+      const response = await waitForResponse(`http://127.0.0.1:${websitePort}/en`);
+      const body = await response.text();
+      expect(response.status).toBe(200);
+      expect(body.indexOf('verification-a')).toBeGreaterThan(body.indexOf('<head>'));
+      expect(body.indexOf('verification-a')).toBeLessThan(body.indexOf('__seoAsset'));
+      expect(body.match(/verification-a/g)).toHaveLength(1);
+      expect(body).toContain('id="app-config"');
+      expect(body).toContain('Test title');
+      expect(body).not.toContain('WEBSITE_SEO_HEAD_ASSETS_API_URL');
+    } finally {
+      await closeServer(graphqlServer);
+      await closeServer(seoServer);
     }
   });
 

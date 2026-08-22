@@ -16,6 +16,7 @@ domain_posts = { path = "../domain_posts" }
 domain_auth = { path = "../domain_auth" }
 domain_media = { path = "../domain_media" }
 domain_user = { path = "../domain_user" }
+domain_seo = { path = "../domain_seo" }
 
 axum = { version = "0.8.9", features = ["http2", "tracing", "multipart"] }
 tokio = { version = "1.52.3", features = ["full"] }

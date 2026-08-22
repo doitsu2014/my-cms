@@ -33,7 +33,7 @@ pub async fn handle_args(args: &[String]) -> ExitCode {
             println!("{}", USAGE);
             ExitCode::SUCCESS
         }
-        Some("--list") => match forward_to_domain_posts(args).await {
+        Some("--list") => match list_all_migrations() {
             Ok(()) => ExitCode::SUCCESS,
             Err(e) => {
                 eprintln!("migrate --list failed: {}", e);
@@ -65,6 +65,20 @@ pub async fn handle_args(args: &[String]) -> ExitCode {
 /// only touch the post-domain migrator.
 async fn forward_to_domain_posts(args: &[String]) -> Result<(), String> {
     domain_posts::migrations_cli::handle_args(args).await
+}
+
+fn list_all_migrations() -> Result<(), String> {
+    for id in all_migration_identities() {
+        println!("{id}");
+    }
+    Ok(())
+}
+
+fn all_migration_identities() -> Vec<&'static str> {
+    domain_posts::migrations_cli::list_identities()
+        .into_iter()
+        .chain(domain_seo::migrations_cli::list_identities())
+        .collect()
 }
 
 /// Build the manifest, connect to the database, run the orchestrator.
@@ -151,5 +165,11 @@ mod tests {
         let args = vec!["--list".to_string()];
         let code = handle_args(&args).await;
         assert_eq!(code, ExitCode::SUCCESS);
+    }
+
+    #[test]
+    fn all_migration_identities_include_seo_after_posts() {
+        let ids = all_migration_identities();
+        assert_eq!(ids.last(), Some(&"m20260822_000001_seo_head_assets"));
     }
 }

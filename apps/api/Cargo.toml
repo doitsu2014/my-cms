@@ -1,2 +1,2 @@
 [workspace]
-members = ["domain_auth", "domain_interface", "domain_media", "domain_posts", "domain_user", "gateway", "test_helpers"]
+members = ["domain_auth", "domain_interface", "domain_media", "domain_posts", "domain_seo", "domain_user", "gateway", "test_helpers"]

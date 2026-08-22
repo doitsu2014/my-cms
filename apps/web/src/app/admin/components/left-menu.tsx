@@ -1,9 +1,11 @@
 import MenuItem from './menu-item';
 import { UserCircle } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
+import { UserRoleEnum } from '@/domains/user';
 
 export default function LeftMenu() {
-  const { userInfo } = useAuth();
+  const { userInfo, user } = useAuth();
+  const isAdministrator = ((user?.app_metadata?.roles ?? []) as string[]).includes(UserRoleEnum.Administrator);
 
   const userName = userInfo?.name || userInfo?.username || 'Admin User';
   const userEmail = userInfo?.email || 'admin@example.com';
@@ -62,6 +64,7 @@ export default function LeftMenu() {
               <li>
                 <MenuItem displayName="Users" slug="/admin/users" />
               </li>
+              {isAdministrator && <li><MenuItem displayName="SEO head assets" slug="/admin/seo/head-assets" /></li>}
             </ul>
           </details>
         </li>

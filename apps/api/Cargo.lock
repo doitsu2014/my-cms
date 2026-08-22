@@ -1355,6 +1355,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "domain_seo"
+version = "0.1.0"
+dependencies = [
+ "async-graphql",
+ "async-trait",
+ "axum",
+ "chrono",
+ "domain_interface",
+ "html5ever",
+ "hyper",
+ "sea-orm",
+ "sea-orm-migration",
+ "serde",
+ "serde_json",
+ "testcontainers",
+ "testcontainers-modules",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-test",
+ "tracing",
+ "url",
+ "uuid",
+]
+
+[[package]]
 name = "domain_user"
 version = "0.1.0"
 dependencies = [
@@ -1762,6 +1787,7 @@ dependencies = [
  "domain_interface",
  "domain_media",
  "domain_posts",
+ "domain_seo",
  "domain_user",
  "dotenv",
  "hyper",

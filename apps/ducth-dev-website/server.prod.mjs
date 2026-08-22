@@ -4,17 +4,10 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import render, { withServerSpan } from './dist/server/index.mjs';
 import { createSitemapService } from './sitemap.mjs';
+import { createHeadAssetClient } from './head-assets.mjs';
+import { requiredServerUrl } from './server-config.mjs';
 
-const requiredUrl = (name) => {
-  const value = process.env[name]?.trim();
-  if (!value) throw new Error(`${name} is required`);
-  try {
-    new URL(value);
-  } catch {
-    throw new Error(`${name} is invalid: ${value.slice(0, 64)}`);
-  }
-  return value;
-};
+const requiredUrl = (name) => requiredServerUrl(name, process.env[name]);
 const requiredText = (name) => {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`${name} is required`);
@@ -34,6 +27,9 @@ const CONFIG = {
   mediaBaseUrl: requiredUrl('WEBSITE_PUBLIC_MEDIA_BASE_URL'),
   port: process.env.WEBSITE_PORT || process.env.PORT || '3001',
 };
+// Deliberately kept outside CONFIG: this endpoint is server-only and must not
+// be serialized into the browser's app-config payload.
+const SEO_HEAD_ASSETS_API_URL = requiredUrl('WEBSITE_SEO_HEAD_ASSETS_API_URL');
 const escapeJsonForScript = (value) =>
   JSON.stringify(value)
     .replace(/</g, '\\u003c')
@@ -49,6 +45,7 @@ const sitemapService = createSitemapService({
   siteUrl: CONFIG.siteUrl,
   graphqlApiUrl: CONFIG.graphqlApiUrl,
 });
+const headAssetClient = createHeadAssetClient({ endpoint: SEO_HEAD_ASSETS_API_URL });
 app.get('/healthz', (_req, res) => {
   res.status(200).type('text/plain').send('ok');
 });
@@ -96,26 +93,26 @@ app.get('/{*path}', async (req, res) => {
     },
     async (span) => {
       try {
+        if (req.path === '/') {
+          span.setStatus(302);
+          res.redirect(302, '/en');
+          return;
+        }
         const template = await fs.readFile(templatePath, 'utf8');
         const rendered = await render(req.path);
-        const state = `<script id="app-config" type="application/json">${escapeJsonForScript(CONFIG)}</script>`;
         const documentLang = rendered.documentLang === 'vi' ? 'vi' : 'en';
+        const state = `<script id="app-config" type="application/json">${escapeJsonForScript(CONFIG)}</script>`;
         const html = template
           .replace(/<title>[\s\S]*?<\/title>/i, '')
           .replace(/<html lang="[^"]*"/, `<html lang="${documentLang}"`)
           .replace('<!--app-content-->', rendered.html)
-          .replace('</head>', `${rendered.metadataHead}${state}</head>`)
+          .replace('</head>', `${rendered.metadataHead}${(await headAssetClient.getAssets()).map((asset) => asset.html).join('')}${state}</head>`)
           .replace(
             '</body>',
             `<script>window.__APOLLO_STATE__=${escapeJsonForScript(rendered.apolloState)}</script></body>`,
           );
-        if (req.path === '/') {
-          span.setStatus(302);
-          res.redirect(302, '/en');
-        } else {
-          span.setStatus(200);
-          res.status(200).send(html);
-        }
+        span.setStatus(200);
+        res.status(200).send(html);
       } catch {
         span.setStatus(500);
         span.setErrorCategory('ssr');

@@ -39,6 +39,7 @@ use domain_interface::{DomainContext, DomainService, Mount};
 use domain_media::handlers::MediaConfig;
 use domain_media::service::DomainMediaService;
 use domain_posts::service::DomainPostService;
+use domain_seo::service::DomainSeoService;
 use domain_user::api::state::UserApiState;
 use domain_user::handlers::supabase_admin_client::SupabaseAdminClient;
 use domain_user::service::DomainUserService;
@@ -60,6 +61,7 @@ pub fn manifest(
         Box::new(DomainAuthService::new()),
         Box::new(DomainMediaService::new(media_config)),
         Box::new(DomainUserService::from_state(user_state)),
+        Box::new(DomainSeoService::new()),
     ]
 }
 
@@ -750,13 +752,14 @@ mod tests {
     }
 
     #[test]
-    fn manifest_with_four_services_returns_four_entries() {
+    fn manifest_with_five_services_returns_five_entries() {
         let services = manifest(stub_media_config(), stub_user_state());
-        assert_eq!(services.len(), 4);
+        assert_eq!(services.len(), 5);
         let names: Vec<&str> = services.iter().map(|s| s.health().name).collect();
         assert!(names.contains(&"domain-posts"));
         assert!(names.contains(&"domain-auth"));
         assert!(names.contains(&"domain-media"));
         assert!(names.contains(&"domain-user"));
+        assert!(names.contains(&"domain-seo"));
     }
 }
