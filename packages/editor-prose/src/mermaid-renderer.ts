@@ -82,19 +82,14 @@ export const renderMermaid = (source: string): Promise<MermaidRenderResult> => {
       return { ok: false, category: 'syntax' };
     }
 
-    const renderId = `editor-prose-mermaid-${++renderCount}`;
-    const temporaryContainer = document.createElement('div');
-    temporaryContainer.hidden = true;
-    temporaryContainer.setAttribute('aria-hidden', 'true');
-    document.body.append(temporaryContainer);
-
     try {
-      const { svg } = await mermaid.render(renderId, source, temporaryContainer);
+      // Mermaid creates and removes its own temporary body node when no
+      // container is supplied. A `hidden` container prevents layout in real
+      // browsers, which can serialize a blank SVG even for valid source.
+      const { svg } = await mermaid.render(`editor-prose-mermaid-${++renderCount}`, source);
       return { ok: true, svg };
     } catch {
       return { ok: false, category: 'render' };
-    } finally {
-      temporaryContainer.remove();
     }
   });
 };

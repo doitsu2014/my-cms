@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { renderMermaid } = vi.hoisted(() => ({ renderMermaid: vi.fn() }));
@@ -47,6 +47,18 @@ describe('ArticleProse Mermaid enhancement', () => {
 
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Diagram could not be rendered. Source remains available.'));
     expect(container.querySelector('code.language-mermaid-note')?.textContent).toBe('keep me as code');
+    expect(screen.getByText('Diagram source (Mermaid)').closest('details')).toHaveProperty('open', true);
+  });
+
+  it('falls back to source when the rendered SVG image cannot load', async () => {
+    renderMermaid.mockResolvedValue({ ok: true, svg: '<svg></svg>' });
+    render(<ArticleProse html={diagram} />);
+
+    const image = await screen.findByRole('img');
+    fireEvent.error(image);
+
+    expect(image).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('Diagram could not be rendered. Source remains available.');
     expect(screen.getByText('Diagram source (Mermaid)').closest('details')).toHaveProperty('open', true);
   });
 

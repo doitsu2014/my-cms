@@ -82,8 +82,19 @@ export const enhanceMermaidBlocks = (root: HTMLElement, labels: MermaidPresentat
       image.alt = labels.image;
       image.src = URL.createObjectURL(new Blob([result.svg], { type: 'image/svg+xml' }));
       blobUrl = image.src;
-      status.remove();
-      shell.append(image, makeSourceDisclosure(sourcePre, labels, false));
+      const sourceDisclosure = makeSourceDisclosure(sourcePre, labels, false);
+      image.addEventListener('load', () => {
+        if (active) status.remove();
+      }, { once: true });
+      image.addEventListener('error', () => {
+        if (!active) return;
+        image.remove();
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
+        blobUrl = undefined;
+        sourceDisclosure.open = true;
+        status.textContent = labels.failure;
+      }, { once: true });
+      shell.append(image, sourceDisclosure);
     }).catch(() => {
       if (!active || timedOut || !sourcePre.isConnected) return;
       if (timeout) clearTimeout(timeout);
