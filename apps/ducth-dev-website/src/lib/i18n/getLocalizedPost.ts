@@ -1,10 +1,15 @@
 import type { BlogPost, LocalizedPost } from '../../types/content';
 
 const PARAGRAPH_TAG = /<p\b[^>]*>/i;
+const MERMAID_CODE_BLOCK = /<pre\b[^>]*>\s*<code\b([^>]*)>/gi;
 
-const hasParagraphs = (html: string | null | undefined): boolean => {
+const hasLocalizedContent = (html: string | null | undefined): boolean => {
   if (!html) return false;
-  return PARAGRAPH_TAG.test(html);
+  if (PARAGRAPH_TAG.test(html)) return true;
+  return Array.from(html.matchAll(MERMAID_CODE_BLOCK)).some((match) => {
+    const classNames = match[1].match(/class=(['"])(.*?)\1/i)?.[2]?.split(/\s+/) ?? [];
+    return classNames.includes('language-mermaid');
+  });
 };
 
 export function getLocalizedPost(post: BlogPost, lang: string): LocalizedPost {
@@ -12,7 +17,7 @@ export function getLocalizedPost(post: BlogPost, lang: string): LocalizedPost {
     (candidate) => candidate.languageCode === lang,
   );
 
-  const translationContent = hasParagraphs(translation?.content) ? translation!.content! : null;
+  const translationContent = hasLocalizedContent(translation?.content) ? translation!.content! : null;
 
   return {
     ...post,

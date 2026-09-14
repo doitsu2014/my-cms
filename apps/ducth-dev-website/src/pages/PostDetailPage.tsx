@@ -36,6 +36,7 @@ const PostDetailPage = () => {
   useEffect(() => {
     if (!contentRef.current || !post) return;
     contentRef.current.querySelectorAll('pre code').forEach((block) => {
+      if (block.classList.contains('language-mermaid')) return;
       if (!block.classList.contains('hljs')) hljs.highlightElement(block as HTMLElement);
     });
   }, [post, currentLang]);
@@ -78,7 +79,17 @@ const PostDetailPage = () => {
           fit="natural"
         />
         <div ref={contentRef}>
-          <ArticleProse html={localizedPost.content} />
+          <ArticleProse
+            html={localizedPost.content}
+            mermaidLabels={currentLang === 'vi'
+              ? {
+                  loading: 'Đang hiển thị sơ đồ…',
+                  failure: 'Không thể hiển thị sơ đồ. Mã nguồn vẫn có sẵn.',
+                  source: 'Mã nguồn sơ đồ (Mermaid)',
+                  image: 'Sơ đồ Mermaid. Mã nguồn gốc có trong phần Mã nguồn sơ đồ.',
+                }
+              : undefined}
+          />
         </div>
         <ShareActions canonicalUrl={canonicalUrl} title={localizedPost.title} lang={currentLang} />
       </Container>

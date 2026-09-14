@@ -33,6 +33,7 @@ import 'highlight.js/styles/github-dark.css';
 
 // Create lowlight instance with all languages
 const lowlight = createLowlight(all);
+lowlight.register({ mermaid: all.plaintext });
 
 export interface TipTapEditorProps {
   key?: string;
@@ -250,10 +251,23 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
 
   // Preview modal state
   const [showPreviewModal, setShowPreviewModal] = React.useState(false);
+  const previewTriggerRef = useRef<HTMLButtonElement>(null);
+  const previewCloseRef = useRef<HTMLButtonElement>(null);
 
   const togglePreview = useCallback(() => {
     setShowPreviewModal((prev) => !prev);
   }, []);
+
+  const closePreview = useCallback(() => {
+    setShowPreviewModal(false);
+    requestAnimationFrame(() => previewTriggerRef.current?.focus());
+  }, []);
+
+  useEffect(() => {
+    if (!showPreviewModal) return;
+    const frame = requestAnimationFrame(() => previewCloseRef.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [showPreviewModal]);
 
   // HTML edit modal state
   const [showHtmlModal, setShowHtmlModal] = React.useState(false);
@@ -292,35 +306,40 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
         onOpenHtmlEditor={openHtmlEditor}
         onTogglePreview={togglePreview}
         isPreview={showPreviewModal}
+        previewButtonRef={previewTriggerRef}
       />
       <EditorContent editor={editor} />
 
       {/* Preview Modal */}
       {showPreviewModal && (
-        <div className="modal modal-open">
+        <div className="modal modal-open" role="dialog" aria-modal="true" aria-labelledby="article-preview-title" onKeyDown={(event) => event.key === 'Escape' && closePreview()}>
           <div className="modal-box max-w-5xl w-[90vw] h-[90vh] flex flex-col">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-lg">Article Preview</h3>
+              <h3 id="article-preview-title" className="font-bold text-lg">Article Preview</h3>
               <button
                 type="button"
+                ref={previewCloseRef}
                 className="btn btn-sm btn-circle btn-ghost"
-                onClick={() => setShowPreviewModal(false)}
+                aria-label="Close article preview"
+                onClick={closePreview}
               >
                 ✕
               </button>
             </div>
-            <ArticleProse html={editor.getHTML()} />
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <ArticleProse html={editor.getHTML()} />
+            </div>
             <div className="modal-action">
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => setShowPreviewModal(false)}
+                onClick={closePreview}
               >
                 Close
               </button>
             </div>
           </div>
-          <div className="modal-backdrop" onClick={() => setShowPreviewModal(false)} />
+          <div className="modal-backdrop" onClick={closePreview} />
         </div>
       )}
 

@@ -10,6 +10,23 @@ pull quotes, figures and images, TipTap tables, task lists, inline marks,
 subscript/superscript, and YouTube embeds. It deliberately does not use
 Tailwind Typography.
 
+Mermaid diagrams are an optional browser-only enhancement of stored TipTap
+source blocks. Write source as:
+
+```html
+<pre><code class="language-mermaid">flowchart LR
+  A[Start] --> B[End]</code></pre>
+```
+
+Authors create or designate these blocks from the admin editor's Code Block
+menu and use Article Preview to render them. Source stays authoritative: it is
+available during loading and failures, is preserved in HTML and Markdown
+interchange, and is never replaced by generated SVG. The renderer dynamically
+loads Mermaid only when an article contains the exact `language-mermaid` class.
+It rejects Mermaid directives and YAML frontmatter, uses strict rendering with
+fixed application configuration, limits source to 50,000 characters and graph
+edges to 500, and presents generated SVG through an inert local Blob image.
+
 ## Usage
 
 ```tsx
