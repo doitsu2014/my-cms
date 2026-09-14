@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -59,17 +59,6 @@ export default function BlogForm({ id }: { id?: string }) {
   const [retranslatingIndex, setRetranslatingIndex] = useState<number | null>(null);
   const [showRetranslateDialog, setShowRetranslateDialog] = useState(false);
   const [retranslateLanguage, setRetranslateLanguage] = useState('');
-  const [translationJobId, setTranslationJobId] = useState<string | null>(null);
-  const [translationProgress, setTranslationProgress] = useState(0);
-  const [activeJobs, setActiveJobs] = useState<Array<{
-    jobId: string;
-    targetLanguage: string;
-    status: string;
-    progress: number;
-  }>>([]);
-  
-  // Track previous job count for detecting completion
-  const prevJobCountRef = useRef(0);
   
   // AI model selection state
   const [aiModels, setAiModels] = useState<OpenAIModel[]>([]);
@@ -83,7 +72,7 @@ export default function BlogForm({ id }: { id?: string }) {
     reset,
     watch,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<BlogFormData>({
     resolver: zodResolver(blogFormSchema),
     defaultValues: {
@@ -183,7 +172,6 @@ export default function BlogForm({ id }: { id?: string }) {
   useEffect(() => {
     if (id) {
       reloadPostData();
-      checkActiveJobs();
     } else {
       reset({
         title: '',
@@ -207,38 +195,6 @@ export default function BlogForm({ id }: { id?: string }) {
       fetchAIModels();
     }
   }, [showTranslateModal, showRetranslateDialog]);
-
-  // Periodically check for active jobs and update status
-  useEffect(() => {
-    if (!id) return;
-    
-    const pollInterval = setInterval(async () => {
-      try {
-        const response = await authenticatedFetch(
-          getApiUrl(`/posts/${id}/translate/jobs`),
-          token,
-          { method: 'GET' },
-        );
-        
-        if (response.ok) {
-          const data = await response.json();
-          const currentJobs = data.data?.jobs || [];
-          setActiveJobs(currentJobs);
-          
-          // If there were active jobs and now they're done, reload post data
-          if (prevJobCountRef.current > 0 && currentJobs.length === 0) {
-            await reloadPostData();
-          }
-          
-          prevJobCountRef.current = currentJobs.length;
-        }
-      } catch (error) {
-        console.error('Error checking active jobs:', error);
-      }
-    }, 3000); // Poll every 3 seconds
-    
-    return () => clearInterval(pollInterval);
-  }, [id, token, reloadPostData]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -386,24 +342,11 @@ export default function BlogForm({ id }: { id?: string }) {
     return allUsed || maxReached;
   };
 
-  // Check for active translation jobs
-  const checkActiveJobs = async () => {
-    if (!id) return;
-    
-    try {
-      const response = await authenticatedFetch(
-        getApiUrl(`/posts/${id}/translate/jobs`),
-        token,
-        { method: 'GET' },
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        setActiveJobs(data.data?.jobs || []);
-      }
-    } catch (error) {
-      console.error('Error checking active jobs:', error);
+  const handleRefreshContent = async () => {
+    if (isDirty && !window.confirm('Refreshing content will discard unsaved changes. Continue?')) {
+      return;
     }
+    await reloadPostData();
   };
 
   const handleTranslatePost = async () => {
@@ -413,7 +356,6 @@ export default function BlogForm({ id }: { id?: string }) {
     }
 
     setIsTranslating(true);
-    setTranslationProgress(0);
     try {
       const response = await authenticatedFetch(
         getApiUrl(`/posts/${id}/translate/background`),
@@ -436,16 +378,13 @@ export default function BlogForm({ id }: { id?: string }) {
         const jobId = result.data?.translationId;
         
         if (jobId) {
-          setTranslationJobId(jobId);
           toast.info('Translation started in background...');
           
-          // Close modal immediately and let general polling handle the rest
+          // The server-side job continues independently. The author can
+          // explicitly refresh content when they are ready to replace the form.
           setShowTranslateModal(false);
           setSelectedTranslateLanguage('');
           setIsTranslating(false);
-          
-          // Refresh active jobs to show the new job
-          await checkActiveJobs();
         }
       } else {
         let errorMessage = 'Failed to start translation';
@@ -516,8 +455,6 @@ export default function BlogForm({ id }: { id?: string }) {
           toast.info(`Re-translation started for ${translation.languageCode.toUpperCase()}...`);
           setRetranslatingIndex(null);
           
-          // Refresh active jobs to show the new job
-          await checkActiveJobs();
         }
       } else {
         let errorMessage = 'Failed to re-translate';
@@ -543,26 +480,12 @@ export default function BlogForm({ id }: { id?: string }) {
     const translation = translations[index];
     if (!translation?.languageCode) return true;
     
-    // Check if there's an active job for this language
-    const hasActiveJob = activeJobs.some(
-      job => job.targetLanguage.toLowerCase() === translation.languageCode.toLowerCase() &&
-             (job.status === 'pending' || job.status === 'processing')
-    );
-    
-    return isLoading || retranslatingIndex === index || hasActiveJob;
+    return isLoading || retranslatingIndex === index;
   };
 
   const getAvailableTranslationLanguages = () => {
     const usedLanguages = translations?.map((t) => t.languageCode) || [];
-    // Also filter out languages with active translation jobs
-    const activeJobLanguages = activeJobs
-      .filter(job => job.status === 'pending' || job.status === 'processing')
-      .map(job => job.targetLanguage.toLowerCase());
-    
-    return AVAILABLE_LANGUAGES.filter((lang) => 
-      !usedLanguages.includes(lang.code) && 
-      !activeJobLanguages.includes(lang.code.toLowerCase())
-    );
+    return AVAILABLE_LANGUAGES.filter((lang) => !usedLanguages.includes(lang.code));
   };
 
   return (
@@ -869,6 +792,17 @@ export default function BlogForm({ id }: { id?: string }) {
         {activeMainTab === 'translations' && (
           <div className="space-y-4">
             <div className="flex justify-end gap-2">
+              {id && (
+                <button
+                  type="button"
+                  className="btn btn-sm btn-ghost gap-1"
+                  onClick={handleRefreshContent}
+                  disabled={isLoading}
+                >
+                  <RotateCw className="w-4 h-4" />
+                  Refresh content
+                </button>
+              )}
               {id && getAvailableTranslationLanguages().length > 0 && (
                 <button
                   type="button"
@@ -912,12 +846,6 @@ export default function BlogForm({ id }: { id?: string }) {
                 {/* Translation Language Tabs */}
                 <div className="flex flex-wrap gap-2 mb-4">
                   {fields.map((field, index) => {
-                    const translation = translations[index];
-                    const hasActiveJob = translation?.languageCode && activeJobs.some(
-                      job => job.targetLanguage.toLowerCase() === translation.languageCode.toLowerCase() &&
-                             (job.status === 'pending' || job.status === 'processing')
-                    );
-                    
                     return (
                       <button
                         key={field.id}
@@ -931,9 +859,6 @@ export default function BlogForm({ id }: { id?: string }) {
                       >
                         <Globe className="w-3.5 h-3.5" />
                         <span>{translations[index]?.languageCode?.toUpperCase() || 'New'}</span>
-                        {hasActiveJob && (
-                          <span className="loading loading-spinner loading-xs text-primary"></span>
-                        )}
                         {activeTranslationTab === index && (
                           <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-neutral-content/50 rounded-full" />
                         )}
@@ -959,24 +884,9 @@ export default function BlogForm({ id }: { id?: string }) {
                           className="btn btn-sm btn-ghost text-primary hover:bg-primary/10 gap-1"
                           onClick={() => handleRetranslateTranslation(index)}
                           disabled={isRetranslateDisabled(index)}
-                          title="Re-translate this translation using AI"
-                        >
-                          {(() => {
-                            const translation = translations[index];
-                            const activeJob = translation?.languageCode && activeJobs.find(
-                              job => job.targetLanguage.toLowerCase() === translation.languageCode.toLowerCase() &&
-                                     (job.status === 'pending' || job.status === 'processing')
-                            );
-                            
-                            if (activeJob) {
-                              return (
-                                <>
-                                  <span className="loading loading-spinner loading-xs"></span>
-                                  Translating... ({activeJob.progress}%)
-                                </>
-                              );
-                            }
-                            
+                        title="Re-translate this translation using AI"
+                      >
+                        {(() => {
                             if (retranslatingIndex === index) {
                               return (
                                 <>
@@ -1182,9 +1092,7 @@ export default function BlogForm({ id }: { id?: string }) {
                   </div>
                   <div className="text-center space-y-2">
                     <p className="font-medium">Translating your post...</p>
-                    <p className="text-sm text-base-content/60">
-                      {translationProgress > 0 ? `Progress: ${translationProgress}%` : 'Starting translation...'}
-                    </p>
+                    <p className="text-sm text-base-content/60">Starting background translation...</p>
                   </div>
                 </div>
                 <div 
@@ -1193,17 +1101,9 @@ export default function BlogForm({ id }: { id?: string }) {
                   aria-label="Translation in progress"
                   aria-valuemin={0}
                   aria-valuemax={100}
-                  aria-valuenow={translationProgress}
                 >
-                  {translationProgress > 0 ? (
-                    <div 
-                      className="h-full bg-gradient-to-r from-primary via-secondary to-accent transition-all duration-500"
-                      style={{ width: `${translationProgress}%` }}
-                    ></div>
-                  ) : (
-                    <div className="h-full bg-gradient-to-r from-primary via-secondary to-accent animate-pulse"></div>
-                  )}
-                  <span className="sr-only">Translating post content, progress: {translationProgress}%</span>
+                  <div className="h-full bg-gradient-to-r from-primary via-secondary to-accent animate-pulse"></div>
+                  <span className="sr-only">Starting background translation</span>
                 </div>
               </div>
             ) : (
@@ -1296,10 +1196,7 @@ export default function BlogForm({ id }: { id?: string }) {
                     type="button"
                     className="btn btn-primary gap-2"
                     onClick={handleTranslatePost}
-                    disabled={!selectedTranslateLanguage || isTranslating || activeJobs.some(
-                      job => job.targetLanguage.toLowerCase() === selectedTranslateLanguage.toLowerCase() &&
-                             (job.status === 'pending' || job.status === 'processing')
-                    )}
+                    disabled={!selectedTranslateLanguage || isTranslating}
                   >
                     <Sparkles className="w-4 h-4" />
                     {isTranslating ? 'Translating...' : 'Start Translation'}
