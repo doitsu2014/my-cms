@@ -396,9 +396,10 @@ describe('production website server', () => {
       );
       expect(response.status).toBe(200);
       expect(graphqlRequests).toBe(0);
-      const clientFiles = await fs.readdir(
+      const clientFiles = (await fs.readdir(
         path.join(websiteRoot, 'dist/client/static/js'),
-      );
+        { recursive: true },
+      )).filter((file) => file.endsWith('.js'));
       const clientBundle = (
         await Promise.all(
           clientFiles.map((file) =>
