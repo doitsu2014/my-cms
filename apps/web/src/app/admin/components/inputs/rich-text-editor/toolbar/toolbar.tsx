@@ -1,10 +1,7 @@
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback, useState } from 'react';
 import type { Editor } from '@tiptap/react';
-import { toast } from 'sonner';
 import TurndownService from 'turndown';
 import { marked } from 'marked';
-import { getMediaUploadApiUrl, createAuthHeaders } from '@/config/api.config';
-import { useAuth } from '@/auth/AuthContext';
 import {
   Bold,
   Italic,
@@ -106,6 +103,9 @@ interface ToolbarProps {
   onTogglePreview: () => void;
   isPreview: boolean;
   previewButtonRef?: React.RefObject<HTMLButtonElement | null>;
+  onCaptureImageTarget: () => void;
+  onOpenImagePicker: () => void;
+  onInsertImageUrl: (url: string) => void;
 }
 
 interface ToolbarButtonProps {
@@ -152,16 +152,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onTogglePreview,
   isPreview,
   previewButtonRef,
+  onCaptureImageTarget,
+  onOpenImagePicker,
+  onInsertImageUrl,
 }) => {
-  const { token } = useAuth();
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
-  const [showImageInput, setShowImageInput] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [showYoutubeInput, setShowYoutubeInput] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [showMarkdownModal, setShowMarkdownModal] = useState(false);
   const [markdownInput, setMarkdownInput] = useState('');
 
@@ -185,52 +184,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
   // Image handler
   const addImage = useCallback(() => {
-    if (imageUrl) {
-      editor.chain().focus().setImage({ src: imageUrl }).run();
-    }
+    if (imageUrl.trim()) onInsertImageUrl(imageUrl.trim());
     setImageUrl('');
-    setShowImageInput(false);
-  }, [editor, imageUrl]);
-
-  // Image upload handler
-  const handleImageUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    setIsUploading(true);
-    try {
-      for (const file of Array.from(files)) {
-        const formData = new FormData();
-        formData.append('image', file);
-
-        const response = await fetch(getMediaUploadApiUrl(), {
-          method: 'POST',
-          headers: createAuthHeaders(token),
-          body: formData
-        });
-
-        if (!response.ok) {
-          throw new Error('Image upload failed');
-        }
-
-        const data = await response.json();
-        const uploadedUrl = data.data.url;
-
-        // Insert the uploaded image into the editor
-        editor.chain().focus().setImage({ src: uploadedUrl }).run();
-      }
-      toast.success('Image uploaded successfully');
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error('Image upload failed. Please try again.');
-    } finally {
-      setIsUploading(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  }, [editor, token]);
+  }, [imageUrl, onInsertImageUrl]);
 
   // YouTube handler
   const addYoutube = useCallback(() => {
@@ -712,28 +668,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
       {/* Image */}
       <div className="dropdown tooltip tooltip-bottom" data-tip="Image">
-        <div tabIndex={0} role="button" className="btn btn-ghost btn-xs h-8 min-h-8">
+        <div tabIndex={0} role="button" className="btn btn-ghost btn-xs h-8 min-h-8" onClick={onCaptureImageTarget}>
           <Image size={16} />
         </div>
         <div tabIndex={0} className="dropdown-content bg-base-200 rounded-box z-50 p-3 shadow w-80">
-          {/* File Upload */}
-          <div className="mb-3">
-            <label className="text-xs font-medium mb-1 block">Upload Image</label>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="file-input file-input-bordered file-input-sm w-full"
-              onChange={handleImageUpload}
-              disabled={isUploading}
-            />
-            {isUploading && (
-              <div className="flex items-center gap-2 mt-2 text-sm text-info">
-                <span className="loading loading-spinner loading-xs"></span>
-                Uploading...
-              </div>
-            )}
-          </div>
+          <button type="button" className="btn btn-outline btn-sm mb-3 w-full" onClick={onOpenImagePicker}>
+            Choose or upload images
+          </button>
           {/* URL Input */}
           <div className="divider text-xs my-2">OR</div>
           <label className="text-xs font-medium mb-1 block">Image URL</label>

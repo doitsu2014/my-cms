@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useState, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { Selection, type Transaction } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import { Underline } from '@tiptap/extension-underline';
 import { TextAlign } from '@tiptap/extension-text-align';
@@ -27,6 +28,9 @@ import { getMediaUploadApiUrl, createAuthHeaders } from '@/config/api.config';
 import { useAuth } from '@/auth/AuthContext';
 
 import { Toolbar } from './toolbar/toolbar';
+import { EditorInsertionTarget } from './editor-insertion-target';
+import { ImageInsertionDialog } from './image-insertion-dialog';
+import { QuickToolbar, type QuickToolbarAction } from './quick-toolbar';
 import './tiptap-editor.css';
 import 'editor-prose/styles.css';
 import 'highlight.js/styles/github-dark.css';
@@ -58,6 +62,13 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
   const [isUploadingPaste, setIsUploadingPaste] = useState(false);
   const tokenRef = useRef(token);
   const lastAppliedDefaultValueRef = useRef(defaultValue);
+  const insertionTargetRef = useRef(new EditorInsertionTarget());
+  const quickActionRef = useRef(false);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const [quickToolbarPosition, setQuickToolbarPosition] = useState<{ x: number; y: number } | null>(null);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
+  const [quickVideoUrl, setQuickVideoUrl] = useState('');
 
   // Keep token ref up to date
   useEffect(() => {
@@ -225,6 +236,99 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
     },
   });
 
+  useEffect(() => {
+    if (!editor) return;
+    const mapTarget = ({ transaction }: { transaction: Transaction }) => insertionTargetRef.current.map(transaction);
+    editor.on('transaction', mapTarget);
+    return () => editor.off('transaction', mapTarget);
+  }, [editor]);
+
+  const captureInsertionTarget = useCallback((position?: number) => {
+    if (!editor || !editor.isEditable) return false;
+    if (position !== undefined) {
+      const selection = Selection.near(editor.state.doc.resolve(position));
+      editor.view.dispatch(editor.state.tr.setSelection(selection));
+    }
+    insertionTargetRef.current.capture(editor.state.selection.getBookmark());
+    return true;
+  }, [editor]);
+
+  const restoreAndClearInsertionTarget = useCallback(() => {
+    if (!editor) return;
+    const transaction = insertionTargetRef.current.restore(editor.state);
+    if (transaction) editor.view.dispatch(transaction);
+    insertionTargetRef.current.clear();
+    editor.view.focus();
+  }, [editor]);
+
+  const insertImageUrls = useCallback((urls: string[]) => {
+    if (!editor || urls.length === 0) return;
+    if (!insertionTargetRef.current.hasTarget) captureInsertionTarget();
+    const transaction = insertionTargetRef.current.insertImages(editor.state, urls);
+    if (transaction) {
+      editor.view.dispatch(transaction);
+      editor.view.focus();
+    }
+    setIsImageDialogOpen(false);
+  }, [captureInsertionTarget, editor]);
+
+  const cancelImageDialog = useCallback(() => {
+    setIsImageDialogOpen(false);
+    restoreAndClearInsertionTarget();
+  }, [restoreAndClearInsertionTarget]);
+
+  const closeQuickToolbar = useCallback(() => {
+    setQuickToolbarPosition(null);
+    if (quickActionRef.current) {
+      quickActionRef.current = false;
+      return;
+    }
+    restoreAndClearInsertionTarget();
+  }, [restoreAndClearInsertionTarget]);
+
+  const handleQuickToolbarAction = useCallback((action: QuickToolbarAction) => {
+    quickActionRef.current = true;
+    if (action === 'image') {
+      setIsImageDialogOpen(true);
+      return;
+    }
+    if (action === 'video') {
+      setIsVideoDialogOpen(true);
+      requestAnimationFrame(() => videoInputRef.current?.focus());
+      return;
+    }
+    if (!editor) return;
+    const transaction = insertionTargetRef.current.insertCodeBlock(editor.state);
+    if (transaction) {
+      editor.view.dispatch(transaction);
+      editor.view.focus();
+    }
+  }, [editor]);
+
+  const confirmQuickVideo = useCallback(() => {
+    if (!editor || !quickVideoUrl.trim()) return;
+    const transaction = insertionTargetRef.current.restore(editor.state);
+    if (transaction) editor.view.dispatch(transaction);
+    editor.chain().focus().setYoutubeVideo({ src: quickVideoUrl.trim() }).run();
+    insertionTargetRef.current.clear();
+    setQuickVideoUrl('');
+    setIsVideoDialogOpen(false);
+  }, [editor, quickVideoUrl]);
+
+  const cancelQuickVideo = useCallback(() => {
+    setQuickVideoUrl('');
+    setIsVideoDialogOpen(false);
+    restoreAndClearInsertionTarget();
+  }, [restoreAndClearInsertionTarget]);
+
+  const handleEditorContextMenu = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (!editor?.isEditable) return;
+    const coordinates = editor.view.posAtCoords({ left: event.clientX, top: event.clientY });
+    if (!coordinates || !captureInsertionTarget(coordinates.pos)) return;
+    event.preventDefault();
+    setQuickToolbarPosition({ x: event.clientX, y: event.clientY });
+  }, [captureInsertionTarget, editor]);
+
   // Update content when defaultValue changes
   useEffect(() => {
     if (editor && defaultValue !== undefined) {
@@ -321,8 +425,34 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
         onTogglePreview={togglePreview}
         isPreview={showPreviewModal}
         previewButtonRef={previewTriggerRef}
+        onCaptureImageTarget={() => { captureInsertionTarget(); }}
+        onOpenImagePicker={() => setIsImageDialogOpen(true)}
+        onInsertImageUrl={insertImageUrls}
       />
-      <EditorContent editor={editor} />
+      <EditorContent editor={editor} onContextMenu={handleEditorContextMenu} />
+      {quickToolbarPosition && (
+        <QuickToolbar position={quickToolbarPosition} onAction={handleQuickToolbarAction} onClose={closeQuickToolbar} />
+      )}
+      <ImageInsertionDialog
+        isOpen={isImageDialogOpen}
+        onInsert={insertImageUrls}
+        onClose={cancelImageDialog}
+        restoreFocusTo={editor.view.dom}
+      />
+      {isVideoDialogOpen && (
+        <div className="modal modal-open" role="dialog" aria-modal="true" aria-labelledby="quick-video-title" onKeyDown={(event) => event.key === 'Escape' && cancelQuickVideo()}>
+          <div className="modal-box">
+            <h2 id="quick-video-title" className="text-lg font-bold">Add video</h2>
+            <label className="mt-4 block text-sm font-medium" htmlFor="quick-video-url">YouTube URL</label>
+            <input ref={videoInputRef} id="quick-video-url" type="url" className="input input-bordered mt-1 w-full" value={quickVideoUrl} onChange={(event) => setQuickVideoUrl(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && confirmQuickVideo()} />
+            <div className="modal-action">
+              <button type="button" className="btn btn-ghost" onClick={cancelQuickVideo}>Cancel</button>
+              <button type="button" className="btn btn-primary" onClick={confirmQuickVideo}>Add Video</button>
+            </div>
+          </div>
+          <div className="modal-backdrop" onClick={cancelQuickVideo} />
+        </div>
+      )}
 
       {/* Preview Modal */}
       {showPreviewModal && (
