@@ -251,12 +251,18 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
 
   // Preview modal state
   const [showPreviewModal, setShowPreviewModal] = React.useState(false);
+  const [previewHtml, setPreviewHtml] = React.useState('');
   const previewTriggerRef = useRef<HTMLButtonElement>(null);
   const previewCloseRef = useRef<HTMLButtonElement>(null);
 
   const togglePreview = useCallback(() => {
-    setShowPreviewModal((prev) => !prev);
-  }, []);
+    if (showPreviewModal) {
+      setShowPreviewModal(false);
+      return;
+    }
+    setPreviewHtml(editor.getHTML());
+    setShowPreviewModal(true);
+  }, [editor, showPreviewModal]);
 
   const closePreview = useCallback(() => {
     setShowPreviewModal(false);
@@ -327,7 +333,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
               </button>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto">
-              <ArticleProse html={editor.getHTML()} />
+              <ArticleProse html={previewHtml} />
             </div>
             <div className="modal-action">
               <button

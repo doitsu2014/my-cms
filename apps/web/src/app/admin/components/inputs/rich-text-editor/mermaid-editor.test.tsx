@@ -35,4 +35,18 @@ describe('Mermaid editor authoring', () => {
     render(<TipTapEditor readOnly defaultValue="<p>Read only</p>" />);
     expect(await screen.findByRole('button', { name: 'Mermaid diagram' })).toBeDisabled();
   });
+
+  it('keeps a preview snapshot when editor content changes after opening', async () => {
+    const user = userEvent.setup();
+    const { rerender, container } = render(<TipTapEditor defaultValue="<p>Original preview</p>" />);
+
+    await user.click(await screen.findByRole('button', { name: 'Mermaid diagram' }));
+    await user.click(container.querySelector('[data-tip="Preview"] button') as HTMLButtonElement);
+    expect(await screen.findByRole('dialog', { name: 'Article Preview' })).toHaveTextContent('flowchart LR');
+
+    rerender(<TipTapEditor defaultValue="<p>Changed editor value</p>" />);
+
+    expect(screen.getByRole('dialog', { name: 'Article Preview' })).toHaveTextContent('flowchart LR');
+    expect(screen.getByRole('dialog', { name: 'Article Preview' })).not.toHaveTextContent('Changed editor value');
+  });
 });
