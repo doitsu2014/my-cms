@@ -21,3 +21,14 @@
 - [ ] 4.2 After 4.1, run `pnpm --dir packages/editor-prose test`, `pnpm --dir packages/editor-prose typecheck`, `pnpm --dir apps/web test`, `pnpm --dir apps/web lint`, `pnpm --dir apps/web build`, `pnpm --dir apps/ducth-dev-website test`, `pnpm --dir apps/ducth-dev-website lint`, `pnpm --dir apps/ducth-dev-website typecheck`, and `pnpm --dir apps/ducth-dev-website build` (both client/server output). Run repository gates `cargo check`, `cargo test`, `cargo fmt -- --check`, and `cargo clippy`; report pre-existing/environment failures separately. Validate with `openspec validate add-mermaid-diagram-support --strict` and `openspec status --change add-mermaid-diagram-support --json`. Review final diff and report graph impact evidence, outcome/scenario coverage, version/chunk/build results, risks, and remaining limitations. Hand operational evidence to RE with website-before-admin rollout, no migration, source-preserving rollback, asset retention and CSP checks; do not deploy or archive from this task.
 
 After every implementation group, run graph `detect_changes`, `get_affected_flows`, `tests_for` for the changed renderer/editor/localization functions, and `get_impact_radius`. If graph coverage is unavailable or incomplete, record the limitation and substitute targeted imports/callers search, `git diff`, and relevant tests. Mark each checkbox only after its verification passes. Artifact completion does not mark implementation complete.
+
+## Verification status — 2026-09-14
+
+The implementation is present in commits `0e9ffb7`, `6494907`, and `194a122`.
+
+- Completed local verification: `packages/editor-prose` tests and typecheck; all admin tests and build; all public website tests and client/server build; `cargo fmt -- --check`, `cargo check`, `cargo test`, and `cargo clippy` from `apps/api`; and strict OpenSpec validation.
+- The public website test suite required local port binding. It passed when run outside the filesystem sandbox; the Mermaid lazy chunk added an `async/` directory, so the production bundle assertion now reads JavaScript files recursively.
+- Existing unrelated checks remain: the admin ESLint flat-config incompatibility, and missing declarations for `head-assets.mjs` and `server-config.mjs` in the website typecheck. Rust Clippy emits existing warnings.
+- Remaining task evidence: a frozen install/build in the Node 20 container, browser checks at mobile and desktop widths in both themes/locales, JavaScript-disabled and missing-chunk recovery, deployed CSP compatibility for Blob image URLs, and the dependency advisory review. The advisory command was not run because its external request would export the dependency inventory and was rejected by approval review.
+
+The unchecked tasks accurately retain those outstanding requirements; they are not implementation failures.
