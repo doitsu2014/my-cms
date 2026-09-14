@@ -105,3 +105,11 @@ Tests use Vitest/Testing Library already installed. Stub the renderer for race/f
 ## Open Questions and Readiness
 
 No unresolved product decision blocks the proposed artifacts. Assumptions: website means `apps/ducth-dev-website`; preview means Article Preview; author configuration is unsupported; fixed neutral diagram canvas is acceptable. Dependency installation, actual browser/CSP verification, and PD implementation review remain explicit SE/RE prerequisites, not completed evidence. All tasks must remain unchecked until implementation verification passes. Next primary owner: Software Engineer when the user requests implementation; this proposal itself authorizes no product code or deployment.
+
+## D6. Keep translation-job execution independent from editor refresh
+
+`POST /posts/{post_id}/translate/background` already persists a translation job and runs it through `tokio::spawn`; no browser polling is required for the job to continue. The admin form currently polls `GET /posts/{post_id}/translate/jobs` and calls `reloadPostData()` when the active list becomes empty. That reload replaces `originalContent` and translation values, which rehydrates TipTap and can reset a rendered Article Preview.
+
+Remove the recurring job-status effect and the immediate `checkActiveJobs()` calls after translation/retranslation starts. Retain the existing POST flow, success toast, and server-side job lifecycle. The form does not infer completion or reload automatically. Add an explicit Refresh content control near translation actions; it invokes the existing post read once. If React Hook Form is dirty, require the author to keep their current draft or discard it before that refresh can replace values. Do not call the jobs-list endpoint from the edit form after this change.
+
+This deliberately favors draft safety and predictable previews over live translation progress. A future status feature can use a push mechanism or an isolated status surface that never rehydrates the form.

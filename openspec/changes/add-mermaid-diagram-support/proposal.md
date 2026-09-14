@@ -10,6 +10,7 @@ Authors need to explain systems and workflows with diagrams inside CMS articles.
 - Preserve Mermaid source through existing HTML editing and Markdown import/copy workflows. Markdown uses fenced `mermaid` blocks for interchange; the existing HTML article format remains authoritative.
 - Show a readable source fallback and a concise failure state when a diagram is invalid or cannot render. A failing diagram must not break editing, saving, other diagrams, or the rest of the article; corrected source can render on the next preview or content update.
 - Preserve ordinary code highlighting and prose styling. Diagrams remain readable within the article layout at narrow widths and expose a text alternative/source to readers using assistive technology.
+- Stop the admin edit form from polling translation-job status and reloading article content in the background. Starting a translation continues to create a server-side background job, but it no longer resets an open editor or Article Preview; authors explicitly refresh content after a translation completes.
 
 ### Scope and Non-goals
 
@@ -27,12 +28,14 @@ Out of scope are a visual diagram builder, live inline diagram previews while ty
 
 - `editor-prose-package`: Extend shared article presentation to render Mermaid-marked content in both consumers while retaining the `.article-prose` contract. Amend the React-only runtime restriction and exact supplied-HTML rendering requirement to permit diagram rendering, with unchanged ordinary content behavior.
 - `website-reader-experience`: Render Mermaid diagrams in localized article bodies, exclude their source from ordinary code highlighting, and retain readable content before rendering and on failures.
+- `admin-translation-refresh`: Preserve author drafts and preview presentation while translation jobs run by removing recurring job-status polling and making post refresh an explicit author action.
 
 ## Impact
 
 - Admin TipTap editor, code-block toolbar, Article Preview, and existing Markdown/HTML interoperability in `apps/web`.
 - Shared article presentation and styles in `packages/editor-prose`, plus the website article highlighting integration in `apps/ducth-dev-website`.
 - Frontend dependency manifests/lockfiles and focused editor, shared-renderer, and reader tests. No API contract, database schema, or stored-article migration is expected.
+- Admin translation controls in `apps/web`; the existing background translation API and job persistence remain unchanged.
 
 ### Decisions, Assumptions, and Dependencies
 
