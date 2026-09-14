@@ -13,6 +13,9 @@ if (!Range.prototype.getClientRects) {
 if (!Range.prototype.getBoundingClientRect) {
   Range.prototype.getBoundingClientRect = () => new DOMRect();
 }
+if (!document.elementFromPoint) {
+  document.elementFromPoint = () => null;
+}
 
 describe('Mermaid editor authoring', () => {
   it('inserts editable Mermaid source and keeps preview presentation-only', async () => {
@@ -48,5 +51,22 @@ describe('Mermaid editor authoring', () => {
 
     expect(screen.getByRole('dialog', { name: 'Article Preview' })).toHaveTextContent('flowchart LR');
     expect(screen.getByRole('dialog', { name: 'Article Preview' })).not.toHaveTextContent('Changed editor value');
+  });
+
+  it('does not replace an author draft when a background refresh changes default content', async () => {
+    const user = userEvent.setup();
+    const { container, rerender } = render(<TipTapEditor defaultValue="<p>Original draft</p>" />);
+    const editable = await waitFor(() => {
+      const element = container.querySelector('[contenteditable="true"]');
+      expect(element).toBeTruthy();
+      return element as HTMLElement;
+    });
+
+    await user.click(editable);
+    await user.keyboard(' local edit');
+    rerender(<TipTapEditor defaultValue="<p>Background refresh</p>" />);
+
+    expect(editable).toHaveTextContent('local edit');
+    expect(editable).not.toHaveTextContent('Background refresh');
   });
 });

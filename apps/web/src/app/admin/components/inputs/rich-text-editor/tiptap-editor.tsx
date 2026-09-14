@@ -57,6 +57,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
   const { token } = useAuth();
   const [isUploadingPaste, setIsUploadingPaste] = useState(false);
   const tokenRef = useRef(token);
+  const lastAppliedDefaultValueRef = useRef(defaultValue);
 
   // Keep token ref up to date
   useEffect(() => {
@@ -228,10 +229,17 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({
   useEffect(() => {
     if (editor && defaultValue !== undefined) {
       const currentContent = editor.getHTML();
-      // Only update if content actually differs (avoid cursor jump)
-      if (currentContent !== defaultValue && defaultValue !== '<p></p>') {
+      const isInitialEmptyDocument = currentContent === '<p></p>'
+        && (lastAppliedDefaultValueRef.current === '' || lastAppliedDefaultValueRef.current === '<p></p>');
+      const hasLocalChanges = currentContent !== lastAppliedDefaultValueRef.current && !isInitialEmptyDocument;
+
+      // Apply external content only before the author has changed this editor.
+      // Translation-job completion refreshes the form in the background; it
+      // must not replace drafts or reset a preview that was opened from them.
+      if (!hasLocalChanges && currentContent !== defaultValue && defaultValue !== '<p></p>') {
         editor.commands.setContent(defaultValue, { emitUpdate: false });
       }
+      if (!hasLocalChanges) lastAppliedDefaultValueRef.current = defaultValue;
     }
   }, [editor, defaultValue]);
 
