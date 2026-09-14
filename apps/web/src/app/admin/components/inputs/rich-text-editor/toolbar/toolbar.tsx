@@ -52,33 +52,51 @@ import {
   Upload,
   FileDown,
   FileUp,
+  Workflow,
 } from 'lucide-react';
-
-// Initialize Turndown service for HTML to Markdown conversion
-const turndownService = new TurndownService({
-  headingStyle: 'atx',
-  codeBlockStyle: 'fenced',
-  emDelimiter: '*',
-});
-
-// Add custom rule for code blocks with language
-turndownService.addRule('codeBlock', {
-  filter: (node) => {
-    return node.nodeName === 'PRE' && !!(node as HTMLElement).querySelector('code');
-  },
-  replacement: (content, node) => {
-    const codeElement = (node as HTMLElement).querySelector('code');
-    const language = codeElement?.className?.match(/language-(\w+)/)?.[1] || '';
-    const code = codeElement?.textContent || content;
-    return `\n\`\`\`${language}\n${code}\n\`\`\`\n`;
-  },
-});
 
 // Configure marked for Markdown to HTML conversion
 marked.setOptions({
   gfm: true,
   breaks: false,
 });
+
+const normalizedSource = (value: string): string => value.replace(/\r\n?/g, '\n');
+
+const markdownFence = (source: string): string => {
+  const longestRun = Math.max(0, ...(source.match(/`+/g) ?? []).map((run) => run.length));
+  return '`'.repeat(Math.max(3, longestRun + 1));
+};
+
+export const htmlToMarkdown = (html: string): string => {
+  const turndownService = new TurndownService({
+    headingStyle: 'atx',
+    codeBlockStyle: 'fenced',
+    emDelimiter: '*',
+  });
+  turndownService.addRule('codeBlock', {
+    filter: (node) => node.nodeName === 'PRE' && !!(node as HTMLElement).querySelector('code'),
+    replacement: (content, node) => {
+      const codeElement = (node as HTMLElement).querySelector('code');
+      const language = Array.from(codeElement?.classList ?? []).find((className) => className.startsWith('language-'))?.slice('language-'.length) ?? '';
+      const source = normalizedSource(codeElement?.textContent || content);
+      const fence = markdownFence(source);
+      return `\n${fence}${language}\n${source}\n${fence}\n`;
+    },
+  });
+  return turndownService.turndown(html);
+};
+
+export const markdownToEditorHtml = async (markdown: string): Promise<string> => {
+  const html = await marked(markdown);
+  return html
+    .replace(/<pre><code([^>]*)>([\s\S]*?)<\/code><\/pre>/g, (_match, attributes: string, source: string) => {
+      const classNames = attributes.match(/class=(['"])(.*?)\1/i)?.[2]?.split(/\s+/) ?? [];
+      const isMermaid = classNames.includes('language-mermaid');
+      return `<pre><code${attributes}>${isMermaid ? source : source.replace(/^\n+|\n+$/g, '')}</code></pre>`;
+    })
+    .replace(/(<p>\s*<\/p>\s*)+/g, '');
+};
 
 interface ToolbarProps {
   editor: Editor;
@@ -87,6 +105,7 @@ interface ToolbarProps {
   onOpenHtmlEditor: () => void;
   onTogglePreview: () => void;
   isPreview: boolean;
+  previewButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 interface ToolbarButtonProps {
@@ -95,6 +114,7 @@ interface ToolbarButtonProps {
   disabled?: boolean;
   title: string;
   children: React.ReactNode;
+  buttonRef?: React.Ref<HTMLButtonElement>;
 }
 
 const ToolbarButton: React.FC<ToolbarButtonProps> = ({
@@ -103,10 +123,12 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
   disabled = false,
   title,
   children,
+  buttonRef,
 }) => (
   <div className="tooltip tooltip-bottom" data-tip={title}>
     <button
       type="button"
+      ref={buttonRef}
       onClick={onClick}
       disabled={disabled}
       className={`btn btn-ghost btn-xs h-8 min-h-8 px-2 ${
@@ -129,6 +151,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onOpenHtmlEditor,
   onTogglePreview,
   isPreview,
+  previewButtonRef,
 }) => {
   const { token } = useAuth();
   const [showLinkInput, setShowLinkInput] = useState(false);
@@ -229,13 +252,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       return;
     }
     try {
-      let html = await marked(markdownInput);
-
-      // Clean up extra whitespace in code blocks
-      html = html.replace(/<pre><code([^>]*)>\n+/g, '<pre><code$1>');
-      html = html.replace(/\n+<\/code><\/pre>/g, '</code></pre>');
-      // Remove multiple consecutive empty paragraphs
-      html = html.replace(/(<p>\s*<\/p>\s*)+/g, '');
+      const html = await markdownToEditorHtml(markdownInput);
 
       editor.commands.setContent(html);
       setShowMarkdownModal(false);
@@ -246,6 +263,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       toast.error('Failed to import Markdown');
     }
   }, [editor, markdownInput]);
+
+  const insertOrDesignateMermaid = useCallback(() => {
+    if (!editor.isEditable) return;
+    const chain = editor.chain().focus();
+    if (editor.isActive('codeBlock')) {
+      chain.updateAttributes('codeBlock', { language: 'mermaid' }).run();
+      return;
+    }
+    chain
+      .setCodeBlock({ language: 'mermaid' })
+      .insertContent('flowchart LR\n  A[Start] --> B[End]')
+      .run();
+  }, [editor]);
 
   const colors = [
     '#000000', '#434343', '#666666', '#999999', '#b7b7b7', '#cccccc', '#d9d9d9', '#efefef', '#f3f3f3', '#ffffff',
@@ -513,14 +543,15 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
       {/* Code Block with Language Selection */}
       <div className="dropdown tooltip tooltip-bottom" data-tip="Code Block">
-        <div
-          tabIndex={0}
-          role="button"
+        <button
+          type="button"
+          aria-label="Insert or change code block language"
           className={`btn btn-ghost btn-xs h-8 min-h-8 gap-1 ${editor.isActive('codeBlock') ? 'bg-primary/20 text-primary' : ''}`}
+          disabled={!editor.isEditable}
         >
           <Code2 size={16} />
           <ChevronDown size={12} />
-        </div>
+        </button>
         <ul tabIndex={0} className="dropdown-content menu bg-base-200 rounded-box z-50 w-44 p-2 shadow max-h-64 overflow-y-auto">
           <li>
             <button
@@ -528,6 +559,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               onClick={() => editor.chain().focus().toggleCodeBlock().run()}
             >
               Plain Text
+            </button>
+          </li>
+          <li>
+            <button type="button" onClick={insertOrDesignateMermaid} disabled={!editor.isEditable}>
+              <Workflow size={16} /> Mermaid diagram
             </button>
           </li>
           <li>
@@ -856,7 +892,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       <ToolbarButton
         onClick={() => {
           const html = editor.getHTML();
-          const markdown = turndownService.turndown(html);
+          const markdown = htmlToMarkdown(html);
           navigator.clipboard.writeText(markdown).then(() => {
             toast.success('Copied as Markdown');
           }).catch(() => {
@@ -932,6 +968,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         onClick={onTogglePreview}
         title={isPreview ? 'Edit Mode' : 'Preview'}
         isActive={isPreview}
+        buttonRef={previewButtonRef}
       >
         {isPreview ? <EyeOff size={16} /> : <Eye size={16} />}
       </ToolbarButton>

@@ -53,3 +53,15 @@
 .article-prose img { display: block; max-width: 100%; height: auto; margin-block: var(--space-6); border-radius: 4px; }
 .article-prose iframe { display: block; max-width: 100%; margin-block: var(--space-6); border: 0; border-radius: 4px; aspect-ratio: 16 / 9; }
 .article-prose .iframe-wrapper { margin-block: var(--space-6); }
+
+/* Mermaid presentation is an enhancement of stored <pre><code class="language-mermaid"> source. */
+.article-prose .mermaid-diagram { max-inline-size: 100%; margin-block: var(--space-6); overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; background: #f8fafc; color: #172033; }
+.article-prose .mermaid-diagram__status { margin: 0; padding: var(--space-4); color: #334155; font-size: 14px; }
+.article-prose .mermaid-diagram__image { display: block; width: auto; max-width: none; height: auto; min-width: 100%; margin: 0; padding: var(--space-4); border-radius: 0; background: #f8fafc; }
+.article-prose .mermaid-diagram__source { border-top: 1px solid var(--border); }
+.article-prose .mermaid-diagram__source > summary { min-height: 44px; display: flex; align-items: center; padding-inline: var(--space-4); cursor: pointer; color: #172033; font-weight: 600; }
+.article-prose .mermaid-diagram__source > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.article-prose .mermaid-diagram__source > pre { margin: 0; border-inline: 0; border-bottom: 0; border-radius: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .article-prose .mermaid-diagram { scroll-behavior: auto; }
+}
