@@ -50,7 +50,7 @@ export const enhanceMermaidBlocks = (root: HTMLElement, labels: MermaidPresentat
     let timedOut = false;
 
     const restoreSource = () => {
-      if (sourcePre.parentElement === shell) shell.before(sourcePre);
+      if (shell.contains(sourcePre)) shell.before(sourcePre);
       if (blobUrl) URL.revokeObjectURL(blobUrl);
       shell.remove();
     };
