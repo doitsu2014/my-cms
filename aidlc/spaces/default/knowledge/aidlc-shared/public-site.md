@@ -1,104 +1,25 @@
-# Public site, design, and SEO
+# Public site, reader, and SEO
 
-Validate: `apps/ducth-dev-website/`, `apps/web` document head,
-`apps/api/domain_seo/`, `packages/editor-prose/`.
+[Glossary](glossary.md) · Related: [admin editor](admin-editor.md), [deployment operations](deployment-operations.md)
 
-Locales are `en` and `vi` on `/:lang/...`. The server owns runtime config.
-The browser reads `window.__APP_CONFIG__` only. SSR injects that JSON
-without breaking out of the script. SSR errors do not leak internals.
-Media URL joins use exactly one slash. Public GraphQL is the immutable
-posts endpoint. Missing translations fall back to base content.
+## Evidence boundary
 
-## Shell and states
+Scope paths: `apps/ducth-dev-website/`, `apps/web` document head, `apps/api/domain_seo/`, and `packages/editor-prose/`. The partial CodeKB describes route composition but does not deeply verify these requirements. Treat detailed behaviors below as **Unverified intended contract** pending source/test inspection. Maintained docs and project knowledge support, but do not supersede current source.
 
-Every route has a skip link, a header with the active item, a mobile drawer,
-a segmented language control, breadcrumbs where the route has a trail, and
-a three-column footer. `document.documentElement.lang` follows the locale.
+## Localized reader
 
-Page-level loading, error, empty, and not-found states keep the shell, use
-shared translation and date helpers, and do not show raw GraphQL errors.
-Images have a fallback. Transient feedback uses a polite live region.
-Compact controls and share actions are at least 44×44 CSS px.
+The intended locales are `en` and `vi` at `/:lang/...`; public GraphQL uses the immutable posts endpoint and missing translations fall back to base content. The shell should provide skip link, navigation, mobile drawer, language control, route breadcrumbs, localized document language, and consistent loading/error/empty/not-found states without exposing raw GraphQL errors. Verify all route and state behavior in current app source.
 
-## Design
+Article rendering uses `.article-prose` from the shared package. Featured images retain intrinsic ratio; missing-image cards use deterministic CSS artwork, while the detail-page fallback preserves its layout ratio. Article body width is capped at 68ch. Related posts are deterministic and exclude the current post. Mermaid uses the explicit shared renderer contract in [admin-editor](admin-editor.md). These presentation details are **Unverified**.
 
-The public site uses the Ink & Tide tokens with light and dark parity, the
-documented type scale, spacing and container primitives, and a motion
-contract that honors reduced motion (no entrance motion, no smooth scroll).
-Focus styles are visible. Article text uses `.article-prose`, not Tailwind
-Typography `prose`. Do not add a new icon library for this site.
+## Metadata, SEO, and crawlers
 
-## Reader
+Intended public metadata includes localized title, description, canonical URL, Open Graph and Twitter tags, with configured defaults for empty values and no stale duplicates after client navigation. Canonicals use configured origin plus normalized locale path without query/fragment. CMS/config values are escaped; unpublished, missing and error states are not indexable content. Admin pages use task-specific titles and `noindex, nofollow`, with no public canonical or social-card tags. **Unverified:** current resolver, SSR output and escaping behavior.
 
-Home is a writing index with asymmetric compositions. Category index uses
-numbered editorial rows. Category detail uses article rows. Related posts
-are deterministic and exclude the current post. Share actions work.
-Thumbnail-less cards use deterministic CSS art at the requested ratio, with
-no network fetch.
+`domain_seo` is the intended trusted store for administrator-managed global head assets. Only validated head-safe markup may be stored; the UI does not execute asset source. Public SSR injects enabled assets in stable order without replacing typed metadata. Delivery bounds, cache/stale behavior and failure policy remain **Unverified** pending domain and SSR source review.
 
-Post detail (`/:lang/posts/:slug`) shows category, date, reading time when
-known, title, deck, byline, featured image, a body capped at 68ch, share,
-and related posts. The body wrapper is `.article-prose` around the full
-TipTap document. Ordinary code blocks stay Highlight.js and scroll
-horizontally.
+Intended crawler endpoints: `/sitemap.xml` includes localized home, categories, about, published posts and published top-level categories, excludes admin/API/unpublished/query/fragment URLs, and escapes XML. `/robots.txt` allows general crawling, disallows `ClaudeBot`, and advertises the sitemap. Sitemap failure should retain static localized routes and hide upstream errors. Current output and behavior are **Unverified**.
 
-WHEN a featured image exists, THEN it uses the content width and its
-intrinsic aspect ratio. It is not cropped to 21:9 and not stretched. Alt
-text is a localized string derived from the title, not empty.
+## Open evidence items
 
-WHEN there is no featured image, THEN the slug-based fallback keeps its
-layout ratio. The old 21:9 crop applies only to surfaces that still request
-that frame (cards), not to the detail image.
-
-Mermaid in the localized body follows the same renderer rules as
-`admin-editor.md`, including diagram-only translations and stale-render
-protection.
-
-## About
-
-`/:lang/about` exists in the nav. Without verified copy for that locale the
-page shows a localized "Coming soon" state and no placeholder facts.
-
-## Metadata
-
-Every public route and locale has one title, description, canonical URL,
-Open Graph, Twitter card, and language. Home, category list, category,
-article, about, loading, error, and not-found each have a deterministic
-localized profile. Empty fields use configured site defaults. Client
-navigation replaces managed tags and does not leave duplicates or the
-previous route's tags. SSR puts the resolved head in the first HTML
-response.
-
-Canonical URLs are the configured site origin plus a normalized locale path,
-with no query or fragment. CMS and config strings are escaped. Unpublished,
-missing, and error states are not indexable articles or categories.
-
-Admin documents set a task-specific title for login, dashboard, list,
-create, and edit, include `robots` `noindex, nofollow`, and emit no public
-canonical, Open Graph, or Twitter tags. Resolver and SSR/client/admin
-regressions are tested.
-
-## SEO head assets
-
-`domain_seo` is the trusted store. Only administrators manage Ducth global
-head assets. The CMS UI does not execute asset source. Only validated
-head-safe markup can be stored. Enabled assets are injected by public SSR
-in stable order and MUST NOT replace typed metadata names or properties.
-Delivery is bounded. If the source is unavailable, SSR fails open: it may
-use a successful cache only inside the stale bound, and logs omit source
-HTML and secrets.
-
-## Crawlers
-
-`GET /sitemap.xml` is UTF-8 XML: localized home, categories, and about for
-`en` and `vi`, plus one localized URL per published post and published
-top-level category. No root redirect URL, admin route, API route,
-unpublished post, query, or fragment. XML-significant characters are
-escaped.
-
-`GET /robots.txt` and `GET /sitemap.xml` are served before the SPA
-fallback. `robots.txt` is `User-agent: *` / `Allow: /`, still disallows
-`ClaudeBot`, and advertises `Sitemap: <site>/sitemap.xml`. It does not
-depend on GraphQL. If the content API fails, times out, or is malformed,
-the sitemap still returns the static localized routes, hides upstream
-errors, and uses a short public cache.
+Verify locale routes, SSR/client parity, metadata, SEO asset validation and delivery, crawler endpoint output, and reader image/content states. Record unresolved source/contract conflicts with both claims and references; request owner decision where source cannot determine intended policy.

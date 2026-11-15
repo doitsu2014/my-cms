@@ -1,84 +1,41 @@
 # Backend domain architecture
 
-Narrative: `docs/architecture/software-architecture.md`.
+[Glossary](glossary.md) · Maintained narrative: [`docs/architecture/software-architecture.md`](../../../../../docs/architecture/software-architecture.md)
 
-Validate: `apps/api/gateway/src/main.rs`, `apps/api/gateway/Cargo.toml`,
-`apps/api/domain_interface/src/lib.rs`, `apps/api/domain_posts/`,
-`apps/api/domain_auth/`, `apps/api/domain_media/`, `apps/api/domain_user/`,
-`apps/api/domain_seo/`.
+## Evidence boundary
 
-## Current shape
+This contract records intended boundaries and behavior noted in shared knowledge, with partial static scan support. Source-of-truth paths for validation are `apps/api/gateway/`, `apps/api/domain_interface/`, and `apps/api/domain_{posts,auth,media,user,seo}/`. The CodeKB scan is partial; statements below are not a claim that every path or behavior was re-inspected for this rewrite. Treat specific behavior not supported by inspected source as **Unverified** until verified.
 
-My-CMS is one Rust process, `my-cms-api`, from `apps/api/gateway`. The gateway
-is a composition root. Feature logic stays in domain crates that implement
-`domain_interface::DomainService`.
+## Process and ownership
 
-`gateway::manifest()` registers five services:
+- The shipped API is the `my-cms-api` binary, composed by `apps/api/gateway`; do not restore a standalone posts/auth binary, `application_core`, or separate migration crate. Post migrations remain owned by `domain_posts`.
+- The gateway is the composition root. Domain crates implement `domain_interface::DomainService`; domain logic, entities, handlers, and migrations remain with their owning domain. A shared database pool does not confer shared table ownership.
+- The intended manifest contains five domains: `domain_posts`, `domain_auth`, `domain_media`, `domain_user`, and `domain_seo`. `domain_auth` supplies authentication middleware, not an alternate API deployment.
+- Gateway-level configuration, shared pool and GraphQL schema construction, migration dispatch, route merge, shared middleware, and listener startup belong at the gateway boundary. The exact current ordering and failure behavior require source confirmation (**Unverified** outside the partial scan).
 
-| Service | Owns |
-| --- | --- |
-| `DomainPostService` | Posts, categories, tags, translations, AI catalogue, jobs, GraphQL HTTP |
-| `DomainAuthService` | Supabase JWT middleware only. No routes, no migrations, no DB health probe |
-| `DomainMediaService` | Storage objects and administrator bucket lifecycle |
-| `DomainUserService` | Administrator user CRUD and password reset. Empty migrations |
-| `DomainSeoService` | Trusted SEO head assets, admin CRUD, public enabled-asset delivery, its migration |
+| Domain | Contract responsibility |
+|---|---|
+| `domain_posts` | Posts, categories, tags, translations, jobs, GraphQL contribution and post-owned migrations. |
+| `domain_auth` | Supabase JWT validation and role middleware. |
+| `domain_media` | Media objects and bucket lifecycle. |
+| `domain_user` | Administrator user operations through GoTrue. |
+| `domain_seo` | SEO head-asset persistence, administration and public delivery. |
 
-The gateway loads env, opens one SeaORM pool, builds immutable and mutable
-GraphQL schemas once, validates each domain, runs startup health, dispatches
-migration descriptors, merges bare routers, then applies cookie and auth layers
-once. Domains must not add their own global auth or cookie layers.
+## Route and authorization boundary
 
-Mounts: Public (anyone), Protected (writer or administrator), Administrator
-(administrator only). Mutable GraphQL is Protected and MUST accept either
-`my-headless-cms-writer` or `my-headless-cms-administrator`. Do not narrow it
-to administrator-only.
+The intended mount classes are **Public**, **Protected** (writer or administrator), and **Administrator**. Shared auth/cookie layers are applied at gateway composition; domains register bare routers. Posts GraphQL paths are `/posts/graphql/immutable` (public) and `/posts/graphql/mutable` (protected). Mutable GraphQL must allow either `my-headless-cms-writer` or `my-headless-cms-administrator`, not administrator only. Route registration and exact enforcement details are **Unverified** pending deep source validation.
 
-`/posts/graphql/immutable` is public. `/posts/graphql/mutable` is protected.
-Playgrounds point at those paths. Schemas come from `DomainContext`; the post
-domain does not rebuild them per request. Legacy `/graphql/...` mounts and
-`apps/api/src/api/graphql` are retired.
+Missing credentials on a protected route are intended to be rejected before its handler; a valid token lacking a permitted role is forbidden. Role matching, empty-role behavior, health-route policy, CORS, cookie, body-limit, and error mapping details remain **Unverified** where not confirmed in the current source scan.
 
-## Invariants
+## Migration and extension rules
 
-- WHEN the gateway starts, THEN it refuses to bind if required configuration
-  or startup health fails, and errors MUST NOT leak secrets.
-- WHEN `my-cms-api migrate <verb>` runs, THEN migrations dispatch through the
-  domain descriptors and the HTTP listener is not bound. Default invocation
-  serves HTTP.
-- WHEN a migration fails, THEN later migrations in that run do not continue.
-- Post migration identities and order stay owned by `domain_posts`. There is
-  no `migration` crate and no `application_core` dependency.
-- Business domains read the caller as `domain_interface::AuthenticatedActor`.
-  They do not depend on `domain_auth` JWT types.
-- Adapters extract and serialize. Command handlers own rules. The gateway does
-  not import domain entities or handlers.
-- Tag create, read, and delete helpers live in
-  `domain_posts::handlers::tag_helper`. Do not add a parallel tag crate or
-  restore `application_core` tag commands.
-- The Docker image ships `my-cms-api` only. Per-domain bins are not a
-  deployment surface. The auth stub binary is not an API.
+`my-cms-api migrate <verb>` is the documented migration entry point. Migration identity and ordering are domain-owned; a migration failure should not be treated as successful completion. Exact supported verbs, rollback characteristics, and failure sequencing are **Unverified** pending source inspection. Add a domain only for a coherent ownership boundary and register it through the gateway contract. Cross-domain transactions require an explicit design.
 
-## Cross-cutting trace (gateway)
+## Observability
 
-WHEN `ENABLED_OTLP_EXPORTER=true` and exporter configuration is valid, THEN
-the gateway initializes the existing OTLP pipeline before serving, keeps the
-exporter guard for the process lifetime, and applies OpenTelemetry layers to
-the merged router so public, protected, administrator, health, and
-auth-rejected requests can emit an export-eligible HTTP trace with operation
-and outcome.
+Gateway OTLP behavior, including enablement by `ENABLED_OTLP_EXPORTER`, exporter configuration, request coverage, and fallback behavior, is carried as intended contract from existing knowledge but is **Unverified** by the partial scan. Validate gateway configuration and middleware before relying on these details. Do not infer runtime export success from configuration alone.
 
-WHEN the flag is false, absent, or invalid, THEN the gateway uses plain-text
-logging, does not require a collector, and keeps routes, status codes, and
-auth decisions unchanged.
+## Open evidence items
 
-Auth, CORS, cookies, and body limits stay on the merged router. Missing
-credentials on a protected route are HTTP 401 and the domain handler is not
-called. A valid token without an allowed role is HTTP 403. Role match is
-case-sensitive OR. An empty required-role list does not enforce roles.
-
-## Extending
-
-Add a domain only when it owns routes, state, migrations, or health as a
-boundary. Register it in the manifest. Do not put feature code in the gateway.
-A shared pool is not shared table ownership. Cross-domain transactions need an
-explicit design in an AI-DLC intent, not a new OpenSpec change.
+- **Unverified:** exact gateway startup sequence, route/middleware coverage, status/error mappings, migration verbs and failure semantics, and current OTLP behavior.
+- **Unresolved:** any disagreement between this intended boundary and current source must be recorded with both claims and paths; a project owner must decide contract changes not settled by source.

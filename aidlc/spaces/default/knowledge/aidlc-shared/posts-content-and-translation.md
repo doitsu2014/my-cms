@@ -1,62 +1,24 @@
-# Posts, GraphQL, translation, and search
+# Posts, content, and translation
 
-Behavior narrative: `docs/features/ai-translation.md`.
-Mount ownership: `backend-domain-architecture.md`.
+[Glossary](glossary.md) · Mount boundary: [backend domain architecture](backend-domain-architecture.md) · Maintained narrative: [`docs/features/ai-translation.md`](../../../../../docs/features/ai-translation.md)
 
-Validate: `apps/api/domain_posts/src/handlers/`,
-`apps/api/domain_posts/src/domain/graphql.rs`,
-`apps/api/domain_posts/src/domain/vector_store.rs`,
-`apps/api/domain_posts/src/handlers/post/translate/`.
+## Evidence boundary and ownership
 
-## Posts domain
+`domain_posts` is the intended owner of post/category/tag behavior, translations, translation jobs, GraphQL contribution, persistence entities, and post migrations. Relevant paths are `apps/api/domain_posts/src/handlers/`, `src/domain/graphql.rs`, `src/domain/vector_store.rs`, and `src/handlers/post/translate/`. The scan is partial; exact route contracts, persistence semantics, and behavior below not verified by direct source review are **Unverified**. The maintained translation guide is supporting context, not proof.
 
-`domain_posts` owns post and category CRUD, the tag helper, the AI model
-catalogue, translation jobs, GraphQL schema contribution, entities, and
-migrations. HTTP adapters in `domain_posts::api` call those handlers and
-return the existing response envelope.
+## Translation contract
 
-Lookup for a translation is three tiers, in order:
+Intended normal lookup order: exact `(post_id, language_code)` translation; then pgvector cosine similarity at `>= 0.95`; then OpenAI generation. Reused text skips later tiers. Newly generated HTML is checked for paragraph coverage before save. Existing knowledge says a failed validation must not write or overwrite `post_translations`; exact threshold implementation and transaction behavior are **Unverified**.
 
-1. Exact row for `(post_id, language_code)`.
-2. pgvector cosine match at similarity `>= 0.95`.
-3. OpenAI chat completion.
+The intended paragraph rule rejects a generated translation when source HTML has paragraphs and translated paragraph count is below `max(1, source_count / 2)`. Intended embedding model is `text-embedding-3-small`, using title plus up to 8,000 content characters, with vector dimension 1536 and cosine search. Missing pgvector is intended to disable semantic reuse without disabling translation; missing `OPENAI_API_KEY` is intended to fail domain configuration. Confirm all details against current migration, configuration, handlers and tests before relying on them.
 
-A database hit skips later tiers. Similarity-reused text is not run through
-the paragraph-coverage validator. A newly generated HTML translation is
-validated before save.
+Existing knowledge describes admin background translation as non-polling: starting a job preserves current form/TipTap/preview state, and completion must not overwrite unsaved edits; result appears after explicit refresh or reopening. Refresh follows the existing unsaved-change confirmation and does not start polling. This is **Unverified** against current admin source. Do not reintroduce polling absent owner-approved evidence.
 
-## Paragraph coverage
+## GraphQL
 
-WHEN source HTML has one or more `<p>` tags and the translation has fewer
-than `max(1, source_count / 2)` paragraphs, THEN the handler returns
-`AppError::Validation("translation", ...)` and MUST NOT write or overwrite
-`post_translations`.
+Posts owns the schema contribution and mounts immutable GraphQL publicly and mutable GraphQL behind the protected writer-or-administrator policy. The seven historical entities plus `CategoryType`, mutation gating, and depth/complexity policy are stated in the existing contract, but the exact current schema and limits are **Unverified**. See the shared [mount and role contract](backend-domain-architecture.md).
 
-The HTML system prompt tells the model to keep every `<p>`, not to return
-headings only, and not to truncate. Rejections log a warning with post id,
-language, and both paragraph counts. The prompt constant is `pub(crate)` so
-the colocated regression test can read it.
+## Unresolved and follow-up
 
-Embeddings use `text-embedding-3-small` (`vector(1536)`) over title plus up
-to 8,000 characters of content. Search uses pgvector cosine distance and the
-ivfflat index. `(post_id, language_code)` is unique; writes upsert. If the
-pgvector extension is unavailable, migration skips the embeddings table and
-translation continues without semantic reuse. A missing `OPENAI_API_KEY`
-fails post-domain configuration validation.
-
-GraphQL keeps the historical seven-entity schema plus `CategoryType`.
-Mutation gating and unlimited depth/complexity stay until a later change
-says otherwise.
-
-## Admin translation refresh
-
-The admin edit form MUST NOT poll `GET /posts/{post_id}/translate/jobs`.
-
-- WHEN an author starts a background translation, THEN the server job is
-  created and the form values, TipTap state, and open Article Preview stay
-  as they are, including a visible Mermaid snapshot.
-- WHEN that job finishes while the author has unsaved edits, THEN the form
-  does not reload or overwrite them. The result appears after an explicit
-  refresh or after reopening the form.
-- Refresh warns through the existing unsaved-changes pattern, or reloads
-  immediately when the form is clean. Refresh does not start polling.
+- **Unverified:** translation lookup/write atomicity, model/provider payloads, job lifecycle and UI refresh integration, schema contents and limits.
+- The maintained guide describes prior polling and reload-on-completion, while the current shared contract explicitly prohibits admin polling and overwrite of unsaved edits. The CodeKB is not deep enough to settle implementation status. **Unresolved:** inspect current admin and handler source; record both claims and request project-owner decision if source does not settle intended behavior.
