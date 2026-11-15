@@ -7,8 +7,7 @@
 //! `domain_interface` (plus its own infrastructure dependencies) and
 //! SHALL NOT depend on any concrete business domain.
 //!
-//! See `openspec/changes/extract-auth-into-domain-auth/design.md` for the
-//! architectural context.
+//! Architectural context: `docs/architecture/software-architecture.md`.
 
 #![deny(unsafe_code)]
 #![warn(missing_debug_implementations)]

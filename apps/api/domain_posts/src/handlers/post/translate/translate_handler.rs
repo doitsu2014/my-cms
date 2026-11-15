@@ -55,10 +55,8 @@ const SIMILARITY_REUSE_THRESHOLD: f32 = 0.95;
 // `pub(crate)` so the colocated prompt regression test in
 // `translation_validator::prompt_tests` can read it back.
 //
-// Appended clause (per
-// openspec/changes/fix-translator-incomplete-html-output): explicitly tell the
-// model that the translated output must keep every <p> paragraph and must
-// never return a headings-only response.
+// Tell the model that the translated output must keep every <p> paragraph
+// and must never return a headings-only response.
 pub(crate) const TRANSLATION_INSTRUCTION_HTML: &str =
     "Preserve all HTML tags and structure exactly as they are. Only translate the text content within the tags, \
      never translate HTML tag names, attributes, or structure. Return valid HTML. Translate the ENTIRE content \
@@ -253,9 +251,9 @@ impl PostTranslateHandler {
     /// `AppError::Validation("translation", ...)` so a broken translation
     /// never overwrites a valid `post_translations` row.
     ///
-    /// See `openspec/changes/fix-translator-incomplete-html-output/specs/domain-posts/spec.md`
-    /// (Requirement: Translation output SHALL preserve paragraph coverage)
-    /// and `design.md` Decision 3 for the placement rationale.
+    /// See `docs/features/ai-translation.md`. Paragraph coverage is checked
+    /// here, before `save_translation`, so a rejected translation cannot
+    /// overwrite a stored row.
     async fn translate_from_openai(
         post: &posts::Model,
         target_language_code: &str,
@@ -294,9 +292,8 @@ impl PostTranslateHandler {
         // failure: the caller will not reach `save_translation`, so the existing
         // row in `post_translations` is preserved.
         //
-        // See openspec/changes/fix-translator-incomplete-html-output/design.md
-        // (Decision 1) and specs/domain-posts/spec.md
-        // (Requirement: Translation output SHALL preserve paragraph coverage).
+        // Reject before save when paragraph coverage falls below
+        // `max(1, source_count / 2)`. See `docs/features/ai-translation.md`.
         let source_count = super::translation_validator::count_paragraph_tags(&post.content);
         let translated_count =
             super::translation_validator::count_paragraph_tags(&translated_content);

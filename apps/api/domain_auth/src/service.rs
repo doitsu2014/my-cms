@@ -1,10 +1,9 @@
 //! `DomainAuthService` — `domain_interface::DomainService` implementation for
 //! the auth domain.
 //!
-//! See `openspec/changes/extract-auth-into-domain-auth/design.md` for the
-//! architectural context. The service is constructed once by either the
-//! standalone `domain_auth` bin or the `gateway` composition root and queried
+//! The gateway composition root constructs this service once and queries it
 //! through the `DomainService` trait for routing, migrations, and health.
+//! The crate's stub binary is not a deployment surface.
 
 use async_trait::async_trait;
 use domain_interface::{

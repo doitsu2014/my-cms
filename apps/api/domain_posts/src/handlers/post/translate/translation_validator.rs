@@ -6,9 +6,8 @@
 //! `PostTranslateHandler::translate_from_openai` so broken translations are
 //! never persisted to `post_translations`.
 //!
-//! Added per
-//! `openspec/changes/fix-translator-incomplete-html-output/specs/domain-posts/spec.md`
-//! (Requirement: Translation output SHALL preserve paragraph coverage).
+//! Rejects translations that drop too many paragraphs before they are saved.
+//! See `docs/features/ai-translation.md`.
 
 use crate::domain::error::AppError;
 
@@ -24,9 +23,7 @@ pub fn count_paragraph_tags(html: &str) -> usize {
 /// Validate that the translated content retains a sufficient share of the
 /// source's paragraph coverage.
 ///
-/// Rejection rule (see design Decision 1 in
-/// `openspec/changes/fix-translator-incomplete-html-output/design.md`):
-/// when the source has one or more `<p>` tags and the translated content
+/// When the source has one or more `<p>` tags and the translated content
 /// has fewer than `max(1, source_count / 2)` paragraphs, return
 /// `AppError::Validation("translation", <reason>)`. Otherwise return
 /// `Ok(())`.

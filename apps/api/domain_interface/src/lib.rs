@@ -11,9 +11,7 @@
 //! routers, migrations, and health checks without ever importing a domain's
 //! commands, entities, or DTOs.
 //!
-//! See `openspec/changes/refactor-api-into-pluggable-domain-libraries/design.md`
-//! Decision 1 and `specs/domain-service-interface/spec.md` for the contract
-//! requirements.
+//! The contract is described in `docs/architecture/software-architecture.md`.
 
 #![deny(unsafe_code)]
 #![warn(missing_debug_implementations)]
