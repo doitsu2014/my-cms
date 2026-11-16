@@ -6,5 +6,13 @@
     "scope": "poc",
     "status": "complete",
     "request": "63e688be"
+  },
+  {
+    "uuid": "01a1e1b3-972b-7257-84c4-0b3b12be4a0e",
+    "slug": "coverage-report-failure",
+    "dirName": "261116-coverage-report-failure",
+    "scope": "express",
+    "status": "in-flight",
+    "request": "774c465b"
   }
 ]

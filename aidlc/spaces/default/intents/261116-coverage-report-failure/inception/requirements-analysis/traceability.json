@@ -1,0 +1,22 @@
+{
+  "stage": "requirements-analysis",
+  "upstream_ids": ["FR1", "FR1.1", "FR1.2", "FR1.3", "FR2", "NFR1", "NFR2"],
+  "coverage": [
+    { "id": "FR1", "status": "GAP", "target": "Coverage workflow path fix not implemented yet." },
+    { "id": "FR1.1", "status": "GAP", "target": "Coverage workflow path fix not implemented yet." },
+    { "id": "FR1.2", "status": "GAP", "target": "Coverage workflow path fix not implemented yet." },
+    { "id": "FR1.3", "status": "GAP", "target": "Coverage workflow path fix not implemented yet." },
+    { "id": "FR2", "status": "GAP", "target": "Existing upload steps will be preserved; implementation not yet verified." },
+    { "id": "NFR1", "status": "GAP", "target": "Coverage settings will be preserved; implementation not yet verified." },
+    { "id": "NFR2", "status": "GAP", "target": "Path-only change planned; implementation not yet verified." }
+  ],
+  "ids": [
+    { "id": "FR1", "kind": "functional" },
+    { "id": "FR1.1", "kind": "functional", "of": "FR1" },
+    { "id": "FR1.2", "kind": "functional", "of": "FR1" },
+    { "id": "FR1.3", "kind": "functional", "of": "FR1" },
+    { "id": "FR2", "kind": "functional" },
+    { "id": "NFR1", "kind": "non-functional" },
+    { "id": "NFR2", "kind": "non-functional" }
+  ]
+}
