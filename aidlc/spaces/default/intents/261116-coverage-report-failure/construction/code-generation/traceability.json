@@ -1,0 +1,14 @@
+{
+  "stage": "code-generation",
+  "upstream_ids": ["FR1", "FR1.1", "FR1.2", "FR1.3", "FR2", "FR3", "NFR1", "NFR2"],
+  "coverage": [
+    {"id": "FR1", "status": "OK", "target": ".github/workflows/ci-my-cms.yml"},
+    {"id": "FR1.1", "status": "OK", "target": ".github/workflows/ci-my-cms.yml"},
+    {"id": "FR1.2", "status": "OK", "target": ".github/workflows/ci-my-cms.yml"},
+    {"id": "FR1.3", "status": "OK", "target": ".github/workflows/ci-my-cms.yml"},
+    {"id": "FR2", "status": "OK", "target": ".github/workflows/ci-my-cms.yml"},
+    {"id": "FR3", "status": "N/A", "target": "Additional diagnostics are outside the approved report-path-only fix; existing grcov failure remains explicit."},
+    {"id": "NFR1", "status": "OK", "target": ".github/workflows/ci-my-cms.yml"},
+    {"id": "NFR2", "status": "OK", "target": ".github/workflows/ci-my-cms.yml"}
+  ]
+}
