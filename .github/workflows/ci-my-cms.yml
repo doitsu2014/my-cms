@@ -35,7 +35,7 @@ jobs:
           LLVM_PROFILE_FILE: "test-llvm-reports/my-cms-%p-%m.profraw"
       # Take Coverage Reports
       - name: Run Coverage Report with grcov
-        run: grcov . --binary-path apps/api/target/debug/deps -s apps/api -t lcov --ignore-not-existing --ignore '../**' --ignore '/*' -o ./lcov.info
+        run: grcov . --binary-path apps/api/target/debug/deps/ -s apps/api -t lcov --ignore-not-existing --ignore '../**' --ignore '/*' -o ./lcov.info
       # Upload Coverage Reports to Third Party
       - name: Upload coverage reports to Coveralls
         uses: coverallsapp/github-action@master
