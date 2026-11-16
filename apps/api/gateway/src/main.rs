@@ -1,24 +1,19 @@
 //! `gateway` — thin composition root for pluggable domain services.
 //!
-//! See `openspec/changes/refactor-api-into-pluggable-domain-libraries/design.md`
-//! for the architectural context. This crate is a binary that produces the
-//! `my-cms-api` deployment image, iterates a `Vec<Box<dyn DomainService>>` to
-//! compose the public/protected/administrator Axum routers, applies the
-//! cross-cutting layers, and serves the listener.
+//! This crate is the binary that produces the `my-cms-api` deployment image.
+//! It iterates a `Vec<Box<dyn DomainService>>` to compose the
+//! public/protected/administrator Axum routers, applies the cross-cutting
+//! layers, and serves the listener. See
+//! `docs/architecture/software-architecture.md`.
 //!
-//! # GraphQL mount authorization (merged by `merge-graphql-into-posts-domain`)
+//! # GraphQL mount authorization
 //!
 //! The post domain registers `/posts/graphql/{immutable,mutable}` into the
 //! public / protected router slots. The mutable mount accepts requests that
 //! hold either the `my-headless-cms-writer` or the
-//! `my-headless-cms-administrator` Supabase app role — this matches the
-//! pre-existing role set on the `domain_posts` standalone binary's mutable mount.
-//!
-//! Prior to the `merge-graphql-into-posts-domain` change the gateway only
-//! accepted the administrator role on `/graphql/mutable`; the role set is
-//! widened here to align with the standalone `domain_posts` binary. Do not
-//! silently revert to administrator-only — writers that talk to the
-//! gateway's GraphQL endpoint depend on it.
+//! `my-headless-cms-administrator` Supabase app role. Do not narrow the
+//! mutable mount to administrator-only: writers that call the gateway
+//! GraphQL endpoint depend on the writer role.
 
 #![deny(unsafe_code)]
 

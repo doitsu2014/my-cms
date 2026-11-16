@@ -6,10 +6,9 @@
 //! `async_graphql_axum::GraphQL::new(...)` so it can re-use the
 //! `Arc<Schema>` values that the gateway already builds at startup.
 //!
-//! See `openspec/changes/merge-graphql-into-posts-domain/design.md`
-//! Decision 2 for the rationale on keeping the module small (just the
-//! two playground HTML handlers) and Decision 7 for the rationale on
-//! NOT introducing a dedicated POST handler function.
+//! This module stays small: the two playground HTML handlers only. POST is
+//! wired inline in `domain_posts::api::routes` so it can reuse the gateway's
+//! `Arc<Schema>` values. There is no separate POST handler function.
 
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 use axum::response::{self, IntoResponse};

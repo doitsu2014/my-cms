@@ -7,8 +7,7 @@
 //! `sanitise_email`, `validate_full_name`, `validate_phone`,
 //! `BAN_DURATION`, `RECOGNISED_ROLES`).
 //!
-//! See `openspec/changes/split-media-and-user-domains-merge-tags-into-posts/design.md`
-//! for the architectural context.
+//! Architectural context: `docs/architecture/software-architecture.md`.
 
 #![deny(unsafe_code)]
 #![warn(missing_debug_implementations)]

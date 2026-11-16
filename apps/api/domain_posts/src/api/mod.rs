@@ -9,8 +9,7 @@
 //! `Vec<RouteRegistration>`. The post domain owns the GraphQL HTTP surface
 //! — see `post::graphql` for the playground handlers and `routes()` for the
 //! `Mount::Public` / `Mount::Protected` registrations of
-//! `/posts/graphql/{immutable,mutable}`. See
-//! `openspec/changes/merge-graphql-into-posts-domain/design.md` Decision 1.
+//! `/posts/graphql/{immutable,mutable}`.
 
 use async_graphql_axum::GraphQL;
 use axum::{

@@ -94,8 +94,8 @@ my-cms/
 ├── deployments/
 │   ├── docker-swarm/              Local Supabase, apps, and Traefik Compose stacks
 │   └── k8s/                       Helm charts
-├── docs/                          Architecture, API, and operational documentation
-└── openspec/                      Versioned capability specifications and change records
+├── docs/                          Architecture and feature documentation
+└── aidlc/                         AI-DLC method, intents, and project knowledge
 ```
 
 ## Technology
@@ -172,10 +172,10 @@ pnpm --dir ../ducth-dev-website build
 - [Software architecture](docs/architecture/software-architecture.md) — workspace, gateway, and domain ownership details.
 - [AI translation](docs/features/ai-translation.md) — translation behavior, reuse strategy, and jobs.
 - [Editor prose contract](docs/features/editor-prose-contract.md) — shared TipTap reader rendering across the admin and public website.
-- [Agent-team workflow](docs/development/agent-team.md) — role ownership and the OpenSpec delivery lifecycle.
+- [Agent workflow](docs/development/agent-team.md) — Claude Code and AI-DLC delivery rules.
+- [Project knowledge](aidlc/spaces/default/knowledge/aidlc-shared/) — current requirements migrated from the removed spec tree.
 - [Postman collection](docs/postman_collection/) — REST and GraphQL request examples.
 - [Local Docker stack](deployments/docker-swarm/README.md) — Compose setup and operational commands.
-- [OpenSpec](openspec/) — capability specifications and the proposal → design → task → verification workflow.
 - [Changelog](CHANGELOG.md) — released changes.
 
 ## License

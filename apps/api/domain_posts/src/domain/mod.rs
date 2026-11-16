@@ -1,10 +1,8 @@
 //! Domain-owned infrastructure for the post service.
 //!
-//! Each module here is either the canonical owner of an infrastructure
-//! type (e.g. `error`, `response`, `layers`) or a re-export from
-//! the legacy `application_core` / `src/{common,presentation_models}` trees
-//! during the transition. The transition plan is documented in
-//! `openspec/changes/refactor-api-into-pluggable-domain-libraries/tasks.md`.
+//! Each module here is the canonical owner of that infrastructure type
+//! (for example `error`, `response`, and `layers`). See
+//! `docs/architecture/software-architecture.md`.
 
 pub mod datetime_generator;
 pub mod env;

@@ -1,11 +1,9 @@
 //! `DomainPostService` — `domain_interface::DomainService` implementation for
 //! the post domain.
 //!
-//! See `openspec/changes/refactor-api-into-pluggable-domain-libraries/design.md`
-//! for the architectural context. The service is constructed once by either
-//! the standalone `domain_posts` bin or the `gateway` composition root and
-//! queried through the `DomainService` trait for routing, migrations, and
-//! health.
+//! The gateway composition root constructs this service once and queries it
+//! through the `DomainService` trait for routing, migrations, and health.
+//! There is no standalone posts binary.
 
 use std::sync::Arc;
 

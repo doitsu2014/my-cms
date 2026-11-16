@@ -1,9 +1,7 @@
 //! Tests for the post-domain GraphQL HTTP surface.
 //!
-//! Closes the documented test gaps from
-//! `openspec/changes/merge-graphql-into-posts-domain/design.md`
-//! (Context — "Confirmed test gaps") and verifies every scenario in the
-//! `posts-graphql-mount` capability spec.
+//! Verifies the post-domain GraphQL HTTP surface: playground handlers,
+//! route-registration shape, and the mutable-mount auth boundary.
 //!
 //! ## Strategy
 //!
@@ -15,8 +13,8 @@
 //!   un-built because the test only inspects the registration shape, not
 //!   the inner router's service surface).
 //! - Auth-layer scenarios use a router wrapped with the same
-//!   `SupabaseAuthLayer` configuration that the gateway, standalone bin,
-//!   and legacy bootstrap apply at the `/posts/graphql/mutable` mount —
+//!   `SupabaseAuthLayer` configuration that the gateway applies at the
+//!   `/posts/graphql/mutable` mount —
 //!   the dummy inner handler returns 200 if the auth layer passes the
 //!   request through, and the test asserts the status code carries the
 //!   expected auth-layer verdict (401 / 403 / 200).
@@ -27,9 +25,9 @@
 //!   verification phase (`Phase 8`) runs them via `cargo test -- --ignored`
 //!   when a live database is available; the standard `cargo test` run
 //!   skips them and reports a green status without docker.
-//! - The legacy-tree smoke test is a workspace assertion that fails fast
-//!   if a future contributor recreates `apps/api/src/api/post/graphql/`
-//!   or `apps/api/src/api/graphql/` against the OpenSpec invariant.
+//! - The legacy-tree smoke test fails if `apps/api/src/api/post/graphql/`
+//!   or `apps/api/src/api/graphql/` is recreated. GraphQL for posts stays in
+//!   this domain.
 
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};

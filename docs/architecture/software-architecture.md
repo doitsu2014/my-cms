@@ -130,11 +130,13 @@ Add a new capability as a domain only when it has a coherent ownership boundary
 implementation, then register it in the gateway manifest. Do not import its
 handlers or entities into the gateway.
 
-Cross-domain transactions and feature dependencies need an explicit OpenSpec
-design first. A shared database pool does not make database tables shared
+Cross-domain transactions and feature dependencies need an explicit design
+first. A shared database pool does not make database tables shared
 ownership. Keep the owning domain responsible for its schema, commands,
 validation, and migrations; use a designed integration point for everything
 else.
 
-Before implementation, record a non-trivial change in `openspec/` and follow
-the [agent-team workflow](../development/agent-team.md).
+The gateway manifest registers five domains: posts, auth, media, user, and
+SEO. Record a non-trivial change through AI-DLC and follow
+[agent workflow](../development/agent-team.md). Requirements are in
+`aidlc/spaces/default/knowledge/aidlc-shared/`.
