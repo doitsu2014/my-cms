@@ -29,5 +29,9 @@
     "env": [
       "CLAUDE_CODE_SESSION_ID"
     ]
+  },
+  "providers": {
+    "schemaVersion": 1,
+    "provider": "current"
   }
 }
