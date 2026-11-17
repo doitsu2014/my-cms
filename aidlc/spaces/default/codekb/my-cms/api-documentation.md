@@ -1,22 +1,20 @@
 # API Documentation
 
-## First-Party HTTP Surfaces
+## API Surfaces
 
-| Surface | Observed routes/contracts | Authentication / confidence |
-|---|---|---|
-| Gateway | `/`, `/health`, `/healthz` health routes. | Exact middleware for health routes not established. |
-| Posts domain | REST routes for posts/content, categories, tags, translation, and translation jobs. | Route inventory is distributed across registration and handler modules; complete method/path/parameter list was not scanned. |
-| Posts GraphQL | `/posts/graphql/immutable` and `/posts/graphql/mutable`; schema contribution includes seven historical entities. | Immutable is described as public; mutable as authenticated. Exact schema and authorization details were not exhaustively reviewed. |
-| User domain | `POST /users`, `GET /users`, `GET /users/:id`, `PUT /users/:id`, `DELETE /users/:id`, `POST /users/:id/reset-password`. | Route list comes from project knowledge `auth-users-media.md`; service source supports domain responsibility. Confirm current router registration before relying on every route. |
-| Media domain | Media and bucket operations. | Handlers/API modules inventoried, but full route/method list was not read. |
-| SEO domain | Administrator head-asset CRUD and public delivery of enabled assets. | Route registration evidence in service and test; full request/response contract not enumerated. |
-| Public website | `/:lang` routes for home, categories, category detail, post detail, and about. | Route composition in `apps/ducth-dev-website/src/AppContent.tsx`; these are website routes, not necessarily backend API endpoints. |
+| Surface | Location | Observed scope | Notes |
+|---|---|---|---|
+| Backend HTTP/GraphQL | Axum gateway and domain route composition | Posts/category/tag/translation, media/bucket, user, SEO, health and migration/backup pathways identified broadly | Exact route inventory, request/response contracts and route counts were not enumerated in the mixed-depth scan. |
+| Posts GraphQL | `domain_posts` | Immutable and mutable surfaces identified | Exact schema and authorization enforcement require source-level verification. |
+| Public reader | `apps/ducth-dev-website` | React Router routes and Express 5 server; Apollo client | Application source was skimmed, not exhaustively inspected. |
+| Admin | `apps/web` | React Router/Apollo and Supabase JS integrations | Application source was skimmed, not exhaustively inspected. |
+| Backup/restore | Gateway CLI skeleton and feature specification | No complete ZIP/UI/upload/import flow per `docs/features/backup-restore.md` | Specification describes desired workflows, not a current HTTP API contract. |
 
-## External Integrations
+## Endpoint Inventory and Limits
+The scan did not enumerate every HTTP method/path or exact request/response schema. Do not treat this document as an OpenAPI replacement or assert endpoint counts. The feature specification defines administrator workflows and acceptance criteria but does not by itself establish registered API routes.
 
-- Supabase GoTrue/Admin API and JWT validation for identity and authentication.
-- Supabase Storage for media objects.
-- PostgreSQL/pgvector for persistence and vector-related capabilities.
-- OpenAI chat completions and embeddings for translation/embedding workflows.
+## Authentication and Middleware
+Gateway/domain architecture uses shared composition and auth middleware. Exact middleware ordering, route coverage, role mapping, status/error behavior, rate limits, and CORS details were not comprehensively validated in this scan. Any backup-related operation must be confirmed to enforce server-side authorization and object/job ownership before implementation is treated as complete.
 
-Exact external payload contracts, API versions, retry behavior, and all status/error mappings were not fully scanned. No OpenAPI specification or complete endpoint inventory is asserted by this scan.
+## Backup/Restore Contract (Specified, Not Implemented)
+The feature narrative describes source selection and backup job creation, download only after complete package and checksum verification, private upload, preflight without target mutation, explicit confirmation, recovery-point creation, restore/post-restore checks, and audit. It does not establish deployed endpoint paths or wire formats. The same document states there is no complete ZIP flow, admin UI, upload/import restore, or instance selection.

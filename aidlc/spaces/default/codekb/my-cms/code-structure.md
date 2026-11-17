@@ -1,28 +1,38 @@
 # Code Structure
 
-## Repository Areas
+## Repository Organization
 
-| Area | Role and observed organization |
-|---|---|
-| `apps/api/` | Cargo workspace. `gateway` is the application composition root; `domain_interface` defines shared contracts; `domain_posts`, `domain_auth`, `domain_media`, `domain_user`, and `domain_seo` provide domain capabilities; `test_helpers` supports tests. |
-| `apps/web/` | TypeScript/React administrator interface, including authoring and TipTap editor integration. |
-| `apps/ducth-dev-website/` | TypeScript/React public reader with Node/Express SSR and localized route composition. |
-| `packages/editor-prose/` | Shared TypeScript/React article-prose integration, styles, Mermaid lifecycle, and tests. |
-| `deployments/docker-swarm/` | Docker Compose/Swarm configuration and README. |
-| `deployments/k8s/` | Kubernetes manifests/charts, including Helm chart inventory. |
-| `.github/workflows/` | CI and image/release publishing workflows. |
+| Area | Role | Analysis depth |
+|---|---|---|
+| `apps/api/gateway/` | Rust API composition root, server startup, CLI entry points | Gateway entry and backup/migration CLI examined |
+| `apps/api/domain_interface/` | Shared domain contracts and types | Source tree inventoried; representative layouts examined |
+| `apps/api/domain_posts/` | Content, translation, GraphQL, persistence, owned migrations | Tree inventoried; selected representative inspection |
+| `apps/api/domain_auth/` | Authentication and authorization integration | Tree inventoried; selected representative inspection |
+| `apps/api/domain_media/` | Media and storage integration | Tree inventoried; selected representative inspection |
+| `apps/api/domain_user/` | User administration integration | Tree inventoried; selected representative inspection |
+| `apps/api/domain_seo/` | SEO domain | Tree inventoried; selected representative inspection |
+| `apps/api/test_helpers/` | Shared backend testing support | Tree inventoried; representative layout examined |
+| `apps/web/` | Admin React/TypeScript app | Source skimmed/inventoried, not every component read |
+| `apps/ducth-dev-website/` | Public React/TypeScript reader with Express server | Source skimmed/inventoried |
+| `packages/editor-prose/` | Shared article prose rendering package | Package and source/test layout skimmed |
+| `deployments/` | Docker Swarm and Kubernetes deployment material | Directory inventory only; no deployment executed |
 
-## Classification and Patterns
+## Build and Workspace Layout
+The backend is a Cargo workspace rooted at `apps/api/Cargo.toml`. The frontend uses pnpm workspaces and per-package manifests/configuration. Domain crate boundaries and package membership were examined; no build command was run.
 
-- API: domain crates combine service/domain operations, handlers/routes, adapters, and persistence concerns; selected source shows gateway composition and shared service contracts. Exact file-by-file classification was not performed.
-- Frontends: React application routing, GraphQL client/auth setup, and UI/editor code; the public site also has SSR/server entry points.
-- Shared library: article-prose integration and Mermaid enhancement, with colocated tests.
-- Deployment and automation: declarative Compose/Helm configuration and GitHub Actions workflows.
+## Source Classification
+- **Configuration/build**: Cargo and package manifests, TypeScript/build/lint configuration, workflow YAML, deployment manifests.
+- **Controller/handler and composition**: gateway startup and domain route/handler modules.
+- **Service/use case and domain**: domain crate services and business logic.
+- **Model/entity and persistence**: domain-owned entities and migrations, especially in `domain_posts`.
+- **Utility/integration**: shared interfaces, storage/auth adapters, test helpers.
+- **UI/static**: React app components, styles, public assets, and shared prose package.
+- **Test**: Rust tests and frontend Vitest/Testing Library test areas.
 
-## Build Relationships
+This classification is architectural and representative, not a complete per-file catalogue.
 
-`gateway` depends on `domain_interface` and the domain crates. Frontends and public website use the local `packages/editor-prose` package. Deployment configurations build or package the services. See `dependencies.md` for the bounded dependency summary.
+## Backup/Restore Change Surface
+Intent-relevant paths include `apps/api/gateway/src/main.rs`, `apps/api/gateway/src/backup_cli.rs`, gateway Cargo dependencies/lockfile, and `docs/features/backup-restore.md`. The current documentation characterizes the CLI as a skeleton and the feature as a target specification. Do not infer complete API/UI/job wiring from these paths alone.
 
-## Coverage Note
-
-Deep reading was limited to the exact paths in the timestamp scope block. Other modules and tests within the listed application areas were skimmed or inventoried, not exhaustively classified; no tests or builds were run.
+## Coverage Limitations
+The run was mixed-depth. `apps/web/src/`, public-reader source, and the editor package were skimmed; deployment/config and remaining documentation were inventoried at directory level. Generated/dependency/cache folders and AI-DLC internals were excluded. Exact counts and full dependency adjacency for every source file are not claimed.

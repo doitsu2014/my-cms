@@ -1,25 +1,26 @@
 # Technology Stack
 
-Versions below are those recorded in the scanned package manifests; where the scan supplied no exact version, it is identified as such.
+## Languages and Build Systems
 
-## Backend
+| Area | Technology | Version evidence / notes |
+|---|---|---|
+| API/backend | Rust | Workspace manifests and lockfile declare versions; exact compiler version not recorded in this scan. |
+| Backend build | Cargo workspace | `apps/api/Cargo.toml`; lockfile at `apps/api/Cargo.lock`. |
+| Web applications/library | TypeScript and React | pnpm workspace. |
+| Frontend build/test | pnpm, Rsbuild, Vite/Vitest | Per-app package manifests; pnpm 10.33.0 declared. |
+| Deployment | Docker, Kubernetes, YAML and shell | Deployment directories inventoried; not executed. |
 
-- Rust 2021 edition; Cargo workspace under `apps/api/`.
-- Axum `0.8.9`, Tokio `1.52.3`, SeaORM and SeaORM migration `1.1.20`.
-- async-graphql `7.2.1`; Seaography `1.1.4`.
-- PostgreSQL with pgvector, accessed through the backend persistence stack.
+## Frameworks and Major Libraries
 
-## Frontends and Shared Package
+- Backend: Axum, SeaORM, Tokio, Serde ecosystem; exact full package/version catalogue belongs to Cargo manifests and lockfile.
+- Frontend: React `^19.1.1`; React Router `^7.9.0` admin and `^7.11.0` public; Apollo Client `^3.12.6` / `^3.14.0`; TypeScript `^5.9.2`.
+- Frontend tooling: Rsbuild `^1.5.6`, Vitest `^4.1.8`, ESLint and Prettier.
+- Public server: Express `^5.2.1`; OpenTelemetry packages identified.
+- Admin: TipTap `^3.14.0`, Supabase JS `^2.106.2`.
+- Styling: Tailwind CSS `^4.0.12` admin and `^4.1.18` public.
 
-- React `19.1.1`; TypeScript `5.9.2`; Rsbuild `1.5.6`.
-- Tailwind CSS 4 and DaisyUI 5; Apollo Client 3.x; TipTap `3.14.0` in the admin.
-- Public site: Express `5.2.1`, React Router `7.11.0`, i18next `25.7.4`, OpenTelemetry Node SDK `0.212.0`.
-- Shared prose package: Mermaid `11.17.2`; React peer dependency `>=18`.
+## External Platform Integrations
+Project architecture and manifests identify Supabase PostgreSQL, Storage, and GoTrue, plus OpenAI for translation/embeddings. Exact backup-export compatibility across Supabase hosting/version variants is not established by this scan.
 
-## Platform and Delivery
-
-- Supabase: PostgreSQL, GoTrue identity, JWT validation, and Storage.
-- OpenAI: chat completions and embeddings.
-- Docker Compose/Swarm, Traefik, self-hosted Supabase, Jaeger, Helm/Kubernetes, and GitHub Actions are identified in the scanned README/deployment/workflow inventory.
-
-This is not a complete lockfile-derived bill of materials. Remaining packages and resolved transitive versions were not exhaustively inspected.
+## Evidence Limitations
+Versions above are those explicitly surfaced in the scan handoff. This is not a complete dependency/version report; consult manifests and lockfiles for authoritative exhaustive versions. No builds or runtime checks were run.

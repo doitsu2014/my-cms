@@ -8,6 +8,8 @@ This documentation describes the system as it is implemented in this repository.
   domain boundaries, routing, data, and deployment model.
 - [AI translation](features/ai-translation.md) — author workflow, background
   jobs, quality safeguards, and pgvector reuse.
+- [Backup and restore](features/backup-restore.md) — admin-managed portable
+  backups, ZIP import, instance selection, and restore safety contract.
 - [Editor prose contract](features/editor-prose-contract.md) — consistent
   TipTap rendering between the admin and Ducth.dev.
 - [Agent workflow](development/agent-team.md) — Claude Code and AI-DLC

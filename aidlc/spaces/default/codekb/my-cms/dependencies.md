@@ -1,28 +1,32 @@
 # Dependencies
 
-## Internal Package Relationships
+## Internal Component Dependencies
 
-- `gateway` → `domain_interface`, `domain_posts`, `domain_auth`, `domain_media`, `domain_user`, `domain_seo`.
-- Domain crates implement/use the shared `domain_interface` service contract.
-- `apps/web/` → local `packages/editor-prose/`.
-- `apps/ducth-dev-website/` → local `packages/editor-prose/`.
-- Deployment definitions build or package the API and frontend applications; exact image dependency graph was not fully traced.
+- `gateway` composes `domain_interface` and the domain crates: `domain_posts`, `domain_auth`, `domain_media`, `domain_user`, and `domain_seo`.
+- Domain crates depend on the shared `domain_interface` contract.
+- `domain_posts` owns its persistence entities and migrations; the gateway dispatches shared application startup/migration pathways.
+- `test_helpers` provides backend test support.
+- `apps/web` and `apps/ducth-dev-website` consume the local `packages/editor-prose` package.
 
-## Principal External Dependencies and Services
+This graph is manifest/workspace-level and representative; the scan did not extract every source-file import edge or check for all cycles.
 
-| Dependency/service | Consumers or purpose | Evidence limits |
+## External Dependency Groups
+
+| Group | Examples / evidence | Purpose |
 |---|---|---|
-| Axum, Tokio, SeaORM | API HTTP/runtime/persistence stack. | Versions in `technology-stack.md`; full feature usage not enumerated. |
-| async-graphql, Seaography | Posts GraphQL integration and schema contribution. | Exact generated schema not exhaustively read. |
-| Supabase PostgreSQL/pgvector | Backend relational and vector persistence. | Runtime schema and all query dependencies not fully inventoried. |
-| Supabase GoTrue/JWT | User administration and authentication/role middleware. | External contract and version details not fully scanned. |
-| Supabase Storage | Media and bucket operations. | Full operation list not scanned. |
-| OpenAI chat completions/embeddings | Translation and embedding paths in posts domain. | Exact external payload contracts not fully scanned. |
-| React, Apollo Client, TipTap | Admin application and authoring/editor UI. | Additional frontend packages omitted from this bounded summary. |
-| Express, React Router, i18next | Public-site SSR, routing, and localization. | Full runtime dependency graph not extracted. |
-| Mermaid | Shared prose rendering enhancement. | Package declares version `11.17.2`. |
-| Docker Compose/Swarm, Helm/Kubernetes | Deployment packaging/configuration. | Deployments were inventoried, not executed or validated. |
+| Rust web/runtime | Axum, Tokio | HTTP service and async runtime |
+| Persistence | SeaORM and PostgreSQL ecosystem | Relational data access |
+| Frontend runtime | React, React Router, Apollo Client | Admin and reader UI/API access |
+| Public server | Express, OpenTelemetry | Server-side rendering/support and telemetry |
+| Admin integrations | Supabase JS, TipTap | Supabase interaction and rich-text authoring |
+| Platform services | Supabase PostgreSQL, Storage, GoTrue | Data, object storage, identity |
+| Translation | OpenAI | Translation and embedding integrations |
+| Tooling | pnpm, Rsbuild, Vite/Vitest, ESLint, Prettier | Workspace build, tests, lint, formatting |
 
-## Build and Test Tooling
+Exact versions and transitive dependency relationships are recorded in Cargo and pnpm lockfiles, not reproduced exhaustively here.
 
-Cargo builds the Rust workspace. pnpm manages separate frontend packages. Vitest/Testing Library and Rust's built-in test harness are present; workflow/config findings are summarized in `code-quality-assessment.md`. No dependency installation, build, or test was performed for this synthesis.
+## Backup/Restore Dependency Risks
+The target feature depends on supported export/import mechanisms for PostgreSQL/Supabase-managed schemas, GoTrue/Auth, and Storage object bytes/metadata. Package format, checksums, compatibility rules, private temporary storage, approved restore tooling, and recovery-point capabilities must be validated against supported platform versions. Uploaded package content must not supply executable restore commands.
+
+## Limitations
+No complete file-level adjacency list, vulnerability audit, or outdated-version determination was produced. No tests or build tools were run.

@@ -60,11 +60,17 @@ DECIDED: The shipped API binary is gateway `my-cms-api`. Do not restore `applica
 <!-- Format: NEVER [behavior] (affirmed [date]) -->
 <!-- Example: NEVER throw exceptions across service layer boundaries (affirmed 2026-05-17) -->
 
+None. (affirmed 2026-11-17)
+
+> Không có câu trả lời nào nêu một ràng buộc cứng ở dạng điều cấm hoặc bắt buộc độc lập ngoài các thực hành được ghi nhận trong `team-practices.md`; vì vậy không chuyển các thực hành đó thành quy tắc `ALWAYS`/`NEVER`. (affirmed 2026-11-17)
+
 ## Mandated
 
 <!-- Populated by practices-discovery affirmation gate. -->
 <!-- Format: ALWAYS [behavior] (affirmed [date]) -->
 <!-- Example: ALWAYS use Result<T,E> for fallible operations in service layer (affirmed 2026-05-17) -->
+
+None. (affirmed 2026-11-17)
 
 ## Corrections
 

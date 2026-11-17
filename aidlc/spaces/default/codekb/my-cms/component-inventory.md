@@ -1,64 +1,79 @@
 # Component Inventory
 
-## `gateway`
-- **Type:** API composition-root binary (Rust)
-- **Responsibility:** Builds the sole shipped `my-cms-api`; merges domain routes and applies shared concerns.
-- **Dependencies:** `domain_interface`, `domain_posts`, `domain_auth`, `domain_media`, `domain_user`, `domain_seo`.
+## gateway
+- **Type:** Rust application composition root/API binary.
+- **Responsibilities:** Compose domain services/routes, common configuration/middleware, listeners, and CLI pathways.
+- **Dependencies:** `domain_interface` and domain crates; exact runtime wiring beyond inspected entry paths is not exhaustively characterized.
+- **Evidence:** `apps/api/gateway/` manifest and selected entry/CLI source examined.
 
-## `domain_interface`
-- **Type:** Rust library/contract
-- **Responsibility:** Defines `DomainService`, shared context, route/mount and migration descriptors, actor identity, and errors.
-- **Dependencies:** Shared contract consumed by the gateway and domain crates.
+## domain_interface
+- **Type:** Rust shared contract crate.
+- **Responsibilities:** Shared service interfaces and domain/API types.
+- **Dependencies:** Shared Rust ecosystem; consumers include gateway and domain crates.
+- **Evidence:** Workspace boundaries and source tree inventoried.
 
-## `domain_posts`
-- **Type:** Rust domain library
-- **Responsibility:** Posts, categories, tags, translations, GraphQL integration, persistence entities, and canonical post migrations.
-- **Dependencies:** `domain_interface`, PostgreSQL/SeaORM, OpenAI integrations, and API framework components as defined in its manifest.
+## domain_posts
+- **Type:** Rust domain crate.
+- **Responsibilities:** Posts, categories, tags, translations/jobs, GraphQL contribution, persistence entities and owned migrations.
+- **Dependencies:** `domain_interface`, PostgreSQL/SeaORM ecosystem, translation integrations as configured.
+- **Evidence:** Source tree inventoried and representative structure examined; exact behavior may require deeper validation.
 
-## `domain_auth`
-- **Type:** Rust authentication/domain infrastructure library
-- **Responsibility:** Supabase JWT validation and role middleware; no domain-owned routes or migrations evident in its service implementation.
-- **Dependencies:** Supabase identity/JWT integration and `domain_interface` contract. Its `src/main.rs` stub is not a deployment surface.
+## domain_auth
+- **Type:** Rust domain/integration crate.
+- **Responsibilities:** Authentication configuration and JWT/role middleware integration.
+- **Dependencies:** `domain_interface` and identity/token ecosystem.
+- **Evidence:** Manifest and source tree inventoried; exact authorization behavior not fully validated.
 
-## `domain_media`
-- **Type:** Rust domain library
-- **Responsibility:** Media and bucket APIs, Supabase Storage adapter, configuration, and caches.
-- **Dependencies:** Supabase Storage and `domain_interface` contract.
+## domain_media
+- **Type:** Rust domain crate.
+- **Responsibilities:** Media/bucket APIs and Supabase Storage integration.
+- **Dependencies:** `domain_interface`, storage integration.
+- **Evidence:** Source tree inventoried; detailed endpoint semantics not fully validated.
 
-## `domain_user`
-- **Type:** Rust domain library
-- **Responsibility:** Administrator user operations and Supabase GoTrue admin adapter.
-- **Dependencies:** Supabase GoTrue/Admin API and `domain_interface` contract.
+## domain_user
+- **Type:** Rust domain crate.
+- **Responsibilities:** Administrator user operations through Supabase/GoTrue integration.
+- **Dependencies:** `domain_interface`, GoTrue integration.
+- **Evidence:** Source tree inventoried; detailed route/validation behavior not fully validated.
 
-## `domain_seo`
-- **Type:** Rust domain library
-- **Responsibility:** Validated SEO head-asset storage, administrator CRUD, public delivery, and its migration.
-- **Dependencies:** Persistence and `domain_interface` contract.
+## domain_seo
+- **Type:** Rust domain crate.
+- **Responsibilities:** SEO head-asset persistence, routes, and public delivery integration.
+- **Dependencies:** `domain_interface` and persistence layer.
+- **Evidence:** Source tree inventoried; detailed runtime behavior not fully validated.
 
-## `test_helpers`
-- **Type:** Rust test-support library
-- **Responsibility:** Test support present in the API workspace; detailed source not deeply analyzed.
-- **Dependencies:** Not fully inventoried.
+## test_helpers
+- **Type:** Rust test-support crate.
+- **Responsibilities:** Reusable backend test utilities.
+- **Dependencies:** Backend crates/test ecosystem.
+- **Evidence:** Workspace membership and source tree inventoried.
 
-## `admin_side`
-- **Type:** TypeScript/React frontend application (`apps/web/`)
-- **Responsibility:** CMS administration and authoring, including TipTap editor integration.
-- **Dependencies:** GraphQL/Apollo client, React, and local `editor-prose` package.
+## admin_side
+- **Type:** React/TypeScript administrative web application (`apps/web`).
+- **Responsibilities:** CMS administration and editing UI.
+- **Dependencies:** React, React Router, Apollo Client, Supabase JS, shared `editor-prose` package.
+- **Evidence:** Manifest and configuration examined; app source skimmed.
 
-## `ducth-dev-website`
-- **Type:** TypeScript/React frontend and SSR application (`apps/ducth-dev-website/`)
-- **Responsibility:** Localized public reader, rendered through React with a Node/Express production server.
-- **Dependencies:** API/content surfaces, React Router, i18next, and local `editor-prose` package.
+## apps/ducth-dev-website
+- **Type:** React/TypeScript public reader with Express server.
+- **Responsibilities:** Localized public rendering and server-side support.
+- **Dependencies:** React, React Router, Apollo Client, Express, shared `editor-prose` package.
+- **Evidence:** Manifest and package layout examined; app source skimmed.
 
-## `editor-prose`
-- **Type:** Shared TypeScript/React library (`packages/editor-prose/`)
-- **Responsibility:** Common article-prose styles/integration and Mermaid rendering used by both frontends.
-- **Dependencies:** Mermaid and React peer dependency (`>=18`).
+## packages/editor-prose
+- **Type:** Shared frontend library.
+- **Responsibilities:** Shared saved-article prose rendering consumed by admin and public reader.
+- **Dependencies:** Frontend tooling and rendering libraries.
+- **Evidence:** Package manifest and source/test layout skimmed; behavior not exhaustively verified.
 
-## Deployment and Automation Components
+## deployments/docker-swarm
+- **Type:** Deployment/configuration package.
+- **Responsibilities:** Docker-based local/deployment configuration.
+- **Dependencies:** Docker and configured services.
+- **Evidence:** Directory-level inventory; no deployment executed.
 
-- **`docker-swarm`** — Compose/Swarm configuration for application deployment.
-- **`k8s`** — Kubernetes/Helm deployment chart and manifests.
-- **GitHub Actions workflows** — CI and image/release publishing. Workflow execution was not validated.
-
-Component names above are the exact headings used by the timestamp scope block. Inventory is bounded by the scan; some dependencies and implementation details are not exhaustive.
+## deployments/k8s
+- **Type:** Deployment/configuration package.
+- **Responsibilities:** Kubernetes manifests/configuration.
+- **Dependencies:** Kubernetes tooling and configured services.
+- **Evidence:** Directory-level inventory; no deployment executed.

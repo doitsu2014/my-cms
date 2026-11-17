@@ -1,0 +1,1 @@
+"Backup and Restore full system into S3 Storage in bucket backup-system. Backup includes Blob Storage of images blah blah, and Postgres Database of all database / schema this system use"
