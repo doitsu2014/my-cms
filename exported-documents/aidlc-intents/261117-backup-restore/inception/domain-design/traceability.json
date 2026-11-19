@@ -1,0 +1,14 @@
+{
+  "stage": "domain-design",
+  "upstream_ids": ["US1.1", "US1.2", "US1.3", "US2.1", "US2.2", "US3.1", "US3.2"],
+  "coverage": [
+    { "id": "US1.1", "status": "OK", "target": "BackupAdminApi" },
+    { "id": "US1.2", "status": "OK", "target": "BackupRestoreDomain, DatabaseBackupAdapter, AuthBackupAdapter, StorageBackupAdapter, ArchiveIntegrity" },
+    { "id": "US1.3", "status": "OK", "target": "BackupRestoreDomain, BackupPersistence" },
+    { "id": "US2.1", "status": "OK", "target": "BackupAdminApi, BackupRestoreDomain, ArchiveIntegrity" },
+    { "id": "US2.2", "status": "OK", "target": "BackupRestoreDomain, BackupWorker, BackupPersistence" },
+    { "id": "US3.1", "status": "OK", "target": "BackupAdminApi, BackupRestoreDomain, BackupWorker, BackupPersistence" },
+    { "id": "US3.2", "status": "OK", "target": "BackupRestoreDomain, BackupPersistence" }
+  ],
+  "reverse": []
+}

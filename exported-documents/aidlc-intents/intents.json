@@ -1,0 +1,34 @@
+[
+  {
+    "uuid": "01a1ddc9-da41-7603-8b98-af07518f465f",
+    "slug": "rewrite-brds-glossary",
+    "dirName": "261115-rewrite-brds-glossary",
+    "scope": "poc",
+    "status": "complete",
+    "request": "63e688be"
+  },
+  {
+    "uuid": "01a1e1b3-972b-7257-84c4-0b3b12be4a0e",
+    "slug": "coverage-report-failure",
+    "dirName": "261116-coverage-report-failure",
+    "scope": "express",
+    "status": "archived",
+    "request": "774c465b"
+  },
+  {
+    "uuid": "01a1e3d6-2208-7e0b-aeaa-f311d6f758a5",
+    "slug": "backup-restore",
+    "dirName": "261116-backup-restore",
+    "scope": "express",
+    "status": "archived",
+    "request": "5ebc0ce4"
+  },
+  {
+    "uuid": "01a1e75c-f3ea-728e-8ced-c341ababba2d",
+    "slug": "backup-restore",
+    "dirName": "261117-backup-restore",
+    "scope": "classic",
+    "status": "in-flight",
+    "request": "4d75c2ba"
+  }
+]

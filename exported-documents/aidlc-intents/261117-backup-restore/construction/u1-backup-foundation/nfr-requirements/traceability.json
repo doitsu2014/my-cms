@@ -1,0 +1,15 @@
+{
+  "stage": "nfr-requirements",
+  "unit": "u1-backup-foundation",
+  "upstream_ids": ["NFR1", "NFR2", "NFR3", "NFR4", "NFR5", "NFR6", "NFR7"],
+  "coverage": [
+    { "id": "NFR1", "status": "OK", "target": "NFR1.1, NFR1.2, NFR1.3, NFR1.4, NFR1.8, NFR1.9, NFR1.10, NFR1.11, NFR1.12" },
+    { "id": "NFR2", "status": "OK", "target": "NFR1.5, NFR1.6, NFR1.7, NFR9.2" },
+    { "id": "NFR3", "status": "OK", "target": "NFR8.3, NFR8.4, NFR8.5, NFR9.1" },
+    { "id": "NFR4", "status": "OK", "target": "NFR1.6, NFR6.2, NFR7.1" },
+    { "id": "NFR5", "status": "OK", "target": "NFR8.3, NFR8.5, NFR8.8, NFR9.1, NFR9.4" },
+    { "id": "NFR6", "status": "OK", "target": "NFR6.1, NFR6.2, NFR7.2, NFR7.4, NFR8.1, NFR8.2" },
+    { "id": "NFR7", "status": "OK", "target": "NFR6.3, NFR9.1, NFR9.2, NFR9.4" }
+  ],
+  "reverse": []
+}

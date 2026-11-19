@@ -17,6 +17,7 @@
 
 #![deny(unsafe_code)]
 
+mod backup_cli;
 mod migrate_cli;
 
 use std::env;
@@ -111,12 +112,13 @@ pub async fn run_orchestrator(
 async fn main() -> ExitCode {
     let _ = dotenv::dotenv();
 
-    // CLI dispatch: `my-cms-api migrate <verb>` runs migrations without
-    // binding the HTTP listener. Must happen before observability init
-    // so the migration output stays clean.
+    // Operator CLI commands run without binding the HTTP listener.
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.first().map(|s| s.as_str()) == Some("migrate") {
         return migrate_cli::handle_args(&args[1..]).await;
+    }
+    if args.first().map(|s| s.as_str()) == Some("backup") {
+        return backup_cli::handle_args(&args[1..]).await;
     }
 
     // Keep the OTLP guard alive until the HTTP server finishes so its exporter

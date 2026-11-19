@@ -1,4 +1,6 @@
-@.claude/rules/aidlc.md
+# Project Instructions
+
+Follow repository documentation and any nested `CLAUDE.md` files for project-specific guidance.
 
 <!--
   The @-line above pulls the AIDLC method into Claude's ambient context. It is

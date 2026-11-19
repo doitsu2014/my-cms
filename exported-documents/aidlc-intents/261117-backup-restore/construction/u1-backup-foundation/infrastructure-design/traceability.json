@@ -1,0 +1,9 @@
+{
+  "stage": "infrastructure-design",
+  "unit": "u1-backup-foundation",
+  "upstream_ids": ["NFR1.12"],
+  "coverage": [
+    { "id": "NFR1.12", "status": "OK", "target": "infrastructure-specification.md: TLS required for admin/API, database and private staging; real-data path disabled until verified" }
+  ],
+  "reverse": []
+}
