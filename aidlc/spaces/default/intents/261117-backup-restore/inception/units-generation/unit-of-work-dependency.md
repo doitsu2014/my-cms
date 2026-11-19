@@ -1,34 +1,30 @@
-# Unit Dependency DAG — Backup & Restore
+# Unit Dependencies — Backup & Restore
 
-## Dependency definition
+## Dependency meaning
 
-An edge `A -> B` means **A depends on B**: code/tests for A require B's contract or implementation to build/pass. Independent units may be implemented in parallel. The graph expresses technical prerequisites only; Delivery Planning chooses what value/risk to prioritize first.
+An edge `A depends on B` means A's code or tests need B's delivered code to build or pass. It does not prescribe an economic delivery order or critical path; Delivery Planning owns those decisions. There are no independent Units in this approved decomposition, so this DAG exposes no parallel Unit development opportunity.
 
-## DAG
+## Direct dependency DAG
 
-```mermaid
-flowchart TD
-  U1[U1 u1-backup-foundation]
-  U2[U2 u2-backup-package]
-  U3[U3 u3-restore-preflight]
-  U4[U4 u4-restore-local]
-  U5[U5 u5-admin-backup-ui]
-  U6[U6 u6-backup-audit-hardening]
-  U2 --> U1
-  U3 --> U1
-  U3 --> U2
-  U4 --> U1
-  U4 --> U2
-  U4 --> U3
-  U5 --> U1
-  U5 --> U2
-  U5 --> U3
-  U5 --> U4
-  U6 --> U1
-  U6 --> U2
-  U6 --> U3
-  U6 --> U4
-```
+- `u1-backup-foundation`: no Unit dependencies. This first Unit is the integrated localhost slice: configured admin/API path, durable job foundation, worker, safe package primitives, and a deliberately incomplete database-only backup path. It can run before later Units because the slice proves the request-to-job-to-worker-to-package-integrity path using the project's existing database and does not claim Auth/Storage completeness or a usable complete restore package.
+- `u2-complete-backup`: depends on `u1-backup-foundation`; extends its job and archive foundation with verified Auth and Storage capture and complete backup behavior.
+- `u3-restore-preflight`: depends on `u2-complete-backup`; consumes the package format, integrity evidence, and component inventory established by complete backup, and adds safe upload/preflight without target mutation.
+- `u4-restore-execution`: depends on `u3-restore-preflight`; consumes the approved preflight and recovery-point boundary before performing replace-in-scope restore and post-restore validation.
+
+## Integration points
+
+| Producer / prerequisite | Consumer | Contract boundary | Failure behavior |
+|---|---|---|---|
+| U1 job/persistence and configured-instance API | U2 backup capture | Stable job/package metadata, configured source IDs, safe status/error projection | Fail closed for missing configuration or invalid authorization; no client-supplied endpoints/secrets. |
+| U1 archive primitives + U2 component inventory/capture | U3 preflight | Versioned manifest, per-component paths/counts/size/digests, best-effort consistency statement | Reject malformed/unsupported/incomplete packages before any target mutation. |
+| U3 validated package and target compatibility result | U4 restore execution | Preflight result bound to package digest, target ID and configuration/version data; explicit confirmation and recovery-point evidence | Invalidate/reject if package, target, or relevant compatibility data changes; require a new preflight/confirmation. |
+| U1-U4 persisted job transitions | Admin UI/history and audit | Safe DTOs with operation, status, progress if measurable, timestamps, actor/source/target references, digest and outcome | Never expose credentials, raw rows, object contents, or unsanitized upstream errors; failed audit policy must be explicit. |
+
+All adapters retain source-data ownership. A cross-system restore is coordinated as a recoverable saga/state machine, not a global transaction; component failure must lead to verified rollback or `recovery-required`.
+
+## Parallel development opportunities
+
+None under the current DAG: every later Unit depends on its predecessor. Within a Unit, implementation tasks may be internally parallelized only where the Unit's own interfaces permit it; that does not create independent Unit nodes in this DAG.
 
 ## Machine-readable dependency block
 
@@ -37,38 +33,13 @@ units:
   - name: u1-backup-foundation
     kind: service
     depends_on: []
-  - name: u2-backup-package
-    kind: library
+  - name: u2-complete-backup
+    kind: service
     depends_on: [u1-backup-foundation]
   - name: u3-restore-preflight
-    kind: library
-    depends_on: [u1-backup-foundation, u2-backup-package]
-  - name: u4-restore-local
     kind: service
-    depends_on: [u1-backup-foundation, u2-backup-package, u3-restore-preflight]
-  - name: u5-admin-backup-ui
-    kind: ui
-    depends_on: [u1-backup-foundation, u2-backup-package, u3-restore-preflight, u4-restore-local]
-  - name: u6-backup-audit-hardening
-    kind: library
-    depends_on: [u1-backup-foundation, u2-backup-package, u3-restore-preflight, u4-restore-local]
+    depends_on: [u2-complete-backup]
+  - name: u4-restore-execution
+    kind: service
+    depends_on: [u3-restore-preflight]
 ```
-
-## Dependency rationale and integration boundaries
-
-- `u1-backup-foundation` defines instance IDs, auth boundary, durable job/package metadata and API contract; no other unit's code is required to define its interface.
-- `u2-backup-package` requires foundation metadata/job contract and configured instance boundary.
-- `u3-restore-preflight` requires package format/manifest/integrity behavior from U2 plus target/metadata boundary from U1.
-- `u4-restore-local` requires job lifecycle/recovery persistence, package format, and preflight compatibility result.
-- `u5-admin-backup-ui` consumes the stable API, job status, package download and preflight/restore behavior. UI tests require those API contracts; implementation may use mocks until integrated.
-- `u6-backup-audit-hardening` adds policy and verification across the complete local flow; it depends on the job, package, preflight and restore surfaces it hardens.
-
-Source domain owners remain existing components and are external/integration dependencies, not Units that re-own their data. The database/Auth/Storage adapters are represented in the component catalogue and are implemented within the relevant backend Units unless later design establishes an independent bounded deliverable.
-
-## Parallel development opportunities
-
-No independence beyond U1 is asserted in this initial DAG: U2 requires the metadata/source-instance contract; U3 requires U2's package shape; U4 requires preflight and adapters; U5 consumes complete flows; U6 hardens those flows. If Contract Design later establishes mockable contracts that allow UI or security work to pass independently, Delivery Planning may sequence them as separate Bolts without changing this DAG only where code/tests truly have no dependency.
-
-## Skeleton applicability
-
-The team affirmed a thin end-to-end slice for backup/restore. U1 is deliberately scoped to the smallest integrated foundation: configured localhost instance selection, protected admin API, persisted job record and visible status. It is an integrated but limited slice; it does not claim a complete restorable backup. A true backup-download slice requires U2 and should be included in the walking-skeleton verification plan at Delivery Planning before later feature expansion. Production restore remains excluded.

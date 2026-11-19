@@ -3,6 +3,7 @@
 
 ## Interpretations
 - 2026-11-17T07:43:53Z — Added a dedicated BackupRestore orchestration component because jobs span database, GoTrue and Storage and require one lifecycle/integrity/recovery owner; source data remains owned by existing domains/platforms.
+- 2026-11-19T05:52:00Z — User confirmed `domain_backup_restore` as a distinct Rust crate registered in the existing gateway process, owning durable job metadata and its migration; no separate service/process. Package bytes belong in a future configured private object store, not the metadata database; U1 real-data staging stays disabled until TLS/encryption/limits/cleanup gates pass.
 <!-- example: 2026-05-29T10:14:32Z — chose REST over GraphQL; the consuming team only needs CRUD, revisit if subscriptions land -->
 
 ## Deviations

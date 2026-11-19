@@ -4,240 +4,283 @@
 
 ```yaml
 components:
-  - name: BackupRestore
-    summary: Điều phối tạo backup, preflight và restore của instance My-CMS/Supabase đã cấu hình.
+  - name: BackupRestoreDomain
+    summary: Gateway-registered `domain_backup_restore` crate owning backup workflows and durable backup metadata.
     behaviour: >
-      Quản lý state machine cho backup/restore jobs; xác thực quyền admin tại API boundary;
-      phối hợp exporter/importer theo domain/platform adapters; dựng và kiểm tra package ZIP;
-      không nhận credentials/endpoints tùy ý từ client; chỉ đánh dấu thành công sau integrity
-      checks và post-restore validation; dùng best-effort consistency và không hứa atomicity
-      xuyên database, Auth và Storage. Backup component sở hữu job và package metadata,
-      không sở hữu các source data entities.
+      Implements a DomainService registered by the existing API gateway in the same
+      process. Owns backup job/package metadata, lifecycle rules and migration identity.
+      It never owns source CMS/Auth/Storage data. It coordinates DatabaseBackupAdapter,
+      AuthBackupAdapter, StorageBackupAdapter and ArchiveIntegrity through typed ports;
+      a runtime dispatch handle schedules the bounded worker without creating a reverse
+      domain-worker service dependency. The first U1 slice is localhost-only; until
+      private encrypted staging, finite bounds and restart-safe cleanup are verified,
+      it creates durable job outcomes only and writes no real source data or staging
+      bytes. A missing required Auth/Storage capability fails the job; it cannot
+      report a complete backup.
     responsibilities:
-      - Job lifecycle, idempotency, concurrency lock theo target và safe status/error projection
-      - Manifest, inventory, checksum, package format version và compatibility preflight
-      - Archive validation, path/symlink/size/entry limits và staging cleanup policy
-      - Điều phối recovery point, restore order, checkpoint, rollback/recovery-required và post-validation
-      - Audit references cho actor, source/target, job/package, digest và outcome
+      - Own backup lifecycle policy, configured-ID validation and safe status projection
+      - Define the BackupJob/BackupPackage/BackupAuditEvent contracts implemented by BackupPersistence
+      - Coordinate database/Auth/Storage/archive ports as later Units enable capabilities
+      - Schedule bounded worker work through a one-way runtime handle
+      - Enforce failed/incomplete/succeeded semantics and prevent false complete-backup claims
     depends_on:
       - component: BackupPersistence
-        interaction: Đọc/ghi job, package metadata và audit references
+        interaction: Persist job/package/audit records and perform guarded state transitions
         style: sync
       - component: DatabaseBackupAdapter
-        interaction: Export/import dữ liệu My-CMS trong phạm vi được hỗ trợ
+        interaction: Capture the approved database slice through a narrow port
         style: sync
       - component: AuthBackupAdapter
-        interaction: Export/import GoTrue/Auth theo phương thức nền tảng hỗ trợ
+        interaction: Query and use only verified GoTrue capabilities
         style: sync
       - component: StorageBackupAdapter
-        interaction: Enumerate, capture và restore object bytes cùng metadata
+        interaction: Query and use only verified Storage capabilities
         style: sync
       - component: ArchiveIntegrity
-        interaction: Assemble/extract ZIP, manifest và checksum có giới hạn an toàn
+        interaction: Validate bounded manifest/archive/digest operations
         style: sync
+      - component: PackageObjectStoreAdapter
+        interaction: Access private package-byte boundary when policy is approved
+        style: sync
+      - component: BackupWorker
+        interaction: Schedule a bounded operation through a one-way runtime handle; worker does not call back into the domain
+        style: async
     dependents:
       - component: BackupAdminApi
-        interaction: Protected API boundary invokes use cases and returns results
+        interaction: API handlers call domain use cases and safe projections
         style: sync
     external_dependencies:
-      - name: PostgreSQL
+      - name: Existing My-CMS gateway and PostgreSQL connection
         kind: database
-        purpose: Lưu dữ liệu My-CMS hiện hữu; ownership tiếp tục ở domain chủ quản
-      - name: GoTrue
-        kind: third-party-api
-        purpose: Identity service; export/restore capability cần được xác minh
-      - name: Supabase Storage
-        kind: object-store
-        purpose: Lưu object bytes và metadata của media
-      - name: Configured backup object store
-        kind: object-store
-        purpose: Lưu package backup dài hạn theo retention/encryption policy
+        purpose: Compose the service in-process and store backup-domain metadata without source-table ownership
+      - name: Server-side configured instance/secret source
+        kind: other
+        purpose: Resolve opaque configured instance IDs to connection capabilities
     entities:
       - name: BackupJob
         identifier: job_id
-        attributes: [job_id, operation, status, actor_id, source_instance_id, target_instance_id, started_at, completed_at, consistency_mode, error_code, recovery_state]
+        attributes: [operation, public_status, artifact_completeness, actor_id, source_instance_id, request_digest, state_version, timestamps, safe_reason, recovery_state]
         references:
           - entity: BackupPackage
-            owned_by: BackupRestore
-            relationship: job tạo zero hoặc one package backup đã hoàn tất
-      - name: RestoreJob
-        identifier: job_id
-        attributes: [job_id, package_id, target_instance_id, status, confirmed_by, confirmed_at, recovery_state, started_at, completed_at]
-        references:
-          - entity: BackupPackage
-            owned_by: BackupRestore
-            relationship: restore job tiêu thụ một package đã preflight
+            owned_by: BackupRestoreDomain
+            relationship: A complete future backup job may produce one verified package; U1 cannot produce one
       - name: BackupPackage
         identifier: package_id
-        attributes: [package_id, source_instance_id, format_version, manifest_path, archive_path, size_bytes, checksum, component_inventory, consistency_statement, created_at, retention_until]
+        attributes: [source_instance_id, format_version, manifest_ref, archive_ref, bytes, checksum, inventory, consistency, retention_until]
         references:
           - entity: BackupJob
-            owned_by: BackupRestore
-            relationship: package được tạo bởi một backup job
-      - name: BackupAuditReference
+            owned_by: BackupRestoreDomain
+            relationship: A complete package is associated with its originating job
+      - name: BackupAuditEvent
         identifier: audit_id
-        attributes: [audit_id, actor_id, operation, job_id, package_id, source_instance_id, target_instance_id, digest, occurred_at, outcome, recovery_state]
+        attributes: [actor_id, operation, job_id, package_id, source_instance_id, target_instance_id, digest, occurred_at, outcome, safe_reason]
         references:
           - entity: BackupJob
-            owned_by: BackupRestore
-            relationship: audit reference có thể liên kết job
+            owned_by: BackupRestoreDomain
+            relationship: Many lifecycle audit events may refer to one job
           - entity: BackupPackage
-            owned_by: BackupRestore
-            relationship: audit reference có thể liên kết package
+            owned_by: BackupRestoreDomain
+            relationship: An audit event may refer to a package
 
-  - name: BackupAdminApi
-    summary: API được bảo vệ cho admin UI quản lý instance choices, jobs, upload, preflight và package download.
+  - name: BackupPersistence
+    summary: Persistence adapter and migration implementation owned by the `domain_backup_restore` crate.
     behaviour: >
-      Kiểm tra administrator role server-side cho mọi route và resource; instance IDs map tới
-      server-configured allowlist; không nhận credentials hay arbitrary endpoint từ browser;
-      enforce body/upload bounds; kiểm tra quyền đọc job/package; trả safe DTO/error.
+      Stores backup-domain metadata only, in a domain-owned schema/migration.
+      Does not write CMS posts/users/media source tables and does not store raw
+      credentials, DB rows or object bytes. Idempotency uniqueness is scoped by
+      actor, operation and key digest; request digest distinguishes key reuse.
+      It owns job and package metadata, not the private staging/package bytes.
+      Object-byte storage is deferred to a separately configured private object
+      store only after TLS, at-rest encryption, finite bounds and durable cleanup
+      policy are verified; no new provider is selected in U1.
     responsibilities:
-      - Admin-only routes cho configured instances, job create/status, upload/preflight, restore confirm và download
-      - Chống CSRF phù hợp với auth/session model hiện hữu và giới hạn request body
-      - Idempotency/duplicate-submit semantics tại boundary
-      - Response localization keys và field validation errors
-    depends_on:
-      - component: BackupRestore
-        interaction: Gọi use cases và trả job/preflight/download result
-        style: sync
+      - Own the domain_backup_restore migration and metadata entities
+      - Enforce composite idempotency and optimistic state-version transitions
+      - Persist one-to-many audit events and safe reason codes
+      - Provide durable staging lifecycle/reconciliation metadata if staging is enabled later
+    depends_on: []
     dependents:
-      - component: BackupRestore
-        interaction: BackupRestore khởi tạo/đăng ký API boundary trong gateway composition
+      - component: BackupRestoreDomain
+        interaction: Implement domain-owned repository/transaction ports
         style: sync
     external_dependencies:
-      - name: Supabase GoTrue JWT/auth middleware
-        kind: third-party-api
-        purpose: Xác thực actor và role admin theo gateway contract
+      - name: Existing gateway PostgreSQL connection
+        kind: database
+        purpose: Store backup metadata in the schema owned by domain_backup_restore
+    entities: []
+
+  - name: BackupAdminApi
+    summary: Administrator-only API routes registered by the backup domain service in the gateway.
+    behaviour: >
+      Receives authenticated actor context from the gateway Administrator mount,
+      accepts opaque configured IDs and strict DTOs, authorizes every resource
+      read/write, and returns safe responses. U1 has no complete-package download.
+    responsibilities:
+      - List safe configured instance labels and IDs
+      - Create durable backup jobs and return a job ID only after persistence
+      - Return a single authorized safe job-status projection
+      - Reject arbitrary endpoint/credential fields and incomplete artifact downloads
+    depends_on:
+      - component: BackupRestoreDomain
+        interaction: Invoke authorized domain operations
+        style: sync
+    dependents: []
+    external_dependencies:
+      - name: Gateway Administrator mount and AuthenticatedActor
+        kind: other
+        purpose: Apply existing server-side JWT/administrator authorization
     entities: []
 
   - name: BackupWorker
-    summary: Thực hiện job backup/restore dài hạn qua orchestrator đã persisted.
+    summary: Bounded in-process worker implementation invoked through a runtime handle; not a separately deployed service.
     behaviour: >
-      Claim job theo lock/concurrency policy, thực hiện state transitions, áp dụng timeout
-      và cleanup; restart sau crash không được báo thành công hoặc để restore partial không được nhận diện.
+      Implements the worker execution port used by BackupRestoreDomain and persists
+      state through BackupPersistence. The domain schedules the worker via an injected
+      one-way runtime handle; the worker does not call back into the domain service,
+      avoiding a dependency cycle. Tokio task execution is not durable by itself.
+      Stale or unknown outcomes remain non-success and require reconciliation. U1
+      writes no real-data staging until TLS, private encryption, finite bounds and
+      restart-safe cleanup are verified.
     responsibilities:
-      - Claim/lease jobs và cập nhật trạng thái tiến độ theo component
-      - Thực thi backup/restore sequence theo BackupRestore orchestration state
-      - Resume/fail safe sau interruption; phát hiện stuck jobs theo timeout/heartbeat policy
-      - Dọn staging upload/archive theo retention policy
+      - Claim and execute backup jobs outside HTTP request lifetime
+      - Maintain safe non-success outcomes for incomplete/failed capabilities
+      - Enforce configured finite bounds and cleanup/reconciliation gates
+      - Never infer success from an artifact's existence after restart
     depends_on:
-      - component: BackupRestore
-        interaction: Nạp job plan và callback kết quả/component transitions
-        style: sync
       - component: BackupPersistence
-        interaction: Claim/update durable job state
+        interaction: Claim and persist guarded job state through repository port
         style: sync
-    dependents:
-      - component: BackupAdminApi
-        interaction: Nhận job đã persisted để thực thi nền và trả status transition
-        style: async
+      - component: DatabaseBackupAdapter
+        interaction: Execute the approved database slice when permitted
+        style: sync
+      - component: ArchiveIntegrity
+        interaction: Validate permitted private test artifact bytes
+        style: sync
+      - component: PackageObjectStoreAdapter
+        interaction: Perform permitted private byte operations
+        style: sync
+    dependents: []
     external_dependencies:
-      - name: Tokio task trong gateway process (dự kiến; phải xác nhận lease/restart khi Functional Design)
+      - name: Gateway worker runtime handle
         kind: other
-        purpose: Chạy task dài hạn có timeout và bounded concurrency; production runtime ngoài phạm vi phiên bản localhost đầu tiên
+        purpose: Invoke bounded local worker operation one-way from the domain without a callback; no durable queue or restart-resume promise
     entities: []
 
-  - name: BackupPersistence
-    summary: Lưu bền vững job/package metadata và audit references, không lưu source business entities.
+  - name: PackageObjectStoreAdapter
+    summary: Future private object-byte adapter; no provider is selected and U1 real-data staging remains disabled.
     behaviour: >
-      Đảm bảo job state, idempotency key, package inventory và restore recovery state tồn tại
-      qua restart; database/schema được thiết kế ở stage sau. Không giữ raw object contents hoặc
-      credentials trong metadata store.
+      Owns the storage-byte boundary for completed packages and optional private
+      staging, separate from BackupPersistence metadata. It is enabled only after
+      a provider, TLS identity, encryption-at-rest, finite bounds, retention and
+      durable orphan cleanup policy are approved and verified.
     responsibilities:
-      - Persist BackupJob, RestoreJob, BackupPackage metadata và audit references
-      - Enforce unique/idempotency constraints và target restore lock
-      - Store lifecycle events and timestamps; redact sensitive fields
+      - Put/get/delete package or staging bytes through a private configured client
+      - Enforce finite byte and expiry budgets before writes
+      - Return opaque references/digests, never public URLs by default
+      - Discover/reconcile orphaned bytes and surface cleanup failure
     depends_on: []
     dependents:
-      - component: BackupRestore
-        interaction: Đọc/ghi backup job và package metadata qua persistence interface
+      - component: BackupRestoreDomain
+        interaction: Domain requests package byte operations and applies policy
         style: sync
       - component: BackupWorker
-        interaction: Claim/update jobs
+        interaction: Worker performs permitted byte operations through the adapter
         style: sync
     external_dependencies:
-      - name: PostgreSQL metadata store
-        kind: database
-        purpose: Lưu job/package/audit metadata; exact DB/schema ownership cần thiết kế sau
+      - name: Future configured private object store
+        kind: object-store
+        purpose: Store package/staging bytes once security and retention controls are approved
     entities: []
 
   - name: DatabaseBackupAdapter
-    summary: Adapter giới hạn cho export/restore database tables thuộc phạm vi My-CMS đã xác nhận.
+    summary: Narrow adapter for the approved My-CMS database slice; source tables remain domain-owned.
     behaviour: >
-      Giữ data ownership của domain hiện hữu; không tự quyết schema tùy ý. Chỉ chạy thao tác
-      trong allowlisted scope/version; trả inventory, counts và integrity evidence. Cách capture
-      self-hosted PostgreSQL và recovery point cần được xác minh trước khi implementation.
+      Reads only an allowlisted scope after database owner/method/version are approved.
+      Reports safe capability and integrity metadata. No database export occurs while
+      scope, TLS or data-boundary policy is unresolved.
     responsibilities:
-      - Export/import dữ liệu My-CMS đã được cho phép
-      - Kiểm tra engine/version/schema compatibility
-      - Trả counts/references cần cho post-restore validation
+      - Validate configured database capability and version
+      - Export an approved schema/table slice through a bounded interface
+      - Provide counts/bytes/digest evidence without exposing raw rows in metadata/logs
     depends_on: []
     dependents:
-      - component: BackupRestore
-        interaction: Orchestrator gọi export/import theo kế hoạch job
+      - component: BackupRestoreDomain
+        interaction: Domain invokes export capability
+        style: sync
+      - component: BackupWorker
+        interaction: Worker invokes the approved database export port
         style: sync
     external_dependencies:
-      - name: My-CMS PostgreSQL database
+      - name: Existing My-CMS PostgreSQL instance
         kind: database
-        purpose: Source/target business data; tables vẫn thuộc domain owners hiện hữu
+        purpose: Read approved source data under current domain ownership
     entities: []
 
   - name: AuthBackupAdapter
-    summary: Adapter cho GoTrue users/identities theo export/import capability được xác minh.
+    summary: Capability-gated adapter for GoTrue/Auth, deferred until platform semantics are verified.
     behaviour: >
-      Không khẳng định Admin API có thể export password hashes. Chỉ triển khai path nền tảng
-      self-hosted hỗ trợ; nếu password/session semantics chưa chốt hoặc capability thiếu thì
-      preflight/backup từ chối claim đầy đủ Auth recovery.
+      Does not assume password hashes or sessions are exportable/restorable. Missing
+      or unverified required Auth capability causes backup failure and blocks any
+      complete-package claim.
     responsibilities:
-      - Kiểm tra Auth service/version/capability
-      - Export/import user/identity records theo policy được duyệt
-      - Báo rõ password hash/session impact và validation result
+      - Verify supported GoTrue version/API and password/session effects
+      - Provide a typed safe capability result
+      - Export/import only an approved identity scope in later Units
     depends_on: []
     dependents:
-      - component: BackupRestore
-        interaction: Orchestrator gọi Auth export/import khi package scope yêu cầu
+      - component: BackupRestoreDomain
+        interaction: Domain checks capability and invokes supported export/import
+        style: sync
+      - component: BackupWorker
+        interaction: Worker invokes the verified Auth capability when enabled in a later Unit
         style: sync
     external_dependencies:
       - name: Supabase GoTrue
         kind: third-party-api
-        purpose: Identity records; khả năng export/import/password preservation cần xác minh
+        purpose: Identity capability, still subject to platform verification
     entities: []
 
   - name: StorageBackupAdapter
-    summary: Adapter cho bucket inventory và Supabase Storage object bytes/metadata.
+    summary: Capability-gated adapter for Supabase Storage objects and metadata, deferred until verified.
     behaviour: >
-      Enumerate đầy đủ theo page, đọc bytes/metadata, phát hiện object missing/changed/permission
-      errors và restore theo cùng bucket/key khi target tương thích. Không claim consistency xuyên DB.
+      Requires an approved bucket scope, pagination/completeness evidence, TLS and
+      private bounded staging/cleanup before reading or writing real object bytes.
     responsibilities:
-      - Liệt kê buckets/objects theo scope allowlist và paging
-      - Download/upload object bytes và metadata; kiểm tra counts/digests
-      - Từ chối object/key path nguy hiểm hoặc mapping không hỗ trợ
+      - Verify configured bucket/object capability and safe paths
+      - Enumerate/download/upload only an approved scope in later Units
+      - Report safe counts, byte sizes and digest evidence
     depends_on: []
     dependents:
-      - component: BackupRestore
-        interaction: Orchestrator gọi capture/restore object operations
+      - component: BackupRestoreDomain
+        interaction: Domain checks capability and invokes supported capture/restore
+        style: sync
+      - component: BackupWorker
+        interaction: Worker invokes the verified Storage capability when enabled in a later Unit
         style: sync
     external_dependencies:
-      - name: Supabase Storage API/object backend
+      - name: Supabase Storage
         kind: object-store
-        purpose: Lưu source và target media objects
+        purpose: Source object bytes and metadata, capability unresolved
     entities: []
 
   - name: ArchiveIntegrity
-    summary: Tạo/đọc ZIP backup packages, manifest, checksums và kiểm tra archive safety.
+    summary: Bounded archive/manifest validation and digest services; U1 is test-fixture-only until staging gates pass.
     behaviour: >
-      ZIP paths phải relative và an toàn; reject traversal, symlink, duplicate/conflicting entries,
-      archive bombs và limits. Không thực thi bất kỳ script/command bên trong package. Verify
-      checksums trước khi restore. Package là data; server-side implementation sở hữu execution.
+      Rejects unsafe paths, symlinks, conflicts, bombs and finite limit violations.
+      Never executes package content. A digest validates bytes only; it does not
+      establish completeness or restoreability.
     responsibilities:
-      - Serialize versioned manifest and component inventory
-      - Package/extract data with bounded resource use
-      - Generate/verify per-component SHA-256 digests
-      - Validate format compatibility and archive safety
+      - Serialize/version manifest formats after contract approval
+      - Compute/verify SHA-256 and size/count inventory
+      - Enforce bounded processing and safe relative paths
+      - Deny promotion/download of incomplete artifacts
     depends_on: []
     dependents:
-      - component: BackupRestore
-        interaction: Orchestrator dùng package/integrity operations trước publish/download/restore
+      - component: BackupRestoreDomain
+        interaction: Domain requests bounded integrity operations
+        style: sync
+      - component: BackupWorker
+        interaction: Worker invokes digest/validation operations
         style: sync
     external_dependencies: []
     entities: []
@@ -247,69 +290,71 @@ components:
 
 ```mermaid
 flowchart LR
-  Admin[Admin UI] --> Api[BackupAdminApi]
-  Api --> Worker[BackupWorker]
-  Api --> Orchestrator[BackupRestore]
-  Orchestrator --> Persistence[BackupPersistence]
+  UI[Admin UI] --> API[BackupAdminApi]
+  API --> Domain[BackupRestoreDomain in domain_backup_restore crate]
+  Domain --> Persistence[BackupPersistence and owned migration]
+  Domain -->|one-way runtime task handle| Worker[BackupWorker in gateway process]
   Worker --> Persistence
-  Orchestrator --> Archive[ArchiveIntegrity]
-  Orchestrator --> DbAdapter[DatabaseBackupAdapter]
-  Orchestrator --> AuthAdapter[AuthBackupAdapter]
-  Orchestrator --> StorageAdapter[StorageBackupAdapter]
-  DbAdapter --> Db[(My-CMS PostgreSQL)]
+  Worker --> DBAdapter[DatabaseBackupAdapter]
+  Worker --> Archive[ArchiveIntegrity]
+  Worker --> PackageStoreAdapter[PackageObjectStoreAdapter]
+  PackageStoreAdapter --> PackageStore[Future private package object store; U1 disabled]
+  Domain --> AuthAdapter[AuthBackupAdapter capability gated]
+  Domain --> StorageAdapter[StorageBackupAdapter capability gated]
+  DBAdapter --> SourceDB[(Existing My-CMS PostgreSQL; source domains retain ownership)]
   AuthAdapter --> GoTrue[GoTrue]
-  StorageAdapter --> SupaStorage[Supabase Storage]
-  Persistence --> Meta[(Backup metadata DB)]
-  Orchestrator --> BackupStore[(Long-term backup object store)]
+  StorageAdapter --> Storage[Supabase Storage]
+  Config[Server-side configured IDs and secrets] --> Domain
+  Worker --> Config
 ```
 
-Text fallback: Admin UI talks only to protected BackupAdminApi. BackupAdminApi persists metadata and dispatches BackupWorker; BackupWorker invokes BackupRestore for orchestration/use cases. BackupRestore persists state through BackupPersistence and calls ArchiveIntegrity plus separate source adapters for My-CMS DB, GoTrue and Storage. Source data ownership remains with existing domains/platforms; BackupRestore owns backup-job metadata only.
+Text fallback: The gateway registers `domain_backup_restore` as an in-process domain crate. The crate owns backup job/package/audit metadata and its migration; API routes use the gateway's administrator mount. The domain schedules the worker through a one-way runtime handle; the worker uses persistence, database/archive and package-byte adapter ports without calling back into the domain. PackageObjectStoreAdapter owns bytes, while BackupPersistence stores metadata and opaque references only. No separate process or AWS resource is introduced. Database/Auth/Storage source data remain platform/domain owned. U1 performs no real-data staging until protection and cleanup gates pass.
 
 ## Component Summary
 
 | Component | Purpose | Depends On | Dependents | Entities Owned |
 |---|---|---|---|---|
-| BackupRestore | Orchestrate backup/preflight/restore and job state machine | BackupWorker, BackupPersistence, adapters, ArchiveIntegrity | BackupAdminApi, BackupWorker | BackupJob, RestoreJob, BackupPackage, BackupAuditReference |
-| BackupAdminApi | Protected admin API boundary | BackupRestore | BackupRestore, BackupWorker | None |
-| BackupWorker | Execute long-running jobs, timeout/recovery | BackupPersistence | BackupRestore | None |
-| BackupPersistence | Persist job/package/audit metadata | None | BackupRestore, BackupAdminApi, BackupWorker | None |
-| DatabaseBackupAdapter | Export/restore approved My-CMS tables | None | BackupRestore | None; business entities remain domain-owned |
-| AuthBackupAdapter | Export/restore supported GoTrue records | None | BackupRestore | None; identity remains GoTrue-owned |
-| StorageBackupAdapter | Enumerate/read/write media objects | None | BackupRestore | None; objects remain Storage-owned |
-| ArchiveIntegrity | ZIP/manifest/checksum/safety | None | BackupRestore | None |
+| BackupRestoreDomain | `domain_backup_restore` crate; use cases, state rules, service registration | BackupPersistence, adapters, ArchiveIntegrity; schedules worker by one-way runtime handle | BackupAdminApi | BackupJob, BackupPackage, BackupAuditEvent |
+| BackupPersistence | Durable metadata repository and migration owned by new domain crate | Existing gateway PostgreSQL connection | BackupRestoreDomain, BackupWorker | Backup-only metadata |
+| BackupAdminApi | Protected configured-instance/job routes | BackupRestoreDomain | None | None |
+| BackupWorker | Bounded in-process execution; no callback to domain service | BackupPersistence, DatabaseBackupAdapter, ArchiveIntegrity, PackageObjectStoreAdapter | BackupPersistence | None |
+| PackageObjectStoreAdapter | Future private byte-storage port; provider not selected | Future configured private object store | BackupRestoreDomain, BackupWorker | No metadata/source entities |
+| DatabaseBackupAdapter | Approved DB slice capability | Existing PostgreSQL | BackupRestoreDomain, BackupWorker | No source entities |
+| AuthBackupAdapter | Verified GoTrue capture/import capability | GoTrue | BackupRestoreDomain | No source entities |
+| StorageBackupAdapter | Verified Storage object capability | Supabase Storage | BackupRestoreDomain | No source entities |
+| ArchiveIntegrity | Bounded validation and checksum | None | BackupRestoreDomain, BackupWorker | None |
 
 ## Entity Ownership
 
 | Entity | Owning Component | Identifier | Attributes | References |
 |---|---|---|---|---|
-| BackupJob | BackupRestore | job_id | operation, status, actor, source, timestamps, consistency, error, recovery | BackupPackage |
-| RestoreJob | BackupRestore | job_id | package, target, status, confirmation, recovery, timestamps | BackupPackage |
-| BackupPackage | BackupRestore | package_id | source, format, paths, size, digest, inventory, consistency, retention | BackupJob |
-| BackupAuditReference | BackupRestore | audit_id | actor, operation, job/package, source/target, digest, time, outcome | BackupJob, BackupPackage |
+| BackupJob | BackupRestoreDomain | job_id | public status, completeness, actor/source, idempotency/request digest, state version, timestamps, safe reason, recovery state | BackupPackage, many audit events |
+| BackupPackage | BackupRestoreDomain | package_id | format, manifest/archive refs, `byte_size`, checksum, inventory, consistency, retention | BackupJob |
+| BackupAuditEvent | BackupRestoreDomain | audit_id | actor, operation, job/package, source/target, digest, time, outcome, safe reason | BackupJob and optional BackupPackage |
 
-Source entities in My-CMS, GoTrue and Storage are not re-owned by BackupRestore; adapters read/write them only through verified platform/domain interfaces.
+CMS source rows, GoTrue identities and Storage objects are not re-owned by BackupRestoreDomain; adapters access them only through verified interfaces.
 
 ## External Dependencies
 
 | Component | Dependency | Kind | Purpose |
 |---|---|---|---|
-| DatabaseBackupAdapter | My-CMS PostgreSQL | database | Source/target business rows under existing domain ownership |
-| AuthBackupAdapter | GoTrue | third-party-api | Supported identity export/import |
-| StorageBackupAdapter | Supabase Storage | object-store | Media object bytes/metadata |
-| BackupPersistence | PostgreSQL metadata store | database | Durable backup job/package state |
-| BackupRestore | Long-term backup object store | object-store | Retain ZIP packages per configured policy |
-| BackupWorker | Job runtime/executor | other | Bounded async job execution and recovery |
+| BackupRestoreDomain | Existing gateway composition/shared PostgreSQL connection | database/other | Register service in-process; run domain-owned migration and persist backup-only metadata |
+| PackageObjectStoreAdapter | Future configured private object store | object-store | Adapter owns package/private staging byte operations after provider and policy approval; no U1 real-data use |
+| DatabaseBackupAdapter | My-CMS PostgreSQL | database | Approved source rows; existing domains retain ownership |
+| AuthBackupAdapter | GoTrue | third-party-api | Supported identity capability; verification pending |
+| StorageBackupAdapter | Supabase Storage | object-store | Source object bytes/metadata; TLS/private staging gates pending |
+| BackupWorker | Tokio runtime in gateway | other | Bounded execution only; no durable queue claim |
 
 ## Rationale and boundary decisions
 
 | Decision | Rationale | Alternatives Rejected |
 |---|---|---|
-| BackupRestore is a dedicated orchestration component | Owns cross-system job lifecycle, manifest/package consistency and safety policy in one bounded context | Duplicating business rules in posts/user/media domains; client orchestration |
-| Existing domains/platform adapters retain source data ownership | Prevents backup feature from taking ownership of posts/Auth/media schemas and preserves domain boundaries | Moving every source entity into backup component; gateway direct schema coupling |
-| API + worker split | Jobs are long-running; API remains responsive while worker owns bounded execution and progress | Long synchronous HTTP request; direct admin-to-service calls |
-| Saga/state machine, not global ACID | Database/Auth/Storage do not share one transaction; checkpoints and component-specific recovery are honest semantics | Claiming one atomic transaction; independent adapters with no aggregate job state |
-| BackupRestore owns metadata entities | Job/package/audit references have their own lifecycle while source payload remains external | No durable job state; assigning backup-job metadata to `domain_posts` |
+| Add `domain_backup_restore` as an in-process gateway-registered crate | User selected this crate as the owner of job metadata and migration. It reuses gateway composition/shared pool without creating an independent deployment. | Put backup metadata in `domain_posts`, `domain_user`, `domain_media`, or `domain_seo`; create a new service/process; let gateway write unowned tables. |
+| BackupRestoreDomain owns only backup lifecycle metadata | Distinct lifecycle and migration ownership, while source rows remain with current domains/platforms. | Transfer CMS/Auth/Storage data ownership to backup crate. |
+| API + bounded worker + durable state | Long-running tasks need status and persistence before `202`; Tokio alone is not crash-safe. | Long synchronous HTTP request; in-memory-only job; uncoordinated adapters. |
+| No real-data staging in U1 until infrastructure gates pass | TLS, private encryption, finite bounds and durable cleanup are unverified prerequisites. | Implicit localhost exception or default temp storage. |
+| Saga/state machine for later restore | DB/Auth/Storage do not share atomic transactions; honest recovery states are required. | Claim global ACID or partial success. |
 
-## Significant decisions
+## Explicit consequences and follow-up decisions
 
-See `decisions.md` for ADRs covering ownership boundaries, API/worker orchestration, and multi-system recovery semantics.
+Adding this crate revises the previously approved gateway-only construction implementation detail; the existing workflow plan, Units, contracts, and per-Unit Functional/NFR/Infrastructure artifacts must be synchronized before construction resumes. The new domain's Cargo manifest/workspace registration, gateway manifest registration, migration registry, backup-status schema, migration idempotency/rollback, and test ownership must be specified in revised design artifacts. Deployment remains the same gateway process; do not infer a separate service or production target. Real-data storage still remains disabled until cleanup and TLS gates are verified.

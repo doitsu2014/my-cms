@@ -3,6 +3,7 @@
 
 ## Interpretations
 <!-- example: 2026-05-29T10:14:32Z — chose REST over GraphQL; the consuming team only needs CRUD, revisit if subscriptions land -->
+- 2026-11-17T16:34:02Z — Chấp nhận phân rã bốn Unit coarse-grained theo lát cắt dọc; U1 phải thể hiện rõ là lát cắt tích hợp chưa phải backup hoàn chỉnh vì chưa có Auth/Storage. Các cạnh DAG biểu thị phụ thuộc build/test, không phải thứ tự ưu tiên kinh tế.
 
 ## Deviations
 <!-- example: 2026-05-29T10:14:32Z — skipped the optional caching layer the stage prose suggested; the dataset is small enough that it adds risk -->

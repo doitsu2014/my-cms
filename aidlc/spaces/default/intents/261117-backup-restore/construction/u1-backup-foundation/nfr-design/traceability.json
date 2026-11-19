@@ -1,0 +1,41 @@
+{
+  "stage": "nfr-design",
+  "unit": "u1-backup-foundation",
+  "upstream_ids": [
+    "NFR6.1", "NFR6.2", "NFR6.3", "NFR6.4",
+    "NFR1.1", "NFR1.2", "NFR1.3", "NFR1.4", "NFR1.5", "NFR1.6", "NFR1.7", "NFR1.8", "NFR1.9", "NFR1.10", "NFR1.11", "NFR1.12",
+    "NFR7.1", "NFR7.2", "NFR7.3", "NFR7.4",
+    "NFR8.1", "NFR8.2", "NFR8.3", "NFR8.4", "NFR8.5", "NFR8.6", "NFR8.7", "NFR8.8"
+  ],
+  "coverage": [
+    { "id": "NFR6.1", "status": "OK", "target": "performance-design.md: request/worker separation" },
+    { "id": "NFR6.2", "status": "OK", "target": "performance-design.md: finite budgets; scalability-design.md: resource isolation" },
+    { "id": "NFR6.3", "status": "OK", "target": "performance-design.md: progress only from measured counters; observability-design.md: metrics" },
+    { "id": "NFR6.4", "status": "OK", "target": "performance-design.md: bounded streaming and memory measurement" },
+    { "id": "NFR1.1", "status": "OK", "target": "security-design.md: authentication and authorization" },
+    { "id": "NFR1.2", "status": "OK", "target": "security-design.md: resource authorization" },
+    { "id": "NFR1.3", "status": "OK", "target": "security-design.md: configured IDs and strict input" },
+    { "id": "NFR1.4", "status": "OK", "target": "security-design.md: secrets boundary" },
+    { "id": "NFR1.5", "status": "OK", "target": "security-design.md: staging confidentiality and cleanup" },
+    { "id": "NFR1.6", "status": "OK", "target": "security-design.md: pre-write config validation" },
+    { "id": "NFR1.7", "status": "OK", "target": "security-design.md: durable orphan reconciliation and failure escalation" },
+    { "id": "NFR1.8", "status": "OK", "target": "security-design.md: idempotency digest handling" },
+    { "id": "NFR1.9", "status": "OK", "target": "security-design.md: state/version guard and no false success" },
+    { "id": "NFR1.10", "status": "OK", "target": "security-design.md: safe errors; observability-design.md: forbidden fields" },
+    { "id": "NFR1.11", "status": "OK", "target": "security-design.md: audit policy" },
+    { "id": "NFR1.12", "status": "OK", "target": "security-design.md: TLS trust boundaries; no unapproved loopback exception" },
+    { "id": "NFR7.1", "status": "OK", "target": "scalability-design.md: bounded worker/queue and resource isolation" },
+    { "id": "NFR7.2", "status": "OK", "target": "scalability-design.md: idempotency and atomic state version" },
+    { "id": "NFR7.3", "status": "OK", "target": "scalability-design.md: explicit single-process scope and no scale-out claim" },
+    { "id": "NFR7.4", "status": "OK", "target": "scalability-design.md: growth trigger and benchmark gate" },
+    { "id": "NFR8.1", "status": "OK", "target": "reliability-design.md: persist before accept" },
+    { "id": "NFR8.2", "status": "OK", "target": "reliability-design.md: state version, idempotency and bounded retry" },
+    { "id": "NFR8.3", "status": "OK", "target": "reliability-design.md: unknown outcomes remain non-success" },
+    { "id": "NFR8.4", "status": "OK", "target": "reliability-design.md: incomplete/failed U1 terminal state" },
+    { "id": "NFR8.5", "status": "OK", "target": "reliability-design.md: restartable cleanup and orphan reconciliation" },
+    { "id": "NFR8.6", "status": "OK", "target": "reliability-design.md: audit failure handling" },
+    { "id": "NFR8.7", "status": "OK", "target": "reliability-design.md: no unsupported resume claim" },
+    { "id": "NFR8.8", "status": "OK", "target": "reliability-design.md: finite operational config and no unbounded fallback" }
+  ],
+  "reverse": []
+}
