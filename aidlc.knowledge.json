@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "id": "project",
+      "path": "PROJECT.md",
+      "kind": "project"
+    },
+    {
+      "id": "README.md",
+      "path": "README.md",
+      "kind": "readme",
+      "description": "Detected readme source."
+    },
+    {
+      "id": "apps-ducth-dev-website-design-new-design-assets-architecture.jpg",
+      "path": "apps/ducth-dev-website/design/new-design/assets/architecture.jpg",
+      "kind": "architecture",
+      "description": "Detected architecture source."
+    },
+    {
+      "id": "apps-ducth-dev-website-public-images-architecture.jpg",
+      "path": "apps/ducth-dev-website/public/images/architecture.jpg",
+      "kind": "architecture",
+      "description": "Detected architecture source."
+    },
+    {
+      "id": "docs",
+      "path": "docs",
+      "kind": "docs",
+      "description": "Detected docs source."
+    }
+  ]
+}
