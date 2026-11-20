@@ -1,0 +1,3 @@
+{"at":"2026-11-19T15:31:07.350Z","event":"project.initialized","harness":"claude","scope":"solo","graphPhases":6,"projection":"D:\\orca\\my-cms\\makara\\.claude\\skills\\aidlc"}
+{"at":"2026-11-19T15:31:07.370Z","event":"project.onboarded","kind":"brownfield","languages":["rust","javascript","typescript"]}
+{"at":"2026-11-20T00:12:04.956Z","event":"project.initialized","harness":"claude","scope":"solo","graphPhases":6,"projection":"D:\\orca\\my-cms\\makara\\.claude\\skills\\dtech-aidlc"}
