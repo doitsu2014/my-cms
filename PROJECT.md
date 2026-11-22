@@ -87,28 +87,57 @@ Details: `docs/architecture/software-architecture.md` and `.aidlc/knowledge/_cod
 - **`apps/api/take-coverage.sh`** runs `rustup override set stable` and `cargo clean`. Do not run it as part of a check.
 - **Secrets** live only in local `.env` files copied from `.env.example`. Never put secrets, tokens or database contents into code, logs, audit records or artifacts.
 
-## Testing and release
+## Commands
 
 Run backend commands from `apps/api` and frontend commands from the app directory.
 
-| Check | Command | Baseline 2026-11-22 (Windows dev host) |
-|---|---|---|
-| Rust tests | `cargo test --no-fail-fast` | With Docker: 288 passed, 0 failed, 5 ignored (after WU-01 and the RK-15 fix). Without Docker the 8 `domain_posts` handler tests fail (testcontainers). |
-| Rust DB tests | `cargo test --no-fail-fast -- --ignored` | With Docker: 5 of 5 pass |
-| Format | `cargo fmt -- --check` | passes |
-| Lint | `cargo clippy --all-targets` | passes with warnings in existing crates |
-| Admin tests | `pnpm test` (in `apps/web`) | 49/49 pass |
-| Admin build | `pnpm build` | passes |
-| Admin lint | `pnpm lint` | fails before any change (ESLint flat-config error for the `react-hooks` plugin) |
-| Admin typecheck | `pnpm exec tsc --noEmit` | fails before any change (23 errors in the rich-text editor and the SEO head-asset form) |
-| Reader | `pnpm test` / `pnpm build` (in `apps/ducth-dev-website`) | not baselined yet |
+| Check | Command |
+|---|---|
+| Rust tests | `cargo test --no-fail-fast` |
+| Rust DB tests (Docker) | `cargo test --no-fail-fast -- --ignored` |
+| One crate | `cargo test -p <crate> --no-fail-fast` (add `-- --ignored` for its DB tests) |
+| Format | `cargo fmt -- --check` |
+| Lint | `cargo clippy --all-targets` |
+| Workspace build | `cargo check --workspace` |
+| Migrations | `cargo run -p gateway --bin my-cms-api -- migrate up` / `migrate status` |
+| Admin tests | `pnpm test` (in `apps/web`) |
+| Admin build | `pnpm build` (in `apps/web`) |
+| Admin lint | `pnpm lint` (in `apps/web`) |
+| Admin typecheck | `pnpm exec tsc --noEmit` (in `apps/web`) |
+| Reader | `pnpm test` / `pnpm build` (in `apps/ducth-dev-website`) |
+
+## Environment prerequisites
+
+- **Rust toolchain**: cargo/rustc 1.100.0 on the dev host. CI uses nightly on Ubuntu.
+- **Node and pnpm**: node v24.18.0 and pnpm 10.30.3 on the dev host. Run `pnpm install --frozen-lockfile` in `apps/web` when `node_modules` is missing.
+- **Docker** is required for full verification: the testcontainers tests, migration checks and the local stack. It is declared as the dtech-aidlc prerequisite `docker` (`docker info`) for red-tests and build-and-verify. When Docker is unavailable those checks are reported "not run", never passed.
+- **Testcontainers gotchas**:
+  - `test_helpers::setup_test_space_with_pgvector` can report ready during PostgreSQL's init restart, so connect with a short retry.
+  - `ContainerAsyncPostgresEx::get_database_connection()` also applies the posts migrations as a side effect, so tests that need an empty database must open their own connection.
+  - Pin test databases to production's major version: PostgreSQL 15 (`supabase/postgres:15.x`), not the testcontainers default 11.
+- **Windows dev host**:
+  - Tests that create links use junctions (`mklink /J`).
+  - Unix-only checks such as directory mode 0700 compile out on Windows and need CI or a Linux host.
+
+## Known baseline failures
+
+Recorded 2026-11-22 on the Windows dev host with Docker running. The latest full results are in the backup intent's `develop/baseline.md`.
+
+- **Rust**: none. `cargo test --no-fail-fast` gives 290 passed, 0 failed, 39 ignored, and all 39 ignored tests pass with `-- --ignored`. Without Docker the 8 `domain_posts` handler tests fail (testcontainers).
+- **Clippy**: exit 0, with existing warnings in other crates (for example `domain_auth` type complexity, `domain_media` Debug impls).
+- **Admin lint** (`pnpm lint`): fails before any change, with an ESLint flat-config error for the `react-hooks` plugin.
+- **Admin typecheck** (`pnpm exec tsc --noEmit`): fails before any change, with 23 errors in the rich-text editor and the SEO head-asset form.
+- **Admin tests and build**: 49/49 tests pass; build passes.
+- **Reader**: not baselined yet.
+
+## Testing and release
 
 - **Regression rule**: a test that passed at baseline must still pass. The failing set may not grow. New lint or typecheck errors are not allowed in touched files.
-- **Docker is required** for full verification: the testcontainers tests, migration checks and the local stack. When Docker is unavailable those checks are reported "not run", never passed.
-- **Testcontainers gotchas**: `test_helpers::setup_test_space_with_pgvector` can report ready during PostgreSQL's init restart, so connect with a short retry. `ContainerAsyncPostgresEx::get_database_connection()` also applies the posts migrations as a side effect, so tests that need an empty database must open their own connection.
-- **CI** (`ci-my-cms.yml`) runs on pull requests to `main`: `cargo test --all --all-features --no-fail-fast` on Ubuntu with nightly Rust and grcov coverage (Codecov/Coveralls). CI does not run the web apps' tests, lint or build.
+- **CI** (`ci-my-cms.yml`) runs on pull requests to `main`:
+  - It runs `cargo test --all --all-features --no-fail-fast` on Ubuntu with nightly Rust and grcov coverage (Codecov/Coveralls).
+  - It does not pass `--ignored`, so the DB-backed tests do not run in CI.
+  - It does not run the web apps' tests, lint or build.
 - **Release**: merging to `main` builds and publishes the API, admin and reader images (path-filtered). `publish-github-release-images.yml` runs on a published GitHub release.
-- **Windows dev host notes**: tests that create links use junctions (`mklink /J`). Unix-only checks such as directory mode 0700 compile out on Windows and need CI or a Linux host.
 
 ## Deeper docs
 
