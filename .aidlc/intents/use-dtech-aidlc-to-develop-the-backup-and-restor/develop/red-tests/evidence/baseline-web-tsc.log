@@ -1,0 +1,36 @@
+src/app/admin/components/inputs/rich-text-editor/editor-insertion-target.ts(67,11): error TS6133: 'selection' is declared but its value is never read.
+src/app/admin/components/inputs/rich-text-editor/image-insertion-dialog.test.tsx(2,10): error TS6133: 'fireEvent' is declared but its value is never read.
+src/app/admin/components/inputs/rich-text-editor/tiptap-editor.tsx(62,10): error TS6133: 'isUploadingPaste' is declared but its value is never read.
+src/app/admin/components/inputs/rich-text-editor/tiptap-editor.tsx(239,13): error TS2345: Argument of type '() => (() => Editor) | undefined' is not assignable to parameter of type 'EffectCallback'.
+  Type '(() => Editor) | undefined' is not assignable to type 'void | Destructor'.
+    Type '() => Editor' is not assignable to type 'void | Destructor'.
+      Type '() => Editor' is not assignable to type 'Destructor'.
+        Type 'Editor' is not assignable to type 'void | { [UNDEFINED_VOID_ONLY]: never; }'.
+src/app/admin/components/inputs/rich-text-editor/tiptap-editor.tsx(430,9): error TS2322: Type '(urls: string[]) => void' is not assignable to type '(url: string) => void'.
+  Types of parameters 'urls' and 'url' are incompatible.
+    Type 'string' is not assignable to type 'string[]'.
+src/app/admin/components/inputs/rich-text-editor/toolbar/toolbar.tsx(48,3): error TS6133: 'CornerDownLeft' is declared but its value is never read.
+src/app/admin/components/inputs/rich-text-editor/toolbar/toolbar.tsx(49,3): error TS6133: 'Upload' is declared but its value is never read.
+src/app/admin/components/inputs/rich-text-editor/toolbar/toolbar.tsx(159,10): error TS6133: 'showLinkInput' is declared but its value is never read.
+src/app/admin/components/inputs/rich-text-editor/toolbar/toolbar.tsx(162,10): error TS6133: 'showYoutubeInput' is declared but its value is never read.
+src/app/admin/components/inputs/rich-text-editor/toolbar/toolbar.tsx(201,10): error TS6133: 'showColorPicker' is declared but its value is never read.
+src/app/admin/components/inputs/rich-text-editor/toolbar/toolbar.tsx(201,27): error TS6133: 'setShowColorPicker' is declared but its value is never read.
+src/app/admin/components/inputs/rich-text-editor/toolbar/toolbar.tsx(202,10): error TS6133: 'showHighlightPicker' is declared but its value is never read.
+src/app/admin/components/inputs/rich-text-editor/toolbar/toolbar.tsx(202,31): error TS6133: 'setShowHighlightPicker' is declared but its value is never read.
+src/app/admin/components/inputs/rich-text-editor/toolbar/toolbar.tsx(207,7): error TS2304: Cannot find name 'toast'.
+src/app/admin/components/inputs/rich-text-editor/toolbar/toolbar.tsx(216,7): error TS2304: Cannot find name 'toast'.
+src/app/admin/components/inputs/rich-text-editor/toolbar/toolbar.tsx(219,7): error TS2304: Cannot find name 'toast'.
+src/app/admin/components/inputs/rich-text-editor/toolbar/toolbar.tsx(838,13): error TS2304: Cannot find name 'toast'.
+src/app/admin/components/inputs/rich-text-editor/toolbar/toolbar.tsx(840,13): error TS2304: Cannot find name 'toast'.
+src/app/admin/seo/head-assets/head-asset-form.tsx(14,22): error TS2554: Expected 1 arguments, but got 0.
+src/app/admin/seo/head-assets/head-asset-form.tsx(15,116): error TS2322: Type 'Resolver<{ label: string; html: string; enabled: boolean; sortOrder: unknown; }, any, { label: string; html: string; enabled: boolean; sortOrder: number; }>' is not assignable to type 'Resolver<{ label: string; html: string; enabled: boolean; sortOrder: number; }, any, { label: string; html: string; enabled: boolean; sortOrder: number; }>'.
+  Types of parameters 'options' and 'options' are incompatible.
+    Type 'ResolverOptions<{ label: string; html: string; enabled: boolean; sortOrder: number; }>' is not assignable to type 'ResolverOptions<{ label: string; html: string; enabled: boolean; sortOrder: unknown; }>'.
+      Type 'unknown' is not assignable to type 'number'.
+src/app/admin/seo/head-assets/head-asset-form.tsx(33,71): error TS2345: Argument of type '(values: SeoHeadAssetFormValues) => Promise<void>' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
+  Types of parameters 'values' and 'data' are incompatible.
+    Type 'TFieldValues' is not assignable to type '{ label: string; html: string; enabled: boolean; sortOrder: number; }'.
+      Type 'FieldValues' is missing the following properties from type '{ label: string; html: string; enabled: boolean; sortOrder: number; }': label, html, enabled, sortOrder
+src/app/admin/users/user-form.tsx(12,8): error TS6133: 'ResetPasswordFormData' is declared but its value is never read.
+src/infrastructure/utilities.ts(1,21): error TS2307: Cannot find module 'process' or its corresponding type declarations.
+EXIT: 2

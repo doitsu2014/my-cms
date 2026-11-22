@@ -1,0 +1,29 @@
+[package]
+name = "domain_backup"
+version = "0.1.0"
+edition = "2021"
+description = "Backup/restore U1 domain: status enum and guards, bounded configuration, clock and safe error projection."
+license = "MIT OR Apache-2.0"
+publish = false
+
+[lib]
+name = "domain_backup"
+path = "src/lib.rs"
+
+# Dependency choices (WU-01 Done when; versions match sibling crates and apps/api/Cargo.lock):
+# - serde 1.0.228 (derive): BackupJobStatus wire spelling, safe response bodies.
+# - serde_json 1.0.150 (dev-dependency for now): wire-format assertions; promote to a dependency when response bodies need it.
+# - thiserror 2.0: error enums, same major as domain_media and domain_seo.
+# - chrono 0.4.44 (serde): Clock port timestamps.
+# - Fixture-storage lock: std File::try_lock only, no fd-lock or fs4 crate
+#   (implementation-plan.md RK-06). Added in the WU that needs it, not here.
+# - sea-orm-migration 1.1.20 (same version as domain_seo) and tokio-util are the
+#   spine's later choices (WU-02 and WU-05 onward). They are NOT added in WU-01 because
+#   no WU-01 code uses them; add them in the unit that first needs them.
+[dependencies]
+chrono = { version = "0.4.44", features = ["serde"] }
+serde = { version = "1.0.228", features = ["derive"] }
+thiserror = "2.0"
+
+[dev-dependencies]
+serde_json = "1.0.150"

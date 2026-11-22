@@ -1,0 +1,55 @@
+## cargo test -p domain_backup --no-fail-fast (2026-11-22T14:24:38+07:00)
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d328355dd4fe0c32\out\domain_backup-d328355dd4fe0c32.exe)
+
+running 35 tests
+test domain::config::tests::disabled_reason_closed_set_spelling ... ok
+test domain::config::tests::from_env_child_probe ... ok
+test domain::config::tests::escalation_owner_cannot_be_overridden ... ok
+test domain::config::tests::is_loopback_bind_accepts_only_loopback_ip_literals ... ok
+test domain::config::tests::defaults_match_owner_values ... ok
+test domain::config::tests::disabled_reason_projection_covers_null ... ok
+test domain::config::tests::non_loopback_bind_takes_precedence_over_invalid_config ... ok
+test domain::config::tests::forbidden_comparison_is_case_insensitive_on_windows ... ok
+test domain::config::tests::disabled_unless_backup_enabled_is_true ... ok
+test domain::config::tests::invalid_numeric_env_refuses_capability ... ok
+test domain::config::tests::not_configured_takes_precedence ... ok
+test domain::config::tests::host_default_is_loopback_and_non_loopback_host_disables ... ok
+test domain::config::tests::storage_root_metadata_error_is_inaccessible ... ok
+test domain::config::tests::storage_root_rejects_parent_dir_component ... ok
+test domain::state_machine::tests::no_transition_reaches_succeeded_or_recovery_required ... ok
+test domain::state_machine::tests::only_the_four_u1_edges_are_allowed ... ok
+test domain::state_machine::tests::terminal_states_have_no_outgoing_transitions ... ok
+test domain::config::tests::storage_root_rejects_existing_file ... ok
+test domain::status::tests::all_lists_every_variant_once ... ok
+test domain::status::tests::no_write_or_projection_yields_succeeded_or_recovery_required ... ok
+test domain::config::tests::storage_root_rejects_verbatim_prefix_on_windows ... ok
+test domain::config::tests::origin_host_label_hyphen_edges_refused ... ok
+test domain::status::tests::wire_spelling_keeps_documented_values_and_adds_incomplete ... ok
+test domain::config::tests::enabled_without_storage_root_refuses ... ok
+test domain::config::tests::origin_port_bounds_are_enforced ... ok
+test domain::config::tests::bounds_other_than_default_disable_with_invalid_config ... ok
+test domain::config::tests::allowed_origins_required_and_well_formed ... ok
+test domain::config::tests::padded_required_text_is_invalid_config ... ok
+test domain::config::tests::non_canonical_and_overflowing_numbers_are_invalid ... ok
+test domain::config::tests::invalid_config_always_yields_disabled_state ... ok
+test domain::config::tests::ingress_limits_required ... ok
+test domain::config::tests::load_refuses_link_or_file_storage_root ... ok
+test domain::config::tests::storage_root_rejects_link_on_ancestor ... ok
+test domain::config::tests::from_env_non_utf8_value_fails_validation ... ok
+test domain::config::tests::storage_root_rejects_forbidden_and_relative_paths ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+   Doc-tests domain_backup
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+EXIT: 0

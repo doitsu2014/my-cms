@@ -8,7 +8,7 @@
   "depth": "full",
   "mode": "ai",
   "status": "active",
-  "currentStage": "implementation-design",
+  "currentStage": null,
   "stages": {
     "problem-framing": {
       "status": "complete",
@@ -191,14 +191,164 @@
       ]
     },
     "implementation-design": {
+      "status": "complete",
+      "startedAt": "2026-11-21T14:20:38.859Z",
+      "detail": null,
+      "reportedAt": "2026-11-22T06:56:17.464Z",
+      "reports": [
+        {
+          "at": "2026-11-22T06:56:17.464Z",
+          "result": "complete",
+          "detail": null
+        }
+      ],
+      "units": {},
+      "artifacts": [
+        {
+          "output": "implementation-plan",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/implementation-plan.md",
+          "bytes": 56792,
+          "sha256": "3d806b8013c2ec71f5925a2ecec678ae6d0f071d5b7879f385e8525efdf22d0a"
+        },
+        {
+          "output": "interfaces-and-contracts",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/interfaces-and-contracts.md",
+          "bytes": 83551,
+          "sha256": "7aa8fd4f146ef3286e3886abc8e68a99618c6fc897cfd1f538ebada10784176f"
+        },
+        {
+          "output": "functional-design",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/functional-design.md",
+          "bytes": 92463,
+          "sha256": "9c080224ac26d7657091459b8766c1d65a63d49178842f27b0b2a97bdc662c19"
+        },
+        {
+          "output": "test-strategy",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/test-strategy.md",
+          "bytes": 68351,
+          "sha256": "98fd6e18530bccacf34793840bc2d7f488a2ffb75a8d27e563b96ac80d517a14"
+        },
+        {
+          "output": "work-units",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/work-units.md",
+          "bytes": 37727,
+          "sha256": "e3c5646434a36595e25fbff6a905e6dea3c96b98a58dd3fd8b632829fbbb70ea"
+        }
+      ]
+    },
+    "red-tests": {
       "status": "in_progress",
-      "startedAt": "2026-11-21T14:20:38.859Z"
+      "startedAt": "2026-11-22T06:56:17.617Z",
+      "detail": "WU-02 needs PostgreSQL for red/green migration and trigger tests, and the owner chose to verify RK-15 (shared seaql_migrations table) before WU-02; Docker Desktop fails to start on this host and no local PostgreSQL exists. Resume after Docker is restored.",
+      "reportedAt": "2026-11-22T07:26:58.378Z",
+      "reports": [
+        {
+          "at": "2026-11-22T07:12:29.787Z",
+          "result": "complete",
+          "detail": "WU-01 red run: 23 ran, 22 failed on assertions, 1 structural pass; baseline recorded; Docker unavailable so DB tests and RK-15 not run"
+        },
+        {
+          "at": "2026-11-22T07:13:33.443Z",
+          "result": "complete",
+          "detail": "WU-01 red run (recorded 07:12Z under implicit unit before work-units.json existed): 23 ran, 22 failed on assertions, 1 structural pass; baseline recorded; Docker unavailable"
+        },
+        {
+          "at": "2026-11-22T07:26:58.378Z",
+          "result": "blocked",
+          "detail": "WU-02 needs PostgreSQL for red/green migration and trigger tests, and the owner chose to verify RK-15 (shared seaql_migrations table) before WU-02; Docker Desktop fails to start on this host and no local PostgreSQL exists. Resume after Docker is restored."
+        }
+      ],
+      "units": {
+        "_": {
+          "status": "complete",
+          "reportedAt": "2026-11-22T07:12:29.787Z"
+        },
+        "WU-01": {
+          "status": "complete",
+          "reportedAt": "2026-11-22T07:13:33.443Z"
+        },
+        "WU-02": {
+          "status": "blocked",
+          "reportedAt": "2026-11-22T07:26:58.378Z"
+        }
+      },
+      "artifacts": [
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/failing-tests.md",
+          "bytes": 8092,
+          "sha256": "79c769b0eba706232a0e915fc8b7dc344f82b618833fc6b7462b7a8499ce4367"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/red-evidence.md",
+          "bytes": 10910,
+          "sha256": "a330622a25475799b3828ad08dc19d7dacf6175712a4b97c4f7d6b000e5a37d0"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-01/failing-tests.md",
+          "bytes": 8110,
+          "sha256": "91906b246d73707c78dd00417ca487f8613cc2c06339f7e1ebaccf19fe006a56"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-01/red-evidence.md",
+          "bytes": 11733,
+          "sha256": "25a4d5ee0eca589e31e910a14f3db2005f6176c0c31b0b99df6ba15770ed4040"
+        }
+      ]
+    },
+    "build-and-verify": {
+      "status": "in_progress",
+      "startedAt": "2026-11-22T07:12:29.973Z",
+      "detail": "WU-01 green: domain_backup 35/35; workspace regression identical to baseline (8 Docker-dependent domain_posts failures unchanged); fmt/clippy clean",
+      "reportedAt": "2026-11-22T07:26:43.015Z",
+      "reports": [
+        {
+          "at": "2026-11-22T07:26:43.015Z",
+          "result": "complete",
+          "detail": "WU-01 green: domain_backup 35/35; workspace regression identical to baseline (8 Docker-dependent domain_posts failures unchanged); fmt/clippy clean"
+        }
+      ],
+      "units": {
+        "WU-01": {
+          "status": "complete",
+          "reportedAt": "2026-11-22T07:26:43.015Z"
+        }
+      },
+      "artifacts": [
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-01/implementation.md",
+          "bytes": 5926,
+          "sha256": "e2d93c243cd9e7c707fe4bc5636222bfe6d0cda9e3f31676fbac521139d09ad4"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-01/green-verification-report.md",
+          "bytes": 8998,
+          "sha256": "447e5e92df208b1853752818d647a5a64163634885cf70387e07d6da941036bc"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-01/regression-report.md",
+          "bytes": 2683,
+          "sha256": "b61212d8061c3b60e8fe95682f91cb0a73bb1f9d8d6700905764367e3cc0a294"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-01/known-limitations.md",
+          "bytes": 3247,
+          "sha256": "9df666ef3325259eff0c9d1afb435b860e66e405f46f560594cccb76d58d3762"
+        }
+      ]
     }
   },
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-21T14:20:38.864Z",
+  "updatedAt": "2026-11-22T07:26:58.379Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -228,5 +378,116 @@
       "skippedStages": [],
       "artifacts": []
     }
-  }
+  },
+  "units": [
+    {
+      "id": "WU-01",
+      "status": "complete",
+      "dependsOn": []
+    },
+    {
+      "id": "WU-02",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-01"
+      ]
+    },
+    {
+      "id": "WU-03",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-02"
+      ]
+    },
+    {
+      "id": "WU-04",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-02",
+        "WU-03"
+      ]
+    },
+    {
+      "id": "WU-05",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-03",
+        "WU-04"
+      ]
+    },
+    {
+      "id": "WU-06",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-05"
+      ]
+    },
+    {
+      "id": "WU-07",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-03"
+      ]
+    },
+    {
+      "id": "WU-08",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-06",
+        "WU-07"
+      ]
+    },
+    {
+      "id": "WU-09",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-08"
+      ]
+    },
+    {
+      "id": "WU-10",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-09"
+      ]
+    },
+    {
+      "id": "WU-11",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-01"
+      ]
+    },
+    {
+      "id": "WU-12",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-08"
+      ]
+    },
+    {
+      "id": "WU-13",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-12"
+      ]
+    },
+    {
+      "id": "WU-14",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-13"
+      ]
+    },
+    {
+      "id": "WU-15",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-10",
+        "WU-11",
+        "WU-14"
+      ]
+    }
+  ],
+  "currentUnit": "WU-02"
 }

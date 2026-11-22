@@ -1,0 +1,125 @@
+! Corepack is about to download https://registry.npmjs.org/pnpm/-/pnpm-10.33.0.tgz
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +578
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 578, reused 216, downloaded 25, added 10
+
+   ╭───────────────────────────────────────────────╮
+   │                                               │
+   │     Update available! 10.33.0 → 12.21.0.      │
+   │     Changelog: https://pnpm.io/v/12.21.0      │
+   │   To update, run: corepack use pnpm@12.21.0   │
+   │                                               │
+   ╰───────────────────────────────────────────────╯
+
+Progress: resolved 578, reused 216, downloaded 52, added 16
+Progress: resolved 578, reused 217, downloaded 127, added 28
+Progress: resolved 578, reused 217, downloaded 170, added 45
+Progress: resolved 578, reused 217, downloaded 199, added 57
+Progress: resolved 578, reused 217, downloaded 215, added 63
+ WARN  Tarball download average speed 15 KiB/s (size 46 KiB) is below 50 KiB/s: https://registry.npmjs.org/d3-shape/-/d3-shape-1.3.7.tgz (GET)
+ WARN  Tarball download average speed 26 KiB/s (size 57 KiB) is below 50 KiB/s: https://registry.npmjs.org/@testing-library/jest-dom/-/jest-dom-6.9.1.tgz (GET)
+Progress: resolved 578, reused 217, downloaded 229, added 66
+ WARN  Tarball download average speed 12 KiB/s (size 59 KiB) is below 50 KiB/s: https://registry.npmjs.org/d3-geo/-/d3-geo-3.1.1.tgz (GET)
+Progress: resolved 578, reused 217, downloaded 249, added 69
+Progress: resolved 578, reused 217, downloaded 268, added 72
+Progress: resolved 578, reused 217, downloaded 285, added 75
+Progress: resolved 578, reused 217, downloaded 298, added 77
+Progress: resolved 578, reused 217, downloaded 311, added 79
+Progress: resolved 578, reused 217, downloaded 322, added 81
+Progress: resolved 578, reused 217, downloaded 327, added 81
+Progress: resolved 578, reused 217, downloaded 335, added 83
+Progress: resolved 578, reused 217, downloaded 338, added 83
+Progress: resolved 578, reused 217, downloaded 346, added 85
+Progress: resolved 578, reused 217, downloaded 352, added 116
+Progress: resolved 578, reused 217, downloaded 354, added 138
+Progress: resolved 578, reused 217, downloaded 355, added 257
+Progress: resolved 578, reused 217, downloaded 358, added 387
+Progress: resolved 578, reused 217, downloaded 361, added 504
+Progress: resolved 578, reused 217, downloaded 361, added 563
+Progress: resolved 578, reused 217, downloaded 361, added 576
+Progress: resolved 578, reused 217, downloaded 361, added 577
+Progress: resolved 578, reused 217, downloaded 361, added 578, done
+
+dependencies:
++ @apollo/client 3.14.0
++ @hookform/resolvers 5.2.2
++ @supabase/supabase-js 2.106.2
++ @tiptap/extension-code-block-lowlight 3.17.1
++ @tiptap/extension-color 3.17.1
++ @tiptap/extension-highlight 3.17.1
++ @tiptap/extension-image 3.17.1
++ @tiptap/extension-link 3.17.1
++ @tiptap/extension-placeholder 3.17.1
++ @tiptap/extension-subscript 3.17.1
++ @tiptap/extension-superscript 3.17.1
++ @tiptap/extension-table 3.17.1
++ @tiptap/extension-table-cell 3.17.1
++ @tiptap/extension-table-header 3.17.1
++ @tiptap/extension-table-row 3.17.1
++ @tiptap/extension-task-item 3.17.1
++ @tiptap/extension-task-list 3.17.1
++ @tiptap/extension-text-align 3.17.1
++ @tiptap/extension-text-style 3.17.1
++ @tiptap/extension-typography 3.17.1
++ @tiptap/extension-underline 3.17.1
++ @tiptap/extension-youtube 3.17.1
++ @tiptap/pm 3.17.1
++ @tiptap/react 3.17.1
++ @tiptap/starter-kit 3.17.1
++ daisyui 5.5.14
++ editor-prose editor-prose@file:../../packages/editor-prose(react@19.1.1)
++ graphql 16.12.0
++ graphql-tag 2.12.6
++ highlight.js 11.11.1
++ lowlight 3.3.0
++ lucide-react 0.476.0
++ marked 17.0.1
++ react 19.1.1
++ react-dom 19.1.1
++ react-hook-form 7.71.1
++ react-router-dom 7.13.0
++ slugify 1.6.6
++ sonner 2.0.7
++ tailwindcss 4.1.18
++ tiptap-extension-resize-image 1.3.2
++ turndown 7.2.2
++ zod 4.3.6
+
+devDependencies:
++ @eslint/js 9.36.0
++ @rsbuild/core 1.5.12
++ @rsbuild/plugin-react 1.4.1
++ @tailwindcss/postcss 4.1.18
++ @tailwindcss/typography 0.5.19
++ @testing-library/jest-dom 6.9.1
++ @testing-library/react 16.3.2
++ @testing-library/user-event 14.6.1
++ @types/jsonwebtoken 9.0.10
++ @types/marked 6.0.0
++ @types/react 19.1.13
++ @types/react-dom 19.1.9
++ @types/turndown 5.0.6
++ @vitest/ui 4.1.8
++ autoprefixer 10.4.23
++ eslint 9.36.0
++ eslint-plugin-react-hooks 7.0.1
++ eslint-plugin-react-refresh 0.4.22
++ globals 16.4.0
++ jsdom 29.1.1
++ postcss 8.5.6
++ prettier 3.6.2
++ typescript 5.9.2
++ typescript-eslint 8.44.1
++ vitest 4.1.8
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: core-js@3.45.1.                                     │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Done in 26.5s using pnpm v10.33.0
+EXIT: 0

@@ -1255,6 +1255,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "domain_backup"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "domain_interface"
 version = "0.1.0"
 dependencies = [

@@ -1,0 +1,718 @@
+## cargo test --no-fail-fast (2026-11-22T14:24:38+07:00)
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\domain\response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_media\src\lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\domain\response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\bucket\access\access_handler.rs:14:1
+   |
+14 | / pub struct BucketAccessPolicy {
+15 | |     pub storage: SupabaseStorage,
+16 | |     pub cache: Arc<Cache<String, bool>>,
+17 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\create\create_handler.rs:9:1
+   |
+ 9 | / pub struct CreateMediaHandler {
+10 | |     pub media_config: Arc<MediaConfig>,
+11 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+ --> domain_media\src\handlers\delete\delete_handler.rs:5:1
+  |
+5 | / pub struct DeleteMediaHandler {
+6 | |     pub media_config: Arc<MediaConfig>,
+7 | | }
+  | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\list\list_handler.rs:8:1
+   |
+ 8 | / pub struct ListMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\read\metadata_handler.rs:8:1
+   |
+ 8 | / pub struct MetadataMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\read\read_handler.rs:24:1
+   |
+24 | / pub struct ReadMediaHandler {
+25 | |     pub media_config: Arc<MediaConfig>,
+26 | |     pub media_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
+27 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user\src\domain\response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_user\src\lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user\src\domain\response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: `domain_media` (lib) generated 8 warnings
+warning: `domain_user` (lib) generated 2 warnings
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\domain\response.rs:21:1
+   |
+21 | / pub struct ApiResponseWith<TData>
+22 | | where
+23 | |     TData: Serialize,
+...  |
+26 | |     data: TData,
+27 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_posts\src\lib.rs:9:9
+   |
+ 9 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\domain\response.rs:61:1
+   |
+61 | / pub struct ApiResponseError {
+62 | |     error_code: ErrorCode,
+63 | |     errors: Vec<String>,
+64 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\migrations\mod.rs:19:1
+   |
+19 | pub struct Migrator;
+   | ^^^^^^^^^^^^^^^^^^^^
+
+   Compiling domain_backup v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_backup)
+warning: `domain_posts` (lib) generated 3 warnings
+warning: function `now_seconds` is never used
+  --> gateway\src\backup_cli.rs:59:4
+   |
+59 | fn now_seconds() -> Result<u64, String> {
+   |    ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `gateway` (bin "my-cms-api" test) generated 1 warning
+warning: `domain_user` (lib test) generated 2 warnings (2 duplicates)
+warning: `domain_media` (lib test) generated 8 warnings (8 duplicates)
+warning: `domain_posts` (lib test) generated 3 warnings (3 duplicates)
+warning: unused dependency `futures`
+  --> domain_interface\Cargo.toml:17:1
+   |
+17 | futures = "0.3"
+   | ^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `futures`
+warning: `domain_interface` (manifest) generated 1 warning
+warning: unused dependency `async-std`
+  --> domain_media\Cargo.toml:14:1
+   |
+14 | async-std = { version = "1.13.2", features = ["attributes"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `async-std`
+warning: `domain_media` (manifest) generated 1 warning
+warning: unused dependency `async-std`
+  --> domain_posts\Cargo.toml:14:1
+   |
+14 | async-std = { version = "1.13.2", features = ["attributes"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `async-std`
+warning: unused dependency `domain_auth`
+  --> domain_posts\Cargo.toml:21:1
+   |
+21 | domain_auth = { path = "../domain_auth" }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `domain_auth`
+help: to still use for development builds, move to `dev-dependencies`
+warning: unused dependency `dotenv`
+  --> domain_posts\Cargo.toml:20:1
+   |
+20 | dotenv = "0.15.0"
+   | ^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `dotenv`
+warning: unused dependency `fake`
+  --> domain_posts\Cargo.toml:23:1
+   |
+23 | fake = { version = "4.4.0", features = ["derive"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `fake`
+help: to still use for development builds, move to `dev-dependencies`
+warning: unused dependency `moka`
+  --> domain_posts\Cargo.toml:34:1
+   |
+34 | moka = { version = "0.12.15", features = ["future"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `moka`
+warning: unused dependency `nanoid`
+  --> domain_posts\Cargo.toml:35:1
+   |
+35 | nanoid = "0.4.0"
+   | ^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `nanoid`
+warning: unused dependency `tracing-error`
+  --> domain_posts\Cargo.toml:70:1
+   |
+70 | tracing-error = "0.2.1"
+   | ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `tracing-error`
+warning: unused dependency `tracing-opentelemetry-instrumentation-sdk`
+  --> domain_posts\Cargo.toml:77:1
+   |
+77 | tracing-opentelemetry-instrumentation-sdk = "0.30.0"
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `tracing-opentelemetry-instrumentation-sdk`
+warning: `domain_posts` (manifest) generated 8 warnings
+warning: unused dependency `async-std`
+  --> domain_user\Cargo.toml:14:1
+   |
+14 | async-std = { version = "1.13.2", features = ["attributes"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `async-std`
+warning: unused dependency `tower-cookies`
+  --> domain_user\Cargo.toml:26:1
+   |
+26 | tower-cookies = "0.11.0"
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `tower-cookies`
+warning: `domain_user` (manifest) generated 2 warnings
+warning: unused dependency `test_helpers`
+  --> gateway\Cargo.toml:41:1
+   |
+41 | test_helpers = { path = "../test_helpers" }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `test_helpers`
+warning: `gateway` (manifest) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.44s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_auth/214e987fa917951f\out\domain_auth-214e987fa917951f.exe)
+
+running 29 tests
+test domain::env::tests::auth_required_env_lists_exactly_three_vars ... ok
+test service::tests::domain_auth_service_required_env_lists_auth_vars_only ... ok
+test domain::env::tests::validate_lists_missing_vars_in_error_message ... ok
+test service::tests::domain_auth_service_health_descriptor ... ok
+test service::tests::domain_auth_service_is_object_safe ... ok
+test service::tests::domain_auth_service_migrations_is_empty ... ok
+test factory::tests::auth_layer_from_env_returns_ok_when_env_vars_are_set ... ok
+test service::tests::validate_config_returns_missing_env_for_supabase_jwt_secret_when_unset ... ok
+test domain::env::tests::validate_succeeds_when_all_required_vars_are_set ... ok
+test factory::tests::auth_layer_from_env_emits_info_event_with_resolved_url_and_no_jwt_secret ... ok
+test tests::missing_auth_header_returns_401 ... ok
+test tests::or_semantics_user_with_second_required_role_passes ... ok
+test tests::or_semantics_user_with_no_roles_fails ... ok
+test factory::tests::auth_layer_from_env_uses_supabase_internal_url_when_supabase_url_is_missing ... ok
+test tests::or_semantics_user_with_first_required_role_passes ... ok
+test tests::no_roles_returns_403 ... ok
+test tests::or_semantics_extra_user_role_does_not_block_when_one_matches ... ok
+test tests::empty_required_roles_allows_any_authenticated_user ... ok
+test tests::expired_token_returns_401 ... ok
+test tests::or_semantics_user_with_both_required_roles_passes ... ok
+test factory::tests::auth_layer_from_env_returns_missing_env_error_when_supabase_jwt_secret_is_unset ... ok
+test tests::or_semantics_user_with_unrelated_role_fails ... ok
+test tests::valid_token_inserts_authenticated_actor_extension ... ok
+test service::tests::validate_config_returns_missing_env_for_authorization_audience_when_unset ... ok
+test tests::valid_token_passes_auth ... ok
+test tests::wrong_role_returns_403 ... ok
+test factory::tests::auth_layer_from_env_returns_missing_env_error_when_supabase_url_is_unset ... ok
+test service::tests::validate_config_returns_missing_env_for_supabase_url_when_unset ... ok
+test service::tests::validate_config_succeeds_when_all_required_env_vars_are_set ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (target\debug\build\domain_auth/35f455681e9d5f63\out\domain_auth-35f455681e9d5f63.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\build\domain_backup/bbaf0d9bca37f574\out\domain_backup-bbaf0d9bca37f574.exe)
+
+running 35 tests
+test domain::config::tests::from_env_child_probe ... ok
+test domain::config::tests::escalation_owner_cannot_be_overridden ... ok
+test domain::config::tests::disabled_reason_closed_set_spelling ... ok
+test domain::config::tests::forbidden_comparison_is_case_insensitive_on_windows ... ok
+test domain::config::tests::is_loopback_bind_accepts_only_loopback_ip_literals ... ok
+test domain::config::tests::non_loopback_bind_takes_precedence_over_invalid_config ... ok
+test domain::config::tests::invalid_numeric_env_refuses_capability ... ok
+test domain::config::tests::not_configured_takes_precedence ... ok
+test domain::config::tests::disabled_reason_projection_covers_null ... ok
+test domain::config::tests::disabled_unless_backup_enabled_is_true ... ok
+test domain::config::tests::defaults_match_owner_values ... ok
+test domain::config::tests::host_default_is_loopback_and_non_loopback_host_disables ... ok
+test domain::config::tests::storage_root_metadata_error_is_inaccessible ... ok
+test domain::config::tests::storage_root_rejects_parent_dir_component ... ok
+test domain::config::tests::storage_root_rejects_existing_file ... ok
+test domain::config::tests::storage_root_rejects_verbatim_prefix_on_windows ... ok
+test domain::state_machine::tests::no_transition_reaches_succeeded_or_recovery_required ... ok
+test domain::config::tests::origin_host_label_hyphen_edges_refused ... ok
+test domain::state_machine::tests::only_the_four_u1_edges_are_allowed ... ok
+test domain::state_machine::tests::terminal_states_have_no_outgoing_transitions ... ok
+test domain::status::tests::all_lists_every_variant_once ... ok
+test domain::status::tests::no_write_or_projection_yields_succeeded_or_recovery_required ... ok
+test domain::status::tests::wire_spelling_keeps_documented_values_and_adds_incomplete ... ok
+test domain::config::tests::enabled_without_storage_root_refuses ... ok
+test domain::config::tests::origin_port_bounds_are_enforced ... ok
+test domain::config::tests::invalid_config_always_yields_disabled_state ... ok
+test domain::config::tests::padded_required_text_is_invalid_config ... ok
+test domain::config::tests::non_canonical_and_overflowing_numbers_are_invalid ... ok
+test domain::config::tests::allowed_origins_required_and_well_formed ... ok
+test domain::config::tests::bounds_other_than_default_disable_with_invalid_config ... ok
+test domain::config::tests::ingress_limits_required ... ok
+test domain::config::tests::load_refuses_link_or_file_storage_root ... ok
+test domain::config::tests::storage_root_rejects_link_on_ancestor ... ok
+test domain::config::tests::from_env_non_utf8_value_fails_validation ... ok
+test domain::config::tests::storage_root_rejects_forbidden_and_relative_paths ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running unittests src\lib.rs (target\debug\build\domain_interface/7b65cc8892f7b049\out\domain_interface-7b65cc8892f7b049.exe)
+
+running 9 tests
+test tests::authenticated_actor_has_any_role_returns_false_when_no_match ... ok
+test tests::domain_service_run_migrations_default_is_object_safe ... ok
+test tests::migration_descriptor_preserves_identity ... ok
+test tests::domain_service_run_migrations_default_is_ok ... ok
+test tests::health_descriptor_is_copy ... ok
+test tests::domain_config_error_displays_without_secrets ... ok
+test tests::authenticated_actor_has_any_role_returns_true_when_role_matches ... ok
+test tests::mount_serializes_to_lowercase ... ok
+test tests::mount_round_trips_through_json ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\build\domain_media/904d66593e407a2a\out\domain_media-904d66593e407a2a.exe)
+
+running 101 tests
+test domain::extensions::tests::test_string_to_slug ... ok
+test handlers::bucket::dto::tests::bucket_name_error_accepts_three_char_lowercase_name ... ok
+test handlers::bucket::dto::tests::bucket_name_error_flags_empty_string ... ok
+test handlers::bucket::dto::tests::bucket_name_error_flags_invalid_charset ... ok
+test handlers::bucket::dto::tests::bucket_name_error_flags_short_names ... ok
+test handlers::bucket::dto::tests::bucket_name_error_flags_uppercase_lead ... ok
+test handlers::bucket::dto::tests::bucket_name_error_flags_overlong_names ... ok
+test handlers::bucket::dto::tests::is_valid_rejects_names_shorter_than_3_chars ... ok
+test handlers::bucket::dto::tests::is_valid_rejects_names_starting_with_digit ... ok
+test handlers::bucket::dto::tests::is_valid_rejects_names_starting_with_dash_or_underscore ... ok
+test handlers::bucket::dto::tests::is_valid_rejects_disallowed_characters ... ok
+test handlers::bucket::dto::tests::is_valid_rejects_uppercase_letters ... ok
+test handlers::bucket::dto::tests::is_valid_accepts_lowercase_letter_then_alphanumerics_dashes_underscores ... ok
+test handlers::bucket::delete::delete_handler::tests::rejects_invalid_name ... ok
+test handlers::bucket::create::create_handler::tests::rejects_reserved_name ... ok
+test handlers::bucket::delete::delete_handler::tests::rejects_reserved_name ... ok
+test handlers::bucket::create::create_handler::tests::rejects_invalid_name ... ok
+test handlers::bucket::empty::empty_handler::tests::rejects_invalid_name ... ok
+test handlers::bucket::get::get_handler::tests::get_bucket_rejects_name_starting_with_digit ... ok
+test handlers::bucket::get::get_handler::tests::get_bucket_rejects_uppercase_name ... ok
+test handlers::bucket::update::update_handler::tests::rejects_empty_body ... ok
+test handlers::bucket::update::update_handler::tests::rejects_invalid_name ... ok
+test handlers::bucket::dto::tests::is_valid_rejects_names_longer_than_63_chars ... ok
+test handlers::read::read_handler::tests::cache_key_with_different_dimensions_are_distinct ... ok
+test handlers::read::read_handler::tests::cache_key_with_same_bucket_path_and_dimensions_are_equal ... ok
+test handlers::read::read_handler::tests::cache_keys_with_different_buckets_are_distinct ... ok
+test handlers::bucket::access::access_handler::tests::ensure_public_or_admin_skips_supabase_when_is_admin_true ... ok
+test handlers::supabase_storage::tests::auth_key_falls_back_to_anon_key ... ok
+test handlers::supabase_storage::tests::auth_key_returns_service_role_when_set ... ok
+test handlers::read::metadata_handler::tests::response_url_uses_media_base_url_when_bucket_query_included ... ok
+test handlers::list::list_handler::tests::response_url_uses_media_base_url_when_bucket_query_included ... ok
+test handlers::bucket::access::access_handler::tests::ensure_public_or_admin_passes_when_bucket_is_public_and_caller_is_anon ... ok
+test handlers::bucket::access::access_handler::tests::ensure_public_or_admin_caches_public_flag_across_calls ... ok
+test handlers::bucket::access::access_handler::tests::ensure_public_or_admin_rejects_with_not_found_when_bucket_is_private_and_caller_is_anon ... ok
+test handlers::read::metadata_handler::tests::response_url_uses_media_base_url_when_bucket_query_omitted ... ok
+test handlers::read::read_handler::tests::get_rendered_image_calls_supabase_render_and_caches_bytes ... ok
+test handlers::list::list_handler::tests::response_url_uses_media_base_url_when_bucket_query_omitted ... ok
+test handlers::supabase_storage::tests::create_bucket_posts_body ... ok
+test handlers::create::create_handler::tests::response_url_uses_media_base_url_when_bucket_query_included ... ok
+test handlers::supabase_storage::tests::create_bucket_returns_conflict_on_409 ... ok
+test handlers::supabase_storage::tests::delete_batch_issues_delete_with_body ... ok
+test handlers::read::read_handler::tests::get_rendered_image_returns_not_found_on_404 ... ok
+test handlers::read::read_handler::tests::get_media_caches_bucket_scoped_keys_separately ... ok
+test handlers::create::create_handler::tests::response_url_uses_media_base_url_when_bucket_query_omitted_for_image ... ok
+test handlers::supabase_storage::tests::delete_batch_returns_not_found_on_http_404 ... ok
+test handlers::supabase_storage::tests::delete_batch_returns_not_found_on_supabase_400_with_statuscode_404 ... ok
+test handlers::supabase_storage::tests::delete_bucket_purge_false_sends_purge_false_in_body ... ok
+test handlers::supabase_storage::tests::delete_bucket_returns_not_found_on_404 ... ok
+test handlers::supabase_storage::tests::delete_issues_delete_to_correct_path ... ok
+test handlers::supabase_storage::tests::delete_bucket_returns_storage_error_on_400 ... ok
+test handlers::supabase_storage::tests::delete_returns_not_found_on_http_404 ... ok
+test handlers::read::read_handler::tests::get_rendered_image_with_different_buckets_does_not_share_cache ... ok
+test handlers::supabase_storage::tests::delete_returns_not_found_on_supabase_400_with_statuscode_404 ... ok
+test handlers::supabase_storage::tests::delete_bucket_purge_true_sends_purge_in_body ... ok
+test handlers::supabase_storage::tests::download_render_guesses_content_type_when_response_omits_it ... ok
+test handlers::supabase_storage::tests::download_render_falls_back_to_anonymous_key_when_service_role_absent ... ok
+test handlers::supabase_storage::tests::download_render_returns_bytes_and_content_type_on_200_with_both_dimensions ... ok
+test handlers::supabase_storage::tests::download_render_returns_not_found_on_404 ... ok
+test handlers::supabase_storage::tests::download_render_returns_storage_error_on_500 ... ok
+test handlers::supabase_storage::tests::download_render_returns_not_found_on_supabase_400_with_statuscode_404 ... ok
+test handlers::supabase_storage::tests::is_bucket_not_found_matches_bucket_missing_alone ... ok
+test handlers::supabase_storage::tests::download_render_with_only_width_sends_only_width_query ... ok
+test handlers::supabase_storage::tests::is_bucket_not_found_matches_bucket_missing_and_bucket_not_found_codes ... ok
+test handlers::supabase_storage::tests::download_render_uses_explicit_bucket_argument ... ok
+test handlers::supabase_storage::tests::download_render_with_only_height_sends_only_height_query ... ok
+test handlers::supabase_storage::tests::download_returns_bytes_and_content_type_on_200 ... ok
+test handlers::supabase_storage::tests::download_returns_not_found_on_supabase_400_with_statuscode_404 ... ok
+test handlers::supabase_storage::tests::is_bucket_not_found_matches_classic_bucket_not_found_with_statuscode_404 ... ok
+test handlers::supabase_storage::tests::is_bucket_not_found_matches_does_not_exist_with_statuscode_404 ... ok
+test handlers::supabase_storage::tests::download_returns_storage_error_on_500 ... ok
+test handlers::supabase_storage::tests::is_bucket_not_found_rejects_non_404_status_codes_with_unrelated_messages ... ok
+test handlers::supabase_storage::tests::download_returns_not_found_on_404 ... ok
+test handlers::supabase_storage::tests::is_bucket_not_found_rejects_non_json_body ... ok
+test handlers::supabase_storage::tests::get_bucket_returns_404_as_not_found ... ok
+test handlers::supabase_storage::tests::empty_bucket_returns_not_found_on_404 ... ok
+test handlers::supabase_storage::tests::empty_bucket_posts_to_empty_path ... ok
+test handlers::supabase_storage::tests::get_info_returns_not_found_on_404 ... ok
+test handlers::supabase_storage::tests::public_url_builds_expected_path ... ok
+test handlers::supabase_storage::tests::render_image_url_with_both_dimensions ... ok
+test handlers::supabase_storage::tests::get_info_parses_json_response ... ok
+test handlers::supabase_storage::tests::get_info_returns_not_found_on_supabase_400_with_statuscode_404 ... ok
+test handlers::supabase_storage::tests::render_image_url_with_no_dimensions ... ok
+test handlers::supabase_storage::tests::render_image_url_with_only_width ... ok
+test handlers::supabase_storage::tests::error_messages_never_include_service_role_key ... ok
+test handlers::supabase_storage::tests::render_image_url_with_only_height ... ok
+test handlers::supabase_storage::tests::list_buckets_returns_storage_error_on_500 ... ok
+test handlers::supabase_storage::tests::list_buckets_returns_array ... ok
+test handlers::supabase_storage::tests::list_buckets_returns_storage_error_on_401 ... ok
+test handlers::supabase_storage::tests::list_objects_returns_not_found_on_does_not_exist_body ... ok
+test handlers::supabase_storage::tests::list_objects_posts_with_correct_body_and_returns_list ... ok
+test handlers::tests::media_config_from_env_returns_missing_env_for_supabase_url_when_unset ... ok
+test handlers::supabase_storage::tests::list_objects_returns_not_found_on_http_404 ... ok
+test handlers::supabase_storage::tests::list_objects_returns_not_found_on_supabase_400_with_statuscode_404 ... ok
+test handlers::tests::media_config_from_env_returns_ok_when_all_vars_set ... ok
+test handlers::supabase_storage::tests::upload_issues_multipart_post_with_bearer_and_upsert ... ok
+test handlers::supabase_storage::tests::update_bucket_posts_to_path ... ok
+test handlers::supabase_storage::tests::upload_returns_storage_error_on_500 ... ok
+test handlers::supabase_storage::tests::upload_returns_not_found_on_http_404 ... ok
+test handlers::supabase_storage::tests::upload_returns_not_found_on_supabase_400_with_statuscode_404 ... ok
+test handlers::supabase_storage::tests::same_storage_targets_two_buckets_via_method_argument ... ok
+test handlers::supabase_storage::tests::url_patterns_match_spec_single_segment ... ok
+
+test result: ok. 101 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src\lib.rs (target\debug\build\domain_posts/9992c5fc0817c793\out\domain_posts-9992c5fc0817c793.exe)
+
+running 52 tests
+test api::post::graphql::tests::immutable_post_introspection_returns_seven_entities ... ignored, requires live PostgreSQL testcontainer
+test api::post::graphql::tests::mutable_post_with_writer_jwt_accepts_mutation ... ignored, requires live PostgreSQL testcontainer
+test api::post::graphql::tests::application_core_lib_rs_does_not_declare_graphql_submodule ... ok
+test api::post::graphql::tests::legacy_apps_api_tree_has_no_post_graphql ... ok
+test api::post::graphql::tests::legacy_post_mod_rs_does_not_declare_graphql_submodule ... ok
+test api::post::graphql::tests::legacy_api_mod_rs_does_not_declare_graphql_submodule ... ok
+test domain::extensions_impl::tests::test_string_to_slug ... ok
+test domain::response::tests::test_case_conflict_from_app_error ... ok
+test domain::response::tests::test_case_conflict ... ok
+test domain::response::tests::test_case_one ... ok
+test api::post::graphql::tests::playground_immutable_returns_200_with_new_path ... ok
+test api::post::graphql::tests::playground_mutable_returns_200_with_new_path ... ok
+test api::post::graphql::tests::mutable_post_without_jwt_returns_401 ... ok
+test handlers::post::translate::translation_validator::prompt_tests::prompt_contains_paragraph_preservation_clause ... ok
+test handlers::post::translate::translation_validator::prompt_tests::prompt_forbids_headings_only_response ... ok
+test api::post::graphql::tests::mutable_mount_rejects_jwt_with_no_app_metadata_roles ... ok
+test api::post::graphql::tests::mutable_mount_rejects_expired_jwt_with_401 ... ok
+test api::post::graphql::tests::mutable_mount_rejects_role_less_jwt ... ok
+test handlers::post::translate::translation_validator::prompt_tests::prompt_keeps_original_html_preservation_clause ... ok
+test api::post::graphql::tests::mutable_mount_accepts_writer_jwt ... ok
+test api::post::graphql::tests::mutable_mount_accepts_administrator_jwt ... ok
+test api::post::graphql::tests::routes_returns_graphql_public_and_protected_registrations ... ok
+test api::post::graphql::tests::routes_carries_post_crud_protected_registrations ... ok
+test handlers::category::delete::delete_handler::tests::handle_delete_categories_with_children ... FAILED
+test handlers::tag_helper::create::create_handler::tests::handle_create_tags_in_transaction_test01 ... FAILED
+test handlers::vector_store::vector_store_pg::tests::test_create_content_preview ... ok
+test handlers::vector_store::vector_store_pg::tests::test_create_content_preview_truncates_at_paragraph ... ok
+test handlers::vector_store::vector_store_pg::tests::test_create_content_preview_truncates_at_sentence ... ok
+test handlers::vector_store::vector_store_pg::tests::test_find_translation_not_found ... ok
+test handlers::post::translate::translation_validator::tests::count_returns_zero_for_empty_input ... ok
+test handlers::tag_helper::read::read_handler::tests::handle_read_tags_test01 ... FAILED
+test handlers::vector_store::vector_store_pg::tests::test_format_embedding_for_pg ... ok
+test handlers::post::translate::translation_validator::tests::count_handles_lowercase_and_uppercase_and_attributes ... ok
+test handlers::vector_store::vector_store_pg::tests::test_search_similar_translations ... ok
+test handlers::vector_store::vector_store_pg::tests::test_store_and_find_translation ... ok
+test handlers::post::translate::translation_validator::tests::count_ignores_other_block_tags ... ok
+test handlers::vector_store::vector_store_pg::tests::test_store_translation_upsert ... ok
+test migrations::m20240409_151952_release_100::tests::handle_create_post_testcase_01 ... ok
+test migrations_cli::tests::list_identities_preserves_original_order ... ok
+test migrations_cli::tests::handle_args_help_exits_ok ... ok
+test migrations_cli::tests::handle_args_unknown_verb_routes_to_up_failure_path ... ok
+test handlers::post::translate::translation_validator::tests::headings_only_translation_is_rejected ... ok
+test handlers::post::translate::translation_validator::tests::short_source_with_no_paragraphs_is_not_rejected ... ok
+test handlers::post::translate::translation_validator::tests::complete_translation_returns_ok ... ok
+test handlers::post::translate::translation_validator::tests::partial_translation_below_threshold_is_rejected ... ok
+test handlers::post::translate::translation_validator::tests::single_paragraph_source_still_requires_at_least_one_paragraph ... ok
+test handlers::post::translate::translation_validator::tests::translation_at_exact_threshold_is_accepted ... ok
+test handlers::category::create::create_handler::tests::handle_create_cartegory_testcase_01 ... FAILED
+test handlers::category::modify::modify_handler::tests::handle_modify_category_testcase_failed_due_to_rowversion ... FAILED
+test handlers::category::read::category_read_handler::tests::handle_get_all_cartegory_testcase_01 ... FAILED
+test handlers::category::create::create_handler::tests::handle_create_cartegory_testcase_parent ... FAILED
+test handlers::category::modify::modify_handler::tests::handle_modify_category_testcase_successfully ... FAILED
+
+failures:
+
+---- handlers::category::delete::delete_handler::tests::handle_delete_categories_with_children stdout ----
+
+thread 'handlers::category::delete::delete_handler::tests::handle_delete_categories_with_children' (1100) panicked at test_helpers\src\lib.rs:20:53:
+called `Result::unwrap()` on an `Err` value: Client(CreateContainer(DockerResponseServerError { status_code: 503, message: "Docker Desktop is unable to start\n\n\n" }))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- handlers::tag_helper::create::create_handler::tests::handle_create_tags_in_transaction_test01 stdout ----
+
+thread 'handlers::tag_helper::create::create_handler::tests::handle_create_tags_in_transaction_test01' (25756) panicked at test_helpers\src\lib.rs:20:53:
+called `Result::unwrap()` on an `Err` value: Client(CreateContainer(DockerResponseServerError { status_code: 503, message: "Docker Desktop is unable to start\n\n\n" }))
+
+---- handlers::tag_helper::read::read_handler::tests::handle_read_tags_test01 stdout ----
+
+thread 'handlers::tag_helper::read::read_handler::tests::handle_read_tags_test01' (32372) panicked at test_helpers\src\lib.rs:20:53:
+called `Result::unwrap()` on an `Err` value: Client(CreateContainer(DockerResponseServerError { status_code: 503, message: "Docker Desktop is unable to start\n\n\n" }))
+
+---- handlers::category::create::create_handler::tests::handle_create_cartegory_testcase_01 stdout ----
+
+thread 'handlers::category::create::create_handler::tests::handle_create_cartegory_testcase_01' (12560) panicked at test_helpers\src\lib.rs:20:53:
+called `Result::unwrap()` on an `Err` value: Client(CreateContainer(DockerResponseServerError { status_code: 503, message: "Docker Desktop is unable to start\n\n\n" }))
+
+---- handlers::category::modify::modify_handler::tests::handle_modify_category_testcase_failed_due_to_rowversion stdout ----
+
+thread 'handlers::category::modify::modify_handler::tests::handle_modify_category_testcase_failed_due_to_rowversion' (24768) panicked at test_helpers\src\lib.rs:20:53:
+called `Result::unwrap()` on an `Err` value: Client(CreateContainer(DockerResponseServerError { status_code: 503, message: "Docker Desktop is unable to start\n\n\n" }))
+
+---- handlers::category::read::category_read_handler::tests::handle_get_all_cartegory_testcase_01 stdout ----
+
+thread 'handlers::category::read::category_read_handler::tests::handle_get_all_cartegory_testcase_01' (35140) panicked at test_helpers\src\lib.rs:20:53:
+called `Result::unwrap()` on an `Err` value: Client(CreateContainer(DockerResponseServerError { status_code: 503, message: "Docker Desktop is unable to start\n\n\n" }))
+
+---- handlers::category::create::create_handler::tests::handle_create_cartegory_testcase_parent stdout ----
+
+thread 'handlers::category::create::create_handler::tests::handle_create_cartegory_testcase_parent' (36252) panicked at test_helpers\src\lib.rs:20:53:
+called `Result::unwrap()` on an `Err` value: Client(CreateContainer(DockerResponseServerError { status_code: 503, message: "Docker Desktop is unable to start\n\n\n" }))
+
+---- handlers::category::modify::modify_handler::tests::handle_modify_category_testcase_successfully stdout ----
+
+thread 'handlers::category::modify::modify_handler::tests::handle_modify_category_testcase_successfully' (1980) panicked at test_helpers\src\lib.rs:20:53:
+called `Result::unwrap()` on an `Err` value: Client(CreateContainer(DockerResponseServerError { status_code: 503, message: "Docker Desktop is unable to start\n\n\n" }))
+
+
+failures:
+    handlers::category::create::create_handler::tests::handle_create_cartegory_testcase_01
+    handlers::category::create::create_handler::tests::handle_create_cartegory_testcase_parent
+    handlers::category::delete::delete_handler::tests::handle_delete_categories_with_children
+    handlers::category::modify::modify_handler::tests::handle_modify_category_testcase_failed_due_to_rowversion
+    handlers::category::modify::modify_handler::tests::handle_modify_category_testcase_successfully
+    handlers::category::read::category_read_handler::tests::handle_get_all_cartegory_testcase_01
+    handlers::tag_helper::create::create_handler::tests::handle_create_tags_in_transaction_test01
+    handlers::tag_helper::read::read_handler::tests::handle_read_tags_test01
+
+test result: FAILED. 42 passed; 8 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.32s
+
+error: test failed, to rerun pass `-p domain_posts --lib`
+     Running unittests src\lib.rs (target\debug\build\domain_seo/03d0f8159b623d67\out\domain_seo-03d0f8159b623d67.exe)
+
+running 11 tests
+test integration_tests::tests::migration_and_public_lifecycle_cover_disable_enable_update_delete ... ignored, requires Docker for PostgreSQL testcontainer
+test handlers::head_assets::head_asset_validation::tests::rejects_duplicate_attributes_and_oversized_source ... ok
+test service::tests::service_exposes_stable_health_and_empty_config_contract ... ok
+test handlers::head_assets::head_asset_validation::tests::accepts_json_ld_and_verification ... ok
+test handlers::head_assets::head_asset_validation::tests::rejects_body_event_handler_and_urls ... ok
+test handlers::head_assets::head_asset_validation::tests::rejects_typed_metadata_and_script_content_with_src ... ok
+test handlers::head_assets::head_asset_validation::tests::accepts_gtag ... ok
+test service::tests::service_owns_one_migration ... ok
+test handlers::head_assets::head_assets_handler::tests::public_model_omits_administration_fields ... ok
+test handlers::head_assets::head_assets_handler::tests::create_rejects_invalid_fields_before_database_access ... ok
+test service::tests::service_registers_public_and_administrator_route_boundaries ... ok
+
+test result: ok. 10 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\build\domain_user/de8cded411eda503\out\domain_user-de8cded411eda503.exe)
+
+running 36 tests
+test api::routes::tests::routes_returns_administrator_mount_only ... ok
+test handlers::create::create_handler::tests::handle_create_user_rejects_short_password ... ok
+test handlers::create::create_handler::tests::handle_create_user_rejects_unknown_role ... ok
+test handlers::delete::delete_handler::tests::handle_delete_user_blocks_self_delete ... ok
+test handlers::read_list::read_list_handler::tests::handle_list_users_rejects_per_page_zero ... ok
+test handlers::read_list::read_list_handler::tests::handle_list_users_rejects_unknown_role_filter ... ok
+test handlers::read_list::read_list_handler::tests::handle_list_users_rejects_per_page_over_200 ... ok
+test handlers::read_list::read_list_handler::tests::handle_list_users_rejects_page_zero ... ok
+test handlers::modify::modify_handler::tests::handle_modify_user_rejects_unknown_role ... ok
+test handlers::reset_password::reset_password_handler::tests::handle_reset_password_rejects_short_password ... ok
+test handlers::supabase_admin_client::tests::auth_key_returns_service_role_key ... ok
+test handlers::supabase_admin_client::tests::admin_base_url_builds_expected_path ... ok
+test handlers::supabase_admin_client::tests::debug_impl_redacts_service_role_key ... ok
+test handlers::delete::delete_handler::tests::handle_delete_user_returns_ok_on_success ... ok
+test handlers::read_one::read_one_handler::tests::handle_get_user_returns_not_found_on_404 ... ok
+test handlers::modify::modify_handler::tests::handle_modify_user_returns_not_found_on_404 ... ok
+test handlers::reset_password::reset_password_handler::tests::handle_reset_password_returns_response_on_success ... ok
+test handlers::read_list::read_list_handler::tests::handle_list_users_returns_users_and_forwards_query_params ... ok
+test handlers::read_list::read_list_handler::tests::handle_list_users_filters_by_email_substring_case_insensitively ... ok
+test handlers::read_one::read_one_handler::tests::handle_get_user_returns_user_on_200 ... ok
+test handlers::modify::modify_handler::tests::handle_modify_user_translates_banned_true_to_update ... ok
+test handlers::create::create_handler::tests::handle_create_user_returns_response_on_success ... ok
+test handlers::create::create_handler::tests::handle_create_user_returns_conflict_on_duplicate_email ... ok
+test handlers::supabase_admin_client::tests::create_user_posts_email_confirm_and_app_metadata ... ok
+test service::tests::domain_user_service_is_object_safe ... ok
+test service::tests::health_descriptor_is_domain_user ... ok
+test service::tests::migrations_is_empty ... ok
+test service::tests::required_env_lists_two_vars ... ok
+test handlers::supabase_admin_client::tests::delete_user_issues_delete_to_admin_path ... ok
+test service::tests::required_env_matches_validate_config_locked_behavior ... ok
+test service::tests::validate_config_returns_ok_for_constructed_service ... ok
+test handlers::supabase_admin_client::tests::get_user_returns_404_on_not_found ... ok
+test handlers::supabase_admin_client::tests::list_users_issues_bearer_and_apikey_headers ... ok
+test handlers::supabase_admin_client::tests::error_messages_never_include_service_role_key ... ok
+test handlers::supabase_admin_client::tests::update_user_translates_banned_true_to_ban_duration ... ok
+test handlers::reset_password::reset_password_handler::tests::handle_reset_password_returns_not_found_on_404 ... ok
+
+test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src\main.rs (target\debug\build\gateway/fd1303aad567f18b\out\my_cms_api-fd1303aad567f18b.exe)
+
+running 17 tests
+test backup_cli::tests::disallows_invalid_object_keys ... ok
+test backup_cli::tests::rejects_incomplete_manifest_for_success ... ok
+test backup_cli::tests::rejects_unsafe_backup_ids_and_paths ... ok
+test backup_cli::tests::hashes_archive_payload_deterministically ... ok
+test migrate_cli::tests::all_migration_identities_include_seo_after_posts ... ok
+test tests::disabled_or_invalid_otlp_exporter_uses_text_logging_fallback ... ok
+test backup_cli::tests::manifest_requires_full_version_and_integrity_fields ... ok
+test backup_cli::tests::reports_missing_credentials_without_echoing_secrets ... ok
+test migrate_cli::tests::handle_args_help_dash_dash_exits_zero ... ok
+test migrate_cli::tests::handle_args_help_exits_zero ... ok
+test migrate_cli::tests::handle_args_unknown_verb_exits_one ... ok
+test migrate_cli::tests::handle_args_up_missing_database_url_exits_one ... ok
+test migrate_cli::tests::handle_args_list_succeeds_even_without_database_url ... ok
+test tests::manifest_with_five_services_returns_five_entries ... ok
+test tests::compose_routers_traces_health_requests_without_changing_response ... ok
+test tests::compose_routers_traces_rejected_protected_requests_without_calling_handler ... ok
+test tests::compose_routers_supplies_cookie_extractor_to_domain_routes ... ok
+
+test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\build\test_helpers/24884881bcaee3f8\out\test_helpers-24884881bcaee3f8.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_auth
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_backup
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_interface
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_media
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_posts
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_seo
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_user
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests test_helpers
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: 1 target failed:
+    `-p domain_posts --lib`
+EXIT: 101

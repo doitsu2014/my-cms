@@ -1,0 +1,98 @@
+
+> admin_side@1.0.0 build D:\orca\my-cms\makara\apps\web
+> rsbuild build
+
+Rsbuild v1.5.12
+
+info    build started...
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+/*! 🌼 daisyUI 5.5.14 */
+Found 1 warning while optimizing generated CSS:
+
+[2m│ }[22m
+[2m│ @layer base {[22m
+[2m│[22m   @property --radialprogress {
+[2m┆[22m            [33m[2m^--[22m Unknown at rule: @property[39m
+[2m┆[22m
+[2m│     syntax: "<percentage>";[22m
+[2m│     inherits: true;[22m
+
+ready   built in [1m2.80[22m s
+
+[34mFile (web)                              Size        Gzip   [39m
+[2mdist\static\js\async\[22m[36m8266.996eed95.js[39m   0.18 kB     [32m0.16 kB[39m
+[2mdist\static\js\async\[22m[36m4877.4030f8cb.js[39m   0.18 kB     [32m0.16 kB[39m
+[2mdist\static\js\async\[22m[36m8631.b927ec30.js[39m   0.18 kB     [32m0.16 kB[39m
+[2mdist\static\js\async\[22m[36m3311.fefd13ba.js[39m   0.18 kB     [32m0.16 kB[39m
+[2mdist\static\js\async\[22m[36m996.2e77802a.js[39m    0.18 kB     [32m0.16 kB[39m
+[2mdist\static\js\async\[22m[36m2304.7ef5c53f.js[39m   0.18 kB     [32m0.16 kB[39m
+[2mdist\static\js\async\[22m[36m6380.2451f562.js[39m   0.18 kB     [32m0.16 kB[39m
+[2mdist\static\js\async\[22m[36m9860.09ba70ed.js[39m   0.18 kB     [32m0.16 kB[39m
+[2mdist\static\js\async\[22m[36m6579.e2efcc46.js[39m   0.18 kB     [32m0.16 kB[39m
+[2mdist\static\js\async\[22m[36m6845.0ad5ad9c.js[39m   0.18 kB     [32m0.16 kB[39m
+[2mdist\static\js\async\[22m[36m4718.fb33d161.js[39m   0.18 kB     [32m0.17 kB[39m
+[2mdist\static\js\async\[22m[36m341.560bcd32.js[39m    0.18 kB     [32m0.16 kB[39m
+[2mdist\static\js\async\[22m[36m6545.621f9531.js[39m   0.18 kB     [32m0.17 kB[39m
+[2mdist\static\js\async\[22m[36m8716.5f75f426.js[39m   0.18 kB     [32m0.17 kB[39m
+[2mdist\static\js\async\[22m[36m1781.806ce7c2.js[39m   0.19 kB     [32m0.17 kB[39m
+[2mdist\static\js\async\[22m[36m7759.8c149596.js[39m   0.31 kB     [32m0.23 kB[39m
+[2mdist\static\js\async\[22m[36m7047.769fd7b5.js[39m   0.46 kB     [32m0.32 kB[39m
+[2mdist\static\js\async\[22m[36m2708.4475278f.js[39m   0.47 kB     [32m0.33 kB[39m
+[2mdist\static\js\async\[22m[36m9970.71080fcf.js[39m   0.47 kB     [32m0.33 kB[39m
+[2mdist\static\js\async\[22m[36m5599.1f7f5e3a.js[39m   0.53 kB     [32m0.37 kB[39m
+[2mdist\[22m[32mindex.html[39m                         0.58 kB     [32m0.31 kB[39m
+[2mdist\static\js\async\[22m[36m1814.dd2a50ca.js[39m   0.62 kB     [32m0.41 kB[39m
+[2mdist\static\js\async\[22m[36m1263.a8158e9f.js[39m   0.99 kB     [32m0.56 kB[39m
+[2mdist\static\js\async\[22m[36m456.d64b31f3.js[39m    1.6 kB      [32m0.75 kB[39m
+[2mdist\static\js\async\[22m[36m4072.286d568a.js[39m   1.8 kB      [32m0.88 kB[39m
+[2mdist\static\js\async\[22m[36m9884.89907412.js[39m   2.0 kB      [32m0.93 kB[39m
+[2mdist\static\js\async\[22m[36m7542.cbd838ad.js[39m   2.0 kB      [32m0.88 kB[39m
+[2mdist\static\js\async\[22m[36m2931.9155ff50.js[39m   4.4 kB      [32m1.9 kB[39m
+[2mdist\static\js\async\[22m[36m4540.abcde85c.js[39m   5.1 kB      [32m2.1 kB[39m
+[2mdist\static\js\async\[22m[36m5021.59791467.js[39m   6.3 kB      [32m2.6 kB[39m
+[2mdist\static\js\async\[22m[36m2621.a1058a6e.js[39m   8.5 kB      [32m3.7 kB[39m
+[2mdist\static\js\async\[22m[36m7969.3dfd60c1.js[39m   10.1 kB     [32m3.5 kB[39m
+[2mdist\static\js\async\[22m[36m8846.ad29d658.js[39m   11.0 kB     [32m3.6 kB[39m
+[2mdist\static\js\async\[22m[36m9426.9cad1266.js[39m   11.0 kB     [32m4.1 kB[39m
+[2mdist\static\js\async\[22m[36m4630.3cb8cf77.js[39m   11.0 kB     [32m4.1 kB[39m
+[2mdist\static\js\async\[22m[36m6963.b9da0056.js[39m   11.7 kB     [32m4.0 kB[39m
+[2mdist\static\js\async\[22m[36m2425.5b7954d5.js[39m   16.1 kB     [32m4.5 kB[39m
+[2mdist\static\js\async\[22m[36m9673.c62cd15a.js[39m   17.4 kB     [32m6.4 kB[39m
+[2mdist\static\js\async\[22m[36m5208.81de5687.js[39m   20.3 kB     [32m7.2 kB[39m
+[2mdist\static\js\async\[22m[36m5446.de855035.js[39m   22.8 kB     [32m8.1 kB[39m
+[2mdist\static\js\async\[22m[36m1659.06f2efa0.js[39m   23.7 kB     [32m8.1 kB[39m
+[2mdist\static\js\async\[22m[36m6307.4132b66f.js[39m   25.3 kB     [32m8.7 kB[39m
+[2mdist\static\js\async\[22m[36m6559.16874bb3.js[39m   25.5 kB     [32m6.6 kB[39m
+[2mdist\static\js\async\[22m[36m6231.eee3f3db.js[39m   28.6 kB     [32m9.2 kB[39m
+[2mdist\static\js\async\[22m[36m3123.2617c750.js[39m   29.7 kB     [32m8.7 kB[39m
+[2mdist\static\js\async\[22m[36m2328.423a4311.js[39m   31.0 kB     [32m10.8 kB[39m
+[2mdist\static\js\async\[22m[36m431.606f190d.js[39m    31.5 kB     [32m10.0 kB[39m
+[2mdist\static\js\async\[22m[36m5094.1f702291.js[39m   33.8 kB     [32m9.7 kB[39m
+[2mdist\static\js\[22m[36mlib-router.81f72a67.js[39m   35.7 kB     [32m12.8 kB[39m
+[2mdist\static\js\async\[22m[36m4199.970af25f.js[39m   35.8 kB     [32m13.0 kB[39m
+[2mdist\static\js\async\[22m[36m3710.85512432.js[39m   39.7 kB     [32m13.1 kB[39m
+[2mdist\static\js\async\[22m[36m1182.fe17bde2.js[39m   40.8 kB     [32m13.3 kB[39m
+[2mdist\static\js\async\[22m[36m1532.39a24858.js[39m   41.1 kB     [32m15.0 kB[39m
+[2mdist\static\js\async\[22m[36m9661.a93e900a.js[39m   42.9 kB     [32m11.6 kB[39m
+[2mdist\static\js\async\[22m[36m1812.f252ae31.js[39m   48.9 kB     [32m16.0 kB[39m
+[2mdist\static\js\async\[22m[36m8271.032a89cc.js[39m   51.7 kB     [32m16.7 kB[39m
+[2mdist\static\js\async\[22m[36m7122.6a9350ef.js[39m   63.6 kB     [32m20.6 kB[39m
+[2mdist\static\js\async\[22m[36m4450.d7b43343.js[39m   66.6 kB     [32m19.0 kB[39m
+[2mdist\static\js\async\[22m[36m3266.4bd1e954.js[39m   80.8 kB     [32m21.6 kB[39m
+[2mdist\static\js\async\[22m[36m9682.cb8de6b5.js[39m   112.8 kB    [32m37.2 kB[39m
+[2mdist\static\js\async\[22m[36m55.1f21035a.js[39m     118.3 kB    [32m31.1 kB[39m
+[2mdist\static\js\async\[22m[36m7356.56e024ed.js[39m   148.6 kB    [32m41.1 kB[39m
+[2mdist\static\js\[22m[36mlib-react.4a5a88a7.js[39m    182.9 kB    [32m57.9 kB[39m
+[2mdist\static\js\[22m[36mindex.a40a089b.js[39m        197.9 kB    [32m42.5 kB[39m
+[2mdist\static\js\async\[22m[36m6926.79c9f907.js[39m   264.0 kB    [32m76.8 kB[39m
+[2mdist\static\css\[22m[33mindex.da340f93.css[39m      287.2 kB    [32m31.5 kB[39m
+[2mdist\static\js\async\[22m[36m9876.b98f9eaa.js[39m   430.4 kB    [33m134.8 kB[39m
+[2mdist\static\js\async\[22m[36m1977.5800a36d.js[39m   665.8 kB    [33m143.9 kB[39m
+[2mdist\static\js\async\[22m[36m6294.72461e93.js[39m   722.0 kB    [33m177.0 kB[39m
+[2mdist\static\js\[22m[36m4875.3d316085.js[39m         2793.7 kB   [31m850.3 kB[39m
+
+                               [35mTotal:[39m   6870.4 kB   [32m1933.3 kB[39m
+
+EXIT: 0
