@@ -5,3 +5,8 @@
 #![warn(missing_debug_implementations)]
 
 pub mod domain;
+pub mod migrations;
+pub mod migrations_cli;
+
+#[cfg(test)]
+mod test_db;

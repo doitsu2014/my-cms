@@ -1258,10 +1258,17 @@ dependencies = [
 name = "domain_backup"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "chrono",
+ "domain_interface",
+ "sea-orm",
+ "sea-orm-migration",
  "serde",
  "serde_json",
+ "testcontainers",
+ "testcontainers-modules",
  "thiserror 2.0.18",
+ "tokio",
 ]
 
 [[package]]
