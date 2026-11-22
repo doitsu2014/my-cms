@@ -8,7 +8,7 @@
   "depth": "full",
   "mode": "ai",
   "status": "active",
-  "currentStage": "red-tests",
+  "currentStage": "build-and-verify",
   "stages": {
     "problem-framing": {
       "status": "complete",
@@ -239,8 +239,8 @@
     "red-tests": {
       "status": "in_progress",
       "startedAt": "2026-11-22T06:56:17.617Z",
-      "detail": "WU-03 red on PostgreSQL 15: 45 new tests (4 unit, 41 DB) fail on assertions against a logic-free shell; ids check clean; FD 6.6 audit Rejected/Unavailable split added by conductor before red",
-      "reportedAt": "2026-11-22T13:50:07.210Z",
+      "detail": "WU-04 red: 62 new tests fail on assertions on Windows (35 filesystem/lock, 27 ledger on PostgreSQL 15); 4 file-symlink and 4 Unix permission tests red on Linux only; ids check clean",
+      "reportedAt": "2026-11-22T15:58:51.998Z",
       "reports": [
         {
           "at": "2026-11-22T07:12:29.787Z",
@@ -266,6 +266,11 @@
           "at": "2026-11-22T13:50:07.210Z",
           "result": "complete",
           "detail": "WU-03 red on PostgreSQL 15: 45 new tests (4 unit, 41 DB) fail on assertions against a logic-free shell; ids check clean; FD 6.6 audit Rejected/Unavailable split added by conductor before red"
+        },
+        {
+          "at": "2026-11-22T15:58:51.998Z",
+          "result": "complete",
+          "detail": "WU-04 red: 62 new tests fail on assertions on Windows (35 filesystem/lock, 27 ledger on PostgreSQL 15); 4 file-symlink and 4 Unix permission tests red on Linux only; ids check clean"
         }
       ],
       "units": {
@@ -284,6 +289,10 @@
         "WU-03": {
           "status": "complete",
           "reportedAt": "2026-11-22T13:50:07.210Z"
+        },
+        "WU-04": {
+          "status": "complete",
+          "reportedAt": "2026-11-22T15:58:51.998Z"
         }
       },
       "artifacts": [
@@ -334,6 +343,18 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-03/red-evidence.md",
           "bytes": 6705,
           "sha256": "178c9cca44e4fafd6c3b53a2c779ff00cb70b4d434133e7a230e873999645d29"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-04/failing-tests.md",
+          "bytes": 9443,
+          "sha256": "c3dde3238ace8625b2a49f53844461ecb71af2529b9ff895e68d29e999e96d8b"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-04/red-evidence.md",
+          "bytes": 7478,
+          "sha256": "8c113d9e52bfa27629a4f815997a84362e3bed6eb17815c76494597853ee2226"
         }
       ],
       "resumedAt": "2026-11-22T09:30:17.226Z"
@@ -453,7 +474,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-22T14:33:51.960Z",
+  "updatedAt": "2026-11-22T15:58:52.480Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
