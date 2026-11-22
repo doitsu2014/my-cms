@@ -239,8 +239,8 @@
     "red-tests": {
       "status": "in_progress",
       "startedAt": "2026-11-22T06:56:17.617Z",
-      "detail": "WU-02 red on PostgreSQL 15: 1 unit + 33 DB tests fail on missing schema; prerequisite RK-15 fix (seo own migration table) red-green with no regressions; Docker baseline 287/0/3",
-      "reportedAt": "2026-11-22T11:00:36.583Z",
+      "detail": "WU-03 red on PostgreSQL 15: 45 new tests (4 unit, 41 DB) fail on assertions against a logic-free shell; ids check clean; FD 6.6 audit Rejected/Unavailable split added by conductor before red",
+      "reportedAt": "2026-11-22T13:50:07.210Z",
       "reports": [
         {
           "at": "2026-11-22T07:12:29.787Z",
@@ -261,6 +261,11 @@
           "at": "2026-11-22T11:00:36.583Z",
           "result": "complete",
           "detail": "WU-02 red on PostgreSQL 15: 1 unit + 33 DB tests fail on missing schema; prerequisite RK-15 fix (seo own migration table) red-green with no regressions; Docker baseline 287/0/3"
+        },
+        {
+          "at": "2026-11-22T13:50:07.210Z",
+          "result": "complete",
+          "detail": "WU-03 red on PostgreSQL 15: 45 new tests (4 unit, 41 DB) fail on assertions against a logic-free shell; ids check clean; FD 6.6 audit Rejected/Unavailable split added by conductor before red"
         }
       ],
       "units": {
@@ -275,6 +280,10 @@
         "WU-02": {
           "status": "complete",
           "reportedAt": "2026-11-22T11:00:36.583Z"
+        },
+        "WU-03": {
+          "status": "complete",
+          "reportedAt": "2026-11-22T13:50:07.210Z"
         }
       },
       "artifacts": [
@@ -313,6 +322,18 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-02/red-evidence.md",
           "bytes": 9934,
           "sha256": "fc376da50280e7efd34c155c7355b362fe2089f2059d570d12ab852edc3708ac"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-03/failing-tests.md",
+          "bytes": 9650,
+          "sha256": "c80b04315d3904d6e7e65be4fc2699c05ba9513af332998289ba6fc0c208def1"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-03/red-evidence.md",
+          "bytes": 6705,
+          "sha256": "178c9cca44e4fafd6c3b53a2c779ff00cb70b4d434133e7a230e873999645d29"
         }
       ],
       "resumedAt": "2026-11-22T09:30:17.226Z"
@@ -320,8 +341,8 @@
     "build-and-verify": {
       "status": "in_progress",
       "startedAt": "2026-11-22T07:12:29.973Z",
-      "detail": "WU-02 green on PostgreSQL 15: domain_backup 37 unit + 34 DB tests; 31/33 guard mutations caught (2 explained); workspace 290/0/39 with all ignored passing; one test helper amended (D-16) and one test-after, both mutation-proven",
-      "reportedAt": "2026-11-22T11:38:28.619Z",
+      "detail": "WU-03 green on PostgreSQL 15: domain_backup 41 unit + 77 DB tests; workspace 294/0/82 with all ignored passing, no regression vs baseline.md; every contract guard mutation-proven (agent claim result corrected by conductor); 2 test-after tests mutation-proven; ids check clean",
+      "reportedAt": "2026-11-22T14:33:51.468Z",
       "reports": [
         {
           "at": "2026-11-22T07:26:43.015Z",
@@ -332,6 +353,11 @@
           "at": "2026-11-22T11:38:28.619Z",
           "result": "complete",
           "detail": "WU-02 green on PostgreSQL 15: domain_backup 37 unit + 34 DB tests; 31/33 guard mutations caught (2 explained); workspace 290/0/39 with all ignored passing; one test helper amended (D-16) and one test-after, both mutation-proven"
+        },
+        {
+          "at": "2026-11-22T14:33:51.468Z",
+          "result": "complete",
+          "detail": "WU-03 green on PostgreSQL 15: domain_backup 41 unit + 77 DB tests; workspace 294/0/82 with all ignored passing, no regression vs baseline.md; every contract guard mutation-proven (agent claim result corrected by conductor); 2 test-after tests mutation-proven; ids check clean"
         }
       ],
       "units": {
@@ -342,6 +368,10 @@
         "WU-02": {
           "status": "complete",
           "reportedAt": "2026-11-22T11:38:28.619Z"
+        },
+        "WU-03": {
+          "status": "complete",
+          "reportedAt": "2026-11-22T14:33:51.468Z"
         }
       },
       "artifacts": [
@@ -392,6 +422,30 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-02/known-limitations.md",
           "bytes": 3604,
           "sha256": "fde37b8975a377d758198d5bec29474adcd44afe938942c4f28640bb8b793f36"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/implementation.md",
+          "bytes": 6008,
+          "sha256": "9b65e9c44210e573716260dc0aeecfc3b536c573892b5a9c1e412943d5c2b85b"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/green-verification-report.md",
+          "bytes": 10730,
+          "sha256": "ae92f7d21256d86ea92a1460a0a3f6f81f6a696b03f44a6985945588740207cb"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/regression-report.md",
+          "bytes": 2207,
+          "sha256": "8fd5e2d83ac7a698a011ebfaee48c4d7c4a566f83b6924d3b425ba487d00a535"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/known-limitations.md",
+          "bytes": 4030,
+          "sha256": "743b8daba8da68cf684dc07128ca4746694d49543ca84b1fa1299162a675b791"
         }
       ]
     }
@@ -399,7 +453,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-22T11:38:28.801Z",
+  "updatedAt": "2026-11-22T14:33:51.960Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -445,7 +499,7 @@
     },
     {
       "id": "WU-03",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-02"
       ]
@@ -540,5 +594,5 @@
       ]
     }
   ],
-  "currentUnit": "WU-03"
+  "currentUnit": "WU-04"
 }
