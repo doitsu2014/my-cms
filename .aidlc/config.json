@@ -16,5 +16,15 @@
     "record-keeper": "haiku",
     "knowledge-archivist": "sonnet"
   },
-  "mode": "ai"
+  "mode": "ai",
+  "prerequisites": {
+    "docker": {
+      "check": "docker info",
+      "hint": "Start Docker Desktop; DB-backed tests (testcontainers) and migration checks need it",
+      "stages": [
+        "red-tests",
+        "build-and-verify"
+      ]
+    }
+  }
 }
