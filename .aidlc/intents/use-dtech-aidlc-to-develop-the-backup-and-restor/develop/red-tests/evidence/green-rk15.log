@@ -1,0 +1,226 @@
+## RK-15 green: cargo test -p domain_seo (2026-11-22T17:39:27+07:00)
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+   Compiling domain_seo v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_seo)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.47s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_seo/2d0e7670367fb689\out\domain_seo-2d0e7670367fb689.exe)
+
+running 12 tests
+test integration_tests::tests::migration_and_public_lifecycle_cover_disable_enable_update_delete ... ignored, requires Docker for PostgreSQL testcontainer
+test service::tests::service_exposes_stable_health_and_empty_config_contract ... ok
+test service::tests::service_owns_one_migration ... ok
+test migrations::tests::seo_uses_its_own_migration_table ... ok
+test handlers::head_assets::head_asset_validation::tests::rejects_duplicate_attributes_and_oversized_source ... ok
+test handlers::head_assets::head_asset_validation::tests::accepts_json_ld_and_verification ... ok
+test handlers::head_assets::head_assets_handler::tests::public_model_omits_administration_fields ... ok
+test handlers::head_assets::head_asset_validation::tests::rejects_body_event_handler_and_urls ... ok
+test handlers::head_assets::head_asset_validation::tests::rejects_typed_metadata_and_script_content_with_src ... ok
+test handlers::head_assets::head_asset_validation::tests::accepts_gtag ... ok
+test handlers::head_assets::head_assets_handler::tests::create_rejects_invalid_fields_before_database_access ... ok
+test service::tests::service_registers_public_and_administrator_route_boundaries ... ok
+
+test result: ok. 11 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_seo
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+EXIT: 0
+
+## RK-15 green: cargo test -p gateway migration_tests -- --ignored (2026-11-22T17:39:32+07:00)
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\domain\response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_media\src\lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\domain\response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\bucket\access\access_handler.rs:14:1
+   |
+14 | / pub struct BucketAccessPolicy {
+15 | |     pub storage: SupabaseStorage,
+16 | |     pub cache: Arc<Cache<String, bool>>,
+17 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\create\create_handler.rs:9:1
+   |
+ 9 | / pub struct CreateMediaHandler {
+10 | |     pub media_config: Arc<MediaConfig>,
+11 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+ --> domain_media\src\handlers\delete\delete_handler.rs:5:1
+  |
+5 | / pub struct DeleteMediaHandler {
+6 | |     pub media_config: Arc<MediaConfig>,
+7 | | }
+  | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\list\list_handler.rs:8:1
+   |
+ 8 | / pub struct ListMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\read\metadata_handler.rs:8:1
+   |
+ 8 | / pub struct MetadataMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\read\read_handler.rs:24:1
+   |
+24 | / pub struct ReadMediaHandler {
+25 | |     pub media_config: Arc<MediaConfig>,
+26 | |     pub media_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
+27 | | }
+   | |_^
+
+   Compiling domain_seo v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_seo)
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user\src\domain\response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_user\src\lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user\src\domain\response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: `domain_media` (lib) generated 8 warnings
+warning: `domain_user` (lib) generated 2 warnings
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\domain\response.rs:21:1
+   |
+21 | / pub struct ApiResponseWith<TData>
+22 | | where
+23 | |     TData: Serialize,
+...  |
+26 | |     data: TData,
+27 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_posts\src\lib.rs:9:9
+   |
+ 9 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\domain\response.rs:61:1
+   |
+61 | / pub struct ApiResponseError {
+62 | |     error_code: ErrorCode,
+63 | |     errors: Vec<String>,
+64 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\migrations\mod.rs:19:1
+   |
+19 | pub struct Migrator;
+   | ^^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_posts` (lib) generated 3 warnings
+   Compiling gateway v0.1.0 (D:\orca\my-cms\makara\apps\api\gateway)
+warning: function `now_seconds` is never used
+  --> gateway\src\backup_cli.rs:59:4
+   |
+59 | fn now_seconds() -> Result<u64, String> {
+   |    ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `gateway` (bin "my-cms-api" test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.67s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\main.rs (target\debug\build\gateway/5276373b39923856\out\my_cms_api-5276373b39923856.exe)
+
+running 2 tests
+test migration_tests::posts_and_seo_migrations_apply_on_fresh_database_and_second_boot ... ok
+test migration_tests::database_with_only_posts_applied_upgrades_cleanly ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 2.92s
+
+EXIT: 0
+
+## domain_seo integration test -- --ignored
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_seo/2d0e7670367fb689\out\domain_seo-2d0e7670367fb689.exe)
+
+running 1 test
+test integration_tests::tests::migration_and_public_lifecycle_cover_disable_enable_update_delete ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 2.00s
+
+   Doc-tests domain_seo
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+EXIT: 0

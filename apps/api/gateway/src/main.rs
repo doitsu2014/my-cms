@@ -19,6 +19,8 @@
 
 mod backup_cli;
 mod migrate_cli;
+#[cfg(test)]
+mod migration_tests;
 
 use std::env;
 use std::process::ExitCode;

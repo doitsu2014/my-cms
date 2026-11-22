@@ -1,0 +1,366 @@
+## after RK-15 fix: cargo test --no-fail-fast -- --ignored (2026-11-22T17:40:55+07:00)
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\domain\response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_media\src\lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\domain\response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\bucket\access\access_handler.rs:14:1
+   |
+14 | / pub struct BucketAccessPolicy {
+15 | |     pub storage: SupabaseStorage,
+16 | |     pub cache: Arc<Cache<String, bool>>,
+17 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\create\create_handler.rs:9:1
+   |
+ 9 | / pub struct CreateMediaHandler {
+10 | |     pub media_config: Arc<MediaConfig>,
+11 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+ --> domain_media\src\handlers\delete\delete_handler.rs:5:1
+  |
+5 | / pub struct DeleteMediaHandler {
+6 | |     pub media_config: Arc<MediaConfig>,
+7 | | }
+  | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\list\list_handler.rs:8:1
+   |
+ 8 | / pub struct ListMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\read\metadata_handler.rs:8:1
+   |
+ 8 | / pub struct MetadataMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\read\read_handler.rs:24:1
+   |
+24 | / pub struct ReadMediaHandler {
+25 | |     pub media_config: Arc<MediaConfig>,
+26 | |     pub media_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
+27 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user\src\domain\response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_user\src\lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user\src\domain\response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: `domain_media` (lib) generated 8 warnings
+warning: `domain_user` (lib) generated 2 warnings
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\domain\response.rs:21:1
+   |
+21 | / pub struct ApiResponseWith<TData>
+22 | | where
+23 | |     TData: Serialize,
+...  |
+26 | |     data: TData,
+27 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_posts\src\lib.rs:9:9
+   |
+ 9 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\domain\response.rs:61:1
+   |
+61 | / pub struct ApiResponseError {
+62 | |     error_code: ErrorCode,
+63 | |     errors: Vec<String>,
+64 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\migrations\mod.rs:19:1
+   |
+19 | pub struct Migrator;
+   | ^^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_posts` (lib) generated 3 warnings
+warning: function `now_seconds` is never used
+  --> gateway\src\backup_cli.rs:59:4
+   |
+59 | fn now_seconds() -> Result<u64, String> {
+   |    ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `domain_media` (lib test) generated 8 warnings (8 duplicates)
+warning: `domain_user` (lib test) generated 2 warnings (2 duplicates)
+warning: `domain_posts` (lib test) generated 3 warnings (3 duplicates)
+warning: `gateway` (bin "my-cms-api" test) generated 1 warning
+warning: unused dependency `futures`
+  --> domain_interface\Cargo.toml:17:1
+   |
+17 | futures = "0.3"
+   | ^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `futures`
+warning: `domain_interface` (manifest) generated 1 warning
+warning: unused dependency `async-std`
+  --> domain_media\Cargo.toml:14:1
+   |
+14 | async-std = { version = "1.13.2", features = ["attributes"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `async-std`
+warning: `domain_media` (manifest) generated 1 warning
+warning: unused dependency `async-std`
+  --> domain_posts\Cargo.toml:14:1
+   |
+14 | async-std = { version = "1.13.2", features = ["attributes"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `async-std`
+warning: unused dependency `domain_auth`
+  --> domain_posts\Cargo.toml:21:1
+   |
+21 | domain_auth = { path = "../domain_auth" }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `domain_auth`
+help: to still use for development builds, move to `dev-dependencies`
+warning: unused dependency `dotenv`
+  --> domain_posts\Cargo.toml:20:1
+   |
+20 | dotenv = "0.15.0"
+   | ^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `dotenv`
+warning: unused dependency `fake`
+  --> domain_posts\Cargo.toml:23:1
+   |
+23 | fake = { version = "4.4.0", features = ["derive"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `fake`
+help: to still use for development builds, move to `dev-dependencies`
+warning: unused dependency `moka`
+  --> domain_posts\Cargo.toml:34:1
+   |
+34 | moka = { version = "0.12.15", features = ["future"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `moka`
+warning: unused dependency `nanoid`
+  --> domain_posts\Cargo.toml:35:1
+   |
+35 | nanoid = "0.4.0"
+   | ^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `nanoid`
+warning: unused dependency `tracing-error`
+  --> domain_posts\Cargo.toml:70:1
+   |
+70 | tracing-error = "0.2.1"
+   | ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `tracing-error`
+warning: unused dependency `tracing-opentelemetry-instrumentation-sdk`
+  --> domain_posts\Cargo.toml:77:1
+   |
+77 | tracing-opentelemetry-instrumentation-sdk = "0.30.0"
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `tracing-opentelemetry-instrumentation-sdk`
+warning: `domain_posts` (manifest) generated 8 warnings
+warning: unused dependency `async-std`
+  --> domain_user\Cargo.toml:14:1
+   |
+14 | async-std = { version = "1.13.2", features = ["attributes"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `async-std`
+warning: unused dependency `tower-cookies`
+  --> domain_user\Cargo.toml:26:1
+   |
+26 | tower-cookies = "0.11.0"
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `tower-cookies`
+warning: `domain_user` (manifest) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.52s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_auth/214e987fa917951f\out\domain_auth-214e987fa917951f.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (target\debug\build\domain_auth/35f455681e9d5f63\out\domain_auth-35f455681e9d5f63.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\build\domain_backup/bbaf0d9bca37f574\out\domain_backup-bbaf0d9bca37f574.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\build\domain_interface/7b65cc8892f7b049\out\domain_interface-7b65cc8892f7b049.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\build\domain_media/904d66593e407a2a\out\domain_media-904d66593e407a2a.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 101 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\build\domain_posts/9992c5fc0817c793\out\domain_posts-9992c5fc0817c793.exe)
+
+running 2 tests
+test api::post::graphql::tests::immutable_post_introspection_returns_seven_entities ... ok
+test api::post::graphql::tests::mutable_post_with_writer_jwt_accepts_mutation ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 50 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\build\domain_seo/03d0f8159b623d67\out\domain_seo-03d0f8159b623d67.exe)
+
+running 1 test
+test integration_tests::tests::migration_and_public_lifecycle_cover_disable_enable_update_delete ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 1.74s
+
+     Running unittests src\lib.rs (target\debug\build\domain_user/de8cded411eda503\out\domain_user-de8cded411eda503.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (target\debug\build\gateway/fd1303aad567f18b\out\my_cms_api-fd1303aad567f18b.exe)
+
+running 2 tests
+test migration_tests::database_with_only_posts_applied_upgrades_cleanly ... ok
+test migration_tests::posts_and_seo_migrations_apply_on_fresh_database_and_second_boot ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 17 filtered out; finished in 2.67s
+
+     Running unittests src\lib.rs (target\debug\build\test_helpers/24884881bcaee3f8\out\test_helpers-24884881bcaee3f8.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_auth
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_backup
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_interface
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_media
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_posts
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_seo
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_user
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests test_helpers
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+EXIT: 0

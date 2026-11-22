@@ -1,0 +1,22 @@
+## RK-15 after fix 2026-11-22T17:40:04+07:00: migrate up run 1
+...  |
+...  |
+...  |
+EXIT: 0
+## run 2
+...  |
+...  |
+...  |
+EXIT: 0
+## seaql_migrations
+m20240409_151952_release_100
+m20250330_151455_release_110
+m20260126_040610_release_300
+m20260531_000001_pgvector
+## seaql_migrations_seo
+m20260822_000001_seo_head_assets
+## migrate status
+m20240409_151952_release_100 — status unavailable
+m20250330_151455_release_110 — status unavailable
+m20260126_040610_release_300 — status unavailable
+m20260531_000001_pgvector — status unavailable
