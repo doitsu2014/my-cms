@@ -162,7 +162,7 @@ Scenario names are those in `acceptance-criteria.md` (re-read in revision 2). S1
 | AC-006 S1 Production restore readiness | none | none | Deferred: production not authorized; Q-04, Q-06, Q-07, Q-10, Q-11 open |
 | AC-006 S2 Unresolved U1 design blockers | review/gate check | TS-58 (open items listed as open, synthetic-only labels present; the only direct AC-006 S2 test; config, bounds and cleanup behaviour carries the behavioural AC-002 S2 and AC-003 S3 traces above) | in scope |
 | Bounds, retention, escalation (not an AC scenario; owner decision Q-05, ADR-004, T-13) | unit, integration, performance | TS-01, TS-02, TS-27a, TS-27b, TS-30, TS-40, TS-42, TS-50, TS-55..TS-57 | in scope; traced to owner decision and T-13, and behaviourally to AC-002 S2 and AC-003 S3 (see those rows) |
-| a11y AC-01..AC-04 | unit, manual | TS-37 | automated part in scope; manual assistive-technology review recorded separately, not claimed here |
+| a11y A11Y-01..A11Y-04 | unit, manual | TS-37 | automated part in scope; manual assistive-technology review recorded separately, not claimed here |
 | Any scenario requiring a `succeeded` outcome, download success, Auth/Storage recovery, RPO/RTO, encryption | none | none | Deferred: out of U1 scope, open Q-04/Q-06/Q-10/Q-11 |
 
 There is no "AC-006 S3".
@@ -214,7 +214,7 @@ L: U unit, I integration, S security, E e2e, P performance, G gate/review check.
 | TS-34 | Migrations: fresh, upgrade beside posts and seo, separate migration table, trigger presence (structural, not an authorization test) | I | none (supports AC-002 S3 structurally) | T-17 | WU-02 | migrations/mod.rs |
 | TS-35 | Web route guard, administrator-only menu item, `left-menu.test.tsx` extended. UX only; not evidence for any server-side authorization scenario | U | none (UX) | T-01 (UX only) | WU-13 | web App.tsx, left-menu |
 | TS-36 | Web polling with fake timers; stops on terminal; cleans up on unmount | U | AC-002 S1 | T-13 | WU-14 | hooks/use-backup-jobs.test.ts |
-| TS-37 | Web accessibility: keyboard, text status, announcements, labels; manual AT review separate | U/E | AC-002 S1 | a11y AC-01..AC-04 | WU-14 | web components |
+| TS-37 | Web accessibility: keyboard, text status, announcements, labels; manual AT review separate | U/E | AC-002 S1 | a11y A11Y-01..A11Y-04 | WU-14 | web components |
 | TS-38 | Empty or unavailable instance list disables submission | U | AC-001 S1 | T-03 | WU-13 | instance-selector.test.tsx |
 | TS-39 | Job creation latency measured; no target claimed | P | AC-002 S1 | T-13 | WU-15 | evidence record |
 | TS-40 | Temporary bytes and concurrency bounded under load | P | Q-05 owner decision | T-13 | WU-15 | evidence record |

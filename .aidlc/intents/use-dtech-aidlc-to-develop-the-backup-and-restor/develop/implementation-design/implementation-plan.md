@@ -9,7 +9,7 @@ Provenance labels: **[O]** Observed (source cited), **[UP]** User-provided (proj
 
 ## 1. Purpose
 
-Turn the approved U1 direction into an ordered, test-first build plan. It names the work units (WU-01..WU-15), the existing files each one changes, and the new files each one creates. It also covers rollout, rollback, risks and the handoff to the builder-verifier. Identifiers (F-xx, IF-xx, TS-xx, CFG-xx, T-xx, R-xx) follow the design spine used by the conductor. Qualified forms are used where an ID is ambiguous: "Availability A-03" versus "assumption A-03", and "a11y AC-01" versus "acceptance AC-001". Work units are WU-nn because analysis already uses U-01..U-07 for unknowns.
+Turn the approved U1 direction into an ordered, test-first build plan. It names the work units (WU-01..WU-15), the existing files each one changes, and the new files each one creates. It also covers rollout, rollback, risks and the handoff to the builder-verifier. Identifiers (F-xx, IF-xx, TS-xx, CFG-xx, T-xx, R-xx) follow the design spine used by the conductor. Qualified forms are used where an ID is ambiguous: "Availability A-03" versus "assumption A-03", and "a11y A11Y-01" versus "acceptance AC-001". Work units are WU-nn because analysis already uses U-01..U-07 for unknowns.
 
 ## 2. Source inputs
 

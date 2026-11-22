@@ -161,7 +161,7 @@ Every F-xx traces to at least one AC identifier. Trace columns: T = threat, QR =
 | F-42 | Route and menu (web) | `AdminOnlyRoute` plus menu item gated by `isAdministrator`. UX only; not evidence for any AC (supports the AC-001 S1 administrator experience). | AC-001 S1 | T-01 (UX only) |
 | F-43 | `InstanceSelector` (web) | Lists instances; empty or unavailable list disables submission. | AC-001 S1 | T-03 |
 | F-44 | `JobCreatePanel` (web) | Fresh idempotency key per submit (`crypto.randomUUID()`); double-submit guard. | AC-002 S1 | T-07 |
-| F-45 | `JobStatusBadge`, `JobDetail` (web) | Text plus icon status, accessible announcement, "synthetic, database-only, not restorable" label, no download control; exhaustive handling of every status value (a `succeeded` or `recovery-required` value is rendered, never offers download) and a safe fallback for an unknown value. | AC-002 S1, S3 | T-06, T-10 / a11y AC-01..AC-04 |
+| F-45 | `JobStatusBadge`, `JobDetail` (web) | Text plus icon status, accessible announcement, "synthetic, database-only, not restorable" label, no download control; exhaustive handling of every status value (a `succeeded` or `recovery-required` value is rendered, never offers download) and a safe fallback for an unknown value. | AC-002 S1, S3 | T-06, T-10 / a11y A11Y-01..A11Y-04 |
 | F-46 | `useBackupJobs` (web) | Polls with cleanup on unmount; stops at terminal state; backs off on error. | AC-002 S1 | T-13 |
 | F-47 | `SyntheticPreviewPanel` (web) | Labelled preflight and confirm/cancel previews; upload shown unavailable. | AC-003 S3; AC-004 S1, S2 | T-05, T-15 (preview) |
 | F-48 | Safe error rendering (web) | Server strings only as React text; correlation id shown. | AC-005 S2 | T-09, T-10 |

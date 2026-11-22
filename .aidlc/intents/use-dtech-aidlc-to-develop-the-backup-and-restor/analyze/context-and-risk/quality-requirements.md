@@ -136,40 +136,42 @@ This document defines the quality attributes required for the backup/restore fea
 
 ## Accessibility
 
-### AC-01: UI Keyboard Navigation
+Identifier note (2026-11-22): these requirements were numbered AC-01 to AC-05. They were renamed A11Y-01 to A11Y-05 because `AC-` is reserved for acceptance criteria (AC-001 to AC-006), and dtech-aidlc 0.7.0 checks every `AC-` citation in Develop artifacts against them. Only the identifiers changed; the requirements did not. Develop artifacts cite the new names.
+
+### A11Y-01: UI Keyboard Navigation
 - **Measure:** Admin UI backup/restore workflows are navigable by keyboard alone
 - **Target:** 100% of interactive elements (instance selection, job actions, upload, confirmation) reachable and operable via keyboard
 - **Verification:** Manual test: navigate workflows using only keyboard (Tab, Enter, Space, Esc); verify all functions accessible
 - **Rationale:** WCAG 2.1 Level AA requirement for operable user interface.
 - **Status:** Target clear; verification feasible when UI exists
 
-### AC-02: Screen Reader Compatibility
+### A11Y-02: Screen Reader Compatibility
 - **Measure:** Job status, errors, confirmation prompts, and progress indicators announced to screen readers
 - **Target:** Screen reader user can complete backup/restore workflows without sighted assistance
 - **Verification:** Manual test with screen reader (NVDA, JAWS, VoiceOver); verify announcements for status changes, errors, and confirmations
 - **Rationale:** WCAG 2.1 Level AA requirement for perceivable content.
 - **Status:** Target clear; requires manual assistive technology testing when UI exists
 
-### AC-03: Visual Contrast
+### A11Y-03: Visual Contrast
 - **Measure:** Text, status indicators, and interactive elements meet WCAG contrast ratios (4.5:1 for normal text, 3:1 for large text)
 - **Target:** 100% of UI elements pass automated contrast checker
 - **Verification:** Automated tool (axe DevTools, Lighthouse) on rendered admin UI pages
 - **Rationale:** WCAG 2.1 Level AA requirement for perceivable content.
 - **Status:** Target clear; verification feasible when UI exists
 
-### AC-04: Error Message Clarity
+### A11Y-04: Error Message Clarity
 - **Measure:** Error messages describe the problem and recovery action in plain language
 - **Target:** User studies or review confirm errors are understandable; no technical jargon without explanation
 - **Verification:** Manual review of all error messages; usability test with representative admin users
 - **Rationale:** WCAG 2.1 Level AA requirement for understandable content; also aids operations (US-06).
 - **Status:** Target clear; verification feasible when error messages are written
 
-### AC-05: API Accessibility N/A
+### A11Y-05: API Accessibility N/A
 - **Measure:** Not applicable — this feature is backend API and admin UI, not public-facing content
 - **Rationale:** Accessibility requirements focus on admin UI interactions. Server-side API does not require WCAG compliance.
 - **Status:** N/A
 
-**Accessibility Summary:** AC-01 through AC-04 apply to admin UI. Full validation requires manual testing with assistive technologies. Automated tools provide partial coverage. Note: WCAG compliance verification requires expert accessibility review per system prompt.
+**Accessibility Summary:** A11Y-01 through A11Y-04 apply to admin UI. Full validation requires manual testing with assistive technologies. Automated tools provide partial coverage. Note: WCAG compliance verification requires expert accessibility review per system prompt.
 
 ---
 
@@ -242,7 +244,7 @@ This document defines the quality attributes required for the backup/restore fea
 | Performance | 5 (P-01 to P-05) | 0 | 0 | All require approved numeric limits (C-06, Q-05, Q-06) |
 | Availability | 5 (A-01 to A-05) | 5 | 3 (A-01, A-02, A-04) | A-03 and A-05 require Q-03 cleanup design |
 | Privacy | 6 (PR-01 to PR-06) | 6 | 5 (PR-01 to PR-04, PR-06) | PR-05 requires Q-05 and Q-11 decisions |
-| Accessibility | 4 (AC-01 to AC-04) + N/A | 4 | 4 (when UI exists) | None; requires UI implementation |
+| Accessibility | 4 (A11Y-01 to A11Y-04) + N/A | 4 | 4 (when UI exists) | None; requires UI implementation |
 | Operability | 8 (O-01 to O-08) | 8 | 8 | None |
 
 **Overall Quality Readiness:**
