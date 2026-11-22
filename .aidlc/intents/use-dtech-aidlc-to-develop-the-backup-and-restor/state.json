@@ -1,0 +1,232 @@
+{
+  "version": 2,
+  "intentId": "use-dtech-aidlc-to-develop-the-backup-and-restor",
+  "intent": "Use dtech-aidlc to develop the backup and restore feature based on @docs/features/backup-restore.md.",
+  "scope": "solo",
+  "scopeSource": "config",
+  "projectScope": "solo",
+  "depth": "full",
+  "mode": "ai",
+  "status": "active",
+  "currentStage": "implementation-design",
+  "stages": {
+    "problem-framing": {
+      "status": "complete",
+      "startedAt": "2026-11-21T12:42:56.823Z",
+      "detail": null,
+      "reportedAt": "2026-11-21T13:28:37.659Z",
+      "reports": [
+        {
+          "at": "2026-11-21T13:28:37.659Z",
+          "result": "complete",
+          "detail": null
+        }
+      ],
+      "units": {},
+      "artifacts": [
+        {
+          "output": "problem-statement",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/analyze/problem-framing/problem-statement.md",
+          "bytes": 2527,
+          "sha256": "0e401be78e8a12ca170edcbde33d4cb253b3e2c931df2c18928e591814a523f8"
+        },
+        {
+          "output": "success-measures",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/analyze/problem-framing/success-measures.md",
+          "bytes": 2483,
+          "sha256": "1b25ad88a4d19428ef249547dc952b1b9c8e94dcf31c166918397fc928c97e23"
+        },
+        {
+          "output": "stakeholder-map",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/analyze/problem-framing/stakeholder-map.md",
+          "bytes": 1996,
+          "sha256": "c34435bd508382a70ba62ecda4d32b81dc9db87ca5f684c6b58a4a89e9bc1a98"
+        },
+        {
+          "output": "acceptance-criteria",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/analyze/problem-framing/acceptance-criteria.md",
+          "bytes": 6731,
+          "sha256": "501c80baabdcf1372bc214e5833a79974d59e27e9772fa2f2eb7010e53f80195"
+        },
+        {
+          "output": "user-stories",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/analyze/problem-framing/user-stories.md",
+          "bytes": 2830,
+          "sha256": "79d0d06a1b1e691693ead0c22cdb8a3e511a17971e73989a3ecc30ae33a99a16"
+        }
+      ]
+    },
+    "context-and-risk": {
+      "status": "complete",
+      "startedAt": "2026-11-21T13:28:45.658Z",
+      "detail": null,
+      "reportedAt": "2026-11-21T14:01:57.783Z",
+      "reports": [
+        {
+          "at": "2026-11-21T14:01:57.783Z",
+          "result": "complete",
+          "detail": null,
+          "approval": {
+            "decision": "approved",
+            "by": "AI Orchestrator",
+            "bySource": "flag",
+            "mode": "ai",
+            "note": null
+          }
+        }
+      ],
+      "units": {},
+      "artifacts": [
+        {
+          "output": "constraints-and-assumptions",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/analyze/context-and-risk/constraints-and-assumptions.md",
+          "bytes": 10532,
+          "sha256": "32276fb3ba576006e583344c06d735c63e9cbefde3a7090b7a8867269bef38e6"
+        },
+        {
+          "output": "evidence-log",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/analyze/context-and-risk/evidence-log.md",
+          "bytes": 4129,
+          "sha256": "5d02147f59944b09cb74c68b902f071be0041f5245f6995af02cff0c11e2c5e2"
+        },
+        {
+          "output": "risk-register",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/analyze/context-and-risk/risk-register.md",
+          "bytes": 11426,
+          "sha256": "2abcac16a2caab2f263ddb2f9af9616dc30dd06759c0ffaa8ea8aea16008cc2a"
+        },
+        {
+          "output": "open-questions",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/analyze/context-and-risk/open-questions.md",
+          "bytes": 12902,
+          "sha256": "9d18d8ad7117093333bb61898845d0cdd6981295339f64a4a676b6f0fec5d275"
+        },
+        {
+          "output": "quality-requirements",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/analyze/context-and-risk/quality-requirements.md",
+          "bytes": 18097,
+          "sha256": "14fc86b9a3006c8d342feee7b3e7f5a389fe50ba49025776cc0c9aa1d8f1af20"
+        }
+      ]
+    },
+    "option-generation": {
+      "status": "complete",
+      "startedAt": "2026-11-21T14:02:07.704Z",
+      "detail": null,
+      "reportedAt": "2026-11-21T14:07:05.151Z",
+      "reports": [
+        {
+          "at": "2026-11-21T14:07:05.151Z",
+          "result": "complete",
+          "detail": null
+        }
+      ],
+      "units": {},
+      "artifacts": [
+        {
+          "output": "solution-options",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/ideate/option-generation/solution-options.md",
+          "bytes": 12454,
+          "sha256": "2d10a565c6deaf57026fecef6ad95c269ad3ae5925ab53ed3b221c3913017bdf"
+        },
+        {
+          "output": "trade-off-matrix",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/ideate/option-generation/trade-off-matrix.md",
+          "bytes": 8902,
+          "sha256": "a70b732a7f68559d2bf694784bbef30d8dded798d9329c0e075e6a28e38dee94"
+        }
+      ]
+    },
+    "direction-selection": {
+      "status": "complete",
+      "startedAt": "2026-11-21T14:07:16.515Z",
+      "detail": null,
+      "reportedAt": "2026-11-21T14:19:48.986Z",
+      "reports": [
+        {
+          "at": "2026-11-21T14:19:48.986Z",
+          "result": "complete",
+          "detail": null,
+          "approval": {
+            "decision": "approved",
+            "by": "AI Orchestrator",
+            "bySource": "flag",
+            "mode": "ai",
+            "note": null
+          }
+        }
+      ],
+      "units": {},
+      "artifacts": [
+        {
+          "output": "recommended-direction",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/ideate/direction-selection/recommended-direction.md",
+          "bytes": 8147,
+          "sha256": "e1016c48841aff2eadd232a8611e427da26a2d75153c2cd7bcc315e0a6e88599"
+        },
+        {
+          "output": "decision-record",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/ideate/direction-selection/decision-record.md",
+          "bytes": 16029,
+          "sha256": "3eed706657b04c1085a9267d592eddc5a865e012184392517b6fb37a63c4620a"
+        },
+        {
+          "output": "scope-boundary",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/ideate/direction-selection/scope-boundary.md",
+          "bytes": 10595,
+          "sha256": "67846594f84633afb6ca7a71ee5376c0161ea5739a77849eece0b607acbbb726"
+        },
+        {
+          "output": "architecture-design",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/ideate/direction-selection/architecture-design.md",
+          "bytes": 22810,
+          "sha256": "a6ae861f2b715e9b390f6eeb72fa7c020b2b97fba70bf144e87b1641d46d1510"
+        },
+        {
+          "output": "threat-model",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/ideate/direction-selection/threat-model.md",
+          "bytes": 19471,
+          "sha256": "fdaeb7c5744bde24063aedb66d8daf9f74c932c0a156c3b0d80855ac7c402b14"
+        }
+      ]
+    },
+    "implementation-design": {
+      "status": "in_progress",
+      "startedAt": "2026-11-21T14:20:38.859Z"
+    }
+  },
+  "dependencies": {},
+  "createdAt": "2026-11-21T12:42:56.822Z",
+  "modeSource": "config",
+  "updatedAt": "2026-11-21T14:20:38.864Z",
+  "gates": {
+    "analysis-baseline": {
+      "phase": "analyze",
+      "stage": "context-and-risk",
+      "decision": "approved",
+      "result": "complete",
+      "by": "AI Orchestrator",
+      "bySource": "flag",
+      "mode": "ai",
+      "at": "2026-11-21T14:01:57.783Z",
+      "note": null,
+      "detail": null,
+      "skippedStages": [],
+      "artifacts": []
+    },
+    "solution-direction": {
+      "phase": "ideate",
+      "stage": "direction-selection",
+      "decision": "approved",
+      "result": "complete",
+      "by": "AI Orchestrator",
+      "bySource": "flag",
+      "mode": "ai",
+      "at": "2026-11-21T14:19:48.986Z",
+      "note": null,
+      "detail": null,
+      "skippedStages": [],
+      "artifacts": []
+    }
+  }
+}
