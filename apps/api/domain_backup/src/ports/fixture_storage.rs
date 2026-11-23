@@ -1,5 +1,6 @@
 //! `FixtureStorage` port (FN-22; IFC section 9, FD 4.4). Opaque-key file storage under a
-//! private root. WU-04 compile shell: types and permissive stubs, no behaviour yet.
+//! private root. Key parsing and the FD 4.4 classification live here; file access lives in
+//! `infra::fs_fixture_storage`.
 
 use async_trait::async_trait;
 use thiserror::Error;
@@ -25,7 +26,14 @@ impl StorageKey {
 
     /// Accepts only the canonical form `alloc/<lowercase hyphenated uuid>.bin`.
     pub fn parse(raw: &str) -> Result<Self, InvalidStorageKey> {
-        Ok(Self(raw.to_owned()))
+        let id = raw
+            .strip_prefix("alloc/")
+            .and_then(|r| r.strip_suffix(".bin"))
+            .and_then(|r| Uuid::try_parse(r).ok().map(|id| (id, r)))
+            .filter(|(id, r)| id.hyphenated().to_string() == *r)
+            .map(|(id, _)| id)
+            .ok_or(InvalidStorageKey)?;
+        Ok(Self::from_allocation_id(id))
     }
 
     pub fn as_str(&self) -> &str {
@@ -34,7 +42,13 @@ impl StorageKey {
 
     /// The allocation id the key was derived from.
     pub fn allocation_id(&self) -> Uuid {
-        Uuid::nil()
+        // Always parses: every constructor yields the canonical form. The nil fallback is
+        // unreachable and exists only to avoid a panic path.
+        self.0
+            .strip_prefix("alloc/")
+            .and_then(|r| r.strip_suffix(".bin"))
+            .and_then(|r| Uuid::try_parse(r).ok())
+            .unwrap_or_else(Uuid::nil)
     }
 }
 
@@ -82,8 +96,24 @@ pub enum Ownership {
 /// FD 4.4 table for one inventory entry; `ledger_state` is the state of the row whose
 /// id is the UUID in the name, if any.
 pub fn classify_entry(entry: &InventoryEntry, ledger_state: Option<AllocationState>) -> Ownership {
-    let _ = (entry, ledger_state);
-    Ownership::Owned
+    if entry.kind != EntryKind::RegularFile {
+        return Ownership::Ambiguous;
+    }
+    // The name must be exactly a canonical `<lowercase uuid>.bin`.
+    if StorageKey::parse(&format!("alloc/{}", entry.name)).is_err() {
+        return Ownership::Ambiguous;
+    }
+    match ledger_state {
+        None => Ownership::Orphan,
+        Some(
+            AllocationState::Registered
+            | AllocationState::Written
+            | AllocationState::ReleasePending
+            | AllocationState::OrphanDiscovered,
+        ) => Ownership::Owned,
+        Some(AllocationState::Deleting) => Ownership::OwnedInCleanup,
+        Some(AllocationState::Deleted | AllocationState::CleanupFailed) => Ownership::Ambiguous,
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]

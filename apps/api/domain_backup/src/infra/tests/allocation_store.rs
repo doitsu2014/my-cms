@@ -363,6 +363,30 @@ async fn mark_written_is_a_compare_and_set() {
     );
 }
 
+/// FN-23: `mark_written` compares the version, not only the state. A caller holding a
+/// stale version of a row that is still `registered` (for example after another writer
+/// released and re-registered nothing, but bumped the version) must lose. Test-after,
+/// added in build-and-verify WU-04: the version check had no test of its own.
+#[tokio::test]
+#[ignore = "requires Docker for PostgreSQL testcontainer"]
+async fn mark_written_with_a_wrong_version_on_a_registered_row_loses() {
+    let fx = afx().await;
+    let a = fx
+        .store
+        .register(None, 8, 1, expires())
+        .await
+        .expect("register");
+    for wrong in [1_i64, 2, 99] {
+        assert_eq!(
+            fx.store.mark_written(a.id, wrong).await,
+            Err(AllocationError::Lost),
+            "version {wrong} must not match a registered row at version 0"
+        );
+    }
+    let raw = require_alloc(&fx.conn, a.id).await;
+    assert_eq!((raw.state.as_str(), raw.state_version), ("registered", 0));
+}
+
 /// FN-23, IFC 6.1 step 4: `release` moves `registered` or `written` to `release_pending`
 /// by compare-and-set; nothing else can be released.
 #[tokio::test]

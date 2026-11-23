@@ -8,7 +8,7 @@
   "depth": "full",
   "mode": "ai",
   "status": "active",
-  "currentStage": "build-and-verify",
+  "currentStage": "red-tests",
   "stages": {
     "problem-framing": {
       "status": "complete",
@@ -362,8 +362,8 @@
     "build-and-verify": {
       "status": "in_progress",
       "startedAt": "2026-11-22T07:12:29.973Z",
-      "detail": "WU-03 green on PostgreSQL 15: domain_backup 41 unit + 77 DB tests; workspace 294/0/82 with all ignored passing, no regression vs baseline.md; every contract guard mutation-proven (agent claim result corrected by conductor); 2 test-after tests mutation-proven; ids check clean",
-      "reportedAt": "2026-11-22T14:33:51.468Z",
+      "detail": "WU-04 green on PostgreSQL 15: domain_backup 82 unit + 105 DB tests; workspace 335/0/110, all ignored passing, no regression vs baseline.md; delete fail-open fixed red-first; mutation-proven guards incl. conductor version-CAS test; Unix/file-symlink tests left to CI",
+      "reportedAt": "2026-11-22T16:44:29.969Z",
       "reports": [
         {
           "at": "2026-11-22T07:26:43.015Z",
@@ -379,6 +379,11 @@
           "at": "2026-11-22T14:33:51.468Z",
           "result": "complete",
           "detail": "WU-03 green on PostgreSQL 15: domain_backup 41 unit + 77 DB tests; workspace 294/0/82 with all ignored passing, no regression vs baseline.md; every contract guard mutation-proven (agent claim result corrected by conductor); 2 test-after tests mutation-proven; ids check clean"
+        },
+        {
+          "at": "2026-11-22T16:44:29.969Z",
+          "result": "complete",
+          "detail": "WU-04 green on PostgreSQL 15: domain_backup 82 unit + 105 DB tests; workspace 335/0/110, all ignored passing, no regression vs baseline.md; delete fail-open fixed red-first; mutation-proven guards incl. conductor version-CAS test; Unix/file-symlink tests left to CI"
         }
       ],
       "units": {
@@ -393,6 +398,10 @@
         "WU-03": {
           "status": "complete",
           "reportedAt": "2026-11-22T14:33:51.468Z"
+        },
+        "WU-04": {
+          "status": "complete",
+          "reportedAt": "2026-11-22T16:44:29.969Z"
         }
       },
       "artifacts": [
@@ -467,6 +476,30 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/known-limitations.md",
           "bytes": 4030,
           "sha256": "743b8daba8da68cf684dc07128ca4746694d49543ca84b1fa1299162a675b791"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/implementation.md",
+          "bytes": 6868,
+          "sha256": "62a88c9b6b0497698200ae3cc506599d9d34847a0f791e422e1e5b8ab77ec7bc"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/green-verification-report.md",
+          "bytes": 11071,
+          "sha256": "07b4d471c8c9231db911022d687e06e541642a9f6cba33eb8dbd93be90ad5d5d"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/regression-report.md",
+          "bytes": 2612,
+          "sha256": "f0e31bbcbec4de907c94aa50795c904a6bbfc2970ea8d1abc0f29c148bc899e6"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/known-limitations.md",
+          "bytes": 3915,
+          "sha256": "072d9864b9d81d010fe9ff669bd258aec1f2dd769c04b93222fc4a0ababe2401"
         }
       ]
     }
@@ -474,7 +507,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-22T15:58:52.480Z",
+  "updatedAt": "2026-11-22T16:44:30.450Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -527,7 +560,7 @@
     },
     {
       "id": "WU-04",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-02",
         "WU-03"
@@ -615,5 +648,5 @@
       ]
     }
   ],
-  "currentUnit": "WU-04"
+  "currentUnit": "WU-05"
 }

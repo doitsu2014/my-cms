@@ -485,6 +485,31 @@ async fn delete_removes_a_regular_file_and_a_missing_file_is_already_absent() {
     assert_eq!(storage.delete(&key).await, Ok(DeleteOutcome::AlreadyAbsent));
 }
 
+/// FN-22, IFC 6.1 step 6: only a missing FILE counts as already absent. A missing `alloc/`
+/// or storage root means the namespace is gone (unmounted, deleted, misconfigured), so a
+/// delete must fail closed instead of reporting a successful cleanup. Red-first, added in
+/// build-and-verify WU-04 after review.
+#[tokio::test]
+async fn delete_fails_closed_when_the_namespace_directories_are_missing() {
+    let tmp = TempDir::new("delete-missing-dirs");
+    let key = StorageKey::from_allocation_id(Uuid::new_v4());
+
+    let storage = open(&tmp, FakeLedger::empty());
+    std::fs::remove_dir(alloc_dir(&tmp)).expect("remove empty alloc dir");
+    assert_eq!(
+        storage.delete(&key).await,
+        Err(StorageError::Unavailable),
+        "missing alloc/ must not look like a deleted file"
+    );
+
+    std::fs::remove_dir(tmp.root()).expect("remove empty root");
+    assert_eq!(
+        storage.delete(&key).await,
+        Err(StorageError::Unavailable),
+        "missing storage root must not look like a deleted file"
+    );
+}
+
 /// TS-19: delete touches only the exact key; a forged upper-case name of ANOTHER id, a
 /// temp file and an other-key file stay on disk. (The upper-case name belongs to a
 /// different id: on a case-insensitive file system the same id would be the same file.)
