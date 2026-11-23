@@ -3,6 +3,8 @@
 
 pub mod allocation_store;
 pub mod audit;
+pub mod capture;
 pub mod fixture_storage;
 pub mod job_store;
 pub mod namespace_lock;
+pub mod policy;

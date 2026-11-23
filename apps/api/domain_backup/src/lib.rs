@@ -6,6 +6,7 @@
 
 pub mod domain;
 pub mod infra;
+pub mod lifecycle;
 pub mod migrations;
 pub mod migrations_cli;
 pub mod ports;

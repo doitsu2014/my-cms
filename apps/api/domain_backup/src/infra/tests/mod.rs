@@ -12,3 +12,4 @@ mod fs_namespace_lock;
 mod fs_support;
 mod job_store;
 mod support;
+mod worker;

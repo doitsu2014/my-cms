@@ -8,7 +8,7 @@
   "depth": "full",
   "mode": "ai",
   "status": "active",
-  "currentStage": "red-tests",
+  "currentStage": "build-and-verify",
   "stages": {
     "problem-framing": {
       "status": "complete",
@@ -239,8 +239,8 @@
     "red-tests": {
       "status": "in_progress",
       "startedAt": "2026-11-22T06:56:17.617Z",
-      "detail": "WU-04 red: 62 new tests fail on assertions on Windows (35 filesystem/lock, 27 ledger on PostgreSQL 15); 4 file-symlink and 4 Unix permission tests red on Linux only; ids check clean",
-      "reportedAt": "2026-11-22T15:58:51.998Z",
+      "detail": "WU-05 red: 43 new tests fail on assertions (29 no-Docker, 14 PostgreSQL 15); 3 structural tests recorded; conductor decisions C-1 (system actor NULL) and C-2 (incomplete outcome failure) pinned; tokio moved to dependencies with no Cargo.lock change; ids check clean",
+      "reportedAt": "2026-11-23T01:04:47.056Z",
       "reports": [
         {
           "at": "2026-11-22T07:12:29.787Z",
@@ -271,6 +271,11 @@
           "at": "2026-11-22T15:58:51.998Z",
           "result": "complete",
           "detail": "WU-04 red: 62 new tests fail on assertions on Windows (35 filesystem/lock, 27 ledger on PostgreSQL 15); 4 file-symlink and 4 Unix permission tests red on Linux only; ids check clean"
+        },
+        {
+          "at": "2026-11-23T01:04:47.056Z",
+          "result": "complete",
+          "detail": "WU-05 red: 43 new tests fail on assertions (29 no-Docker, 14 PostgreSQL 15); 3 structural tests recorded; conductor decisions C-1 (system actor NULL) and C-2 (incomplete outcome failure) pinned; tokio moved to dependencies with no Cargo.lock change; ids check clean"
         }
       ],
       "units": {
@@ -293,6 +298,10 @@
         "WU-04": {
           "status": "complete",
           "reportedAt": "2026-11-22T15:58:51.998Z"
+        },
+        "WU-05": {
+          "status": "complete",
+          "reportedAt": "2026-11-23T01:04:47.056Z"
         }
       },
       "artifacts": [
@@ -355,6 +364,18 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-04/red-evidence.md",
           "bytes": 7478,
           "sha256": "8c113d9e52bfa27629a4f815997a84362e3bed6eb17815c76494597853ee2226"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-05/failing-tests.md",
+          "bytes": 8390,
+          "sha256": "43d0875d9ff1b0c5d4f28213f6bc80fa28312409ee43389245f555e120e4443e"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-05/red-evidence.md",
+          "bytes": 9001,
+          "sha256": "8d525dd8c0a99d9998577382c71ac830eed972837b7260e132abd834919cf68c"
         }
       ],
       "resumedAt": "2026-11-22T09:30:17.226Z"
@@ -507,7 +528,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-22T16:44:30.450Z",
+  "updatedAt": "2026-11-23T01:04:47.487Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
