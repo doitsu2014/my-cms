@@ -1,0 +1,7 @@
+COMMAND=cargo clippy --manifest-path apps/api/Cargo.toml --workspace --all-targets 
+CWD=/d/orca/my-cms/makara
+STARTED=2026-11-25T14:31:42+07:00
+EXIT_CODE=0
+FINISHED=2026-11-25T14:31:51+07:00
+STDOUT=refresh-wu01-clippy.stdout.log
+STDERR=refresh-wu01-clippy.stderr.log

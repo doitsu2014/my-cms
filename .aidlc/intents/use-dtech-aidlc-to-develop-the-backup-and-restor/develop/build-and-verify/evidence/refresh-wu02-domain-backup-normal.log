@@ -1,0 +1,483 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused variable: `id`
+   --> domain_backup\src\ports\allocation_store.rs:185:9
+    |
+185 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `expected`
+   --> domain_backup\src\ports\allocation_store.rs:186:9
+    |
+186 |         expected: (AllocationState, i64, i64),
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected`
+
+warning: unused variable: `to`
+   --> domain_backup\src\ports\allocation_store.rs:187:9
+    |
+187 |         to: AllocationState,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_to`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\allocation_store.rs:188:9
+    |
+188 |         reason: Option<ReasonCode>,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\allocation_store.rs:189:9
+    |
+189 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: unused variable: `id`
+   --> domain_backup\src\ports\job_store.rs:229:9
+    |
+229 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+
+warning: unused variable: `expected_epoch`
+   --> domain_backup\src\ports\job_store.rs:230:9
+    |
+230 |         expected_epoch: i64,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_epoch`
+
+warning: unused variable: `expected_status`
+   --> domain_backup\src\ports\job_store.rs:231:9
+    |
+231 |         expected_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_status`
+
+warning: unused variable: `expected_state_version`
+   --> domain_backup\src\ports\job_store.rs:232:9
+    |
+232 |         expected_state_version: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_state_version`
+
+warning: unused variable: `target_status`
+   --> domain_backup\src\ports\job_store.rs:233:9
+    |
+233 |         target_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_status`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\job_store.rs:234:9
+    |
+234 |         reason: ReasonCode,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\job_store.rs:235:9
+    |
+235 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\cleaner.rs:20:1
+   |
+20 | pub struct Cleaner;
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> domain_backup\src\lib.rs:5:9
+   |
+ 5 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\reconciler.rs:20:1
+   |
+20 | pub struct Reconciler;
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\sweeper.rs:17:1
+   |
+17 | pub struct Sweeper;
+   | ^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_backup` (lib) generated 15 warnings (run `cargo fix --lib -p domain_backup` to apply 12 suggestions)
+warning: `domain_backup` (lib test) generated 15 warnings (15 duplicates)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.50s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (apps\api\target\debug\build\domain_backup/3b844752f3f297a2\out\domain_backup-3b844752f3f297a2.exe)
+
+running 257 tests
+test domain::config::tests::disabled_reason_closed_set_spelling ... ok
+test domain::config::tests::escalation_owner_cannot_be_overridden ... ok
+test domain::config::tests::forbidden_comparison_is_case_insensitive_on_windows ... ok
+test domain::config::tests::is_loopback_bind_accepts_only_loopback_ip_literals ... ok
+test domain::config::tests::from_env_child_probe ... ok
+test domain::config::tests::defaults_match_owner_values ... ok
+test domain::config::tests::invalid_numeric_env_refuses_capability ... ok
+test domain::config::tests::non_loopback_bind_takes_precedence_over_invalid_config ... ok
+test domain::config::tests::not_configured_takes_precedence ... ok
+test domain::config::tests::disabled_reason_projection_covers_null ... ok
+test domain::config::tests::disabled_unless_backup_enabled_is_true ... ok
+test domain::config::tests::host_default_is_loopback_and_non_loopback_host_disables ... ok
+test domain::config::tests::storage_root_metadata_error_is_inaccessible ... ok
+test domain::config::tests::storage_root_rejects_parent_dir_component ... ok
+test domain::config::tests::storage_root_rejects_existing_file ... ok
+test domain::state_machine::tests::no_transition_reaches_succeeded_or_recovery_required ... ok
+test domain::state_machine::tests::only_the_four_u1_edges_are_allowed ... ok
+test domain::state_machine::tests::terminal_states_have_no_outgoing_transitions ... ok
+test domain::status::tests::all_lists_every_variant_once ... ok
+test domain::status::tests::no_write_or_projection_yields_succeeded_or_recovery_required ... ok
+test domain::config::tests::storage_root_rejects_verbatim_prefix_on_windows ... ok
+test infra::tests::allocation_store::claim_and_delete_commit_are_refused_when_audit_fails ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::claim_for_delete_audits_in_the_same_transaction_and_is_conditional ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::claim_for_delete_stamps_the_current_epoch ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::claim_for_delete_waits_for_the_backoff_to_pass ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::cleanup_failures_retry_with_backoff_then_exhaust_after_three ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::concurrent_registrations_never_exceed_the_total_budget ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::due_for_cleanup_returns_exactly_the_due_rows ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::forced_interleaving_never_exceeds_the_total_budget ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::get_returns_the_committed_row ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::insert_orphan_audits_in_the_same_transaction_and_fails_closed ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::insert_orphan_persists_the_discovered_file_with_grace ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::insert_orphan_twice_keeps_the_first_grace ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::mark_deleted_commits_with_audit_and_has_no_shortcut ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::mark_written_is_a_compare_and_set ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::mark_written_with_a_wrong_version_on_a_registered_row_loses ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::racing_mark_written_and_release_have_one_winner ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::record_cleanup_failure_only_applies_to_a_deleting_row ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::register_accepts_a_zero_byte_reservation ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::register_commits_a_registered_row_with_the_opaque_key ... ignored, requires Docker for PostgreSQL testcontainer
+test domain::status::tests::wire_spelling_keeps_documented_values_and_adds_incomplete ... ok
+test infra::tests::allocation_store::register_enforces_the_1_gib_total_budget_durably ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::register_enforces_the_256_mib_per_allocation_budget ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::register_fails_closed_when_the_ledger_is_unreachable ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::register_is_refused_and_rolled_back_when_audit_fails ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::register_writes_allocation_registered_audit_in_the_same_transaction ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::release_moves_registered_and_written_to_release_pending ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::rows_are_stamped_from_the_injected_clock ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::the_ledger_row_exists_before_the_first_byte_is_written ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::allocation_store::total_budget_counts_every_state_except_deleted ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::audit_sink::a_row_recorded_on_the_callers_transaction_is_visible_only_after_commit ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::audit_sink::an_audit_write_failure_is_reported_not_swallowed ... ignored, requires Docker for PostgreSQL testcontainer
+test domain::config::tests::enabled_without_storage_root_refuses ... ok
+test infra::tests::audit_sink::a_digest_is_only_a_sha256_hex_string ... ok
+test domain::config::tests::origin_host_label_hyphen_edges_refused ... ok
+test infra::tests::audit_sink::connection_level_and_unclassifiable_failures_are_an_outage ... ok
+test infra::tests::audit_sink::every_column_of_the_event_is_persisted ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::audit_sink::event_kinds_map_to_the_closed_event_set ... ok
+test infra::tests::audit_sink::every_event_kind_is_stored_with_its_closed_set_name ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::audit_sink::recording_is_plain_insert_and_never_touches_existing_rows ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::audit_sink::recording_without_a_transaction_commits_immediately ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::audit_sink::rolling_back_the_callers_transaction_leaves_no_audit_row ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::audit_sink::sqlstates_split_into_statement_rejections_and_fail_closed_outages ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::fs_fixture_storage::classify_non_regular_entries_as_ambiguous_even_with_a_valid_name ... ok
+test infra::tests::fs_fixture_storage::classify_valid_opaque_name_follows_the_ledger_table ... ok
+test infra::tests::fs_fixture_storage::classify_forged_and_non_opaque_names_as_ambiguous ... ok
+test domain::config::tests::origin_port_bounds_are_enforced ... ok
+test domain::config::tests::allowed_origins_required_and_well_formed ... ok
+test domain::config::tests::bounds_other_than_default_disable_with_invalid_config ... ok
+test domain::config::tests::padded_required_text_is_invalid_config ... ok
+test domain::config::tests::invalid_config_always_yields_disabled_state ... ok
+test domain::config::tests::ingress_limits_required ... ok
+test domain::config::tests::non_canonical_and_overflowing_numbers_are_invalid ... ok
+test infra::tests::fs_fixture_storage::open_refuses_a_relative_root ... ok
+test infra::tests::fs_fixture_storage::delete_fails_closed_when_the_namespace_directories_are_missing ... ok
+test infra::tests::fs_fixture_storage::delete_never_follows_or_removes_a_file_symlink ... ok
+test infra::tests::fs_fixture_storage::delete_refuses_a_directory_at_the_key_path ... ok
+test infra::tests::fs_fixture_storage::delete_removes_a_regular_file_and_a_missing_file_is_already_absent ... ok
+test infra::tests::fs_fixture_storage::storage_key_is_derived_from_the_allocation_id_only ... ok
+test infra::tests::fs_fixture_storage::delete_leaves_every_other_entry_on_disk ... ok
+test infra::tests::fs_fixture_storage::open_creates_root_and_alloc_directories ... ok
+test infra::tests::fs_fixture_storage::storage_key_parse_refuses_every_non_opaque_name ... ok
+test infra::tests::fs_fixture_storage::open_refuses_a_root_that_is_a_file ... ok
+test infra::tests::fs_fixture_storage::delete_never_removes_a_case_folded_forged_file ... ok
+test infra::tests::fs_fixture_storage::write_beyond_the_reserved_bytes_is_refused_without_a_partial_file ... ok
+test infra::tests::fs_fixture_storage::write_creates_exactly_the_opaque_key_file ... ok
+test infra::tests::fs_fixture_storage::write_fails_closed_when_the_ledger_is_unavailable ... ok
+test infra::tests::fs_fixture_storage::write_is_refused_for_every_state_except_registered ... ok
+test infra::tests::fs_fixture_storage::write_never_goes_through_a_dangling_symlink ... ok
+test infra::tests::fs_fixture_storage::write_never_goes_through_a_file_symlink_to_an_existing_file ... ok
+test infra::tests::fs_fixture_storage::inventory_never_exceeds_max_entries_and_flags_truncation ... ok
+test infra::tests::fs_namespace_lock::a_relative_root_is_refused_with_invalid_root ... ok
+test infra::tests::fs_namespace_lock::a_file_symlink_at_the_lock_path_is_refused_and_not_followed ... ok
+test infra::tests::fs_fixture_storage::write_without_a_registered_allocation_is_refused_and_writes_nothing ... ok
+test infra::tests::fs_namespace_lock::lock_child_probe ... ok
+test infra::tests::fs_namespace_lock::acquire_creates_the_sibling_lock_file_outside_the_namespace ... ok
+test infra::tests::fs_namespace_lock::lock_path_appends_to_the_whole_root_name ... ok
+test infra::tests::fs_namespace_lock::lock_path_for_a_root_with_a_trailing_separator_is_still_a_sibling ... ok
+test infra::tests::fs_namespace_lock::lock_path_is_a_sibling_of_the_root ... ok
+test infra::tests::fs_namespace_lock::second_holder_is_refused_and_drop_releases_the_lock ... ok
+test infra::tests::fs_fixture_storage::write_never_overwrites_an_existing_file ... ok
+test infra::tests::job_store::a_claim_and_a_queued_failure_race_to_exactly_one_winner ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::a_claim_blocked_on_a_row_taken_by_another_transaction_does_not_claim_it_again ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::a_late_worker_cannot_overwrite_a_terminal_result ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::a_stale_version_or_status_loses_and_changes_nothing ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::a_transition_blocked_on_the_row_lock_loses_after_the_winner_commits ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::a_transition_hands_its_own_uncommitted_transaction_to_the_audit_sink ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::a_transition_writes_one_job_audit_row_with_its_event_and_ids ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::accept_inserts_a_queued_job_and_its_idempotency_row ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::accept_is_part_of_the_callers_transaction ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::accept_refuses_digests_that_are_not_sha256_hex_without_writing ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::accept_succeeds_after_the_active_job_is_terminal_and_for_other_instances ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::an_audit_failure_refuses_the_claim ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::an_audit_failure_refuses_the_transition ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::an_audit_outage_is_a_store_outage_for_transitions_and_claims ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::an_audit_row_written_before_the_sink_fails_rolls_back_with_the_claim ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::an_audit_row_written_before_the_sink_fails_rolls_back_with_the_transition ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::an_idempotency_key_collision_is_a_unique_violation_not_a_persistence_error ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::claim_next_claims_the_oldest_queued_job ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::claim_next_never_reclaims_a_running_or_terminal_job ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::concurrent_accepts_for_one_instance_create_exactly_one_job ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::concurrent_claims_never_claim_a_job_twice ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::conflicting_accept_leaves_no_job_or_idempotency_row ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::duplicate_job_id_is_a_persistence_error_not_a_concurrency_conflict ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::each_legal_edge_applies_bumps_the_version_and_stamps_times ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::edges_outside_the_u1_graph_are_refused_without_changes ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::exactly_one_of_n_concurrent_claims_wins ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::get_returns_the_stored_row_and_none_for_an_unknown_id ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::omitting_components_keeps_the_stored_components ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::racing_terminal_transitions_have_exactly_one_winner ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::second_accept_conflicts_while_a_job_is_running ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::second_accept_conflicts_while_the_first_job_is_queued ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::terminal_rows_are_immutable_through_the_store ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::the_claim_hands_its_own_uncommitted_transaction_to_the_audit_sink ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::reason_codes_map_to_the_ifc_10_1_spellings ... ok
+test infra::tests::job_store::the_job_audit_row_excludes_free_text_stored_on_the_job ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::transition_of_an_unknown_job_is_not_found ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::reconciliation::allocation_reconciliation_cas_updates_state_and_audits_atomically ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::reconciliation::job_store_reconciliation_inventory_and_epoch_are_durable ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::reconciliation::lost_allocation_reconciliation_cas_has_no_audit_or_state_change ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::reconciliation::missing_file_observation_audits_without_mutating_allocation ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::reconciliation::reconciliation_audit_failure_rolls_back_allocation_and_audit ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::reconciliation::ts22_job_fence_cas_is_epoch_status_version_checked_and_audited_atomically ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::reconciliation::ts30_deadline_inventory_includes_only_due_jobs_at_epoch ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::reconciliation::ts56_allocation_inventory_preserves_nullable_orphan_owners ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts05a_denied_policy_at_claim_fails_job_without_running_it ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts44b_incomplete_event_outcome_is_failure ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts44b_job_events_are_complete_and_free_of_excluded_fields ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts44b_job_events_use_the_system_actor ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts44b_refused_running_audit_leaves_job_queued_and_nothing_runs ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts44b_refused_terminal_audit_leaves_job_running_without_unaudited_effect ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts47_queued_job_runs_through_fixture_adapter_and_ends_incomplete ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts48_adapter_error_fails_job_and_releases_allocation ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts48_allocation_limit_fails_job_without_a_row_or_a_file ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts48_dispatch_failed_fails_queued_job ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts48_registration_refused_fails_job_persistence_error ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts48_total_budget_exhausted_fails_job_allocation_limit ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts67_duplicate_dispatch_has_exactly_one_winner ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts67_late_worker_cannot_overwrite_a_terminal_job ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::worker::ts67_simultaneous_dispatch_has_exactly_one_winner ... ignored, requires Docker for PostgreSQL testcontainer
+test lifecycle::fixture_capture::tests::fixture_content_is_fixed_size_deterministic_ascii ... ok
+test lifecycle::fixture_capture::tests::refused_write_is_a_capture_error ... ok
+test lifecycle::fixture_capture::tests::storage_failure_is_a_capture_error ... ok
+test lifecycle::fixture_capture::tests::reports_the_exact_contract_components ... ok
+test lifecycle::fixture_capture::tests::writes_one_fixed_size_fixture_under_the_context_key ... ok
+test lifecycle::lifecycle_tests::ts20_registered_row_without_file_is_transitioned_to_release_pending ... FAILED
+test lifecycle::lifecycle_tests::ts21_file_after_register_before_mark_written_is_retained_as_owned ... FAILED
+test lifecycle::lifecycle_tests::ts22_old_epoch_running_job_is_failed_with_restart_reason_and_audit ... FAILED
+test lifecycle::lifecycle_tests::ts23_orphan_is_persisted_before_grace_and_ambiguous_entry_is_untouched ... FAILED
+test lifecycle::lifecycle_tests::ts24_unexpired_incomplete_allocation_with_missing_file_is_not_released ... ok
+test lifecycle::lifecycle_tests::ts25_crashed_old_epoch_deleting_claim_returns_to_cleanup_without_retry ... FAILED
+test lifecycle::lifecycle_tests::ts26_unlinked_file_with_deleting_row_commits_deleted_idempotently ... FAILED
+test lifecycle::lifecycle_tests::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time ... FAILED
+test lifecycle::lifecycle_tests::ts28_expired_written_allocation_of_active_job_remains_unchanged_and_file_is_kept ... ok
+test lifecycle::lifecycle_tests::ts29_store_outage_closes_work_and_recovery_reconciles_before_reopening ... FAILED
+test lifecycle::lifecycle_tests::ts30_fake_time_enforces_retry_expiry_grace_and_sweep_boundaries ... FAILED
+test lifecycle::lifecycle_tests::ts32_startup_lock_epoch_reconcile_cleanup_barrier_precedes_admissions ... FAILED
+test lifecycle::lifecycle_tests::ts42_purge_at_retention_boundary_removes_eligible_metadata_but_keeps_audit ... FAILED
+test lifecycle::lifecycle_tests::ts56_truncated_inventory_makes_reconciliation_fail_closed ... FAILED
+test lifecycle::lifecycle_tests::ts65_audit_refusal_blocks_delete_claim_delete_commit_and_purge ... FAILED
+test lifecycle::worker::tests::budget_exceeded_fails_job_allocation_limit ... ok
+test lifecycle::worker::tests::adapter_error_fails_job_and_releases_allocation ... ok
+test lifecycle::worker::tests::claim_recheck_is_made_once_for_the_jobs_instance ... ok
+test lifecycle::worker::tests::deadline_already_elapsed_fails_without_capture ... ok
+test lifecycle::worker::tests::deadline_exceeded_fails_job ... ok
+test lifecycle::worker::tests::deadline_budget_excludes_time_spent_registering_allocation ... ok
+test lifecycle::worker::tests::deadline_is_not_enforced_before_it_is_due ... ok
+test lifecycle::worker::tests::deadline_is_the_time_remaining_until_deadline_at ... ok
+test lifecycle::worker::tests::dispatch_failure_does_not_touch_a_running_job ... ok
+test lifecycle::worker::tests::duplicate_dispatch_has_exactly_one_winner ... ok
+test lifecycle::worker::tests::happy_path_ends_incomplete_with_exact_components ... ok
+test lifecycle::worker::tests::late_worker_cannot_overwrite_a_terminal_job ... ok
+test lifecycle::worker::tests::mark_written_failure_fails_job_persistence_error ... ok
+test lifecycle::worker::tests::late_worker_does_not_overwrite_sweeper_result ... ok
+test lifecycle::worker::tests::policy_denial_at_claim_fails_job_instance_not_allowed ... ok
+test lifecycle::worker::tests::no_path_ends_succeeded_or_recovery_required ... ok
+test lifecycle::worker::tests::policy_unavailable_at_claim_fails_closed ... ok
+test lifecycle::worker::tests::refused_terminal_write_retries_three_times_then_leaves_job_running ... ok
+test lifecycle::worker::tests::registration_refused_fails_job_persistence_error ... ok
+test lifecycle::worker::tests::simultaneous_claims_have_exactly_one_winner ... ok
+test lifecycle::worker::tests::sweeper_first_then_worker_timer_has_one_terminal_result ... ok
+test lifecycle::worker::tests::refused_terminal_write_stalls_on_every_path_and_keeps_the_allocation ... ok
+test lifecycle::worker::tests::total_budget_exhausted_fails_job_allocation_limit ... ok
+test lifecycle::worker::tests::transient_audit_refusal_recovers_within_the_retries ... ok
+test lifecycle::worker::tests::worker_config_defaults_equal_the_validated_bounds ... ok
+test lifecycle::worker::tests::undispatchable_queued_job_fails_dispatch_failed ... ok
+test migrations::tests::allocation_checks_and_epoch_singleton ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::allocation_job_fk_and_column_defaults ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::audit_cannot_be_truncated ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::audit_digest_is_char_64 ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::audit_rows_cannot_be_updated_or_deleted ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::backup_jobs_columns_match_the_contract ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::backup_jobs_defaults_apply ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::backup_jobs_row_checks_reject_bad_rows ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::backup_uses_its_own_migration_table ... ok
+test lifecycle::worker::tests::worker_timer_first_then_late_sweeper_loses ... ok
+test migrations::tests::both_guard_triggers_are_present ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::down_one_step_removes_only_the_jobs_trigger ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::down_refuses_while_an_allocation_is_not_deleted ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::down_refuses_while_audit_rows_exist_and_keeps_everything ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::down_succeeds_when_every_allocation_is_deleted ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::down_without_audit_rows_keeps_audit_table_and_trigger_and_drops_the_rest ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::every_status_transition_pair_is_allowed_or_rejected_exactly ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::fresh_database_gets_all_five_backup_tables ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::idempotency_scope_ignores_request_fingerprint ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::idempotency_unique_and_restrict_fk ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::illegal_non_terminal_transitions_are_rejected ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::legal_transitions_are_allowed ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::migration_records_only_in_seaql_migrations_backup ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::migrations_cli_run_applies_on_a_fresh_database ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::only_one_active_job_per_instance ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::other_backup_table_columns_match_the_contract ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::second_up_is_a_no_op ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::secondary_indexes_exist ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::status_column_accepts_every_documented_value_when_u1_guard_is_removed ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::status_column_check_keeps_all_six_documented_values ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::terminal_job_cannot_be_updated ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::terminal_job_without_idempotency_row_can_be_deleted_and_audit_has_no_fk ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::u1_job_cannot_be_inserted_as_succeeded_or_recovery_required ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::migrator_lists_the_two_backup_migrations_in_order ... ok
+test migrations::tests::u1_job_cannot_be_updated_to_succeeded_or_recovery_required ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::upgrade_beside_posts_and_seo_leaves_their_tables_untouched ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::upgrade_from_000001_to_000002 ... ignored, requires Docker for PostgreSQL testcontainer
+test domain::config::tests::load_refuses_link_or_file_storage_root ... ok
+test domain::config::tests::storage_root_rejects_link_on_ancestor ... ok
+test infra::tests::fs_fixture_storage::delete_never_follows_or_removes_a_link ... ok
+test infra::tests::fs_fixture_storage::open_refuses_a_root_that_is_a_link ... ok
+test infra::tests::fs_fixture_storage::open_refuses_an_alloc_directory_that_is_a_link ... ok
+test infra::tests::fs_fixture_storage::inventory_reports_kinds_and_never_follows_links ... ok
+test domain::config::tests::from_env_non_utf8_value_fails_validation ... ok
+test infra::tests::fs_namespace_lock::lock_held_by_child_process_refuses_the_parent_until_it_exits ... ok
+test infra::tests::fs_namespace_lock::a_directory_link_at_the_lock_path_is_refused_and_not_followed ... ok
+test infra::tests::fs_fixture_storage::write_never_goes_through_a_link_at_the_key_path ... ok
+test infra::tests::fs_fixture_storage::write_refuses_when_alloc_is_swapped_for_a_link_after_open ... ok
+test domain::config::tests::storage_root_rejects_forbidden_and_relative_paths ... ok
+test infra::tests::fs_namespace_lock::lock_held_by_parent_refuses_a_second_process ... ok
+test infra::tests::fs_fixture_storage::inventory_bound_holds_for_a_large_namespace ... ok
+
+failures:
+
+---- lifecycle::lifecycle_tests::ts20_registered_row_without_file_is_transitioned_to_release_pending stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts20_registered_row_without_file_is_transitioned_to_release_pending' (40356) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:23:5:
+assertion `left == right` failed: one seeded registered row is missing its file
+  left: 0
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- lifecycle::lifecycle_tests::ts21_file_after_register_before_mark_written_is_retained_as_owned stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts21_file_after_register_before_mark_written_is_retained_as_owned' (40792) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:32:5:
+assertion `left == right` failed: startup recovery must process the interrupted registered allocation
+  left: 0
+ right: 1
+
+---- lifecycle::lifecycle_tests::ts22_old_epoch_running_job_is_failed_with_restart_reason_and_audit stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts22_old_epoch_running_job_is_failed_with_restart_reason_and_audit' (12088) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:41:5:
+assertion `left == right` failed: old-epoch running job must be fenced
+  left: 0
+ right: 1
+
+---- lifecycle::lifecycle_tests::ts23_orphan_is_persisted_before_grace_and_ambiguous_entry_is_untouched stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts23_orphan_is_persisted_before_grace_and_ambiguous_entry_is_untouched' (34100) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:50:5:
+assertion `left == right` failed: valid unowned entry must become an orphan row
+  left: 0
+ right: 1
+
+---- lifecycle::lifecycle_tests::ts25_crashed_old_epoch_deleting_claim_returns_to_cleanup_without_retry stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts25_crashed_old_epoch_deleting_claim_returns_to_cleanup_without_retry' (32124) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:68:5:
+assertion `left == right` failed: stale deleting claim must be recovered
+  left: 0
+ right: 1
+
+---- lifecycle::lifecycle_tests::ts26_unlinked_file_with_deleting_row_commits_deleted_idempotently stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts26_unlinked_file_with_deleting_row_commits_deleted_idempotently' (4900) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:77:5:
+assertion `left == right` failed
+  left: NotDue
+ right: Deleted
+
+---- lifecycle::lifecycle_tests::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time' (17412) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:86:5:
+assertion `left == right` failed
+  left: []
+ right: [Exhausted]
+
+---- lifecycle::lifecycle_tests::ts29_store_outage_closes_work_and_recovery_reconciles_before_reopening stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts29_store_outage_closes_work_and_recovery_reconciles_before_reopening' (39192) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:104:5:
+successful recovery must reopen only after reconcile
+
+---- lifecycle::lifecycle_tests::ts30_fake_time_enforces_retry_expiry_grace_and_sweep_boundaries stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts30_fake_time_enforces_retry_expiry_grace_and_sweep_boundaries' (37868) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:129:5:
+assertion `left == right` failed
+  left: NotDue
+ right: Deleted
+
+---- lifecycle::lifecycle_tests::ts32_startup_lock_epoch_reconcile_cleanup_barrier_precedes_admissions stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts32_startup_lock_epoch_reconcile_cleanup_barrier_precedes_admissions' (13364) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:143:5:
+admissions open only after lock, fencing, reconcile and cleanup
+
+---- lifecycle::lifecycle_tests::ts42_purge_at_retention_boundary_removes_eligible_metadata_but_keeps_audit stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts42_purge_at_retention_boundary_removes_eligible_metadata_but_keeps_audit' (416) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:152:5:
+assertion `left == right` failed: eligible terminal metadata is purged
+  left: 0
+ right: 1
+
+---- lifecycle::lifecycle_tests::ts56_truncated_inventory_makes_reconciliation_fail_closed stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts56_truncated_inventory_makes_reconciliation_fail_closed' (23604) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:158:5:
+truncated inventory must prevent classification and mutation
+
+---- lifecycle::lifecycle_tests::ts65_audit_refusal_blocks_delete_claim_delete_commit_and_purge stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts65_audit_refusal_blocks_delete_claim_delete_commit_and_purge' (24516) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:176:5:
+purge refusal leaves metadata and retained audit unchanged
+
+
+failures:
+    lifecycle::lifecycle_tests::ts20_registered_row_without_file_is_transitioned_to_release_pending
+    lifecycle::lifecycle_tests::ts21_file_after_register_before_mark_written_is_retained_as_owned
+    lifecycle::lifecycle_tests::ts22_old_epoch_running_job_is_failed_with_restart_reason_and_audit
+    lifecycle::lifecycle_tests::ts23_orphan_is_persisted_before_grace_and_ambiguous_entry_is_untouched
+    lifecycle::lifecycle_tests::ts25_crashed_old_epoch_deleting_claim_returns_to_cleanup_without_retry
+    lifecycle::lifecycle_tests::ts26_unlinked_file_with_deleting_row_commits_deleted_idempotently
+    lifecycle::lifecycle_tests::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time
+    lifecycle::lifecycle_tests::ts29_store_outage_closes_work_and_recovery_reconciles_before_reopening
+    lifecycle::lifecycle_tests::ts30_fake_time_enforces_retry_expiry_grace_and_sweep_boundaries
+    lifecycle::lifecycle_tests::ts32_startup_lock_epoch_reconcile_cleanup_barrier_precedes_admissions
+    lifecycle::lifecycle_tests::ts42_purge_at_retention_boundary_removes_eligible_metadata_but_keeps_audit
+    lifecycle::lifecycle_tests::ts56_truncated_inventory_makes_reconciliation_fail_closed
+    lifecycle::lifecycle_tests::ts65_audit_refusal_blocks_delete_claim_delete_commit_and_purge
+
+test result: FAILED. 116 passed; 13 failed; 128 ignored; 0 measured; 0 filtered out; finished in 0.35s
+
+error: test failed, to rerun pass `-p domain_backup --lib`
+   Doc-tests domain_backup
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: 1 target failed:
+    `-p domain_backup --lib`
+EXIT_CODE=101

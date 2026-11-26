@@ -92,4 +92,8 @@ Production shells and tests live under `apps/api/domain_backup/src/`.
 | No Docker | 101 | 84 (82 earlier + 2 structural) | 29 (all new) | 120 ignored |
 | `--ignored` (Docker, 92 s) | 101 | 106 (105 earlier + 1 structural) | 14 (all new) | 113 filtered |
 
-That makes 46 new tests: 43 red and 3 structural.
+That makes 46 new tests at the historical red run: 43 red and 3 structural.
+
+## Current replay review (2026-11-24)
+
+This manifest remains the historical 2026-11-23 red snapshot; its test counts and red assertions are not rewritten. After that red, WU-05 implementation and the red-first TS-68 deadline-budget regression were added and verified (see the linked green report). No further WU-05 behavior change was found beyond those already recorded implementation and deadline-fix changes. The focused current worker, fixture and Docker-backed worker tests pass, so a new failing run is neither warranted nor fabricated; recommend skipping this redundant red replay. Current command results are recorded in [red-evidence.md](red-evidence.md).

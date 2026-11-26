@@ -34,7 +34,7 @@ Relative links from this file's directory (`develop/implementation-design/`):
 - [D] Design decision proposed here; a proposal for the plan gate, not an approval.
 - [Q] Open question.
 
-No test has been run and no baseline exists. Nothing here is implemented. Only [UP] items are approved.
+This is a design artifact, not a phase-gate approval. Baseline and implementation evidence are maintained separately: `develop/baseline.md` records the 2026-11-22 baseline (290 normal passes; 39/39 ignored passes); WU-01..WU-05 have completed build-and-verify records; WU-06 store implementation and focused tests are recorded green, while its full regression gate remains pending WU-16; WU-16 lifecycle tests are present and failing pending its own work. Only [UP] items are approved.
 
 ## 1. Approval status and boundaries
 
@@ -428,7 +428,7 @@ Single row: `id int PK CHECK (id = 1)`, `epoch bigint NOT NULL`, `started_at tim
 
 - `Migrator` implements `MigratorTrait`; `migrations/mod.rs` defines `BACKUP_MIGRATION_IDS` and `migration_descriptors()` returning `MigrationDescriptor{id, depends_on: &[]}`, like `SEO_MIGRATION_IDS` [O: apps/api/domain_seo/src/migrations/mod.rs:5]. (`POST_MIGRATION_IDS` is the domain_posts constant and is not reused.)
 - `migrations_cli` mirrors domain_seo: `run`, `revert`, `list_identities` only [O: apps/api/domain_seo/src/migrations_cli.rs lines 4-10]; `connect` and `handle_args` exist only in domain_posts and are not copied.
-- Migration gating (RK-16, plan 3.1) [D]: `list_identities` is chained into `gateway/src/migrate_cli.rs::all_migration_identities`, and the backup migrations are registered only when `BACKUP_ENABLED=true` and the loopback guard passes, or U1 stays off `main` until the project owner decides the release effect. Merging to `main` auto-releases an image (`.github/workflows/release-my-cms-image.yml`) and the gateway aborts on migration failure [O: gateway/src/main.rs:158-161]; unconditional registration would create `backup_*` tables in any connected database, which the production-use non-authorization (C-03) does not permit. Hard stop, carried in plan, work-units WU-02/WU-10 Done-when and FD 6.1 and 8: "Blocked by [Q]: owner decision on migration gating / release effect (RK-16); no merge to main until decided" (OPEN, not decided). WU-10 additionally carries the RK-15 runtime-start condition (whether the gateway boots with the backup migrator chained is unverified [A]); WU-10 Done when requires it resolved by the owner or recorded as a descoped residual, and requires the owner values for CFG-17/CFG-18 recorded.
+- Migration gating (RK-16, plan 3.1) [D]: `list_identities` is chained into `gateway/src/migrate_cli.rs::all_migration_identities`, and the backup migrations are registered only when `BACKUP_ENABLED=true` and the loopback guard passes, or U1 stays off `main` until the project owner decides the release effect. Merging to `main` auto-releases an image (`.github/workflows/release-my-cms-image.yml`) and the gateway aborts on migration failure [O: gateway/src/main.rs:158-161]; unconditional registration would create `backup_*` tables in any connected database, which the production-use non-authorization (C-03) does not permit. Hard stop, carried in plan, work-units WU-02/WU-10 Done-when and FD 6.1 and 8: "Blocked by [Q]: owner decision on migration gating / release effect (RK-16); no merge to main until decided" (OPEN, not decided). WU-10 also carries the RK-15 runtime-start/TS-41 scope: migration investigation has red/green evidence for the original failure and a separately applied after-fix, which is not presumed part of U1 and does not resolve the owner disposition. WU-10 must record/adhere to that owner disposition (or a clearly descoped residual) and record CFG-17/CFG-18 owner values.
 - `domain_seo` is the reference migrator structure [O: apps/api/domain_seo/Cargo.toml pins sea-orm-migration 1.1.20].
 - Migration table: `MigratorTrait::migration_table_name()` overridden to `seaql_migrations_backup` (deviation D-02). See "Spine discrepancies" on evidence for this.
 - Rollback: `migrate down` and `status` forward only to `domain_posts` [O]; backup rollback is by disabling admissions and keeping the ledger (RK-08).
@@ -447,7 +447,7 @@ Traces: F-21..F-33; ADR-004 [UP]; T-11, T-12, T-13, T-14.
 5. Cleaner claims `release_pending -> deleting` (or `orphan_discovered -> deleting` after `orphan_grace_until`, 1 h) conditionally; an active worker cannot reacquire a `deleting` allocation.
 6. Unlink idempotently (missing file counts as removed), then commit `deleted`.
 7. Transient failure: `deleting -> release_pending` with `cleanup_attempts+1`, `next_attempt_at = now + 60 s`. After 3 attempts: `cleanup_failed`, safe reason, audit `cleanup.exhausted`, visible escalation to the project owner via IF-11.
-8. Startup: acquire NamespaceLock; bump epoch; reconcile jobs (older-epoch `running` -> `failed INTERRUPTED_RESTART`, `queued` -> `failed ABANDONED_QUEUED`; no resume); two-way inventory reconcile (bounded: `inventory(max_entries)` returns a truncation flag, and a truncated inventory makes reconcile fail closed: admissions stay closed, state `not_ready`/`degraded`, no orphan persisted from a partial scan and no deletion decided from it; T-13, TS-56); cleanup pass; open admissions; sweep every 900 s.
+8. Startup: acquire NamespaceLock; atomically advance epoch; obtain complete job, allocation-owner and filesystem inventories; reconcile/fence only after inventory completeness is established; run startup cleanup; open admissions only after success. Any truncated inventory fails closed before classification, orphan insertion, partial-view fencing or deletion; admissions stay closed and state remains `not_ready`/`degraded` (T-13, TS-56). Sweeps run every 900 s.
 9. Orphans: a namespace file with a valid feature-owned name but no ledger row is persisted as `orphan_discovered` with `orphan_grace_until = now + 1 h` before any deletion. A file with an invalid or ambiguous name is never deleted; audit `ownership.ambiguous` and counter `ownership_incidents`.
 10. DB outage: set `db_healthy=false`, close admissions, no allocation and no deletion; retain files; emit a safe health signal; probe every 60 s [E]; reconcile before reopening.
 
@@ -470,20 +470,22 @@ Text fallback: registered -> written -> release_pending -> deleting -> deleted; 
 
 ### 6.1a Deterministic reconcile table [D]
 
-There is no `written -> deleted` shortcut and no `deleting -> release_pending` crash shortcut other than the rows below; every transition is a CAS on `state_version`. Reconcile (two-way inventory plus the table below) runs at startup after the epoch bump and on DB recovery before admissions reopen. The periodic sweep (FD 6.7: deadline, expiry, orphan grace, purge) does not run the full reconcile, but each sweep performs a discover-only inventory scan so an orphan appearing after startup is persisted as `orphan_discovered` (TS-23 trigger) [D]; the scan uses the same entry cap and, if truncated, persists nothing, raises the degraded signal and retries next sweep. The `deleting -> release_pending` reset below applies only to rows whose `epoch` is older than the current epoch (a crashed claim); a `deleting` row of the current epoch belongs to the live cleaner and is never reset.
+**Design clarification (2026-11-23; existing C/D revision convention; no D identifier slot is registered in `ids.json`):** add `allocation.reconciled` for applied allocation-reconciliation CAS operations with existing `success` outcome and reason code `RECONCILED`. Keep `reconcile.fenced` for the separate job-fence transaction and add no `observed` outcome. Implementation and test status are tracked in WU build-and-verify records, not inferred from this contract.
+
+There is no `written -> deleted` shortcut and no `deleting -> release_pending` crash shortcut other than the rows below; every transition is a CAS on `state_version`. Each applied allocation-reconciliation CAS writes `allocation.reconciled` with outcome `success` and the fixed reason code `RECONCILED` in the same transaction; a lost CAS emits no event. `reconcile.fenced` records only the separately committed job-fence transaction. For TS-20/TS-21/TS-22 old-epoch running owners, the sequence is `reconcile.fenced` in the job-fence transaction, allocation CAS to `release_pending` with `allocation.reconciled` reason `RECONCILED`, `allocation.delete_claimed` before unlink, then `allocation.deleted` in the transaction committing the deleted state after unlink. `allocation.delete_claimed` is mandatory before every unlink, including retry/recovery, and `allocation.deleted` follows the committed deleted state. Reconcile (two-way inventory plus the table below) runs at startup after the epoch bump and on DB recovery before admissions reopen. The periodic sweep (FD 6.7: deadline, expiry, orphan grace, purge) does not run the full reconcile, but each sweep performs a discover-only inventory scan so an orphan appearing after startup is persisted as `orphan_discovered` (TS-23 trigger) [D]; the scan uses the same entry cap and, if truncated, persists nothing, raises the degraded signal and retries next sweep. The `deleting -> release_pending` reset below applies only to rows whose `epoch` is older than the current epoch (a crashed claim); a `deleting` row of the current epoch belongs to the live cleaner and is never reset.
 
 | Allocation state | Owning job status and epoch | File | Resulting state | `cleanup_attempts` delta | Audit event |
 |---|---|---|---|---|---|
 | registered | running, current epoch | any | unchanged (worker owns it) | 0 | none |
-| registered | failed, or old-epoch job just fenced, or no job | present or absent | release_pending | 0 | `reconcile.fenced` |
-| written | failed, or old-epoch job just fenced | present or absent | release_pending | 0 | `reconcile.fenced` |
+| registered | failed, or old-epoch job just fenced, or no job | present or absent | release_pending by conditional allocation CAS | 0 | `allocation.reconciled` outcome `success` in the same transaction as this allocation CAS; `reconcile.fenced` records only the separately committed job fence |
+| written | failed, or old-epoch job just fenced | present or absent | release_pending by conditional allocation CAS | 0 | `allocation.reconciled` outcome `success` in the same transaction as this allocation CAS; `reconcile.fenced` records only the separately committed job fence |
 | written | incomplete, `expires_at` not reached | present | unchanged (retained until expiry; downloads stay denied) | 0 | none |
-| written | incomplete, `expires_at` not reached | absent | unchanged; a counter increment only | 0 | `reconcile.missing_file` |
-| written | any, `expires_at` reached | present or absent | release_pending | 0 | none |
-| release_pending | any | present or absent | claimed to deleting when due (`next_attempt_at <= now`); the unlink reports Removed or AlreadyAbsent, then deleted | 0 | `allocation.delete_claimed` (same transaction as the claim, before any unlink), then `allocation.deleted` (same transaction as the `deleted` commit) |
-| deleting, older epoch | any | present | release_pending (a crash is not an unlink failure) | 0 | none (the claim was already audited) |
-| deleting, older epoch | any | absent | deleted | 0 | `allocation.deleted` |
-| orphan_discovered | none | present | deleting after `orphan_grace_until` | 0 | `allocation.delete_claimed`, then `allocation.deleted` |
+| written | incomplete, `expires_at` not reached | absent | allocation row unchanged (state, `state_version`, and `updated_at`); increment `ReconcileReport.missing_files` once for this allocation in this full scan | 0 | existing closed event `reconcile.missing_file`, outcome `success`, reason_code `MISSING_FILE`, system actor null, instance/job/allocation ids, operation `reconciliation`, null digest, and owning job correlation id; append every complete full scan without deduplication via injected `AuditSink`; audit failure fails reconciliation and admissions stay closed |
+| written | any, `expires_at` reached | present or absent | release_pending by conditional allocation CAS | 0 | `allocation.reconciled` with outcome `success` in the same transaction as this allocation CAS |
+| release_pending | any | present or absent | claimed to deleting when due (`next_attempt_at <= now`); the unlink reports Removed or AlreadyAbsent, then deleted | 0 | require `allocation.delete_claimed` in the same transaction as the claim, before every unlink attempt (including retry/recovery); then `allocation.deleted` in the same transaction as the `deleted` commit |
+| deleting, older epoch | any | present | release_pending (a crash is not an unlink failure) | 0 | prior audited claim remains; next unlink requires a fresh `allocation.delete_claimed` |
+| deleting, older epoch | any | absent | deleted | 0 | `allocation.deleted`; prior claim was audited before the unlink that may have removed the file |
+| orphan_discovered | none | present | deleting after `orphan_grace_until` | 0 | require `allocation.delete_claimed` before every unlink, then `allocation.deleted` after the deleted commit |
 | cleanup_failed | any | any | unchanged: terminal for automation, never retried after restart | 0 | none |
 
 A transient unlink failure (not a crash) goes `deleting -> release_pending` with `cleanup_attempts + 1` and `next_attempt_at = now + CFG-09`; the CFG-08-th failure goes to `cleanup_failed` with audit `cleanup.exhausted`. `cleanup_failed` rows keep the IF-11 escalation visible (`cleanup.exhausted > 0`) for as long as they exist; U1 has no operator-clear action, and clearing is a manual database action outside U1 [D, Q]. Window 5 (ledger row without file) therefore follows `written -> release_pending -> deleting -> deleted` at expiry, or at once for a failed job, with the unlink reporting AlreadyAbsent; it never shortens the 24 h retention of an incomplete job's allocation.
@@ -528,7 +530,7 @@ Table `backup_audit` (append-only; traces F-34, T-08, T-09, PR-04):
 | digest | char(64) | NULL |
 | correlation_id | text | NOT NULL |
 
-- Events: `job.accepted`, `job.running`, `job.incomplete`, `job.failed`, `dispatch.failed`, `download.denied`, `capability.denied`, `allocation.registered`, `allocation.delete_claimed`, `allocation.deleted`, `orphan.discovered`, `cleanup.exhausted`, `ownership.ambiguous`, `reconcile.fenced`, `reconcile.missing_file`, `retention.purged`. This is the single closed event set (union of FD 4.1 and the earlier IFC list; FD 4.1 must add `reconcile.missing_file`); the `AuditEvent` enum, TS-44a, TS-44b and TS-65 are built from it. Audit-gated (refuse on audit failure): `job.accepted`, `allocation.registered`, job transitions, `allocation.delete_claimed`, `allocation.deleted`, `retention.purged`. Attempt-only: `download.denied`, `capability.denied`.
+- Events: `job.accepted`, `job.running`, `job.incomplete`, `job.failed`, `dispatch.failed`, `download.denied`, `capability.denied`, `allocation.registered`, `allocation.reconciled`, `allocation.delete_claimed`, `allocation.deleted`, `orphan.discovered`, `cleanup.exhausted`, `ownership.ambiguous`, `reconcile.fenced`, `reconcile.missing_file`, `retention.purged`. This is the fixed closed event set; the `AuditEvent` enum, TS-44a, TS-44b and TS-65 use only these events. The owner-approved `allocation.reconciled` event is included for each applied allocation-reconciliation CAS, with existing outcome `success`, system actor (`actor_sub = null`), exact fixed reason code `RECONCILED`, and the CAS in the same transaction; a lost CAS emits no event. `instance_id` is sourced from the configured `DbAllocationStore` instance id. `job_id` is the allocation's owning job id when present, otherwise NULL (including orphan allocations or NULL/missing owners). Since audit `correlation_id` is NOT NULL, use the extant owning job's non-null `backup_jobs.correlation_id` when an owner row exists; when no owner row exists, use the allocation UUID string as a deterministic non-null fallback. The outcome set remains `success`, `failure`, `denied`; no `observed` outcome is added. `reconcile.fenced` records only the separately committed job-fence transaction. Each `reconcile.missing_file` row uses the section 7 fields only: system actor (`actor_sub = null`), `instance_id` from configured `DbAllocationStore`, extant owning `job_id` and its non-null `correlation_id`, allocation id, operation `reconciliation`, event `reconcile.missing_file`, outcome `success` (the existing closed outcome; there is no `observed` outcome), reason_code `MISSING_FILE`, and null digest. This case requires an extant owning incomplete job, so its correlation id is always available; no fallback or nullable correlation is permitted. It contains no paths or file data. For an unexpired `written` allocation owned by an incomplete job with an absent file, append one row on every complete full reconciliation scan, without deduplication; this remains a distinct audit-only observation, not a state CAS or allocation-row update. An audit failure fails reconciliation and admissions stay closed. Audit-gated (refuse on audit failure): `job.accepted`, `allocation.registered`, job transitions, `allocation.delete_claimed`, `allocation.deleted`, `allocation.reconciled`, `retention.purged`, and `reconcile.missing_file`. Attempt-only: `download.denied`, `capability.denied`.
 - Indexes `(job_id)`, `(occurred_at)`. Trigger raises on UPDATE or DELETE (migration 000002).
 - Written in the caller's transaction where a transaction exists (`AuditSink::record(tx: Option<&DatabaseTransaction>, ...)`).
 - Excluded fields (must never appear in any column, log or metric): credentials, bearer tokens, DSNs and connection strings, API keys, the raw Idempotency-Key, raw filesystem paths, file or backup content, request bodies, upstream error bodies, SQL text, email addresses, and the full JWT or claims. There is no payload or free-text column. TS-44a (`job.accepted`, WU-07) and TS-44b (`job.running`, `job.incomplete`, `job.failed`, WU-05; allocation events, WU-06) assert the column set and populated fields; TS-69 asserts the audit sink writes in the caller transaction (WU-03); TS-17 asserts a secret canary is absent.
@@ -544,7 +546,7 @@ The Q-05 default VALUES are owner-approved [UP] and enforced by TS-01. Each row 
 | CFG-01 | BACKUP_ENABLED | false | [D] | explicit opt-in; forced false on a non-loopback bind (reason `NON_LOOPBACK_BIND`) |
 | CFG-02 | BACKUP_INSTANCE_ID | none; required when enabled | [D] | the single local instance (one instance per Q-08 [UP]; the key itself is a design choice) |
 | CFG-03 | BACKUP_INSTANCE_LABEL | none; required when enabled | [D] | safe label |
-| CFG-04 | BACKUP_STORAGE_ROOT | none; required when enabled | [D] | absolute, private, not under static assets or web build path; validated at startup. OPEN owner decision [Q]: approval of the fixture-storage location and its protection is not given; it blocks WU-04, WU-05 and WU-06 (not decided here) |
+| CFG-04 | BACKUP_STORAGE_ROOT | none; required when enabled | [D] | absolute, private, not under static assets or web build path; validated at startup. Resolved by owner decision in WU-01/WU-04 red evidence (2026-11-22): dedicated configured directory, no default, private permissions on Unix; Windows owner-only ACL gap accepted as T-14 residual for synthetic-only U1 |
 | CFG-05 | BACKUP_STAGING_EXPIRY_SECS | 86400 | [UP] | 24 h |
 | CFG-06 | BACKUP_ORPHAN_GRACE_SECS | 3600 | [UP] | 1 h |
 | CFG-07 | BACKUP_SWEEP_INTERVAL_SECS | 900 | [UP] | 15 min, plus a sweep at startup |
@@ -566,7 +568,55 @@ Non-owner guards (code constants, not keys) [E, Q]: body cap 16 KiB, page size 2
 
 ## 9. Internal Rust traits (`ports/`)
 
-Provenance [D]. Exact versions of `async-trait` and `tokio-util` are [A], validated in WU-01/WU-04 with `cargo check -p domain_backup`. `NamespaceLock` uses std `File::try_lock` (no new crate; `fd-lock` and `fs4` are absent from `apps/api/Cargo.lock` [O]; the Dockerfile builds on `rust:1.97`), validated by `cargo check -p domain_backup` and the two-process test. Adding `fd-lock` or `fs4` would be a new dependency and needs a recorded reason (plan RK-06).
+### 9.1 WU-06 store contract and WU-16 lifecycle clarification (2026-11-23)
+
+WU-06 owns allocation recovery/CAS persistence semantics and the RetentionStore port/PostgreSQL adapter. WU-16 owns lifecycle orchestration. `BackupRuntime`, `Reconciler`, `Cleaner` and `Sweeper` receive `Arc<dyn JobStore>`, `Arc<dyn AllocationStore>`, `Arc<dyn RetentionStore>` (sweeper), `Arc<dyn FixtureStorage>`, `Arc<dyn AuditSink>`, `Arc<dyn NamespaceLock>` (runtime/reconciler as applicable), and an injected `Arc<dyn Clock>` plus immutable lifecycle configuration. They do not open or construct concrete stores internally. Keep all existing identifiers; this is a design clarification, not evidence that tests have run.
+
+Ownership is split by durable row ownership. `JobStore` owns the complete job inventory, job epoch fencing, and deadline enumeration. `AllocationStore` owns allocation recovery rows and allocation state changes. Its reconciliation query uses LEFT JOIN semantics from allocations to jobs: every allocation is returned, including `job_id IS NULL`, missing-job references if legacy/corrupt data permits them, and discovered orphans; nullable owner status/epoch mean no extant job was found. It must not inner-join away rows with absent owners. Storage inventory is independently obtained from `FixtureStorage` and compared against these complete durable inventories.
+
+Add these contracts to the existing traits (signatures are indicative of the required behavior; use the crate's existing typed result/error conventions):
+
+```rust
+#[async_trait]
+pub trait JobStore: Send + Sync {
+    async fn advance_epoch(&self, now: DateTime<Utc>) -> Result<i64, StoreError>;
+    async fn list_for_reconciliation(&self) -> Result<Vec<JobRow>, StoreError>;
+    async fn fence_job(
+        &self,
+        id: Uuid,
+        expected_epoch: i64,
+        expected_status: JobStatus,
+        expected_state_version: i64,
+        target_status: JobStatus,
+        reason: ReasonCode,
+        now: DateTime<Utc>,
+    ) -> Result<TransitionResult, StoreError>;
+    async fn list_deadline_expired(&self, now: DateTime<Utc>, epoch: i64)
+        -> Result<Vec<JobRow>, StoreError>;
+}
+
+pub struct AllocationRecoveryRow {
+    pub allocation: Allocation,
+    pub owner_status: Option<JobStatus>,
+    pub owner_epoch: Option<i64>,
+}
+```
+
+`JobStore::fence_job` is a compare-and-set requiring all three expected values (`expected_epoch`, `expected_status`, `expected_state_version`); it returns `Lost` without an audit event if the row no longer matches. When applied, the job status transition and its corresponding `reconcile.fenced` audit row are written in the same database transaction. That event records the job-fencing effect only. A later allocation release/reconcile is separately committed by `AllocationStore` with `allocation.reconciled` in the same transaction as every applied allocation-reconciliation CAS; it is not implicitly included in `reconcile.fenced`. The reconciliation caller fences each job through this operation; the job inventory method is read-only and returns the complete set or an error, never an empty list on query failure. `advance_epoch(now)` atomically creates/increments and returns the durable epoch. `list_deadline_expired(now, epoch)` includes jobs whose deadline is exactly `now` (`deadline_at <= now`), not only deadlines strictly earlier than `now`.
+
+`AllocationStore::list_for_reconciliation()` returns the complete `Vec<AllocationRecoveryRow>` using LEFT JOIN semantics as above and is not filtered by epoch; epoch is returned as row data for classification. Allocation reconcile operations are individual CAS operations keyed by allocation id and expected state, state version, and epoch. The caller supplies no audit reason; each applied allocation reconciliation CAS atomically writes `allocation.reconciled` with outcome `success`, system actor null, `instance_id` from configured `DbAllocationStore`, allocation id, owning job id when present (otherwise NULL), and `correlation_id` from the extant owning job when present or the allocation UUID string otherwise (non-null fallback for NULL/missing owners), operation `reconciliation`, and exact fixed reason code `RECONCILED` in the same transaction; these satisfy the audit schema's NOT NULL `instance_id` and `correlation_id` constraints. This is distinct from `reconcile.fenced`, which records only the job fence transaction. A lost CAS creates no audit row and does not replay side effects. Stale `deleting` recovery returns to `release_pending` without incrementing cleanup attempts, while eligible `written` rows move to `release_pending` only when expired or their owner is failed/fenced. For an unexpired `written` allocation owned by `incomplete` whose file is absent, every complete full reconciliation scan appends `reconcile.missing_file` through the injected `AuditSink` without deduplication, using only the section 7 fields: system actor null, instance/job/allocation ids, operation `reconciliation`, event `reconcile.missing_file`, outcome `success`, reason_code `MISSING_FILE`, null digest, and the owning job's correlation id. No paths or file data are recorded. This is an audit-only observation, not a state CAS; allocation state, `state_version`, and `updated_at` remain unchanged. Audit failure fails reconciliation and leaves admissions closed. Increment only the in-memory `ReconcileReport.missing_files` count, once per matching allocation per full scan; it is not exposed through IF-11/status, and there is no persistent counter or schema field. Existing `claim_for_delete` and `mark_deleted` retain their meaning, with `allocation.delete_claimed`/`allocation.deleted` inserted in the same transaction as their respective CAS state changes.
+
+Retention purge is a cross-table persistence operation, not an `AllocationStore` method. Expose `purge_retained(now) -> Result<PurgeReport, StoreError>` on a dedicated `RetentionStore`, owned by the lifecycle/retention service, implemented in the DB adapter and injected into `Sweeper`. In one transaction it writes `retention.purged` before deleting eligible idempotency rows, deleted allocation rows, and finally eligible jobs in FK-safe order. It is idempotent, excludes queued/running jobs and any job with allocations not `deleted` (including `cleanup_failed`), and never deletes audit rows. Database and audit errors roll back the whole purge.
+
+`FixtureStorage::inventory` remains bounded. A `truncated` page is an all-or-nothing failure for reconciliation and discovery: before any classification, orphan insertion, partial-inventory fence, or deletion decision, fail closed; preserve durable state, keep admissions closed, and leave runtime `not_ready` at startup or `degraded` after startup. No classification based on a prefix is allowed.
+
+Runtime startup and recovery sequencing are explicit: startup acquires `NamespaceLock` -> advances epoch -> obtains complete job and allocation inventories plus storage inventory -> reconciles/fences -> performs startup cleanup -> opens admissions only after every preceding operation succeeds. On a DB/audit outage, close admissions and stop allocation and delete work. Recovery performs complete reconcile -> cleanup -> deadline/expiry/orphan sweep; only successful completion reopens admissions. A failed/truncated recovery leaves admissions closed and status degraded/not-ready. `CleanOne` is claim (audited CAS with `allocation.delete_claimed` before every unlink attempt, including retries/recovery) -> unlink (missing file counts as success) -> audited deleted commit (`allocation.deleted`). An unlink error increments attempts with configured backoff; attempt three transitions to `cleanup_failed` and writes `cleanup.exhausted`. Failure to commit the audited deleted state after unlink leaves the row `deleting`; later recovery retries idempotently without treating the prior unlink as an attempt failure.
+
+Store contracts/adapters are owned and red/green tested in WU-06 (TS-42 adapter transaction, TS-44b allocation CAS audit, TS-56 complete owner-joined allocation recovery inventory including null/missing owner data, TS-65 store rollback). The focused WU-06 store evidence is already green; it does not imply WU-06 is complete while the strict full-workspace regression is red. WU-04 owns TS-56 bounded filesystem inventory/truncation production; WU-16 owns TS-56 truncated-inventory fail-closed lifecycle behavior and the use of those store ports (TS-20..TS-30, TS-32, TS-42 injection, TS-44b lifecycle ordering, TS-65 lifecycle failure path); TS-20, TS-21 and TS-22 are lifecycle tests owned by WU-16. To make WU-16 selectable without misreporting WU-06, WU-16 lifecycle implementation and its own report must precede WU-06's final full-regression-gated report; WU-16 consumes WU-06's existing adapters and neither moves nor absorbs their implementation/tests. After WU-16, WU-06 reruns the required normal and ignored full workspace suites against the unchanged baseline comparison; any aggregate failure keeps WU-06 blocked/incomplete. Tests assert durable pre/post rows, audit rows and filesystem contents, not only port calls or returned values.
+
+### 9.2 Port signatures
+
+Provenance [D]. Exact versions of `async-trait` and `tokio-util` were subject to WU-01/WU-04 build validation. Rust check commands from repository root use `--manifest-path apps/api/Cargo.toml` (for example `cargo check --manifest-path apps/api/Cargo.toml -p domain_backup`); from `apps/api`, omit `--manifest-path`. `NamespaceLock` uses std `File::try_lock` (no new crate; `fd-lock` and `fs4` are absent from `apps/api/Cargo.lock` [O]; the Dockerfile builds on `rust:1.97`), with build and two-process evidence in WU-01/WU-04 records. Adding `fd-lock` or `fs4` would be a new dependency and needs a recorded reason (plan RK-06).
 
 ```rust
 pub trait Clock: Send + Sync { fn now(&self) -> DateTime<Utc>; }
@@ -587,7 +637,14 @@ pub trait JobStore: Send + Sync {
         -> Result<TransitionResult, StoreError>; // compare-and-set
     async fn claim_next(&self, epoch: i64, deadline: Duration)
         -> Result<Option<JobRow>, StoreError>;
-    async fn fence_older_epochs(&self, epoch: i64) -> Result<Vec<Uuid>, StoreError>;
+    async fn advance_epoch(&self, now: DateTime<Utc>) -> Result<i64, StoreError>;
+    async fn list_for_reconciliation(&self) -> Result<Vec<JobRow>, StoreError>;
+    async fn fence_job(&self, id: Uuid, expected_epoch: i64,
+        expected_status: JobStatus, expected_state_version: i64,
+        to: JobStatus, reason: ReasonCode, now: DateTime<Utc>)
+        -> Result<TransitionResult, StoreError>;
+    async fn list_deadline_expired(&self, now: DateTime<Utc>, epoch: i64)
+        -> Result<Vec<JobRow>, StoreError>;
 }
 
 #[async_trait]
@@ -603,7 +660,17 @@ pub trait AllocationStore: Send + Sync {
     async fn insert_orphan(&self, id: Uuid, key: &StorageKey, bytes: u64,
         now: DateTime<Utc>) -> Result<(), StoreError>; // carries id and size (FD 4.4)
     async fn due_for_cleanup(&self, now: DateTime<Utc>) -> Result<Vec<Allocation>, StoreError>;
+    async fn list_for_reconciliation(&self)
+        -> Result<Vec<AllocationRecoveryRow>, StoreError>;
+    async fn reconcile_state(&self, id: Uuid, expected: (AllocationState, i64, i64),
+        to: AllocationState, now: DateTime<Utc>)
+        -> Result<TransitionResult, StoreError>; // applied CAS always audits exact fixed RECONCILED; no caller-supplied reason
     async fn totals(&self) -> Result<AllocationTotals, StoreError>;
+}
+
+#[async_trait]
+pub trait RetentionStore: Send + Sync {
+    async fn purge_retained(&self, now: DateTime<Utc>) -> Result<PurgeReport, StoreError>;
 }
 
 #[async_trait]
@@ -620,6 +687,18 @@ pub trait FixtureStorage: Send + Sync {
     async fn inventory(&self, max_entries: usize) -> Result<InventoryPage, StorageError>;
 }
 
+pub struct AllocationRecoveryRow {
+    pub allocation: Allocation,
+    pub owner_status: Option<JobStatus>,
+    pub owner_epoch: Option<i64>,
+}
+
+pub struct PurgeReport {
+    pub jobs_purged: u64,
+    pub idempotency_rows_purged: u64,
+    pub allocations_purged: u64,
+}
+
 pub struct InventoryPage { pub entries: Vec<InventoryEntry>, pub truncated: bool }
 
 pub trait NamespaceLock { fn try_acquire(root: &Path) -> Result<LockGuard, LockError>; }
@@ -631,8 +710,8 @@ Contract notes:
 - Bounded inventory (T-13, TS-56) [D]: `max_entries` is a code constant, 10 000 [E: non-owner guard, owner may replace; it is not a Q-05 value and is far above the number of allocations reachable under CFG-13/CFG-12]. The implementation stops enumerating after `max_entries + 1` entries (never materializing the whole directory) and sets `truncated`. Callers treat `truncated = true` as fail-closed (6.1 step 8, 6.1a): reconcile does not open admissions, no orphan is persisted and no deletion is decided from the partial view.
 - `StorageKey` is constructed only from an allocation id (`alloc/<uuid>.bin`); it cannot hold separators, `..` or absolute components (T-11). `FsFixtureStorage` does not follow links, verifies file type and namespace, and rejects Windows junction and reparse points (TS-19).
 - `transition` returns `TransitionResult::{Applied, Lost}`; `Lost` means another actor won the CAS and the caller must not replay effects. The state-machine guard rejects any target outside the U1 edges (queued->running, queued->failed, running->incomplete, running->failed), so `succeeded` and `recovery-required` are never reachable for a U1 job even though they exist in the enum (D-10).
-- T-14 on Windows is PARTIAL: owner-only permissions are checked on Unix modes only; there is no owner-only ACL check on Windows. Hard stop on WU-04 (plan, work-units): owner acceptance of the partial coverage, or an added ACL inspection test, before WU-04 is done.
-- Composition root `BackupRuntime::start` hard-wires `FixtureCaptureAdapter` and `FsFixtureStorage`; no other `CaptureAdapter` implementation exists and no client input or env switch selects one (T-05, TS-10).
+- T-14 on Windows is PARTIAL: owner-only permissions are checked on Unix modes only; there is no owner-only ACL check on Windows. The owner accepted this as a residual for synthetic-only U1 in WU-04 red evidence (2026-11-22); no ACL inspection test is required. Recheck the residual at the release-candidate security gate.
+- Production composition selects `FixtureCaptureAdapter` and `FsFixtureStorage`; no other `CaptureAdapter` implementation exists and no client input or env switch selects one (T-05, TS-10). Lifecycle services receive these through injected ports; tests can substitute deterministic/fault-injecting implementations.
 - Fault-injecting wrappers and `FakeClock` live behind `#[cfg(test)]` or feature `test-util`.
 - `NamespaceLock` mechanism and Windows behaviour are unproven [A]; WU-04 includes a two-process test (RK-06). A second process is refused ownership and the runtime stays not-ready.
 
@@ -706,14 +785,14 @@ Backup metrics (counters and histograms) may carry only these labels: `job_kind`
 | Host/Origin policy (CFG-16) | F-03 area | AC-005 S1 | ADR-005 | T-04 | TS-59 (Host, Origin, CFG-16), TS-07 (content type, no cookie-only auth, no custom header) | WU-08 |
 | Request limits and rejection mapping | F-05, F-09 | AC-002 S1; AC-005 S1 | ADR-005 | T-13 | TS-60 (body > 16 KiB, 413), TS-61 (limit > 100 or bad cursor, 400), TS-62 (wrong content type, 415), TS-63 (malformed JSON, unknown field, bad type, non-UUID path) | WU-08, WU-10 |
 | Ingress layers (CFG-17, CFG-18) | F-38 | AC-002 S1 | ADR-005 | T-13 | TS-55 (431 precedes 401; 408 on slow inner processing; non-backup routes unaffected) | WU-10 |
-| Bounded inventory | F-22, F-27 | AC-003 S3; AC-006 S2 | ADR-004 | T-13 | TS-56 | WU-04, WU-06 |
+| Bounded inventory | F-22, F-27 | AC-003 S3; AC-006 S2 | ADR-004 | T-13 | TS-56 | WU-04 (storage), WU-16 (reconciliation) |
 | Metric label set | F-36 | AC-005 S2 (TS-57); AC-006 S2 (extra gate trace) | ADR-004 | T-13 | TS-57 | WU-08 |
 | IF-11 | F-36 | AC-002 S1; AC-006 S2 | ADR-004 | T-12 | TS-27, 29, TS-27b and TS-50 (incl. `disabled`) | WU-08, WU-14 |
 | Status enum (retained values plus `incomplete`, D-10) | F-10, F-15 | AC-002 S3 | ADR-002 | T-06 | TS-11 (no transition, write or projection yields `succeeded` or `recovery-required` for a U1 job), TS-12, TS-52 (web client, zod) | WU-01, 02, 12, 14 |
 | Idempotency | F-06..F-08 | AC-005 S2; AC-002 S1 | ADR-005 | T-07, T-09 | TS-13 | WU-07 |
 | DB schema | F-37 | AC-002 S3; AC-005 S1 | ADR-003 | T-06, T-17 | TS-34, TS-11 | WU-02 |
-| Ledger and crash matrix | F-21..F-33 | AC-003 S3; AC-002 S2; AC-006 S2 | ADR-004 | T-11..T-14 | TS-19..32, 42 | WU-04, 06 |
-| Audit schema | F-34 (owned by WU-03) | AC-005 S2, S3 | ADR-005 | T-08, T-09 | TS-15, TS-44a, TS-44b, TS-69 (audit sink records in caller transaction; rollback leaves no audit row), TS-17, TS-65 (audit unavailable refuses deletion claim, deletion commit and purge), TS-66 (revert keeps audit) | WU-02, WU-03, WU-05, WU-06, WU-07 |
+| Ledger and crash matrix | F-21..F-33 | AC-003 S3; AC-002 S2; AC-006 S2 | ADR-004 | T-11..T-14 | TS-19..32, 42 | WU-04, WU-06 (store), WU-16 (lifecycle) |
+| Audit schema | F-34 (owned by WU-03) | AC-005 S2, S3 | ADR-005 | T-08, T-09 | TS-15, TS-44a, TS-44b, TS-69 (audit sink records in caller transaction; rollback leaves no audit row), TS-17, TS-65 (audit unavailable refuses deletion claim, deletion commit and purge; store portion WU-06, lifecycle portion WU-16), TS-66 (revert keeps audit) | WU-02, WU-03, WU-05, WU-06, WU-07 |
 | Config (CFG-01..CFG-18) | F-01 | AC-002 S2; AC-003 S3; AC-006 S2 (gate trace) | ADR-004 | T-04, T-13, T-14 | TS-01, TS-02 (per-key default, below, above; `Disabled` state with `INVALID_CONFIG`; gateway still starts) | WU-01 |
 | Traits | F-15..F-34 | various | ADR-003, 004 | T-05, T-11, T-12 | TS-10, 19, 20..29; WU-05 worker: TS-05a, TS-47 and the further WU-05 ids assigned in test-strategy (TS-67, TS-68); TS-69 (WU-03) | WU-03..07 |
 | Errors | F-35 | AC-005 S2 | ADR-005 | T-09 | TS-17 | WU-08 |
@@ -735,9 +814,9 @@ Backup metrics (counters and histograms) may carry only these labels: `job_kind`
 
 ## Uncertainty and limits
 
-- Written from the spine and relayed research reports plus one grep; no code was compiled and no test was run. Claims labelled [O] from research should be re-opened before heavy reliance.
-- The F6 gateway change (new `Mount::AdministratorIngress` variant, separate backup administrator router, middleware layer order) is a design read from `compose_routers` and `Mount`; it was not compiled and no test was run, and the layer feasibility (header-size via `HeaderMap`, crate error body on 408/431, cloning `administrator_layer`) is validated in WU-10.
-- Crate versions, trigger support inside SeaORM migrations, NamespaceLock behaviour on Windows, and Docker availability for DB-backed tests are unverified.
+- This contract was drafted from the spine and relayed research reports plus source checks; the contract itself does not claim tests ran. Separate observed implementation state (2026-11-25): WU-01..WU-05 have completed build-and-verify records; WU-06 store implementation and assigned focused PostgreSQL tests are recorded green, with full regression pending WU-16; WU-16 lifecycle tests are present and fail pending WU-16 implementation. See `develop/build-and-verify/WU-06/{green-verification-report.md,regression-report.md}` and `develop/build-and-verify/evidence/`. Claims labelled [O] from research should be reopened before heavy reliance.
+- The F6 gateway change (new `Mount::AdministratorIngress` variant, separate backup administrator router, middleware layer order) is a design read from `compose_routers` and `Mount`; WU-10 has not yet compiled or tested this gateway change. Layer feasibility (header-size via `HeaderMap`, crate error body on 408/431, cloning `administrator_layer`) remains to be validated in WU-10.
+- Crate/build validation was recorded in WU-01/WU-04/WU-06 evidence; it does not establish validation of later changed files. Raw-SQL trigger behavior was tested by WU-02 migration tests. NamespaceLock platform caveats (including Windows-specific behavior) remain documented in WU-04 verification/limitations. Docker availability varied: focused WU-06 PostgreSQL tests passed while available; later replays were blocked when Docker Desktop could not start. Re-check prerequisites before future DB-backed runs.
 - Non-owner guards (body cap, page size, fixture size, probe interval, idempotency-key format, UI polling constants, Host/Origin policy, inventory entry cap) and audit retention are not owner decisions. CFG-17 and CFG-18 values (needed before WU-10), the fixture-storage location and protection (CFG-04), migration gating (RK-16) and the T-14 Windows ACL gap are OPEN owner decisions. D-11 and D-13 are design proposals; D-10 follows the approved ADR-002. Approvals recorded here are by the project owner (solo scope; owner also acts as architect/operations/security approver for this intent), 2026-11-22.
 - Q-04, Q-06, Q-07, Q-10, Q-11, Q-12 stay open; nothing here claims production, consistency, encryption or recovery readiness. No U1 job can reach `succeeded`; downloads, real upload, preflight and restore remain unauthorized.
 - Mermaid diagram was written by hand and not rendered; the text fallback is authoritative.

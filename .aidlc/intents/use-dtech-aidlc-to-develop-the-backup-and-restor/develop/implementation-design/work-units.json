@@ -1,14 +1,15 @@
 {
-  "source": "work-units.md (WU-01..WU-15); array order is a valid dependency order",
+  "source": "work-units.md (WU-01..WU-16); array order follows dependency order",
   "units": [
     { "id": "WU-01", "title": "Crate scaffold, domain types, config, clock, errors", "dependsOn": [] },
     { "id": "WU-02", "title": "Migrations, entities, trigger guards, migrator table name", "dependsOn": ["WU-01"] },
     { "id": "WU-03", "title": "Job store with CAS, claim, concurrency index", "dependsOn": ["WU-02"] },
     { "id": "WU-04", "title": "Allocation ledger, fixture storage, namespace lock", "dependsOn": ["WU-02", "WU-03"] },
     { "id": "WU-05", "title": "Worker, fixture capture, terminal rules, deadline", "dependsOn": ["WU-03", "WU-04"] },
-    { "id": "WU-06", "title": "Reconciler, fence, cleaner, retry, sweeper, retention, runtime, crash matrix", "dependsOn": ["WU-05"] },
+    { "id": "WU-16", "title": "Lifecycle reconciliation, cleanup, runtime and recovery", "dependsOn": ["WU-05"] },
+    { "id": "WU-06", "title": "Allocation reconciliation and retention store contracts", "dependsOn": ["WU-03", "WU-04", "WU-16"] },
     { "id": "WU-07", "title": "Idempotency, atomic acceptance", "dependsOn": ["WU-03"] },
-    { "id": "WU-08", "title": "Authorization policy, instance registry, REST read and create adapters, status endpoint, error projection", "dependsOn": ["WU-06", "WU-07"] },
+    { "id": "WU-08", "title": "Authorization policy, instance registry, REST read and create adapters, status endpoint, error projection", "dependsOn": ["WU-06", "WU-16", "WU-07"] },
     { "id": "WU-09", "title": "Disabled capabilities, download denial, previews", "dependsOn": ["WU-08"] },
     { "id": "WU-10", "title": "Gateway integration, runtime start, loopback guard, composed-router security", "dependsOn": ["WU-09"] },
     { "id": "WU-11", "title": "CLI fail-closed tests and doc reconciliation", "dependsOn": ["WU-01"] },

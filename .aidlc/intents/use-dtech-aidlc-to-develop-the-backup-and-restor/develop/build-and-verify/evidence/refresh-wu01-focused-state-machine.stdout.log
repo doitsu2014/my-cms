@@ -1,0 +1,8 @@
+
+running 3 tests
+test domain::state_machine::tests::no_transition_reaches_succeeded_or_recovery_required ... ok
+test domain::state_machine::tests::only_the_four_u1_edges_are_allowed ... ok
+test domain::state_machine::tests::terminal_states_have_no_outgoing_transitions ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 255 filtered out; finished in 0.00s
+

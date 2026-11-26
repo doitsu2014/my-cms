@@ -1,23 +1,24 @@
 # KL-02 Known limitations: WU-02
 
-- **ID:** KL-02 (WU-02)
 - **Stage:** Develop / build-and-verify, unit WU-02.
-- **Status:** Open items carried to later units or to the release-candidate gate. WU-01 items stay in [../WU-01/known-limitations.md](../WU-01/known-limitations.md). Its L-01 (Docker unavailable) is closed: Docker was restored and the full suite now runs.
+- **Status:** Existing limitations retained; verification refreshed 2026-11-24. No WU-02 source or test changes were made.
 
 | # | Limitation | Impact | Owner or next step |
 |---|---|---|---|
-| L-01 | A job row can be INSERTed directly as `running`, `incomplete` or `failed`, because the transition trigger guards UPDATE only | Skipping `queued` is possible through raw SQL | WU-03: `DbJobStore` inserts only `queued`, covered by its store tests. A DB-level INSERT guard would need an owner decision. |
-| L-02 | The statement-level audit guard rejects every UPDATE, DELETE or TRUNCATE on `backup_audit`, even one matching zero rows. That includes `INSERT ... ON CONFLICT DO UPDATE`. | Audit writers must use plain INSERT or `ON CONFLICT DO NOTHING` | WU-03 (`DbAuditSink`) and F-33 (retention). Documented in the 000002 module doc. |
-| L-03 | `backup_allocations.job_id` FK has no ON DELETE clause (NO ACTION, as the contract states) | The retention purge cannot delete a job that still has allocation rows | WU-06 / F-33: delete or null allocation rows first, or a later owner decision for `ON DELETE SET NULL` |
-| L-04 | Revert takes `SHARE ROW EXCLUSIVE` locks on `backup_audit`, `backup_allocations`, `backup_jobs` | A revert blocks backup admissions while it runs. The lock itself has no test (it hardens a tested refusal). | Accepted. Operators revert only with backup disabled. |
-| L-05 | Triggers and CHECKs stop application DML only. The role that runs the migrations owns the tables and can `ALTER TABLE ... DISABLE TRIGGER` or drop constraints. | Append-only is not tamper-proof against the owner or a superuser (T-08 residual) | Record next to RK-13. True append-only needs a separate owner role, an owner decision outside U1. |
-| L-06 | `migrate status` / `migrate down` in the gateway CLI cover posts only and print "status unavailable" | Operators cannot see backup (or SEO) migration status through the CLI | WU-10 (RK-08) |
-| L-07 | Entities (`src/entities/*`) not added | none yet | WU-03 |
-| L-08 | One red test was amended after build (D-16, an ordering defect in the `columns()` helper), and one test was added after build (`idempotency_scope_ignores_request_fingerprint`) | Both lack classic red-first evidence | Both proven by mutation (green report section 3). The amendment compares the same exact set. |
-| L-09 | Two mutations are not caught by a dedicated test: the trigger allowing running to succeeded, and the jobs trigger re-created without `DROP TRIGGER IF EXISTS` | The first is still rejected by the U1 CHECK (defence in depth). The second is unreachable by any revert path. | Accepted, recorded |
-| L-10 | Mutation runs marked "agent" in the green report were run by subagents; the conductor re-ran only the test-after mutations | Agent-reported evidence, logs kept in `evidence/mutation-wu02/` | Accepted, labelled in the report |
-| L-11 | Not composed into the gateway | WU-02 changes nothing in the running API or its startup migrations | WU-10 |
+| L-01 | A job row can be inserted directly as `running`, `incomplete` or `failed`; the transition trigger guards UPDATE only. | Raw SQL can bypass the normal queued admission edge. | WU-03 store inserts only `queued`; any DB INSERT guard requires an owner decision. |
+| L-02 | Statement-level audit guard rejects UPDATE, DELETE and TRUNCATE on `backup_audit`, even when no row matches. | Audit writers must use plain INSERT or `ON CONFLICT DO NOTHING`. | WU-03 `DbAuditSink` and F-33 retention path. |
+| L-03 | `backup_allocations.job_id` FK uses default NO ACTION. | Retention cannot delete a job before dependent allocations are removed. | WU-06 retention purge must delete eligible allocation rows before jobs, or later owner decision for `ON DELETE SET NULL`. |
+| L-04 | Guarded down migration takes `SHARE ROW EXCLUSIVE` locks. | Revert blocks backup admissions while running. | Operators revert only with backup disabled. |
+| L-05 | DB triggers/checks protect against application DML, not table owner or superuser. | A privileged role can disable triggers/drop constraints. | Record as T-08 residual; tamper-proof append-only requires separate owner-role design outside U1. |
+| L-06 | Gateway `migrate status` / `migrate down` cover posts only. | Backup migration status is not exposed through that CLI. | WU-10 (RK-08). |
+| L-07 | WU-02 does not add entities. | No schema-entity mapping in this unit. | WU-03. |
+| L-08 | Two test changes followed the original red run: D-16 test helper amendment and `idempotency_scope_ignores_request_fingerprint` addition. | Neither has classic red-first evidence. | Historical green report records both and mutation evidence. |
+| L-09 | Two mutations lack a dedicated catching assertion: trigger allows running→succeeded, and jobs trigger creation without `DROP TRIGGER IF EXISTS`. | First is still rejected by U1 CHECK; second is unreachable along documented revert paths. | Accepted and recorded in historical green report. |
+| L-10 | Some historical mutation results were produced by delegated agents. | Those are agent-reported rather than conductor-rerun evidence. | Logs retained under `evidence/mutation-wu02/`; historical green report labels provenance. |
+| L-11 | Backup crate is not composed into gateway. | WU-02 migrations are not run by API startup. | WU-10. |
+| L-12 | Current broader crate run has 13 lifecycle failures (TS-20/21/22/23/25/26/27a/29/30/32/42/56/65). | Current `domain_backup` is not green; failures are in later-unit WU-06/WU-16 lifecycle shells/tests, not `migrations::tests`. | Keep WU-02 report limited to its migration scope; resolve through the appropriate lifecycle work unit, not by changing WU-02 migrations. |
+| L-13 | Current focused Clippy check exits 0 with warnings in later-unit stores and lifecycle shell types. | Warning debt in current worktree remains. | Track with the corresponding WU-06/WU-16 implementation; not a WU-02 migration regression. |
 
 ## Rollback
 
-The backup crate is still not referenced by the gateway, so its migrations never run in the API. To roll back, revert the WU-02 files. On any database where someone ran the backup migrator manually, `migrations_cli::revert` refuses while audit rows or live allocations exist. Otherwise it drops every backup table except `backup_audit`, which is kept by design.
+The backup crate is not registered in the gateway, so WU-02 migrations are not applied by the running API. Revert the WU-02 files to roll back. If a backup migration was manually applied, `migrations_cli::revert` refuses while audit rows or non-deleted allocations exist; otherwise it retains `backup_audit` by design.

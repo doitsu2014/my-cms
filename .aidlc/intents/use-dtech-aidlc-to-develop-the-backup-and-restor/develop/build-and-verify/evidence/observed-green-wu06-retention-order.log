@@ -1,0 +1,7 @@
+Observed focused test result excerpt (PowerShell tool output; Docker/PostgreSQL container started)
+Command: cargo test --manifest-path apps/api/Cargo.toml -p domain_backup retention_purge_orders_eligible_rows_and_retains_audit_and_ineligible_rows -- --ignored --exact infra::tests::retention::retention_purge_orders_eligible_rows_and_retains_audit_and_ineligible_rows --nocapture
+Output:
+running 1 test
+test infra::tests::retention::retention_purge_orders_eligible_rows_and_retains_audit_and_ineligible_rows ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 257 filtered out; finished in 1.93s
+Exit: 0

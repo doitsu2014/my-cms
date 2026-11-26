@@ -1,0 +1,7 @@
+COMMAND=dtech-aidlc config prerequisite check 
+CWD=/d/orca/my-cms/makara
+STARTED=2026-11-25T14:31:37+07:00
+EXIT_CODE=0
+FINISHED=2026-11-25T14:31:37+07:00
+STDOUT=refresh-wu01-prerequisite.stdout.log
+STDERR=refresh-wu01-prerequisite.stderr.log

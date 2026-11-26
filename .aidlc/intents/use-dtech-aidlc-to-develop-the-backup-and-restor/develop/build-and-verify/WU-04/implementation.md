@@ -1,94 +1,50 @@
-# IMPL-04 Implementation manifest: WU-04
+# IMPL-04 Implementation record: WU-04
 
 - **ID:** IMPL-04 (WU-04)
-- **Stage:** Develop / build-and-verify (builder-verifier), unit WU-04 of WU-01..WU-15.
-- **Status:** WU-04 is implemented and verified on 2026-11-22. Tested on Windows with PostgreSQL 15 via Docker. Uncommitted, on branch `doitsu2014/migrate-exported-documents-to` (owner rule: branch-only until Launch).
-- **Inputs:**
-  - [red-tests/WU-04](../../red-tests/WU-04/failing-tests.md) (decisions D1..D6 and Dev-1..Dev-5)
-  - [ids.json](../../implementation-design/ids.json)
-  - [interfaces-and-contracts](../../implementation-design/interfaces-and-contracts.md) 6.1, 6.1a, 6.2, 6.3, 8, 9
-  - [functional-design](../../implementation-design/functional-design.md) FN-21..FN-24 (legacy F-21..F-24) and 4.4
-- **Evidence:** [green-verification-report.md](green-verification-report.md), [regression-report.md](regression-report.md), [known-limitations.md](known-limitations.md).
+- **Stage:** Develop / build-and-verify, builder-verifier
+- **Status:** Implementation unchanged; verification refreshed 2026-11-24. This is the WU-04 unit result, not the release-candidate gate.
+- **Scope:** Allocation ledger, fixture storage, and namespace lock (FN-21..FN-24; TS-19, TS-30 budget coverage, TS-31, TS-32 lock coverage, and the bounded filesystem producer portion of TS-56).
+- **Inputs:** `develop/implementation-design/work-units.json`, `implementation-plan.md`, `interfaces-and-contracts.md`, `functional-design.md`, `test-strategy.md`, `ids.json`; `develop/red-tests/WU-04/{failing-tests.md,red-evidence.md}`; recorded baseline at `develop/baseline.md`.
 
-## Files (production; tests are in the red manifest plus two additions)
+## Implementation
 
-| Path (under `apps/api/domain_backup/src/`) | Lines | Content |
-|---|---|---|
-| `infra/db_allocation_store.rs` | 583 | `DbAllocationStore`: the allocation ledger (FN-21, FN-23) |
-| `infra/fs_fixture_storage.rs` | 295 | `FsFixtureStorage`: private opaque-key files (FN-22) |
-| `infra/fs_namespace_lock.rs` | 120 | `FsNamespaceLock`: exclusive namespace ownership (FN-24) |
-| `ports/fixture_storage.rs` | 144 | `StorageKey::parse`, `allocation_id`, `classify_entry` filled in. No signature changed. |
-| `ports/allocation_store.rs`, `ports/namespace_lock.rs` | 165, 24 | Unchanged from red apart from doc notes |
+Production paths are under `apps/api/domain_backup/src/`:
 
-- **Dependencies:** none added. `Cargo.toml` and `Cargo.lock` are unchanged.
-- **Untouched:** WU-01..WU-03 code and tests are byte-identical (checked against the red snapshot).
-- **Not yet wired in:** the gateway does not compose the crate yet (WU-10).
+- `infra/db_allocation_store.rs`: durable allocation ledger and budget enforcement.
+- `infra/fs_fixture_storage.rs`: opaque-key fixture writes, deletion, classification, bounded inventory.
+- `infra/fs_namespace_lock.rs`: exclusive lock file outside the storage namespace.
+- `ports/allocation_store.rs`, `ports/fixture_storage.rs`, and `ports/namespace_lock.rs`: WU-04 port contracts and key/classification helpers.
 
-## Behaviour
+No dependency or manifest change was made for WU-04. The adapters are not composed into the gateway; gateway composition is a later unit. Implementation details and original design decisions D1–D6 and Dev-1–Dev-5 are retained in the historical red/green evidence linked below.
 
-- **Ledger (`DbAllocationStore`):**
-  - All SQL is parameterised. Errors map through `pg_error` and the FD 6.6 split:
-    - an audit rejection becomes `AuditUnavailable`;
-    - an audit outage, or a store outage, becomes `StoreUnavailable`.
-  - **`register`:**
-    - Refuses a reservation above 256 MiB as `PerAllocation` before any SQL.
-    - Otherwise runs one READ COMMITTED transaction. It takes `pg_advisory_xact_lock`, sums live bytes (every state except `deleted`), and refuses with `Total` above 1 GiB.
-    - It then inserts the `registered` row, writes `allocation.registered` on the same transaction, and commits. Any audit failure rolls back.
-  - **`mark_written` and `release`:** single-statement compare-and-set on `state` and `state_version`. Zero rows affected returns `Lost`.
-  - **`claim_for_delete`:**
-    - Claims a due `release_pending` row, or an `orphan_discovered` row past its grace, into `deleting`.
-    - Stamps the epoch from `backup_epoch`, or keeps the row's own epoch when there is none.
-    - Writes `allocation.delete_claimed` in the same transaction.
-  - **`mark_deleted`:** moves `deleting` to `deleted` with `deleted_at` set, and writes `allocation.deleted` in the same transaction.
-  - **`record_cleanup_failure`:**
-    - A retry returns the row to `release_pending` with a 1-minute backoff.
-    - The third failure moves it to `cleanup_failed` and writes `cleanup.exhausted`.
-    - Time arithmetic is checked (`checked_add_signed`), so it never panics.
-  - **`insert_orphan`:**
-    - Idempotent: `ON CONFLICT (id) DO NOTHING`, so the first grace period stands.
-    - Writes `orphan.discovered` in its own transaction and fails closed when audit fails.
-    - Is never refused for budget.
-  - **`due_for_cleanup`:** returns due rows, capped at 1000 per call.
-- **Fixture storage (`FsFixtureStorage`):**
-  - **`open`:**
-    - Refuses a relative root, and any link, reparse point or non-directory.
-    - Creates the root and `alloc/`, private (0700) on Unix. On Unix it also refuses existing directories that are group- or world-accessible.
-  - **`write`:**
-    - Asks the ledger first and fails closed: `NotRegistered` or `LedgerUnavailable`.
-    - Requires state `registered` and size within the reservation.
-    - Re-checks the directories for links.
-    - Refuses anything already at the key path (`AlreadyExists` or `Ambiguous`).
-    - Creates the file with `create_new` (0600 on Unix), syncs it, and removes it on failure.
-  - **`delete`:**
-    - Fails closed with `Unavailable` when the root or `alloc/` is missing (fixed in this stage, see below).
-    - Matches the exact directory-entry name, so a case-folded twin is never removed.
-    - Unlinks only a regular non-link file. Anything else is `Ambiguous`; a missing file is `AlreadyAbsent`.
-  - **`inventory`:** stops after `max_entries + 1` entries and sets `truncated`. It reads `symlink_metadata`, so it never follows a link.
-- **Classification (`classify_entry`):**
+## Verification refresh (Observed, Windows 11; Rust 1.100.0; Docker 29.7.2)
 
-  | Entry | Class |
-  |---|---|
-  | Non-regular entry, or non-canonical name | `Ambiguous` |
-  | Canonical name, no ledger row | `Orphan` (D6) |
-  | Row is `registered`, `written`, `release_pending` or `orphan_discovered` | `Owned` |
-  | Row is `deleting` | `OwnedInCleanup` |
-  | Row is `deleted` or `cleanup_failed` | `Ambiguous` |
-- **Namespace lock (`FsNamespaceLock`):**
-  - The lock file is `<parent>/<root name>.lock`: a sibling of the root, outside the namespace.
-  - It is created with `create_new` (0600 on Unix). An existing lock file must be a plain non-link file both before and after opening. On Windows the file is opened with `FILE_FLAG_OPEN_REPARSE_POINT`; on Unix the device and inode are compared.
-  - The lock itself is `std::fs::File::try_lock`: `WouldBlock` means `AlreadyHeld`, and any other error is `Unavailable`. It is released on drop.
+No source or test files were changed. The WU-04 red replay was intentionally skipped as instructed; the historical red record remains `develop/red-tests/WU-04/red-evidence.md`. Current focused reruns passed:
 
-## How it was built (process record)
+- `cargo test -p domain_backup infra::tests::fs_fixture_storage:: --no-fail-fast`: exit 0; 30 passed, 0 failed.
+- `cargo test -p domain_backup infra::tests::fs_namespace_lock:: --no-fail-fast`: exit 0; 11 passed, 0 failed, including both real-process lock tests.
+- `cargo test -p domain_backup infra::tests::allocation_store:: --no-fail-fast`: exit 0; 0 passed, 28 ignored because DB tests require Docker.
+- `cargo test -p domain_backup infra::tests::allocation_store:: --no-fail-fast -- --ignored`: exit 0; 28 passed, 0 failed (Docker/PostgreSQL).
 
-1. **Builder** (sonnet): briefed with the CLI directive verbatim, the `ids.json` rule, and an explicit ban on environment changes. All tests passed on its first pass.
-2. **Reviewers:**
-   - Integrity: no defect; tests byte-identical.
-   - Correctness, security and concurrency: 3 major and 6 minor findings.
-3. **Fixer:**
-   - Applied 3 hardening changes: the Windows reparse-point flag on the lock open, READ COMMITTED pinned for `register`, and checked time arithmetic.
-   - Handed back 3 as "needs test", and noted 2.
-4. **Mutation pass:** 48 mutations across 24 guards, each confirmed applied before tests ran. 20 guards caught; 2 test gaps, 1 equivalent mutant, 4 not verifiable on Windows.
-5. **Conductor:**
-   - **Delete fail-open:** wrote a failing test (`delete_fails_closed_when_the_namespace_directories_are_missing`), saw it fail for the intended reason, then applied the one-line fix.
-   - **Version check:** added the test-after `mark_written_with_a_wrong_version_on_a_registered_row_loses`.
-   - Proved both by mutation, then ran the final green, regression, fmt, clippy and `ids check` itself.
+Full logs are under `develop/build-and-verify/evidence/refresh-wu04-*`.
+
+Workspace `cargo test --no-fail-fast` and `cargo test --no-fail-fast -- --ignored` were also run; both return exit 101 due to later-unit WU-06/WU-16 tests. The same lifecycle and reconciliation failure set appears in the earlier `refresh-wu03-workspace-*` evidence, before this WU-04 refresh. The WU-04 filesystem/ledger/lock suites pass independently, and exact-name comparison confirms every passing baseline test still passes. These later-unit failures are disclosed in the regression report; they are not represented as WU-04 passes or introduced by a WU-04 source change.
+
+Other checks: `cargo fmt -- --check` exit 0; `cargo clippy --all-targets` exit 0; `dtech-aidlc ids check` exit 0 with no unregistered identifiers. Clippy reports warnings in the workspace, including pre-existing warnings outside `domain_backup` and current warnings in other, later-unit `domain_backup` lifecycle/store contracts; no lint finding was established as a WU-04 defect.
+
+## Trace to WU-04 scope
+
+| Acceptance criterion | WU-04 function IDs | Test evidence | Result |
+|---|---|---|---|
+| AC-003 S3: synthetic-only fixture allocation/storage boundary | FN-21, FN-22, FN-23, FN-24 | Focused allocation store (28 Docker tests), fixture storage (30 tests), lock (11 tests); historical WU-04 red-to-green record | Focused suites pass |
+| AC-002 S2: allocation budgets and cleanup ledger behavior | FN-21, FN-23 | Allocation-store budget, CAS, audit, retry and orphan tests | 28 Docker tests pass |
+| AC-006 S2: bounded synthetic storage and safe ownership constraints | FN-21, FN-22 | Allocation budget tests; inventory max-entry/truncation and kind tests; lock exclusivity | Focused suites pass |
+
+TS-56 scope split is respected: this refresh verifies the bounded filesystem inventory producer in WU-04. The owner-joined allocation inventory belongs to WU-06 and fail-closed reconciliation belongs to WU-16.
+
+## Evidence links
+
+- Red: `develop/red-tests/WU-04/failing-tests.md` and `red-evidence.md` (historical; red rerun skipped for this refresh).
+- Refresh focused/full logs and workspace checks: `develop/build-and-verify/evidence/refresh-wu04-*`.
+- Regression comparison and failure attribution: `regression-report.md`.
+- Windows and residual constraints: `known-limitations.md`.

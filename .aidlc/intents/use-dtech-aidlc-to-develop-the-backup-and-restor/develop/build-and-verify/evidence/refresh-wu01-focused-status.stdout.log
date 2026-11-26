@@ -1,0 +1,8 @@
+
+running 3 tests
+test domain::status::tests::no_write_or_projection_yields_succeeded_or_recovery_required ... ok
+test domain::status::tests::all_lists_every_variant_once ... ok
+test domain::status::tests::wire_spelling_keeps_documented_values_and_adds_incomplete ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 255 filtered out; finished in 0.00s
+

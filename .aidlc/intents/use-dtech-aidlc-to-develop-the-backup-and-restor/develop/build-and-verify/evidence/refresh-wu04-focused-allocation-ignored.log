@@ -1,0 +1,141 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused variable: `id`
+   --> domain_backup\src\ports\allocation_store.rs:185:9
+    |
+185 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `expected`
+   --> domain_backup\src\ports\allocation_store.rs:186:9
+    |
+186 |         expected: (AllocationState, i64, i64),
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected`
+
+warning: unused variable: `to`
+   --> domain_backup\src\ports\allocation_store.rs:187:9
+    |
+187 |         to: AllocationState,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_to`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\allocation_store.rs:188:9
+    |
+188 |         reason: Option<ReasonCode>,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\allocation_store.rs:189:9
+    |
+189 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: unused variable: `id`
+   --> domain_backup\src\ports\job_store.rs:229:9
+    |
+229 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+
+warning: unused variable: `expected_epoch`
+   --> domain_backup\src\ports\job_store.rs:230:9
+    |
+230 |         expected_epoch: i64,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_epoch`
+
+warning: unused variable: `expected_status`
+   --> domain_backup\src\ports\job_store.rs:231:9
+    |
+231 |         expected_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_status`
+
+warning: unused variable: `expected_state_version`
+   --> domain_backup\src\ports\job_store.rs:232:9
+    |
+232 |         expected_state_version: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_state_version`
+
+warning: unused variable: `target_status`
+   --> domain_backup\src\ports\job_store.rs:233:9
+    |
+233 |         target_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_status`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\job_store.rs:234:9
+    |
+234 |         reason: ReasonCode,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\job_store.rs:235:9
+    |
+235 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\cleaner.rs:20:1
+   |
+20 | pub struct Cleaner;
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> domain_backup\src\lib.rs:5:9
+   |
+ 5 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\reconciler.rs:20:1
+   |
+20 | pub struct Reconciler;
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\sweeper.rs:17:1
+   |
+17 | pub struct Sweeper;
+   | ^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_backup` (lib test) generated 15 warnings (run `cargo fix --lib -p domain_backup --tests` to apply 12 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.45s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/3b844752f3f297a2\out\domain_backup-3b844752f3f297a2.exe)
+
+running 28 tests
+test infra::tests::allocation_store::claim_for_delete_audits_in_the_same_transaction_and_is_conditional ... ok
+test infra::tests::allocation_store::concurrent_registrations_never_exceed_the_total_budget ... ok
+test infra::tests::allocation_store::claim_for_delete_stamps_the_current_epoch ... ok
+test infra::tests::allocation_store::racing_mark_written_and_release_have_one_winner ... ok
+test infra::tests::allocation_store::claim_and_delete_commit_are_refused_when_audit_fails ... ok
+test infra::tests::allocation_store::forced_interleaving_never_exceeds_the_total_budget ... ok
+test infra::tests::allocation_store::get_returns_the_committed_row ... ok
+test infra::tests::allocation_store::mark_deleted_commits_with_audit_and_has_no_shortcut ... ok
+test infra::tests::allocation_store::insert_orphan_twice_keeps_the_first_grace ... ok
+test infra::tests::allocation_store::cleanup_failures_retry_with_backoff_then_exhaust_after_three ... ok
+test infra::tests::allocation_store::insert_orphan_audits_in_the_same_transaction_and_fails_closed ... ok
+test infra::tests::allocation_store::insert_orphan_persists_the_discovered_file_with_grace ... ok
+test infra::tests::allocation_store::due_for_cleanup_returns_exactly_the_due_rows ... ok
+test infra::tests::allocation_store::mark_written_with_a_wrong_version_on_a_registered_row_loses ... ok
+test infra::tests::allocation_store::claim_for_delete_waits_for_the_backoff_to_pass ... ok
+test infra::tests::allocation_store::mark_written_is_a_compare_and_set ... ok
+test infra::tests::allocation_store::record_cleanup_failure_only_applies_to_a_deleting_row ... ok
+test infra::tests::allocation_store::register_accepts_a_zero_byte_reservation ... ok
+test infra::tests::allocation_store::register_commits_a_registered_row_with_the_opaque_key ... ok
+test infra::tests::allocation_store::register_enforces_the_256_mib_per_allocation_budget ... ok
+test infra::tests::allocation_store::register_enforces_the_1_gib_total_budget_durably ... ok
+test infra::tests::allocation_store::register_is_refused_and_rolled_back_when_audit_fails ... ok
+test infra::tests::allocation_store::register_writes_allocation_registered_audit_in_the_same_transaction ... ok
+test infra::tests::allocation_store::release_moves_registered_and_written_to_release_pending ... ok
+test infra::tests::allocation_store::rows_are_stamped_from_the_injected_clock ... ok
+test infra::tests::allocation_store::the_ledger_row_exists_before_the_first_byte_is_written ... ok
+test infra::tests::allocation_store::total_budget_counts_every_state_except_deleted ... ok
+test infra::tests::allocation_store::register_fails_closed_when_the_ledger_is_unreachable ... ok
+
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 229 filtered out; finished in 26.32s
+

@@ -71,6 +71,7 @@ Details: `docs/architecture/software-architecture.md` and `.aidlc/knowledge/_cod
   - No behaviour, auth, API, schema, dependency, deployment, secret or generated change.
   - Must include a focused check.
 - **Workflow tool**: structured work uses the dtech-aidlc CLI (`/dtech-aidlc` in Claude Code). The CLI owns `.aidlc/state.json`, intent `state.json` and `audit.jsonl`; never edit them by hand.
+- **Artifacts**: when asked to create an artifact for this project, use an Orca artifact. Do not publish it through Claude's Artifact tool.
 - **Error responses**: existing domains return a camelCase envelope (`domain_posts/src/domain/response.rs`). The backup domain's bare snake_case body is a recorded deviation (D-11).
 - **Docs**: feature docs stay close to user-visible behaviour and name source paths. Change records go in a dtech-aidlc intent, not a separate spec tree.
 

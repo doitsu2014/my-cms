@@ -1,0 +1,8 @@
+Observed focused test result excerpt (PowerShell tool output; Docker/PostgreSQL containers started)
+Command: cargo test --manifest-path apps/api/Cargo.toml -p domain_backup allocation_reconciliation_cas -- --ignored --nocapture
+Output:
+running 2 tests
+test infra::tests::reconciliation::allocation_reconciliation_cas_updates_state_and_audits_atomically ... ok
+test infra::tests::reconciliation::lost_allocation_reconciliation_cas_has_no_audit_or_state_change ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 256 filtered out; finished in 6.69s
+Exit: 0

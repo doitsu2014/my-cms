@@ -1,0 +1,7 @@
+COMMAND=cargo test --manifest-path apps/api/Cargo.toml --workspace --no-fail-fast 
+CWD=/d/orca/my-cms/makara
+STARTED=2026-11-25T14:31:52+07:00
+EXIT_CODE=101
+FINISHED=2026-11-25T14:32:18+07:00
+STDOUT=refresh-wu01-workspace-normal.stdout.log
+STDERR=refresh-wu01-workspace-normal.stderr.log

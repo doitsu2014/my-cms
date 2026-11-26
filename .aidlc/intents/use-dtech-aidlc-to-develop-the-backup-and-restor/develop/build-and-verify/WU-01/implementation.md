@@ -1,64 +1,36 @@
-# IMPL-01 Implementation manifest: WU-01
+# IMPL-01 Implementation record: WU-01
 
-- **ID:** IMPL-01 (WU-01)
-- **Stage:** Develop / build-and-verify (builder-verifier), unit WU-01 of WU-01..WU-15.
-- **Status:** WU-01 implemented and verified on this host 2026-11-22. Uncommitted; on branch `doitsu2014/migrate-exported-documents-to` (owner rule 2026-11-22: branch-only until Launch, no merge to `main` during Develop).
-- **Inputs:** [red-tests/WU-01/failing-tests.md](../../red-tests/WU-01/failing-tests.md), [red-evidence.md](../../red-tests/WU-01/red-evidence.md) (section 3.3 decisions), [work-units](../../implementation-design/work-units.md) WU-01, [interfaces-and-contracts](../../implementation-design/interfaces-and-contracts.md) section 8, [functional-design](../../implementation-design/functional-design.md) F-01, F-15, F-39.
-- **Evidence:** [green-verification-report.md](green-verification-report.md), [regression-report.md](regression-report.md).
+- **Stage:** Develop / build-and-verify, work unit WU-01.
+- **Status:** Verification refresh recorded 2026-11-25. WU-01 focused tests and workspace build/static checks passed; full normal and ignored workspace regression remain red, so this is not a complete green stage report.
+- **Scope:** Re-verify the existing crate scaffold, config and path validation, status enum and guards, state-machine guard, error projection, and clock. Relevant source paths are `apps/api/domain_backup/src/domain/{config,status,state_machine,error,response,clock}.rs` and `apps/api/domain_backup/src/lib.rs`.
+- **Design/test references:** WU-01; `FN-01`, `FN-15`, `FN-39`; `TS-01`, `TS-02`, `TS-08a`, `TS-11`; `CFG-01`..`CFG-18`; Analyze acceptance criteria. Identifiers come from the registry and Analyze artifacts.
 
-## Files
+## Implementation and change boundary
 
-| Path | Change | Lines | Content |
-|---|---|---|---|
-| `apps/api/Cargo.toml` | modified | +1/-1 | workspace member `domain_backup` |
-| `apps/api/Cargo.lock` | modified | +10 | `domain_backup` package entry; no new third-party crates |
-| `apps/api/domain_backup/Cargo.toml` | new | 29 | deps `chrono`, `serde`, `thiserror`; dev-dep `serde_json`; versions match sibling crates; comments record deferred deps and the std `File::try_lock` decision |
-| `apps/api/domain_backup/src/lib.rs` | new | 7 | crate root |
-| `apps/api/domain_backup/src/domain/mod.rs` | new | 8 | module list |
-| `apps/api/domain_backup/src/domain/config.rs` | new | 1237 (about 410 production, rest tests) | F-01, F-39 |
-| `apps/api/domain_backup/src/domain/status.rs` | new | 150 | job status enum and U1 write/projection guard |
-| `apps/api/domain_backup/src/domain/state_machine.rs` | new | 64 | F-15 pure transition guard |
-| `apps/api/domain_backup/src/domain/error.rs` | new | 28 | `AppError` (thiserror) |
-| `apps/api/domain_backup/src/domain/response.rs` | new | 35 | `project_error` safe error body |
-| `apps/api/domain_backup/src/domain/clock.rs` | new | 18 | `Clock` port, `SystemClock` |
+The 2026-11-24 WU-01 record contains the prior source inspection. This refresh made no source, test, manifest, baseline, red-evidence, workflow-state, or audit changes, and made no behavior changes. It re-ran the focused WU-01 tests and verification commands against the current worktree; that worktree also contains later-unit work and tests, which this WU-01 refresh did not modify. Historical WU-01 red evidence remains the recorded 2026-11-22 run and was reused, not fabricated or rerun.
 
-Nothing outside `apps/api/Cargo.toml`, `apps/api/Cargo.lock` and `apps/api/domain_backup/**` changed (Observed, `git status --short`). The gateway does not depend on or compose `domain_backup` yet (WU-10), so the running service is unaffected.
+## Environment and observed checks (2026-11-25)
 
-## Behaviour implemented
+Commands ran from the repository root (`D:\orca\my-cms\makara`), using `--manifest-path apps/api/Cargo.toml` where applicable.
 
-- **`BackupConfig::load(lookup)` / `from_env()` (F-01).** Decision order: `BACKUP_ENABLED` must be exactly `true`, else `NOT_CONFIGURED`. `HOST` (default `127.0.0.1`) must be a loopback IP literal, else `NON_LOOPBACK_BIND`. Then everything else, else `INVALID_CONFIG`:
-  - CFG-05..CFG-14 and CFG-15 must equal the owner-approved values when present (24 h expiry, 1 h grace, 15 min sweep, 3 attempts, 60 s backoff, 10 min deadline, 1 concurrent job, 256 MiB, 1 GiB, 30 days, `project_owner`).
-  - Numbers are canonical unsigned decimals only.
-  - Instance id and label are non-empty with no surrounding whitespace.
-  - The storage root (CFG-04) is required, absolute and passes `validate_storage_root` with no forbidden set.
-  - Allowed origins (CFG-16) are `http(s)://host[:port]` with port 1..=65535, no path, wildcard or trailing slash. Bracketed IPv6 origins are out of scope for U1 (comment in code).
-  - CFG-17/CFG-18 are required and non-zero.
-  - `from_env` reads with `var_os` and maps non-UTF-8 values to an empty string, which fails validation.
-  - Fields are private with read-only accessors, so no code outside `load` can build an `Enabled` config with other values.
-- **`is_loopback_bind` (F-39).** True only for IP literals that std reports as loopback (127.0.0.0/8, `::1`). `[::1]`, `::ffff:127.0.0.1`, `0.0.0.0`, `::` and hostnames are false.
-- **`validate_storage_root(root, forbidden)`.** Refuses, in order:
-  - a relative path (`NotAbsolute`);
-  - `..` or a verbatim/device prefix (`UnresolvedPath`);
-  - a path under a forbidden path, compared case-insensitively on Windows (`UnderForbiddenPath`);
-  - a junction or symlink on the root or any existing ancestor (`ReparsePoint`);
-  - a metadata error other than not-found (`Inaccessible`);
-  - an existing non-directory (`NotDirectory`);
-  - on Unix, a mode other than 0700 (`NotPrivate`).
+- `dtech-aidlc config prerequisite check`: exit 0; declared Docker prerequisite passed.
+- `cargo --version` and `rustc --version`: both 1.100.0.
+- `docker info --format '{{.ServerVersion}}'`: exit 0; Docker 29.7.2.
+- Frontend checks were not run; WU-01 has no web changes and they are outside this refresh.
 
-  A root that does not exist yet passes. Consumers must still call it with the real forbidden set before first use; `load` has no forbidden set (documented on `BackupConfig`).
-- **`BackupJobStatus`.** Every documented value is kept and `incomplete` is added (ADR-002 as approved, D-10). Lowercase wire spelling, with `recovery-required` explicit.
-- **`checked_status_for_write` / `project_status`.** One guard that refuses `succeeded` and `recovery-required` for the U1 job kind.
-- **`is_allowed` (F-15).** Exactly queued to running, queued to failed, running to incomplete, running to failed.
-- **`project_error`.** Maps each `AppError` to a fixed safe body (`BACKUP_DISABLED`, `JOB_NOT_FOUND`, `STORE_UNAVAILABLE`) and echoes the correlation id.
-- **`SystemClock::now`.** Returns `Utc::now()`.
+## WU-01 focused verification
 
-## How it was built (process record)
+- `cargo test --manifest-path apps/api/Cargo.toml -p domain_backup domain::config::tests --no-fail-fast`: exit 0; 29 passed.
+- `cargo test --manifest-path apps/api/Cargo.toml -p domain_backup domain::state_machine::tests --no-fail-fast`: exit 0; 3 passed.
+- `cargo test --manifest-path apps/api/Cargo.toml -p domain_backup domain::status::tests --no-fail-fast`: exit 0; 3 passed.
+- Focused total: 35 passed, 0 failed.
+- `cargo fmt --manifest-path apps/api/Cargo.toml -- --check`: exit 0.
+- `cargo clippy --manifest-path apps/api/Cargo.toml --workspace --all-targets`: exit 0; warnings remain.
+- `cargo check --manifest-path apps/api/Cargo.toml --workspace`: exit 0.
+- `dtech-aidlc ids check --stage build-and-verify`: exit 0; `ok: true`, no unregistered identifiers. The tool reports uncovered functions owned by other work units; none were added here.
 
-1. A builder (sonnet, per `stage.model`) wrote the minimal code to turn the 22 red tests green.
-2. Two independent reviewers checked it:
-   - Integrity: test modules byte-identical to the red snapshot; scope.
-   - Correctness: 13 findings, including 4 major on `validate_storage_root`.
-3. The fixer applied 8 findings to production code.
-4. The conductor applied `cargo fmt` to the test modules as a formatting-only change. The conductor confirmed the whitespace-stripped content equals the red snapshot.
-5. Because the review hardening was added after red, a builder added 12 test-after tests. Each was shown to fail when its check is disabled (mutation table in the green report). The production code was byte-compared to the snapshot after the mutations were restored.
-6. The conductor ran the final green, regression, fmt and clippy runs independently.
+Raw command metadata, stdout and stderr are saved as `../evidence/refresh-wu01-<check>.log`, `.stdout.log`, and `.stderr.log` for `prerequisite`, `focused-config`, `focused-state-machine`, `focused-status`, `fmt`, `clippy`, `check-workspace`, `workspace-normal`, `workspace-ignored`, and `ids-check`.
+
+## Result
+
+The WU-01 config, state-machine and status test groups pass. This supports only the focused WU-01 slice. The full normal workspace run has 13 failing lifecycle tests; the full ignored run has 3 failing reconciliation/JobStore tests. These failures are outside the WU-01 focused test areas, but under the project regression rule they prevent calling the overall verification green. See `green-verification-report.md`, `regression-report.md` and `known-limitations.md` for the complete test identities and comparison. No WU-01 behavior was changed to address them.

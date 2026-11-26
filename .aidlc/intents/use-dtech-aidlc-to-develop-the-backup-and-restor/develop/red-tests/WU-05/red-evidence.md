@@ -87,4 +87,18 @@ Conductor sign-off is given here, with the basis for each.
 - **Follow-ups for a later design touch-up:**
   - align the TS-44b and WU-05 "actor populated" wording with C-1;
   - fix the FD 7.1 `queued -> failed: INSTANCE_NOT_ALLOWED` edge (D-3).
-- **Not green yet:** nothing in WU-05 is implemented. Build-and-verify must prove each guard by mutation and check that every mutation edit actually applied.
+- **At the historical red snapshot:** nothing in WU-05 was implemented. The following build-and-verify stage implemented WU-05 and recorded the green results and mutation evidence in the linked reports; this historical statement is preserved as context.
+
+## 6. Current focused replay (Observed, 2026-11-24)
+
+Purpose: determine whether the historical red should be replayed now. This is a replay against the implemented WU-05 code, not a new red run. The baseline at [../../baseline.md](../../baseline.md) was reused and not rerun or overwritten.
+
+- **Environment:** `dtech-aidlc config prerequisite check` passed the declared `docker` prerequisite (`docker info`, exit 0). `cargo --version` and `rustc --version` both report 1.100.0.
+- **Focused worker unit tests:** from the repository root, `cargo test --manifest-path apps/api/Cargo.toml -p domain_backup lifecycle::worker::tests --no-fail-fast` — 27 passed, 0 failed, 0 ignored.
+- **Focused fixture tests:** `cargo test --manifest-path apps/api/Cargo.toml -p domain_backup lifecycle::fixture_capture::tests --no-fail-fast` — 5 passed, 0 failed, 0 ignored.
+- **Docker-backed worker tests:** `cargo test --manifest-path apps/api/Cargo.toml -p domain_backup infra::tests::worker:: --no-fail-fast -- --ignored` — 15 passed, 0 failed, 0 ignored.
+- **Formatting:** `cargo fmt --manifest-path apps/api/Cargo.toml -p domain_backup -- --check` — exit 0.
+- **Identifiers:** `dtech-aidlc ids check` — `ok`, 0 unregistered identifiers; the CLI also reports 39 uncovered function identifiers as an advisory.
+- **Overinclusive exploratory check:** `cargo test --manifest-path apps/api/Cargo.toml -p domain_backup lifecycle:: --no-fail-fast` included non-WU-05 lifecycle tests and failed 13 such tests. The focused WU-05 worker and fixture test commands above pass; those unrelated lifecycle tests do not establish a WU-05 red.
+
+**Conclusion:** The 2026-11-23 red and the later red-first deadline regression are already represented in the historical evidence and green report. No current WU-05-owned failure was observed. Do not alter tests or production code, do not fabricate a red run, and recommend reporting this red-tests rework as `skipped` because the redundant replay is already green.

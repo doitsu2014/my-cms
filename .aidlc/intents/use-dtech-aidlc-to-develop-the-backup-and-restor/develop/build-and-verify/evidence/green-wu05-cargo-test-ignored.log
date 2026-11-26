@@ -1,0 +1,140 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.63s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/3b844752f3f297a2\out\domain_backup-3b844752f3f297a2.exe)
+
+running 120 tests
+test infra::tests::allocation_store::mark_written_is_a_compare_and_set ... ok
+test infra::tests::allocation_store::concurrent_registrations_never_exceed_the_total_budget ... ok
+test infra::tests::allocation_store::racing_mark_written_and_release_have_one_winner ... ok
+test infra::tests::allocation_store::cleanup_failures_retry_with_backoff_then_exhaust_after_three ... ok
+test infra::tests::allocation_store::insert_orphan_twice_keeps_the_first_grace ... ok
+test infra::tests::allocation_store::forced_interleaving_never_exceeds_the_total_budget ... ok
+test infra::tests::allocation_store::claim_for_delete_stamps_the_current_epoch ... ok
+test infra::tests::allocation_store::due_for_cleanup_returns_exactly_the_due_rows ... ok
+test infra::tests::allocation_store::claim_for_delete_waits_for_the_backoff_to_pass ... ok
+test infra::tests::allocation_store::insert_orphan_audits_in_the_same_transaction_and_fails_closed ... ok
+test infra::tests::allocation_store::insert_orphan_persists_the_discovered_file_with_grace ... ok
+test infra::tests::allocation_store::get_returns_the_committed_row ... ok
+test infra::tests::allocation_store::mark_written_with_a_wrong_version_on_a_registered_row_loses ... ok
+test infra::tests::allocation_store::claim_for_delete_audits_in_the_same_transaction_and_is_conditional ... ok
+test infra::tests::allocation_store::claim_and_delete_commit_are_refused_when_audit_fails ... ok
+test infra::tests::allocation_store::mark_deleted_commits_with_audit_and_has_no_shortcut ... ok
+test infra::tests::allocation_store::record_cleanup_failure_only_applies_to_a_deleting_row ... ok
+test infra::tests::allocation_store::register_accepts_a_zero_byte_reservation ... ok
+test infra::tests::allocation_store::register_commits_a_registered_row_with_the_opaque_key ... ok
+test infra::tests::allocation_store::register_enforces_the_1_gib_total_budget_durably ... ok
+test infra::tests::allocation_store::register_enforces_the_256_mib_per_allocation_budget ... ok
+test infra::tests::allocation_store::register_is_refused_and_rolled_back_when_audit_fails ... ok
+test infra::tests::allocation_store::register_writes_allocation_registered_audit_in_the_same_transaction ... ok
+test infra::tests::job_store::a_claim_and_a_queued_failure_race_to_exactly_one_winner ... ok
+test infra::tests::allocation_store::release_moves_registered_and_written_to_release_pending ... ok
+test infra::tests::allocation_store::rows_are_stamped_from_the_injected_clock ... ok
+test infra::tests::allocation_store::the_ledger_row_exists_before_the_first_byte_is_written ... ok
+test infra::tests::allocation_store::total_budget_counts_every_state_except_deleted ... ok
+test infra::tests::audit_sink::a_row_recorded_on_the_callers_transaction_is_visible_only_after_commit ... ok
+test infra::tests::audit_sink::an_audit_write_failure_is_reported_not_swallowed ... ok
+test infra::tests::audit_sink::every_column_of_the_event_is_persisted ... ok
+test infra::tests::audit_sink::every_event_kind_is_stored_with_its_closed_set_name ... ok
+test infra::tests::audit_sink::recording_is_plain_insert_and_never_touches_existing_rows ... ok
+test infra::tests::audit_sink::recording_without_a_transaction_commits_immediately ... ok
+test infra::tests::audit_sink::rolling_back_the_callers_transaction_leaves_no_audit_row ... ok
+test infra::tests::audit_sink::sqlstates_split_into_statement_rejections_and_fail_closed_outages ... ok
+test infra::tests::allocation_store::register_fails_closed_when_the_ledger_is_unreachable ... ok
+test infra::tests::job_store::a_claim_blocked_on_a_row_taken_by_another_transaction_does_not_claim_it_again ... ok
+test infra::tests::job_store::a_late_worker_cannot_overwrite_a_terminal_result ... ok
+test infra::tests::job_store::a_stale_version_or_status_loses_and_changes_nothing ... ok
+test infra::tests::job_store::a_transition_blocked_on_the_row_lock_loses_after_the_winner_commits ... ok
+test infra::tests::job_store::a_transition_hands_its_own_uncommitted_transaction_to_the_audit_sink ... ok
+test infra::tests::job_store::a_transition_writes_one_job_audit_row_with_its_event_and_ids ... ok
+test infra::tests::job_store::concurrent_accepts_for_one_instance_create_exactly_one_job ... ok
+test infra::tests::job_store::concurrent_claims_never_claim_a_job_twice ... ok
+test infra::tests::job_store::accept_inserts_a_queued_job_and_its_idempotency_row ... ok
+test infra::tests::job_store::accept_is_part_of_the_callers_transaction ... ok
+test infra::tests::job_store::accept_refuses_digests_that_are_not_sha256_hex_without_writing ... ok
+test infra::tests::job_store::accept_succeeds_after_the_active_job_is_terminal_and_for_other_instances ... ok
+test infra::tests::job_store::exactly_one_of_n_concurrent_claims_wins ... ok
+test infra::tests::job_store::an_audit_failure_refuses_the_claim ... ok
+test infra::tests::job_store::an_audit_failure_refuses_the_transition ... ok
+test infra::tests::job_store::an_audit_outage_is_a_store_outage_for_transitions_and_claims ... ok
+test infra::tests::job_store::racing_terminal_transitions_have_exactly_one_winner ... ok
+test infra::tests::job_store::an_audit_row_written_before_the_sink_fails_rolls_back_with_the_claim ... ok
+test infra::tests::job_store::an_audit_row_written_before_the_sink_fails_rolls_back_with_the_transition ... ok
+test infra::tests::job_store::an_idempotency_key_collision_is_a_unique_violation_not_a_persistence_error ... ok
+test infra::tests::job_store::claim_next_claims_the_oldest_queued_job ... ok
+test infra::tests::job_store::claim_next_never_reclaims_a_running_or_terminal_job ... ok
+test infra::tests::job_store::conflicting_accept_leaves_no_job_or_idempotency_row ... ok
+test infra::tests::job_store::duplicate_job_id_is_a_persistence_error_not_a_concurrency_conflict ... ok
+test infra::tests::job_store::each_legal_edge_applies_bumps_the_version_and_stamps_times ... ok
+test infra::tests::job_store::edges_outside_the_u1_graph_are_refused_without_changes ... ok
+test infra::tests::job_store::get_returns_the_stored_row_and_none_for_an_unknown_id ... ok
+test infra::tests::job_store::omitting_components_keeps_the_stored_components ... ok
+test infra::tests::job_store::second_accept_conflicts_while_a_job_is_running ... ok
+test infra::tests::job_store::second_accept_conflicts_while_the_first_job_is_queued ... ok
+test infra::tests::job_store::terminal_rows_are_immutable_through_the_store ... ok
+test infra::tests::job_store::the_claim_hands_its_own_uncommitted_transaction_to_the_audit_sink ... ok
+test infra::tests::job_store::the_job_audit_row_excludes_free_text_stored_on_the_job ... ok
+test infra::tests::job_store::transition_of_an_unknown_job_is_not_found ... ok
+test infra::tests::worker::ts05a_denied_policy_at_claim_fails_job_without_running_it ... ok
+test infra::tests::worker::ts44b_incomplete_event_outcome_is_failure ... ok
+test infra::tests::worker::ts67_simultaneous_dispatch_has_exactly_one_winner ... ok
+test infra::tests::worker::ts44b_job_events_are_complete_and_free_of_excluded_fields ... ok
+test infra::tests::worker::ts44b_job_events_use_the_system_actor ... ok
+test infra::tests::worker::ts44b_refused_terminal_audit_leaves_job_running_without_unaudited_effect ... ok
+test infra::tests::worker::ts47_queued_job_runs_through_fixture_adapter_and_ends_incomplete ... ok
+test infra::tests::worker::ts48_adapter_error_fails_job_and_releases_allocation ... ok
+test infra::tests::worker::ts48_allocation_limit_fails_job_without_a_row_or_a_file ... ok
+test infra::tests::worker::ts48_dispatch_failed_fails_queued_job ... ok
+test infra::tests::worker::ts48_registration_refused_fails_job_persistence_error ... ok
+test infra::tests::worker::ts48_total_budget_exhausted_fails_job_allocation_limit ... ok
+test infra::tests::worker::ts67_duplicate_dispatch_has_exactly_one_winner ... ok
+test infra::tests::worker::ts67_late_worker_cannot_overwrite_a_terminal_job ... ok
+test migrations::tests::allocation_checks_and_epoch_singleton ... ok
+test migrations::tests::allocation_job_fk_and_column_defaults ... ok
+test migrations::tests::audit_cannot_be_truncated ... ok
+test migrations::tests::audit_digest_is_char_64 ... ok
+test migrations::tests::audit_rows_cannot_be_updated_or_deleted ... ok
+test migrations::tests::backup_jobs_columns_match_the_contract ... ok
+test infra::tests::worker::ts44b_refused_running_audit_leaves_job_queued_and_nothing_runs ... ok
+test migrations::tests::backup_jobs_defaults_apply ... ok
+test migrations::tests::backup_jobs_row_checks_reject_bad_rows ... ok
+test migrations::tests::both_guard_triggers_are_present ... ok
+test migrations::tests::down_one_step_removes_only_the_jobs_trigger ... ok
+test migrations::tests::down_refuses_while_an_allocation_is_not_deleted ... ok
+test migrations::tests::down_refuses_while_audit_rows_exist_and_keeps_everything ... ok
+test migrations::tests::down_succeeds_when_every_allocation_is_deleted ... ok
+test migrations::tests::down_without_audit_rows_keeps_audit_table_and_trigger_and_drops_the_rest ... ok
+test migrations::tests::every_status_transition_pair_is_allowed_or_rejected_exactly ... ok
+test migrations::tests::fresh_database_gets_all_five_backup_tables ... ok
+test migrations::tests::idempotency_scope_ignores_request_fingerprint ... ok
+test migrations::tests::idempotency_unique_and_restrict_fk ... ok
+test migrations::tests::illegal_non_terminal_transitions_are_rejected ... ok
+test migrations::tests::legal_transitions_are_allowed ... ok
+test migrations::tests::migration_records_only_in_seaql_migrations_backup ... ok
+test migrations::tests::migrations_cli_run_applies_on_a_fresh_database ... ok
+test migrations::tests::only_one_active_job_per_instance ... ok
+test migrations::tests::other_backup_table_columns_match_the_contract ... ok
+test migrations::tests::second_up_is_a_no_op ... ok
+test migrations::tests::secondary_indexes_exist ... ok
+test migrations::tests::status_column_accepts_every_documented_value_when_u1_guard_is_removed ... ok
+test migrations::tests::status_column_check_keeps_all_six_documented_values ... ok
+test migrations::tests::terminal_job_cannot_be_updated ... ok
+test migrations::tests::terminal_job_without_idempotency_row_can_be_deleted_and_audit_has_no_fk ... ok
+test migrations::tests::u1_job_cannot_be_inserted_as_succeeded_or_recovery_required ... ok
+test migrations::tests::u1_job_cannot_be_updated_to_succeeded_or_recovery_required ... ok
+test migrations::tests::upgrade_beside_posts_and_seo_leaves_their_tables_untouched ... ok
+test migrations::tests::upgrade_from_000001_to_000002 ... ok
+
+test result: ok. 120 passed; 0 failed; 0 ignored; 0 measured; 114 filtered out; finished in 98.78s
+
+   Doc-tests domain_backup
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

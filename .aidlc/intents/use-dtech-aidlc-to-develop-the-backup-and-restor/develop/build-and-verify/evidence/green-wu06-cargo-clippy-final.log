@@ -1,0 +1,4 @@
+Observed final WU-06 clippy command before Docker test startup failures
+Command: cargo clippy --manifest-path apps/api/Cargo.toml -p domain_backup --all-targets
+Exit: 0
+The logged run still reported `clippy::needless_borrow` at `db_allocation_store.rs:594`; this was fixed immediately afterwards by changing `pg(&sql, ...)` to `pg(sql, ...)`. Remaining warnings were in baseline `job_store.rs` scaffolding and unowned WU-16 lifecycle files. Docker Desktop then became unavailable, preventing a fresh Clippy run after that one-line fix. `cargo fmt -- --check` after the fix passed.

@@ -1,0 +1,233 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused variable: `id`
+   --> domain_backup\src\ports\allocation_store.rs:185:9
+    |
+185 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `expected`
+   --> domain_backup\src\ports\allocation_store.rs:186:9
+    |
+186 |         expected: (AllocationState, i64, i64),
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected`
+
+warning: unused variable: `to`
+   --> domain_backup\src\ports\allocation_store.rs:187:9
+    |
+187 |         to: AllocationState,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_to`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\allocation_store.rs:188:9
+    |
+188 |         reason: Option<ReasonCode>,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\allocation_store.rs:189:9
+    |
+189 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: unused variable: `id`
+   --> domain_backup\src\ports\job_store.rs:229:9
+    |
+229 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+
+warning: unused variable: `expected_epoch`
+   --> domain_backup\src\ports\job_store.rs:230:9
+    |
+230 |         expected_epoch: i64,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_epoch`
+
+warning: unused variable: `expected_status`
+   --> domain_backup\src\ports\job_store.rs:231:9
+    |
+231 |         expected_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_status`
+
+warning: unused variable: `expected_state_version`
+   --> domain_backup\src\ports\job_store.rs:232:9
+    |
+232 |         expected_state_version: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_state_version`
+
+warning: unused variable: `target_status`
+   --> domain_backup\src\ports\job_store.rs:233:9
+    |
+233 |         target_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_status`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\job_store.rs:234:9
+    |
+234 |         reason: ReasonCode,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\job_store.rs:235:9
+    |
+235 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\cleaner.rs:20:1
+   |
+20 | pub struct Cleaner;
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> domain_backup\src\lib.rs:5:9
+   |
+ 5 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\reconciler.rs:20:1
+   |
+20 | pub struct Reconciler;
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\sweeper.rs:17:1
+   |
+17 | pub struct Sweeper;
+   | ^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_backup` (lib test) generated 15 warnings (run `cargo fix --lib -p domain_backup --tests` to apply 12 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.57s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/3b844752f3f297a2\out\domain_backup-3b844752f3f297a2.exe)
+
+running 15 tests
+test lifecycle::lifecycle_tests::ts24_unexpired_incomplete_allocation_with_missing_file_is_not_released ... ok
+test lifecycle::lifecycle_tests::ts28_expired_written_allocation_of_active_job_remains_unchanged_and_file_is_kept ... ok
+test lifecycle::lifecycle_tests::ts65_audit_refusal_blocks_delete_claim_delete_commit_and_purge ... FAILED
+test lifecycle::lifecycle_tests::ts22_old_epoch_running_job_is_failed_with_restart_reason_and_audit ... FAILED
+test lifecycle::lifecycle_tests::ts23_orphan_is_persisted_before_grace_and_ambiguous_entry_is_untouched ... FAILED
+test lifecycle::lifecycle_tests::ts21_file_after_register_before_mark_written_is_retained_as_owned ... FAILED
+test lifecycle::lifecycle_tests::ts26_unlinked_file_with_deleting_row_commits_deleted_idempotently ... FAILED
+test lifecycle::lifecycle_tests::ts20_registered_row_without_file_is_transitioned_to_release_pending ... FAILED
+test lifecycle::lifecycle_tests::ts29_store_outage_closes_work_and_recovery_reconciles_before_reopening ... FAILED
+test lifecycle::lifecycle_tests::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time ... FAILED
+test lifecycle::lifecycle_tests::ts32_startup_lock_epoch_reconcile_cleanup_barrier_precedes_admissions ... FAILED
+test lifecycle::lifecycle_tests::ts25_crashed_old_epoch_deleting_claim_returns_to_cleanup_without_retry ... FAILED
+test lifecycle::lifecycle_tests::ts30_fake_time_enforces_retry_expiry_grace_and_sweep_boundaries ... FAILED
+test lifecycle::lifecycle_tests::ts56_truncated_inventory_makes_reconciliation_fail_closed ... FAILED
+test lifecycle::lifecycle_tests::ts42_purge_at_retention_boundary_removes_eligible_metadata_but_keeps_audit ... FAILED
+
+failures:
+
+---- lifecycle::lifecycle_tests::ts65_audit_refusal_blocks_delete_claim_delete_commit_and_purge stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts65_audit_refusal_blocks_delete_claim_delete_commit_and_purge' (3248) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:176:5:
+purge refusal leaves metadata and retained audit unchanged
+
+---- lifecycle::lifecycle_tests::ts22_old_epoch_running_job_is_failed_with_restart_reason_and_audit stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts22_old_epoch_running_job_is_failed_with_restart_reason_and_audit' (35072) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:41:5:
+assertion `left == right` failed: old-epoch running job must be fenced
+  left: 0
+ right: 1
+
+---- lifecycle::lifecycle_tests::ts23_orphan_is_persisted_before_grace_and_ambiguous_entry_is_untouched stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts23_orphan_is_persisted_before_grace_and_ambiguous_entry_is_untouched' (32356) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:50:5:
+assertion `left == right` failed: valid unowned entry must become an orphan row
+  left: 0
+ right: 1
+
+---- lifecycle::lifecycle_tests::ts21_file_after_register_before_mark_written_is_retained_as_owned stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts21_file_after_register_before_mark_written_is_retained_as_owned' (424) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:32:5:
+assertion `left == right` failed: startup recovery must process the interrupted registered allocation
+  left: 0
+ right: 1
+
+---- lifecycle::lifecycle_tests::ts26_unlinked_file_with_deleting_row_commits_deleted_idempotently stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts26_unlinked_file_with_deleting_row_commits_deleted_idempotently' (4984) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:77:5:
+assertion `left == right` failed
+  left: NotDue
+ right: Deleted
+
+---- lifecycle::lifecycle_tests::ts20_registered_row_without_file_is_transitioned_to_release_pending stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts20_registered_row_without_file_is_transitioned_to_release_pending' (32856) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:23:5:
+assertion `left == right` failed: one seeded registered row is missing its file
+  left: 0
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- lifecycle::lifecycle_tests::ts29_store_outage_closes_work_and_recovery_reconciles_before_reopening stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts29_store_outage_closes_work_and_recovery_reconciles_before_reopening' (32920) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:104:5:
+successful recovery must reopen only after reconcile
+
+---- lifecycle::lifecycle_tests::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time' (21520) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:86:5:
+assertion `left == right` failed
+  left: []
+ right: [Exhausted]
+
+---- lifecycle::lifecycle_tests::ts32_startup_lock_epoch_reconcile_cleanup_barrier_precedes_admissions stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts32_startup_lock_epoch_reconcile_cleanup_barrier_precedes_admissions' (39320) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:143:5:
+admissions open only after lock, fencing, reconcile and cleanup
+
+---- lifecycle::lifecycle_tests::ts25_crashed_old_epoch_deleting_claim_returns_to_cleanup_without_retry stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts25_crashed_old_epoch_deleting_claim_returns_to_cleanup_without_retry' (30668) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:68:5:
+assertion `left == right` failed: stale deleting claim must be recovered
+  left: 0
+ right: 1
+
+---- lifecycle::lifecycle_tests::ts30_fake_time_enforces_retry_expiry_grace_and_sweep_boundaries stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts30_fake_time_enforces_retry_expiry_grace_and_sweep_boundaries' (29024) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:129:5:
+assertion `left == right` failed
+  left: NotDue
+ right: Deleted
+
+---- lifecycle::lifecycle_tests::ts56_truncated_inventory_makes_reconciliation_fail_closed stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts56_truncated_inventory_makes_reconciliation_fail_closed' (10496) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:158:5:
+truncated inventory must prevent classification and mutation
+
+---- lifecycle::lifecycle_tests::ts42_purge_at_retention_boundary_removes_eligible_metadata_but_keeps_audit stdout ----
+
+thread 'lifecycle::lifecycle_tests::ts42_purge_at_retention_boundary_removes_eligible_metadata_but_keeps_audit' (32572) panicked at domain_backup\src\lifecycle\lifecycle_tests.rs:152:5:
+assertion `left == right` failed: eligible terminal metadata is purged
+  left: 0
+ right: 1
+
+
+failures:
+    lifecycle::lifecycle_tests::ts20_registered_row_without_file_is_transitioned_to_release_pending
+    lifecycle::lifecycle_tests::ts21_file_after_register_before_mark_written_is_retained_as_owned
+    lifecycle::lifecycle_tests::ts22_old_epoch_running_job_is_failed_with_restart_reason_and_audit
+    lifecycle::lifecycle_tests::ts23_orphan_is_persisted_before_grace_and_ambiguous_entry_is_untouched
+    lifecycle::lifecycle_tests::ts25_crashed_old_epoch_deleting_claim_returns_to_cleanup_without_retry
+    lifecycle::lifecycle_tests::ts26_unlinked_file_with_deleting_row_commits_deleted_idempotently
+    lifecycle::lifecycle_tests::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time
+    lifecycle::lifecycle_tests::ts29_store_outage_closes_work_and_recovery_reconciles_before_reopening
+    lifecycle::lifecycle_tests::ts30_fake_time_enforces_retry_expiry_grace_and_sweep_boundaries
+    lifecycle::lifecycle_tests::ts32_startup_lock_epoch_reconcile_cleanup_barrier_precedes_admissions
+    lifecycle::lifecycle_tests::ts42_purge_at_retention_boundary_removes_eligible_metadata_but_keeps_audit
+    lifecycle::lifecycle_tests::ts56_truncated_inventory_makes_reconciliation_fail_closed
+    lifecycle::lifecycle_tests::ts65_audit_refusal_blocks_delete_claim_delete_commit_and_purge
+
+test result: FAILED. 2 passed; 13 failed; 0 ignored; 0 measured; 242 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p domain_backup --lib`
+error: 1 target failed:
+    `-p domain_backup --lib`

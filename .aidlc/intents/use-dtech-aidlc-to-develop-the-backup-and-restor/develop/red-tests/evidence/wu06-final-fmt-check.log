@@ -1,0 +1,2 @@
+COMMAND: cargo fmt --manifest-path apps/api/Cargo.toml -- --check
+EXIT_CODE: 0

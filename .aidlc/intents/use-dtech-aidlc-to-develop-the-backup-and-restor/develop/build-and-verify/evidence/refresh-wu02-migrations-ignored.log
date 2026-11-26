@@ -1,0 +1,148 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused variable: `id`
+   --> domain_backup\src\ports\allocation_store.rs:185:9
+    |
+185 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `expected`
+   --> domain_backup\src\ports\allocation_store.rs:186:9
+    |
+186 |         expected: (AllocationState, i64, i64),
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected`
+
+warning: unused variable: `to`
+   --> domain_backup\src\ports\allocation_store.rs:187:9
+    |
+187 |         to: AllocationState,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_to`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\allocation_store.rs:188:9
+    |
+188 |         reason: Option<ReasonCode>,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\allocation_store.rs:189:9
+    |
+189 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: unused variable: `id`
+   --> domain_backup\src\ports\job_store.rs:229:9
+    |
+229 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+
+warning: unused variable: `expected_epoch`
+   --> domain_backup\src\ports\job_store.rs:230:9
+    |
+230 |         expected_epoch: i64,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_epoch`
+
+warning: unused variable: `expected_status`
+   --> domain_backup\src\ports\job_store.rs:231:9
+    |
+231 |         expected_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_status`
+
+warning: unused variable: `expected_state_version`
+   --> domain_backup\src\ports\job_store.rs:232:9
+    |
+232 |         expected_state_version: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_state_version`
+
+warning: unused variable: `target_status`
+   --> domain_backup\src\ports\job_store.rs:233:9
+    |
+233 |         target_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_status`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\job_store.rs:234:9
+    |
+234 |         reason: ReasonCode,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\job_store.rs:235:9
+    |
+235 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\cleaner.rs:20:1
+   |
+20 | pub struct Cleaner;
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> domain_backup\src\lib.rs:5:9
+   |
+ 5 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\reconciler.rs:20:1
+   |
+20 | pub struct Reconciler;
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\sweeper.rs:17:1
+   |
+17 | pub struct Sweeper;
+   | ^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_backup` (lib test) generated 15 warnings (run `cargo fix --lib -p domain_backup --tests` to apply 12 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.51s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (apps\api\target\debug\build\domain_backup/3b844752f3f297a2\out\domain_backup-3b844752f3f297a2.exe)
+
+running 34 tests
+test migrations::tests::down_succeeds_when_every_allocation_is_deleted ... ok
+test migrations::tests::every_status_transition_pair_is_allowed_or_rejected_exactly ... ok
+test migrations::tests::backup_jobs_columns_match_the_contract ... ok
+test migrations::tests::down_refuses_while_audit_rows_exist_and_keeps_everything ... ok
+test migrations::tests::down_without_audit_rows_keeps_audit_table_and_trigger_and_drops_the_rest ... ok
+test migrations::tests::allocation_job_fk_and_column_defaults ... ok
+test migrations::tests::fresh_database_gets_all_five_backup_tables ... ok
+test migrations::tests::down_refuses_while_an_allocation_is_not_deleted ... ok
+test migrations::tests::audit_digest_is_char_64 ... ok
+test migrations::tests::backup_jobs_defaults_apply ... ok
+test migrations::tests::both_guard_triggers_are_present ... ok
+test migrations::tests::audit_rows_cannot_be_updated_or_deleted ... ok
+test migrations::tests::down_one_step_removes_only_the_jobs_trigger ... ok
+test migrations::tests::backup_jobs_row_checks_reject_bad_rows ... ok
+test migrations::tests::audit_cannot_be_truncated ... ok
+test migrations::tests::allocation_checks_and_epoch_singleton ... ok
+test migrations::tests::idempotency_scope_ignores_request_fingerprint ... ok
+test migrations::tests::idempotency_unique_and_restrict_fk ... ok
+test migrations::tests::illegal_non_terminal_transitions_are_rejected ... ok
+test migrations::tests::legal_transitions_are_allowed ... ok
+test migrations::tests::migration_records_only_in_seaql_migrations_backup ... ok
+test migrations::tests::migrations_cli_run_applies_on_a_fresh_database ... ok
+test migrations::tests::only_one_active_job_per_instance ... ok
+test migrations::tests::other_backup_table_columns_match_the_contract ... ok
+test migrations::tests::second_up_is_a_no_op ... ok
+test migrations::tests::secondary_indexes_exist ... ok
+test migrations::tests::status_column_accepts_every_documented_value_when_u1_guard_is_removed ... ok
+test migrations::tests::status_column_check_keeps_all_six_documented_values ... ok
+test migrations::tests::terminal_job_cannot_be_updated ... ok
+test migrations::tests::terminal_job_without_idempotency_row_can_be_deleted_and_audit_has_no_fk ... ok
+test migrations::tests::u1_job_cannot_be_inserted_as_succeeded_or_recovery_required ... ok
+test migrations::tests::u1_job_cannot_be_updated_to_succeeded_or_recovery_required ... ok
+test migrations::tests::upgrade_beside_posts_and_seo_leaves_their_tables_untouched ... ok
+test migrations::tests::upgrade_from_000001_to_000002 ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 223 filtered out; finished in 34.21s
+
+EXIT_CODE=0
