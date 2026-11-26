@@ -36,7 +36,7 @@ Exit 101 in the table is Cargo's test failure exit (PowerShell `$LASTEXITCODE`).
 
 ## 2. Current suite failures and scope attribution
 
-The failing full-workspace normal suite names 13 in-memory lifecycle tests under WU-16:
+The failing full-workspace normal suite names 13 in-memory lifecycle tests under WU-17/18/19:
 
 - `lifecycle::lifecycle_tests::ts20_registered_row_without_file_is_transitioned_to_release_pending`
 - `lifecycle::lifecycle_tests::ts21_file_after_register_before_mark_written_is_retained_as_owned`
@@ -75,9 +75,9 @@ The failures occur in lifecycle/reconciliation implementation and assertions out
 
 | Level | Current WU-03 refresh result |
 |---|---|
-| Unit | Focused `job_store` and `audit_sink` tests passed: 4 passed, 0 failed across normal runs; 43 Docker-ignored-filtered tests passed. Full workspace normal suite is blocked by 13 WU-16 tests. |
+| Unit | Focused `job_store` and `audit_sink` tests passed: 4 passed, 0 failed across normal runs; 43 Docker-ignored-filtered tests passed. Full workspace normal suite is blocked by 13 WU-17/18/19 tests. |
 | Integration | Focused Docker job-store and audit-sink tests passed: 43 passed, 0 failed. Full workspace ignored suite is blocked by 7 WU-06 reconciliation tests. |
-| Concurrency | Historical WU-03 claim/CAS races were green; current focused job-store filter passed. Full current workspace remains red for the independently identified WU-06/WU-16 tests. |
+| Concurrency | Historical WU-03 claim/CAS races were green; current focused job-store filter passed. Full current workspace remains red for the independently identified WU-06/WU-17/18/19 tests. |
 | End to end | Not run; WU-03 store is not composed into the running API (WU-08/WU-10). |
 | Performance | Not run; outside WU-03. |
 | Security | WU-03 store-level audit transaction behavior has current focused test passes. Broader T-08/T-09 application checks remain for their owning units. |
@@ -87,7 +87,7 @@ The failures occur in lifecycle/reconciliation implementation and assertions out
 |---|---|
 | A-01 Job idempotency | Partial: atomic job/idempotency insert is covered by focused Docker job-store test; handler replay and key-reuse decision are WU-07. |
 | P-05 Concurrent job limits | Focused Docker test suite passed, including durable concurrency and racing accepts. |
-| A-03 Crash recovery | Partial: store CAS and late-worker protections remain WU-03; reconciliation/fencing tests are WU-06/WU-16 and are currently failing as listed. |
+| A-03 Crash recovery | Partial: store CAS and late-worker protections remain WU-03; reconciliation/fencing tests are WU-06/WU-17/18/19 and are currently failing as listed. |
 | PR-04 Audit content safety | Partial: focused audit/job-store checks passed; full projection/canary checks remain later work. |
 | O-02 Safe error projection | Partial: store/audit errors are safe; HTTP projection is WU-08. |
 | Other requirements | Not in WU-03 scope or not run. |
@@ -126,3 +126,11 @@ The original report recorded a full green WU-03 run: normal crate suite 41 passe
 - [historical regression report](regression-report.md) links to the original `regression-wu03-*` logs.
 
 This historical run is not a substitute for the current full-workspace refresh and does not change the current blocked status.
+
+## Refresh 2026-11-26
+
+Re-verified after the 1.1.0 migration with no WU-03 source or test changes: JobStore 1 passed (non-ignored) and 35 passed (Docker, ignored); AuditSink 3 passed (non-ignored) and 8 passed (Docker, ignored). Whole-workspace regression and its attribution are in `regression-report.md` and `regression.json`.
+
+## Refresh 2026-11-26
+
+Re-verified after the 1.1.0 migration with no WU-03 source or test changes: JobStore 1 passed (non-ignored) and 35 passed (Docker, ignored); AuditSink 3 passed (non-ignored) and 8 passed (Docker, ignored). Whole-workspace regression and its attribution are in `regression-report.md` and `regression.json`.

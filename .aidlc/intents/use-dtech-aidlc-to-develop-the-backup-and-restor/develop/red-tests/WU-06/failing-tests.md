@@ -4,7 +4,7 @@
 - **Scope owned by this writer:** WU-06 store-level TS-42 retention-purge adapter contract; TS-44b allocation CAS audit persistence; TS-56 complete allocation LEFT JOIN inventory; and TS-65 retention-store rollback only. This is not full TS-42, TS-56, or TS-65 coverage.
 - **Source tests:** `apps/api/domain_backup/src/infra/tests/reconciliation.rs`, `infra/tests/retention.rs`, `infra/tests/alloc_support.rs`; registration in `infra/tests/mod.rs`; inert compile-time defaults in allocation/retention ports and the DB adapter.
 - **Baseline:** Reused unchanged from [intent baseline](../../baseline.md); not rerun or edited.
-- **Lifecycle scope contamination:** Before this writer's changes, the working tree contained untracked `apps/api/domain_backup/src/lifecycle/cleaner.rs`, `lifecycle/reconciler.rs`, `lifecycle/runtime.rs`, `lifecycle/sweeper.rs`, `lifecycle/lifecycle_tests.rs` and modified `lifecycle/mod.rs`. They are pre-existing, unowned and unmodified by this WU-06 writer. No WU-16 lifecycle coverage is claimed. Their status and SHA-256 hashes were recorded before and after; hashes and status were unchanged.
+- **Lifecycle scope contamination:** Before this writer's changes, the working tree contained untracked `apps/api/domain_backup/src/lifecycle/cleaner.rs`, `lifecycle/reconciler.rs`, `lifecycle/runtime.rs`, `lifecycle/sweeper.rs`, `lifecycle/lifecycle_tests.rs` and modified `lifecycle/mod.rs`. They are pre-existing, unowned and unmodified by this WU-06 writer. No WU-17/18/19 lifecycle coverage is claimed. Their status and SHA-256 hashes were recorded before and after; hashes and status were unchanged.
 
 ## WU-06 store tests
 
@@ -35,11 +35,11 @@ All focused commands ran from repository root against `apps/api/Cargo.toml`, wit
 | `wu06-final-fmt-check.log` | `cargo fmt --manifest-path apps/api/Cargo.toml -- --check` | Exit 0; formatting check passed. |
 | `wu06-final-ids-check.log` | `dtech-aidlc ids check` | Exit 0; `ok: true`, no unregistered identifiers. |
 
-Previously recorded broad logs are not treated as WU-06-only evidence: `build-and-verify/evidence/wu06-store-red-focused.log` and the pre-existing `red-wu06-cargo-test-ignored.log` include unrelated WU-16 reconciliation/job tests and failures. No broad run is represented here as an exclusively WU-06 run.
+Previously recorded broad logs are not treated as WU-06-only evidence: `build-and-verify/evidence/wu06-store-red-focused.log` and the pre-existing `red-wu06-cargo-test-ignored.log` include unrelated WU-17/18/19 reconciliation/job tests and failures. No broad run is represented here as an exclusively WU-06 run.
 
 ## Scope boundaries and contamination
 
 - WU-06 coverage here is restricted to: TS-42 **purge-adapter/store portion**, TS-44b **allocation CAS audit-store portion**, TS-56 **complete allocation owner-joined inventory-store portion**, and TS-65 **retention purge rollback-store portion**.
-- No full TS-42 lifecycle injection/sweeper integration, TS-56 truncation/fail-closed lifecycle behavior, TS-65 deletion-claim or deletion-commit lifecycle behavior, or WU-16 behavior is claimed.
-- Pre-existing untracked WU-16 files and the modified lifecycle module wiring listed above are unowned scope contamination. This writer did not change them. Before/after file hashes and path status were identical; see `../evidence/wu06-lifecycle-before-after.log`.
+- No full TS-42 lifecycle injection/sweeper integration, TS-56 truncation/fail-closed lifecycle behavior, TS-65 deletion-claim or deletion-commit lifecycle behavior, or WU-17/18/19 behavior is claimed.
+- Pre-existing untracked WU-17/18/19 files and the modified lifecycle module wiring listed above are unowned scope contamination. This writer did not change them. Before/after file hashes and path status were identical; see `../evidence/wu06-lifecycle-before-after.log`.
 - No test baseline rerun; unchanged intent baseline remains authoritative. No workflow state/audit, WU-01..WU-05 or lifecycle paths were changed by this writer.

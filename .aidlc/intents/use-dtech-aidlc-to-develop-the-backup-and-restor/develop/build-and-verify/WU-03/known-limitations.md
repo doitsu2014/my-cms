@@ -2,13 +2,13 @@
 
 - **ID:** KL-03 (WU-03)
 - **Stage:** Develop / build-and-verify, unit WU-03.
-- **Current status (refresh 2026-11-24):** WU-03 focused store and audit tests pass. Current full workspace verification is blocked by later-unit failures in WU-06 and WU-16. See [regression-report.md](regression-report.md) and [green-verification-report.md](green-verification-report.md). Historical WU-03 notes from 2026-11-22 are preserved in section 2.
+- **Current status (refresh 2026-11-24):** WU-03 focused store and audit tests pass. Current full workspace verification is blocked by later-unit failures in WU-06 and WU-17/18/19. See [regression-report.md](regression-report.md) and [green-verification-report.md](green-verification-report.md). Historical WU-03 notes from 2026-11-22 are preserved in section 2.
 
 ## Current verification limitations and blockers
 
 | # | Limitation | Impact | Owner / next step |
 |---|---|---|---|
-| R-01 | Full workspace normal suite exited 101 with 13 failures in the in-memory lifecycle test module, all assigned to WU-16. | Current workspace normal suite is not green; cannot recommend complete stage report. These are not WU-03 focused test failures and were not recorded in the baseline. | WU-16 owner must diagnose and resolve its failures using its own test-first process, then rerun full normal and ignored workspace suites. This WU-03 refresh made no source/test changes. |
+| R-01 | Full workspace normal suite exited 101 with 13 failures in the in-memory lifecycle test module, all assigned to WU-17/18/19. | Current workspace normal suite is not green; cannot recommend complete stage report. These are not WU-03 focused test failures and were not recorded in the baseline. | WU-17/18/19 owner must diagnose and resolve its failures using its own test-first process, then rerun full normal and ignored workspace suites. This WU-03 refresh made no source/test changes. |
 | R-02 | Full workspace ignored/Docker suite exited 101 with 7 `infra::tests::reconciliation::*` failures assigned to WU-06. | Current DB-backed workspace suite is not green; cannot recommend complete stage report. These are not WU-03 focused test failures and were not recorded in the baseline. | WU-06 owner must diagnose and resolve its failures using its own test-first process, then rerun full suites. No WU-06 implementation change was made in this refresh. |
 | R-03 | `cargo clippy --workspace --all-targets` exited 0 but emitted warnings, including in `domain_backup` for unused stub-method parameters and missing `Debug`/`Default` implementations on lifecycle types. | Lint is command-successful but not warning-free. Warnings are not treated as test failures and were not changed during this refresh. | Track with owning work units; check touched code before their completion. |
 | R-04 | Identifiers check reports `ok: true` and no unregistered identifiers, but separately lists uncovered functions across the in-progress workflow. | No WU-03 registry error, but workflow-wide coverage inventory is incomplete because later units remain in progress. | Continue coverage in assigned later units; do not claim whole-intent coverage from this stage check. |

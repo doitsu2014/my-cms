@@ -75,3 +75,7 @@ Each acceptance criterion has a row. Function references use registered `FN-*` I
 ## Limitations
 
 See `known-limitations.md` for Unix-only permission validation, Windows ACL residual, consumer-supplied forbidden paths, open CFG values, untested projection/clock types, and the aggregate regression failures. This verification does not constitute release-candidate approval or authorize deployment, production use, real-data staging, upload, restore or downloads.
+
+## Refresh 2026-11-26
+
+Re-verified after the 1.1.0 migration with no WU-01 source or test changes: config 29, state machine 3, status 3 passed (35 total, 0 failed); `cargo fmt --all -- --check` and `cargo clippy --workspace --all-targets` exit 0; `dtech-aidlc ids check` is clean. Whole-workspace regression and its attribution are in `regression-report.md` and `regression.json`.

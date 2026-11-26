@@ -1,7 +1,7 @@
 # WU-06 green verification report
 
 - **Unit:** WU-06 — Allocation reconciliation and retention store contracts
-- **Status:** WU-06-owned store tests passed in focused Docker-backed runs while Docker was available; subsequent replay attempts were blocked when Docker Desktop became unable to start. The full workspace also has WU-16-owned failures. No claim of phase-gate approval.
+- **Status:** WU-06-owned store tests passed in focused Docker-backed runs while Docker was available; subsequent replay attempts were blocked when Docker Desktop became unable to start. The full workspace also has WU-17/18/19-owned failures. No claim of phase-gate approval.
 - **Environment:** Windows 11 Pro, Cargo/rustc 1.100.0; Docker prerequisite `docker info` passed; PostgreSQL 15 containers started successfully for focused ignored tests.
 - **Baseline:** Reused unmodified from [Develop baseline](../../baseline.md), recorded 2026-11-22: normal Rust suite 290 passed / 0 failed / 39 ignored; Docker-ignored suite 39 passed / 0 failed. Baseline tests run identities remain unchanged.
 
@@ -21,14 +21,14 @@
 | Check | Result | Evidence |
 |---|---|---|
 | `cargo fmt --manifest-path apps/api/Cargo.toml -- --check` | Exit 0; captured after all source changes | `evidence/green-wu06-cargo-fmt.log` |
-| `cargo clippy --manifest-path apps/api/Cargo.toml -p domain_backup --all-targets` | Exit 0 after the `needless_borrow` fix; the final captured run has only baseline JobStore/WU-16 lifecycle warnings. | `evidence/green-wu06-cargo-clippy.log` |
+| `cargo clippy --manifest-path apps/api/Cargo.toml -p domain_backup --all-targets` | Exit 0 after the `needless_borrow` fix; the final captured run has only baseline JobStore/WU-17/18/19 lifecycle warnings. | `evidence/green-wu06-cargo-clippy.log` |
 | `dtech-aidlc ids check` | Exit 0, `ok: true`, no unregistered identifiers | `evidence/green-wu06-ids-check.log` |
 
 ## Regression test results and ownership boundary
 
-- `cargo test --manifest-path apps/api/Cargo.toml -p domain_backup --no-fail-fast`: **116 passed, 13 failed, 129 ignored**, exit 101. The 13 failures are lifecycle tests in the pre-existing/unowned `lifecycle/lifecycle_tests.rs`; each belongs to WU-16, not WU-06. Details and exact test identities are in `regression-report.md` and `evidence/regression-wu06-domain-backup.log`.
-- `cargo test --manifest-path apps/api/Cargo.toml --workspace --no-fail-fast`: **253 passed across the other workspace crates; domain_backup 116 passed / 13 failed / 129 ignored** (369 passed total, 13 failed, 129 ignored), exit 101. All 13 current failures are WU-16 lifecycle tests. Full output: `evidence/regression-wu06-workspace-tests.log`.
-- `cargo test --manifest-path apps/api/Cargo.toml --workspace --no-fail-fast -- --ignored`: **126 passed, 3 failed** in `domain_backup`, with the remaining ignored tests passing (other crates' ignored tests pass). The 3 failures are WU-16-owned JobStore epoch advance, job-fence CAS, and deadline listing tests; none is WU-06-owned. Full output: `evidence/regression-wu06-workspace-ignored.log`.
+- `cargo test --manifest-path apps/api/Cargo.toml -p domain_backup --no-fail-fast`: **116 passed, 13 failed, 129 ignored**, exit 101. The 13 failures are lifecycle tests in the pre-existing/unowned `lifecycle/lifecycle_tests.rs`; each belongs to WU-17/18/19, not WU-06. Details and exact test identities are in `regression-report.md` and `evidence/regression-wu06-domain-backup.log`.
+- `cargo test --manifest-path apps/api/Cargo.toml --workspace --no-fail-fast`: **253 passed across the other workspace crates; domain_backup 116 passed / 13 failed / 129 ignored** (369 passed total, 13 failed, 129 ignored), exit 101. All 13 current failures are WU-17/18/19 lifecycle tests. Full output: `evidence/regression-wu06-workspace-tests.log`.
+- `cargo test --manifest-path apps/api/Cargo.toml --workspace --no-fail-fast -- --ignored`: **126 passed, 3 failed** in `domain_backup`, with the remaining ignored tests passing (other crates' ignored tests pass). The 3 failures are WU-17/18/19-owned JobStore epoch advance, job-fence CAS, and deadline listing tests; none is WU-06-owned. Full output: `evidence/regression-wu06-workspace-ignored.log`.
 
 ### Trace table
 
@@ -41,4 +41,12 @@
 | US-02 / US-03 / US-04 / US-06 | AC-002 S2 / AC-003 S3 (retention store) | FN-33 persistence adapter | `infra::tests::retention::retention_purge_orders_eligible_rows_and_retains_audit_and_ineligible_rows` | passed |
 | US-02 / US-06 | AC-005 S3 (purge refusal rolls back) | FN-33 persistence adapter | `infra::tests::retention::retention_purge_audit_failure_rolls_back_every_table` | passed |
 
-WU-16 behavior intentionally remains unimplemented here: runtime start/recovery, job epoch fencing/deadline listing, filesystem-to-ledger lifecycle reconciliation, cleanup/retry, truncated inventory fail-closed handling, missing-file lifecycle scans and sweep integration. No WU-16 acceptance is claimed.
+WU-17/18/19 behavior intentionally remains unimplemented here: runtime start/recovery, job epoch fencing/deadline listing, filesystem-to-ledger lifecycle reconciliation, cleanup/retry, truncated inventory fail-closed handling, missing-file lifecycle scans and sweep integration. No WU-17/18/19 acceptance is claimed.
+
+## Refresh 2026-11-26
+
+Re-verified after the 1.1.0 migration with no WU-06 source or test changes: retention store 2 passed (TS-42 adapter, TS-65 store rollback); allocation reconciliation store 4 passed (TS-56 owner-joined inventory, allocation CAS with audit, lost CAS emits nothing, audit failure rolls back). The 3 other tests in infra::tests::reconciliation are the WU-17/18/19 JobStore failures. Whole-workspace regression and its attribution are in `regression-report.md` and `regression.json`.
+
+## Refresh 2026-11-26
+
+Re-verified after the 1.1.0 migration with no WU-06 source or test changes: retention store 2 passed (TS-42 adapter, TS-65 store rollback); allocation reconciliation store 4 passed (TS-56 owner-joined inventory, allocation CAS with audit, lost CAS emits nothing, audit failure rolls back). The 3 other tests in infra::tests::reconciliation are lifecycle JobStore failures. Whole-workspace regression and its attribution are in `regression-report.md` and `regression.json`.

@@ -22,7 +22,7 @@ Command from the repository root: `cargo test --manifest-path apps/api/Cargo.tom
 | `gateway` | 17 | 0 | 2 |
 | **Workspace total** | **369** | **13** | **134** |
 
-Exact failing identities (all `domain_backup::lifecycle::lifecycle_tests`, currently registered as WU-16 lifecycle work):
+Exact failing identities (all `domain_backup::lifecycle::lifecycle_tests`, currently registered as WU-17/18/19 lifecycle work):
 
 1. `ts20_registered_row_without_file_is_transitioned_to_release_pending`
 2. `ts21_file_after_register_before_mark_written_is_retained_as_owned`
@@ -47,7 +47,7 @@ Command from the repository root: `cargo test --manifest-path apps/api/Cargo.tom
 - Workspace selected totals: **131 passed, 3 failed**; Docker was available, so this is a real test result, not an environment skip.
 - The three failing identities are `domain_backup::infra::tests::reconciliation::job_store_reconciliation_inventory_and_epoch_are_durable`, `domain_backup::infra::tests::reconciliation::ts22_job_fence_cas_is_epoch_status_version_checked_and_audited_atomically`, and `domain_backup::infra::tests::reconciliation::ts30_deadline_inventory_includes_only_due_jobs_at_epoch`.
 - Observed assertions include epoch 0 instead of 1, `Lost` instead of `Applied`, and an empty result instead of the expected due-job inventory.
-- Current work-unit registration identifies these pending reconciliation/JobStore failures with WU-16 work. This classification does not make the aggregate result green or complete WU-16/WU-06.
+- Current work-unit registration identifies these pending reconciliation/JobStore failures with WU-17/18/19 work. This classification does not make the aggregate result green or complete WU-17/18/19/WU-06.
 
 ## Baseline identity comparison
 
@@ -58,7 +58,7 @@ The immutable historical Rust baseline is the comparison point, not a new run. T
 | Normal workspace | 290 | 290 | 0 | Every baseline-passing identity still passes; 13 additional current test identities fail. Strict regression gate still fails because the current failing set is nonempty. |
 | Ignored workspace | 39 | 39 | 0 | Every baseline ignored-test identity still passes; 3 additional current test identities fail. Strict regression gate still fails because the current failing set is nonempty. |
 
-Thus the observed failures are not identities in the baseline passing set, but they remain failures and prevent the release-candidate regression criterion from passing. This WU-01 report does not attribute them to WU-01. The registered execution order defers WU-06's final strict normal/ignored full-workspace regression closure until after WU-16; that required WU-16-before-WU-06 work remains outstanding.
+Thus the observed failures are not identities in the baseline passing set, but they remain failures and prevent the release-candidate regression criterion from passing. This WU-01 report does not attribute them to WU-01. The registered execution order defers WU-06's final strict normal/ignored full-workspace regression closure until after WU-17/18/19; that required WU-17/18/19-before-WU-06 work remains outstanding.
 
 ## Focused verification and other checks
 
@@ -71,4 +71,21 @@ Thus the observed failures are not identities in the baseline passing set, but t
 
 ## Conclusion and disposition
 
-WU-01 focused behavior tests pass and this verification made no source or behavior changes. Workspace fmt, clippy and check pass. The current full normal and ignored suites are **red**, with 13 and 3 non-baseline test failures respectively. The project regression rule and Develop exit criteria therefore block any claim of a green overall verification or release candidate. Preserve the failures for their registered owner; execute the required WU-16 work before the deferred WU-06 strict full-regression report. No test was skipped, weakened or reclassified; no baseline, red artifact, workflow state or audit file was changed. No orchestration/report command was run.
+WU-01 focused behavior tests pass and this verification made no source or behavior changes. Workspace fmt, clippy and check pass. The current full normal and ignored suites are **red**, with 13 and 3 non-baseline test failures respectively. The project regression rule and Develop exit criteria therefore block any claim of a green overall verification or release candidate. Preserve the failures for their registered owner; execute the required WU-17/18/19 work before the deferred WU-06 strict full-regression report. No test was skipped, weakened or reclassified; no baseline, red artifact, workflow state or audit file was changed. No orchestration/report command was run.
+
+## Refresh 2026-11-26 (attributed regression, dtech-aidlc 1.1.0)
+
+No source, test or behavior changed for WU-01. Both whole-workspace suites were re-run from `apps/api` for this step and the failures were attributed to their owning units in `regression.json` (`scope: full`).
+
+| Command | Result | Log |
+|---|---|---|
+| `cargo test --workspace --no-fail-fast` | Exit 101. `domain_backup`: 116 passed / 13 failed / 129 ignored. All other crates passed. All 13 failures are WU-17/18/19 lifecycle tests (`lifecycle::lifecycle_tests::ts20, ts21, ts22, ts23, ts25, ts26, ts27a, ts29, ts30, ts32, ts42, ts56, ts65`). | `evidence/refresh2-wu01-normal.log` |
+| `cargo test --workspace --no-fail-fast -- --ignored` | Exit 101. `domain_backup`: 126 passed / 3 failed. The 3 failures are WU-17/18/19 JobStore recovery, fencing and deadline tests (`infra::tests::reconciliation::job_store_reconciliation_inventory_and_epoch_are_durable`, `...ts22_job_fence_cas_is_epoch_status_version_checked_and_audited_atomically`, `...ts30_deadline_inventory_includes_only_due_jobs_at_epoch`). Other crates passed. | `evidence/refresh2-wu01-ignored.log` |
+| `cargo test -p domain_backup domain::{config,state_machine,status}::tests` | 29 + 3 + 3 passed, 0 failed. | run inline, same code as the full run |
+| `cargo fmt --all -- --check` | Exit 0. | `evidence/refresh2-wu01-fmt.log` |
+| `cargo clippy --workspace --all-targets` | Exit 0. | `evidence/refresh2-wu01-clippy.log` |
+| `dtech-aidlc ids check` | `ok: true`. | n/a |
+
+Attribution: none of the 16 failing test names appears in `develop/baseline.md` (checked by name, 0 matches), so no baseline-passing test regressed. The work-units design (reworked 2026-11-26) declares these tests under WU-17/18/19's `tests` (TS-20..TS-29, TS-30, TS-32, TS-42, TS-44, TS-56, TS-65), so they are deferred failures owned by WU-17/18/19 and are not WU-01 failures. They remain failures and are checked again at the final sweep, which reopens WU-17/18/19 if any is still red. The job-store reconciliation inventory test has no TS number in its name and is attributed to WU-17/18/19 by its `infra::tests::reconciliation` module and the earlier WU-06 regression report.
+
+> Note (2026-11-26): the lifecycle unit formerly numbered sixteen was split by the owner into WU-17, WU-18 and WU-19; earlier mentions of it in this unit's evidence were renamed to "WU-17/18/19" so identifiers stay registered. No result or count was changed.

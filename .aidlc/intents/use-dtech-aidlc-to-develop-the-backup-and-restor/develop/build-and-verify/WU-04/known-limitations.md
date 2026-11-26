@@ -21,7 +21,7 @@
 | L-11 | Port API has recorded deviations Dev-1..Dev-5 from IFC section 9. | Signatures do not match the originally written contract exactly. | Retain the decisions in historical red evidence; update the contract at an authorized design maintenance point. |
 | L-12 | Two-process lock test launches the test binary using the `lock_child_probe` helper. | None observed; test depends on subprocess invocation. | Accepted. |
 | L-13 | `domain_backup` is not yet composed into the gateway. | WU-04 adapters are not reachable from the running API. | Gateway integration belongs to WU-10. |
-| L-14 | Workspace test refresh fails in later-unit tests. | Overall develop regression cannot be declared clean. | Existing WU-16 lifecycle failures and WU-06 store reconciliation failures are documented by name in `regression-report.md`; same failure names occur in pre-refresh WU-03 logs. Resolve in owning units, then rerun full suites. They do not demonstrate a WU-04 regression. |
+| L-14 | Workspace test refresh fails in later-unit tests. | Overall develop regression cannot be declared clean. | Existing WU-17/18/19 lifecycle failures and WU-06 store reconciliation failures are documented by name in `regression-report.md`; same failure names occur in pre-refresh WU-03 logs. Resolve in owning units, then rerun full suites. They do not demonstrate a WU-04 regression. |
 | L-15 | Full-workspace Clippy exits successfully but emits warnings, including later-unit code and other crates. | Warning-clean status is not claimed. | Review warnings in their owning units; WU-04's focused functional suites and formatting check pass. |
 
 ## Environment constraints

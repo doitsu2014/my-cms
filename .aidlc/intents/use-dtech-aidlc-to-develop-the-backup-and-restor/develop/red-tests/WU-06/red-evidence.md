@@ -1,7 +1,7 @@
 # WU-06 red evidence — store and adapter contracts (historical pre-build snapshot)
 
-- **Status:** This artifact records the historical WU-06 red-tests run against inert compile-time defaults, before the separately recorded WU-06 implementation. It is not the current implementation status: the store adapters have since been implemented and the assigned focused tests have recorded green PostgreSQL runs in `../../build-and-verify/WU-06/green-verification-report.md`. WU-06 is still incomplete because the strict full-workspace regression remains red; the approved sequence runs WU-16 first, then reruns WU-06's full normal and ignored workspace suites before any complete report.
-- **Ownership boundary:** This evidence covers only WU-06's store portion of TS-42, TS-44b, TS-56 and TS-65. It does not claim full TS-42, TS-56 or TS-65 coverage and does not claim WU-16 lifecycle verification.
+- **Status:** This artifact records the historical WU-06 red-tests run against inert compile-time defaults, before the separately recorded WU-06 implementation. It is not the current implementation status: the store adapters have since been implemented and the assigned focused tests have recorded green PostgreSQL runs in `../../build-and-verify/WU-06/green-verification-report.md`. WU-06 is still incomplete because the strict full-workspace regression remains red; the approved sequence runs WU-17/18/19 first, then reruns WU-06's full normal and ignored workspace suites before any complete report.
+- **Ownership boundary:** This evidence covers only WU-06's store portion of TS-42, TS-44b, TS-56 and TS-65. It does not claim full TS-42, TS-56 or TS-65 coverage and does not claim WU-17/18/19 lifecycle verification.
 - **Environment:** Docker prerequisite passed via `dtech-aidlc config prerequisite check`; Docker is available and PostgreSQL 15 testcontainers started in the focused ignored tests.
 - **Baseline:** Reused unchanged from [intent baseline](../../baseline.md); no baseline rerun or rewrite.
 - **IDs and formatting:** `dtech-aidlc ids check` passed (`ok: true`, no unregistered IDs). `cargo fmt --manifest-path apps/api/Cargo.toml -- --check` passed after formatting the touched Rust tests.
@@ -38,7 +38,7 @@ Complete outputs are preserved in the named logs under `../evidence/`. Each focu
 
 Each full log includes the actual invocation, work directory, stdout/stderr, exit code and timestamps. Earlier broad WU-06-labelled logs also include unrelated lifecycle/job tests and must not be read as WU-06-only evidence.
 
-## WU-16 lifecycle paths: pre-existing contamination, not owned
+## WU-17/18/19 lifecycle paths: pre-existing contamination, not owned
 
 At entry, status showed untracked `apps/api/domain_backup/src/lifecycle/{cleaner.rs,lifecycle_tests.rs,reconciler.rs,runtime.rs,sweeper.rs}` and modified `lifecycle/mod.rs`. These were treated as unowned pre-existing worktree content: this writer did not edit or delete them. Hashes and path status were captured before and after and remained identical in `../evidence/wu06-lifecycle-before-after.log`. The WU-06 changed-file scope does not include any lifecycle paths.
 
@@ -46,4 +46,4 @@ At entry, status showed untracked `apps/api/domain_backup/src/lifecycle/{cleaner
 
 At the time of this red run, the next intended activity was implementing the store-owned portions: TS-56 complete LEFT JOIN inventory; TS-44b applied/lost audited allocation CAS; TS-42 purge adapter ordering, exclusions, audit retention and idempotency; and TS-65 purge rollback with the `retention.purged` invocation counter. The subsequent WU-06 build-and-verify record and focused green logs show those assigned store tests passing, including TS-65's exactly-one audit invocation and rollback assertions.
 
-Current sequence is distinct from that historical handoff: WU-16's lifecycle work and tests are separately owned and must be handled under WU-16's own directive before WU-06's final strict regression report. WU-06 is not complete until both full normal and ignored workspace runs pass the unchanged baseline comparison; do not treat this red snapshot as current implementation status or as lifecycle evidence.
+Current sequence is distinct from that historical handoff: WU-17/18/19's lifecycle work and tests are separately owned and must be handled under WU-17/18/19's own directive before WU-06's final strict regression report. WU-06 is not complete until both full normal and ignored workspace runs pass the unchanged baseline comparison; do not treat this red snapshot as current implementation status or as lifecycle evidence.

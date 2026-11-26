@@ -28,7 +28,7 @@ No source or test files were changed. The WU-04 red replay was intentionally ski
 
 Full logs are under `develop/build-and-verify/evidence/refresh-wu04-*`.
 
-Workspace `cargo test --no-fail-fast` and `cargo test --no-fail-fast -- --ignored` were also run; both return exit 101 due to later-unit WU-06/WU-16 tests. The same lifecycle and reconciliation failure set appears in the earlier `refresh-wu03-workspace-*` evidence, before this WU-04 refresh. The WU-04 filesystem/ledger/lock suites pass independently, and exact-name comparison confirms every passing baseline test still passes. These later-unit failures are disclosed in the regression report; they are not represented as WU-04 passes or introduced by a WU-04 source change.
+Workspace `cargo test --no-fail-fast` and `cargo test --no-fail-fast -- --ignored` were also run; both return exit 101 due to later-unit WU-06/WU-17/18/19 tests. The same lifecycle and reconciliation failure set appears in the earlier `refresh-wu03-workspace-*` evidence, before this WU-04 refresh. The WU-04 filesystem/ledger/lock suites pass independently, and exact-name comparison confirms every passing baseline test still passes. These later-unit failures are disclosed in the regression report; they are not represented as WU-04 passes or introduced by a WU-04 source change.
 
 Other checks: `cargo fmt -- --check` exit 0; `cargo clippy --all-targets` exit 0; `dtech-aidlc ids check` exit 0 with no unregistered identifiers. Clippy reports warnings in the workspace, including pre-existing warnings outside `domain_backup` and current warnings in other, later-unit `domain_backup` lifecycle/store contracts; no lint finding was established as a WU-04 defect.
 
@@ -40,7 +40,7 @@ Other checks: `cargo fmt -- --check` exit 0; `cargo clippy --all-targets` exit 0
 | AC-002 S2: allocation budgets and cleanup ledger behavior | FN-21, FN-23 | Allocation-store budget, CAS, audit, retry and orphan tests | 28 Docker tests pass |
 | AC-006 S2: bounded synthetic storage and safe ownership constraints | FN-21, FN-22 | Allocation budget tests; inventory max-entry/truncation and kind tests; lock exclusivity | Focused suites pass |
 
-TS-56 scope split is respected: this refresh verifies the bounded filesystem inventory producer in WU-04. The owner-joined allocation inventory belongs to WU-06 and fail-closed reconciliation belongs to WU-16.
+TS-56 scope split is respected: this refresh verifies the bounded filesystem inventory producer in WU-04. The owner-joined allocation inventory belongs to WU-06 and fail-closed reconciliation belongs to WU-17/18/19.
 
 ## Evidence links
 

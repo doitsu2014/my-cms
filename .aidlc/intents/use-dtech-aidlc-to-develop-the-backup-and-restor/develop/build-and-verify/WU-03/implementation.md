@@ -2,7 +2,7 @@
 
 - **ID:** IMPL-03 (WU-03)
 - **Stage:** Develop / build-and-verify (builder-verifier), unit WU-03 of WU-01..WU-15.
-- **Status:** WU-03 implementation is present. Historical green evidence is preserved below; the 2026-11-24 verification refresh is **blocked** because workspace runs expose failures in later WU-06/WU-16 tests. WU-03-targeted tests pass. No application source or tests were changed during this refresh.
+- **Status:** WU-03 implementation is present. Historical green evidence is preserved below; the 2026-11-24 verification refresh is **blocked** because workspace runs expose failures in later WU-06/WU-17/18/19 tests. WU-03-targeted tests pass. No application source or tests were changed during this refresh.
 - **Inputs:**
   - [red-tests/WU-03](../../red-tests/WU-03/failing-tests.md), including the section 3.2 design choices.
   - [ids.json](../../implementation-design/ids.json).
@@ -54,6 +54,6 @@ No WU-01 or WU-02 code or test changed during the original WU-03 implementation 
 
 ## Refresh scope and current disposition (2026-11-24)
 
-Re-ran focused WU-03 tests, the entire Rust workspace normal and ignored suites, workspace formatting, workspace clippy and the requested identifier check. Docker was available. Focused WU-03 results are green: `infra::tests::job_store` normal 1 passed/35 ignored, Docker ignored 35 passed, and `infra::tests::audit_sink` normal 3 passed/8 ignored plus Docker ignored 8 passed. The full workspace is not green: the normal run failed 13 in-memory lifecycle tests belonging to later WU-16 work; the ignored run failed seven DB reconciliation tests belonging to later WU-06 work. Their failure names, exits, complete suite counts and evidence paths are in the refreshed verification/regression reports. These WU-06/WU-16 failures are outside WU-03 and must not be attributed to the WU-03 implementation, but the selected build-and-verify refresh cannot be reported complete while the requested full suite remains red.
+Re-ran focused WU-03 tests, the entire Rust workspace normal and ignored suites, workspace formatting, workspace clippy and the requested identifier check. Docker was available. Focused WU-03 results are green: `infra::tests::job_store` normal 1 passed/35 ignored, Docker ignored 35 passed, and `infra::tests::audit_sink` normal 3 passed/8 ignored plus Docker ignored 8 passed. The full workspace is not green: the normal run failed 13 in-memory lifecycle tests belonging to later WU-17/18/19 work; the ignored run failed seven DB reconciliation tests belonging to later WU-06 work. Their failure names, exits, complete suite counts and evidence paths are in the refreshed verification/regression reports. These WU-06/WU-17/18/19 failures are outside WU-03 and must not be attributed to the WU-03 implementation, but the selected build-and-verify refresh cannot be reported complete while the requested full suite remains red.
 
 No source or test change was made because the failures are outside WU-03, and the instruction requires stopping rather than implementing defects found in another unit. Current refresh should be reported blocked, not green.

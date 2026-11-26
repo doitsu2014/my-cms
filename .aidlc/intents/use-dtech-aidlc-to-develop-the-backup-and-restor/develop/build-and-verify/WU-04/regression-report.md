@@ -2,7 +2,7 @@
 
 - **ID:** REG-04 (WU-04)
 - **Stage:** Develop / build-and-verify, work unit WU-04.
-- **Status:** WU-04 focused tests pass; **intent-wide regression is blocked** by failures in later-unit WU-06 and WU-16 code. No WU-04 regression was identified: no source/test changes were made during this refresh, focused WU-04 suites pass, and all exact baseline-passing test names remain passing.
+- **Status:** WU-04 focused tests pass; **intent-wide regression is blocked** by failures in later-unit WU-06 and WU-17/18/19 code. No WU-04 regression was identified: no source/test changes were made during this refresh, focused WU-04 suites pass, and all exact baseline-passing test names remain passing.
 - **Baseline:** `develop/baseline.md`, recorded once before implementation on 2026-11-22 and reused unchanged. Do not re-run or rewrite that baseline.
 
 ## Commands and logs
@@ -38,7 +38,7 @@ The current full runs also include later tests and fail on them. This exact name
 
 ### Normal workspace suite
 
-`cargo test --no-fail-fast` exited 101. The `domain_backup` library target reported 116 passed, 13 failed, 128 ignored. All 13 failures are `lifecycle::lifecycle_tests::*` (WU-16 lifecycle implementation), not WU-04 filesystem/lock/allocation tests. Other workspace targets in the log passed. The same 13 named lifecycle failures were already present in `refresh-wu03-workspace-normal.log`, before this WU-04 refresh:
+`cargo test --no-fail-fast` exited 101. The `domain_backup` library target reported 116 passed, 13 failed, 128 ignored. All 13 failures are `lifecycle::lifecycle_tests::*` (WU-17/18/19 lifecycle implementation), not WU-04 filesystem/lock/allocation tests. Other workspace targets in the log passed. The same 13 named lifecycle failures were already present in `refresh-wu03-workspace-normal.log`, before this WU-04 refresh:
 
 - `ts20_registered_row_without_file_is_transitioned_to_release_pending`
 - `ts21_file_after_register_before_mark_written_is_retained_as_owned`
@@ -66,10 +66,24 @@ The current full runs also include later tests and fail on them. This exact name
 - `ts30_deadline_inventory_includes_only_due_jobs_at_epoch`
 - `ts56_allocation_inventory_preserves_nullable_orphan_owners`
 
-Failure details are in the complete refreshed logs. No WU-04-source defect is inferred from these different WU-06/WU-16 paths; however, both full runs remain failures and the broader release candidate cannot be called regression-clean until the owning later-unit defects are addressed and the suites pass.
+Failure details are in the complete refreshed logs. No WU-04-source defect is inferred from these different WU-06/WU-17/18/19 paths; however, both full runs remain failures and the broader release candidate cannot be called regression-clean until the owning later-unit defects are addressed and the suites pass.
 
 ## WU-04-specific result
 
-The filesystem storage suite passed 30/30; namespace locking passed 11/11; DB allocation-store suite passed 28/28 with Docker. The normal allocation-store command correctly marked all 28 DB tests ignored. Historical WU-04 red evidence documents the original failing behavior followed by green implementation and is not rerun for this refresh. None of the 13 WU-16 failures nor 7 WU-06 failures occurred in these focused WU-04 suites.
+The filesystem storage suite passed 30/30; namespace locking passed 11/11; DB allocation-store suite passed 28/28 with Docker. The normal allocation-store command correctly marked all 28 DB tests ignored. Historical WU-04 red evidence documents the original failing behavior followed by green implementation and is not rerun for this refresh. None of the 13 WU-17/18/19 failures nor 7 WU-06 failures occurred in these focused WU-04 suites.
 
 No source or test files were modified for this refresh. Web tests were not rerun because WU-04 changes no web paths. Full backend suite exit 101 means intent-level regression is blocked, despite exact preservation of all baseline test names.
+
+## Refresh 2026-11-26 (attributed regression, dtech-aidlc 1.1.0)
+
+No source, test or behavior changed for WU-04. Focused checks were re-run for this step: filesystem fixture storage 30 passed; namespace lock 11 passed; allocation store 0 non-ignored and 28 passed (Docker, ignored). All exit 0.
+
+The whole-workspace suites were run once on this unchanged tree for the WU-01 step (`evidence/refresh2-wu01-normal.log`, `evidence/refresh2-wu01-ignored.log`) and the result is reused here because `apps/api` has had no change since: normal `domain_backup` 116 passed / 13 failed / 129 ignored, ignored `domain_backup` 126 passed / 3 failed, all other crates passed. The 16 failures are WU-17/18/19-owned lifecycle and JobStore recovery tests, none of which is in `develop/baseline.md`. They are attributed to WU-17/18/19 in `regression.json` and deferred to it; the final sweep re-runs both suites and reopens WU-17/18/19 if any is still red.
+
+> Note (2026-11-26): the lifecycle unit formerly numbered sixteen was split by the owner into WU-17, WU-18 and WU-19; earlier mentions of it in this unit's evidence were renamed to "WU-17/18/19" so identifiers stay registered. No result or count was changed.
+
+## Refresh 2026-11-26 (attributed regression, dtech-aidlc 1.1.0)
+
+No source, test or behavior changed for WU-04. Focused checks were re-run for this step: filesystem fixture storage 30 passed; namespace lock 11 passed; allocation store 0 non-ignored and 28 passed (Docker, ignored). All exit 0.
+
+The whole-workspace suites were run once on this unchanged tree for the WU-01 step (`evidence/refresh2-wu01-normal.log`, `evidence/refresh2-wu01-ignored.log`) and the result is reused here because `apps/api` has had no change since: normal `domain_backup` 116 passed / 13 failed / 129 ignored, ignored `domain_backup` 126 passed / 3 failed, all other crates passed. The 16 failures are WU-17, WU-18 and WU-19 lifecycle and JobStore recovery tests (formerly one unit), none of which is in `develop/baseline.md`. They are attributed to WU-17, WU-18 or WU-19 in `regression.json` and deferred to them; the final sweep re-runs both suites and reopens the owning unit if any is still red.

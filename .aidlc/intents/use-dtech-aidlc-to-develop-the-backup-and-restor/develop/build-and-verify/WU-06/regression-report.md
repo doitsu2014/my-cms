@@ -1,23 +1,23 @@
 # WU-06 regression report
 
 - **Unit:** WU-06 — Allocation reconciliation and retention store contracts
-- **Status:** Assigned WU-06 database tests passed in focused runs while Docker/PostgreSQL was available. Later retries were blocked when Docker Desktop failed to start. Full-workspace verification is not green because WU-16-owned lifecycle and JobStore recovery/deadline tests fail; no WU-06-owned test failed in the recorded full runs.
+- **Status:** Assigned WU-06 database tests passed in focused runs while Docker/PostgreSQL was available. Later retries were blocked when Docker Desktop failed to start. Full-workspace verification is not green because WU-17/18/19-owned lifecycle and JobStore recovery/deadline tests fail; no WU-06-owned test failed in the recorded full runs.
 - **Baseline:** Reused unchanged from [Develop baseline](../../baseline.md), recorded 2026-11-22. Normal Rust suite: 290 passed, 0 failed, 39 ignored. Explicit Docker-ignored suite: 39 passed, 0 failed. Baseline not rerun or rewritten.
 
 ## Current full-suite outcomes
 
 | Command | Observed result | Evidence |
 |---|---|---|
-| `cargo test --manifest-path apps/api/Cargo.toml --workspace --no-fail-fast` | Exit 101; 253 tests passed in other workspace crates; `domain_backup` 116 passed / 13 failed / 129 ignored. All 13 failures are WU-16 lifecycle tests. | `evidence/regression-wu06-workspace-tests.log` |
-| `cargo test --manifest-path apps/api/Cargo.toml --workspace --no-fail-fast -- --ignored` | Exit 101; 126 passed / 3 failed in `domain_backup`. All other Docker-ignored tests passed. The three failed tests are WU-16-owned JobStore epoch/fence/deadline behaviors. | `evidence/regression-wu06-workspace-ignored.log` |
-| `cargo test --manifest-path apps/api/Cargo.toml -p domain_backup --no-fail-fast` | Exit 101; 116 passed / 13 failed / 129 ignored. All 13 failures are WU-16 lifecycle tests. | `evidence/regression-wu06-domain-backup.log` |
+| `cargo test --manifest-path apps/api/Cargo.toml --workspace --no-fail-fast` | Exit 101; 253 tests passed in other workspace crates; `domain_backup` 116 passed / 13 failed / 129 ignored. All 13 failures are WU-17/18/19 lifecycle tests. | `evidence/regression-wu06-workspace-tests.log` |
+| `cargo test --manifest-path apps/api/Cargo.toml --workspace --no-fail-fast -- --ignored` | Exit 101; 126 passed / 3 failed in `domain_backup`. All other Docker-ignored tests passed. The three failed tests are WU-17/18/19-owned JobStore epoch/fence/deadline behaviors. | `evidence/regression-wu06-workspace-ignored.log` |
+| `cargo test --manifest-path apps/api/Cargo.toml -p domain_backup --no-fail-fast` | Exit 101; 116 passed / 13 failed / 129 ignored. All 13 failures are WU-17/18/19 lifecycle tests. | `evidence/regression-wu06-domain-backup.log` |
 | `cargo fmt --manifest-path apps/api/Cargo.toml -- --check` | Exit 0. | `evidence/green-wu06-cargo-fmt.log` |
-| `cargo clippy --manifest-path apps/api/Cargo.toml -p domain_backup --all-targets` | Exit 0. Remaining warnings are in baseline JobStore scaffold and unowned WU-16 lifecycle code. | `evidence/green-wu06-cargo-clippy.log` |
+| `cargo clippy --manifest-path apps/api/Cargo.toml -p domain_backup --all-targets` | Exit 0. Remaining warnings are in baseline JobStore scaffold and unowned WU-17/18/19 lifecycle code. | `evidence/green-wu06-cargo-clippy.log` |
 | `dtech-aidlc ids check` | Exit 0, `ok: true`, no unregistered identifiers. | `evidence/green-wu06-ids-check.log` |
 
 ## Failures and ownership
 
-### Normal run — WU-16 lifecycle tests
+### Normal run — WU-17/18/19 lifecycle tests
 
 1. `lifecycle::lifecycle_tests::ts20_registered_row_without_file_is_transitioned_to_release_pending`
 2. `lifecycle::lifecycle_tests::ts21_file_after_register_before_mark_written_is_retained_as_owned`
@@ -33,9 +33,9 @@
 12. `lifecycle::lifecycle_tests::ts56_truncated_inventory_makes_reconciliation_fail_closed`
 13. `lifecycle::lifecycle_tests::ts65_audit_refusal_blocks_delete_claim_delete_commit_and_purge`
 
-These exercise WU-16 orchestration/cleaner/sweeper/startup behavior, explicitly out of WU-06. They reside in pre-existing worktree files; WU-06 did not implement lifecycle behavior.
+These exercise WU-17/18/19 orchestration/cleaner/sweeper/startup behavior, explicitly out of WU-06. They reside in pre-existing worktree files; WU-06 did not implement lifecycle behavior.
 
-### Docker-ignored run — WU-16 JobStore tests
+### Docker-ignored run — WU-17/18/19 JobStore tests
 
 1. `infra::tests::reconciliation::job_store_reconciliation_inventory_and_epoch_are_durable` — JobStore epoch advancement and job inventory.
 2. `infra::tests::reconciliation::ts22_job_fence_cas_is_epoch_status_version_checked_and_audited_atomically` — JobStore fencing.
@@ -57,4 +57,18 @@ Later focused reruns failed before assertions because testcontainer creation ret
 
 ## Baseline pass-set comparison
 
-The WU-05 verification refresh in `build-and-verify/WU-05/regression-report.md` recorded that all 290 baseline-passing normal test identities and all 39 baseline-passing ignored identities remained passing at that checkpoint. In WU-06 full normal verification, none of the 13 WU-16 lifecycle failures is in the baseline pass set. In the ignored run, none of the three WU-16 JobStore failures is among the 39 baseline-passing ignored identities. No baseline-passing test regression was observed; newly failing names belong to additional worktree tests from WU-06/WU-16. Aggregate counts are not compared directly because subsequent work units add tests.
+The WU-05 verification refresh in `build-and-verify/WU-05/regression-report.md` recorded that all 290 baseline-passing normal test identities and all 39 baseline-passing ignored identities remained passing at that checkpoint. In WU-06 full normal verification, none of the 13 WU-17/18/19 lifecycle failures is in the baseline pass set. In the ignored run, none of the three WU-17/18/19 JobStore failures is among the 39 baseline-passing ignored identities. No baseline-passing test regression was observed; newly failing names belong to additional worktree tests from WU-06/WU-17/18/19. Aggregate counts are not compared directly because subsequent work units add tests.
+
+## Refresh 2026-11-26 (attributed regression, dtech-aidlc 1.1.0)
+
+No source, test or behavior changed for WU-06. Focused checks were re-run for this step: retention store 2 passed (TS-42 adapter, TS-65 store rollback); allocation reconciliation store 4 passed (TS-56 owner-joined inventory, allocation CAS with audit, lost CAS emits nothing, audit failure rolls back). The 3 other tests in infra::tests::reconciliation are the WU-17/18/19 JobStore failures. All exit 0.
+
+The whole-workspace suites were run once on this unchanged tree for the WU-01 step (`evidence/refresh2-wu01-normal.log`, `evidence/refresh2-wu01-ignored.log`) and the result is reused here because `apps/api` has had no change since: normal `domain_backup` 116 passed / 13 failed / 129 ignored, ignored `domain_backup` 126 passed / 3 failed, all other crates passed. The 16 failures are WU-17/18/19-owned lifecycle and JobStore recovery tests, none of which is in `develop/baseline.md`. They are attributed to WU-17/18/19 in `regression.json` and deferred to it; the final sweep re-runs both suites and reopens WU-17/18/19 if any is still red.
+
+> Note (2026-11-26): the lifecycle unit formerly numbered sixteen was split by the owner into WU-17, WU-18 and WU-19; earlier mentions of it in this unit's evidence were renamed to "WU-17/18/19" so identifiers stay registered. No result or count was changed.
+
+## Refresh 2026-11-26 (attributed regression, dtech-aidlc 1.1.0)
+
+No source, test or behavior changed for WU-06. Focused checks were re-run for this step: retention store 2 passed (TS-42 adapter, TS-65 store rollback); allocation reconciliation store 4 passed (TS-56 owner-joined inventory, allocation CAS with audit, lost CAS emits nothing, audit failure rolls back). The 3 other tests in infra::tests::reconciliation are lifecycle JobStore failures. All exit 0.
+
+The whole-workspace suites were run once on this unchanged tree for the WU-01 step (`evidence/refresh2-wu01-normal.log`, `evidence/refresh2-wu01-ignored.log`) and the result is reused here because `apps/api` has had no change since: normal `domain_backup` 116 passed / 13 failed / 129 ignored, ignored `domain_backup` 126 passed / 3 failed, all other crates passed. The 16 failures are WU-17, WU-18 and WU-19 lifecycle and JobStore recovery tests (formerly one unit), none of which is in `develop/baseline.md`. They are attributed to WU-17, WU-18 or WU-19 in `regression.json` and deferred to them; the final sweep re-runs both suites and reopens the owning unit if any is still red.

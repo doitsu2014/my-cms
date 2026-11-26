@@ -99,4 +99,12 @@ Environment: Docker prerequisite passed (`docker info`, exit 0). No red replay w
 | `cargo clippy --all-targets` | exit 0; existing warnings remain | [refresh-wu05-clippy.log](../evidence/refresh-wu05-clippy.log) |
 | `dtech-aidlc ids check` | `ok`; 0 unregistered identifiers; 35 uncovered functions are advisory | [refresh-wu05-ids-check.log](../evidence/refresh-wu05-ids-check.log) |
 
-The full-workspace normal and ignored commands did **not** pass because they included in-progress WU-16 lifecycle tests and WU-06 reconciliation-store tests. All failures are newly added tests, not failures among baseline-passing tests; exact names and comparison are in the refreshed regression report. WU-05's focused worker, fixture and Docker worker tests passed. This broader failure status is not represented as a green workspace run.
+The full-workspace normal and ignored commands did **not** pass because they included in-progress WU-17/18/19 lifecycle tests and WU-06 reconciliation-store tests. All failures are newly added tests, not failures among baseline-passing tests; exact names and comparison are in the refreshed regression report. WU-05's focused worker, fixture and Docker worker tests passed. This broader failure status is not represented as a green workspace run.
+
+## Refresh 2026-11-26
+
+Re-verified after the 1.1.0 migration with no WU-05 source or test changes: worker 27 passed; fixture capture 5 passed; Docker-backed worker integration 15 passed (ignored). Whole-workspace regression and its attribution are in `regression-report.md` and `regression.json`.
+
+## Refresh 2026-11-26
+
+Re-verified after the 1.1.0 migration with no WU-05 source or test changes: worker 27 passed; fixture capture 5 passed; Docker-backed worker integration 15 passed (ignored). Whole-workspace regression and its attribution are in `regression-report.md` and `regression.json`.

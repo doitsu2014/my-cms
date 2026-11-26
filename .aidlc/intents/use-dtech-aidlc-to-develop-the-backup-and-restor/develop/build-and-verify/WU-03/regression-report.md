@@ -2,7 +2,7 @@
 
 - **ID:** REG-03 (WU-03)
 - **Stage:** Develop / build-and-verify, unit WU-03.
-- **Current refresh status (2026-11-24):** Focused WU-03 checks pass; full workspace has 13 WU-16 and 7 WU-06 failures not in WU-03 files. Exact test-name comparison shows all 290 baseline-passing normal tests and all 39 baseline-passing ignored tests still pass. The current introduced failures are in later unfinished units and are not WU-03 regression failures. The WU-03-scoped regression is unchanged; the whole current workspace is not clean.
+- **Current refresh status (2026-11-24):** Focused WU-03 checks pass; full workspace has 13 WU-17/18/19 and 7 WU-06 failures not in WU-03 files. Exact test-name comparison shows all 290 baseline-passing normal tests and all 39 baseline-passing ignored tests still pass. The current introduced failures are in later unfinished units and are not WU-03 regression failures. The WU-03-scoped regression is unchanged; the whole current workspace is not clean.
 - **Baseline:** [../../baseline.md](../../baseline.md), the recorded once-per-intent baseline. Not rewritten or rerun.
 - **Current full-workspace logs:**
   - [normal workspace suite](../evidence/refresh-wu03-workspace-normal.log)
@@ -43,7 +43,7 @@ Focused WU-03 tests passed:
 
 ## 2. Current failures and attribution
 
-Normal suite: all 13 observed failures are `lifecycle::lifecycle_tests::*` cases assigned to WU-16 in the design:
+Normal suite: all 13 observed failures are `lifecycle::lifecycle_tests::*` cases assigned to WU-17/18/19 in the design:
 
 - `ts20_registered_row_without_file_is_transitioned_to_release_pending`
 - `ts21_file_after_register_before_mark_written_is_retained_as_owned`
@@ -75,7 +75,7 @@ These are not WU-03 job-store/audit-sink tests.
 
 Attribution relative to the baseline:
 
-- **Not baseline failures:** baseline test failing set is empty. These test names were not recorded as baseline failures; they fail in the current in-progress WU-06/WU-16 implementation.
+- **Not baseline failures:** baseline test failing set is empty. These test names were not recorded as baseline failures; they fail in the current in-progress WU-06/WU-17/18/19 implementation.
 - **Not attributed to WU-03:** the WU-03 focused normal and Docker test filters all passed. No source/test files changed during this refresh. The current defects belong to later units, so this WU-03 refresh did not attempt to fix them.
 - **Full suite remains red:** passing WU-03 focused filters cannot override the two whole-workspace exit-101 results. Release-candidate readiness is not established.
 
@@ -91,10 +91,24 @@ Current `domain_backup` clippy warnings include unused default-stub parameters i
 
 ## 4. Conclusion
 
-The current WU-03 targeted job-store and audit-sink verification passes. However, required full workspace normal and ignored suites both fail on tests owned by later, uncompleted WU-06/WU-16 implementation. The regression report must therefore say **not green / blocked**, preserve the later-unit failures by exact names, and avoid attributing them to WU-03 or describing them as pre-existing baseline failures. Recommended stage result: **blocked**, with detail that full normal verification has 13 WU-16 lifecycle failures and full ignored verification has 7 WU-06 reconciliation failures; the responsible units must be addressed and the workspace suites rerun before a green report.
+The current WU-03 targeted job-store and audit-sink verification passes. However, required full workspace normal and ignored suites both fail on tests owned by later, uncompleted WU-06/WU-17/18/19 implementation. The regression report must therefore say **not green / blocked**, preserve the later-unit failures by exact names, and avoid attributing them to WU-03 or describing them as pre-existing baseline failures. Recommended stage result: **blocked**, with detail that full normal verification has 13 WU-17/18/19 lifecycle failures and full ignored verification has 7 WU-06 reconciliation failures; the responsible units must be addressed and the workspace suites rerun before a green report.
 
 ## 5. Historical WU-03 result (preserved; not current evidence)
 
 The original 2026-11-22 report recorded no regression against the baseline: normal suite 294 passed/0 failed/82 ignored, ignored suite 82/82 passed, fmt and clippy exit 0, zero unregistered identifiers. Its raw logs remain under `../evidence/regression-wu03-*`. This past historical result is retained separately and is not used to claim the current workspace is green.
 
 Admin web tests were not rerun: WU-03 touches no web files, and they are not part of the Rust workspace commands required for this refresh.
+
+## Refresh 2026-11-26 (attributed regression, dtech-aidlc 1.1.0)
+
+No source, test or behavior changed for WU-03. Focused checks were re-run for this step: JobStore 1 passed (non-ignored) and 35 passed (Docker, ignored); AuditSink 3 passed (non-ignored) and 8 passed (Docker, ignored). All exit 0.
+
+The whole-workspace suites were run once on this unchanged tree for the WU-01 step (`evidence/refresh2-wu01-normal.log`, `evidence/refresh2-wu01-ignored.log`) and the result is reused here because `apps/api` has had no change since: normal `domain_backup` 116 passed / 13 failed / 129 ignored, ignored `domain_backup` 126 passed / 3 failed, all other crates passed. The 16 failures are WU-17/18/19-owned lifecycle and JobStore recovery tests, none of which is in `develop/baseline.md`. They are attributed to WU-17/18/19 in `regression.json` and deferred to it; the final sweep re-runs both suites and reopens WU-17/18/19 if any is still red.
+
+## Refresh 2026-11-26 (attributed regression, dtech-aidlc 1.1.0)
+
+No source, test or behavior changed for WU-03. Focused checks were re-run for this step: JobStore 1 passed (non-ignored) and 35 passed (Docker, ignored); AuditSink 3 passed (non-ignored) and 8 passed (Docker, ignored). All exit 0.
+
+The whole-workspace suites were run once on this unchanged tree for the WU-01 step (`evidence/refresh2-wu01-normal.log`, `evidence/refresh2-wu01-ignored.log`) and the result is reused here because `apps/api` has had no change since: normal `domain_backup` 116 passed / 13 failed / 129 ignored, ignored `domain_backup` 126 passed / 3 failed, all other crates passed. The 16 failures are WU-17/18/19-owned lifecycle and JobStore recovery tests, none of which is in `develop/baseline.md`. They are attributed to WU-17/18/19 in `regression.json` and deferred to it; the final sweep re-runs both suites and reopens WU-17/18/19 if any is still red.
+
+> Note (2026-11-26): the lifecycle unit formerly numbered sixteen was split by the owner into WU-17, WU-18 and WU-19; earlier mentions of it in this unit's evidence were renamed to "WU-17/18/19" so identifiers stay registered. No result or count was changed.

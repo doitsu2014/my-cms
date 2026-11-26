@@ -972,8 +972,16 @@
         "title": "Allocation reconciliation and retention store contracts"
       },
       {
-        "id": "WU-16",
-        "title": "Lifecycle reconciliation, cleanup, runtime and recovery"
+        "id": "WU-17",
+        "title": "Lifecycle reconciler: startup and recovery reconciliation, job fencing, orphan discovery"
+      },
+      {
+        "id": "WU-18",
+        "title": "Lifecycle cleaner: audited delete claim, unlink, retry and exhaustion"
+      },
+      {
+        "id": "WU-19",
+        "title": "Lifecycle sweeper and runtime: expiry and deadline sweeps, retention purge, startup barrier and outage recovery"
       },
       {
         "id": "WU-07",
@@ -1087,5 +1095,5 @@
       }
     ]
   },
-  "note": "Backfilled 2026-11-22 for dtech-aidlc 0.7.0 from the reported implementation-design artifacts (designed under 0.6.4). FN-xx registers the legacy F-xx function ids; letter-suffixed tests (TS-05a, TS-08a, ...) are registered under their base number. No identifier was invented. WU-06/WU-16 sequencing rework reuses all registered identifiers; no new identifier was needed or added."
+  "note": "Backfilled 2026-11-22 for dtech-aidlc 0.7.0 from the reported implementation-design artifacts (designed under 0.6.4). FN-xx registers the legacy F-xx function ids; letter-suffixed tests (TS-05a, TS-08a, ...) are registered under their base number. No identifier was invented. WU-06/WU-16 sequencing rework reuses all registered identifiers; no new identifier was needed or added. 2026-11-26: WU-16 was split by the owner into WU-17, WU-18 and WU-19 (WU-16 dropped; earlier evidence of completed units still mentions it by name); these three work-unit identifiers were added and no other identifier changed."
 }

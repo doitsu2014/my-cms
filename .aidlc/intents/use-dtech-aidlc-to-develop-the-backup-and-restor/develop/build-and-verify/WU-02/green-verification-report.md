@@ -21,7 +21,7 @@ Clippy warnings are in later-unit WU-06/lifecycle and reconciliation seams in `a
 
 ## Separation from current later-unit failures
 
-`cargo test --manifest-path apps/api/Cargo.toml -p domain_backup --no-fail-fast` was also run to determine the current crate state. It exited 101: 116 passed, 13 failed, 128 ignored. Every observed failure is in `lifecycle::lifecycle_tests` (TS-20/21/22/23/25/26/27a/29/30/32/42/56/65), not in `migrations::tests`. These are later WU-06/WU-16 lifecycle reconciliation/retention shells and are outside WU-02. Full output is [the normal crate log](../evidence/refresh-wu02-domain-backup-normal.log). This failure set is not attributed to WU-02, but the full current crate is not green.
+`cargo test --manifest-path apps/api/Cargo.toml -p domain_backup --no-fail-fast` was also run to determine the current crate state. It exited 101: 116 passed, 13 failed, 128 ignored. Every observed failure is in `lifecycle::lifecycle_tests` (TS-20/21/22/23/25/26/27a/29/30/32/42/56/65), not in `migrations::tests`. These are later WU-06/WU-17/18/19 lifecycle reconciliation/retention shells and are outside WU-02. Full output is [the normal crate log](../evidence/refresh-wu02-domain-backup-normal.log). This failure set is not attributed to WU-02, but the full current crate is not green.
 
 ## Coverage and trace
 
@@ -34,3 +34,7 @@ Clippy warnings are in later-unit WU-06/lifecycle and reconciliation seams in `a
 | US-02, US-03, US-04 | AC-006 S2 — unresolved design blockers | F-37 | `defaults_match_owner_values`; `backup_uses_its_own_migration_table`; `upgrade_beside_posts_and_seo_leaves_their_tables_untouched` | Historical WU-02 evidence passed; current migration tests pass as above. |
 
 **WU-02 disposition:** migration contract and PostgreSQL verification remain green. This is not an overall Develop/release-candidate approval; the current broader crate fails on later lifecycle work and WU-06 remains the active blocker.
+
+## Refresh 2026-11-26
+
+Re-verified after the 1.1.0 migration with no WU-02 source or test changes: migrations::tests 2 passed (non-ignored) and 34 passed (Docker/PostgreSQL, ignored). Whole-workspace regression and its attribution are in `regression-report.md` and `regression.json`.

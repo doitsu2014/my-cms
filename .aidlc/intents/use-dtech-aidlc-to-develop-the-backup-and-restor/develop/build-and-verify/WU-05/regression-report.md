@@ -59,9 +59,9 @@ The recorded baseline in [baseline.md](../../baseline.md) was reused, not rerun 
 
 - Baseline normal run: **290 passed, 0 failed, 39 ignored**. Every one of the 290 baseline-passing test names remains passing in the current normal run (**290/290 retained**); none of the 13 failures below was in that baseline pass set. The current run has 79 additional passing test names and 13 new failing names.
 - Baseline ignored run: **39 passed, 0 failed**. Every one of those 39 baseline-passing test names remains passing (**39/39 retained**); none of the 7 failures below was in that baseline pass set. The current run has 87 additional passing test names and 7 new failing names.
-- Therefore, no baseline-passing test regression was observed. The current full-workspace commands are nevertheless failed, not green: all 20 failures are newly introduced tests in uncompleted WU-06/WU-16 work visible in the working tree, and are outside WU-05's declared test ownership. The WU-05 focused worker/fixture/Docker tests all pass.
+- Therefore, no baseline-passing test regression was observed. The current full-workspace commands are nevertheless failed, not green: all 20 failures are newly introduced tests in uncompleted WU-06/WU-17/18/19 work visible in the working tree, and are outside WU-05's declared test ownership. The WU-05 focused worker/fixture/Docker tests all pass.
 
-**Exact new failures in normal workspace run (WU-16 lifecycle tests):**
+**Exact new failures in normal workspace run (WU-17/18/19 lifecycle tests):**
 
 1. `lifecycle::lifecycle_tests::ts20_registered_row_without_file_is_transitioned_to_release_pending`
 2. `lifecycle::lifecycle_tests::ts21_file_after_register_before_mark_written_is_retained_as_owned`
@@ -87,4 +87,18 @@ The recorded baseline in [baseline.md](../../baseline.md) was reused, not rerun 
 6. `infra::tests::reconciliation::ts30_deadline_inventory_includes_only_due_jobs_at_epoch`
 7. `infra::tests::reconciliation::ts56_allocation_inventory_preserves_nullable_orphan_owners`
 
-**Recommended stage result:** complete for this WU-05 build-and-verify unit: its declared focused tests, Docker worker integration tests, formatter, workspace Clippy and ID registry check pass; no baseline-passing tests failed. Carry forward the explicitly failed full-workspace status and the named WU-06/WU-16 failures for their owning work units. This recommendation is not a gate approval or CLI report.
+**Recommended stage result:** complete for this WU-05 build-and-verify unit: its declared focused tests, Docker worker integration tests, formatter, workspace Clippy and ID registry check pass; no baseline-passing tests failed. Carry forward the explicitly failed full-workspace status and the named WU-06/WU-17/18/19 failures for their owning work units. This recommendation is not a gate approval or CLI report.
+
+## Refresh 2026-11-26 (attributed regression, dtech-aidlc 1.1.0)
+
+No source, test or behavior changed for WU-05. Focused checks were re-run for this step: worker 27 passed; fixture capture 5 passed; Docker-backed worker integration 15 passed (ignored). All exit 0.
+
+The whole-workspace suites were run once on this unchanged tree for the WU-01 step (`evidence/refresh2-wu01-normal.log`, `evidence/refresh2-wu01-ignored.log`) and the result is reused here because `apps/api` has had no change since: normal `domain_backup` 116 passed / 13 failed / 129 ignored, ignored `domain_backup` 126 passed / 3 failed, all other crates passed. The 16 failures are WU-17/18/19-owned lifecycle and JobStore recovery tests, none of which is in `develop/baseline.md`. They are attributed to WU-17/18/19 in `regression.json` and deferred to it; the final sweep re-runs both suites and reopens WU-17/18/19 if any is still red.
+
+> Note (2026-11-26): the lifecycle unit formerly numbered sixteen was split by the owner into WU-17, WU-18 and WU-19; earlier mentions of it in this unit's evidence were renamed to "WU-17/18/19" so identifiers stay registered. No result or count was changed.
+
+## Refresh 2026-11-26 (attributed regression, dtech-aidlc 1.1.0)
+
+No source, test or behavior changed for WU-05. Focused checks were re-run for this step: worker 27 passed; fixture capture 5 passed; Docker-backed worker integration 15 passed (ignored). All exit 0.
+
+The whole-workspace suites were run once on this unchanged tree for the WU-01 step (`evidence/refresh2-wu01-normal.log`, `evidence/refresh2-wu01-ignored.log`) and the result is reused here because `apps/api` has had no change since: normal `domain_backup` 116 passed / 13 failed / 129 ignored, ignored `domain_backup` 126 passed / 3 failed, all other crates passed. The 16 failures are WU-17, WU-18 and WU-19 lifecycle and JobStore recovery tests (formerly one unit), none of which is in `develop/baseline.md`. They are attributed to WU-17, WU-18 or WU-19 in `regression.json` and deferred to them; the final sweep re-runs both suites and reopens the owning unit if any is still red.

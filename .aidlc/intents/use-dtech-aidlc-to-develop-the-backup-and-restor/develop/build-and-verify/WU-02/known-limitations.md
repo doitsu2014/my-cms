@@ -16,8 +16,8 @@
 | L-09 | Two mutations lack a dedicated catching assertion: trigger allows running→succeeded, and jobs trigger creation without `DROP TRIGGER IF EXISTS`. | First is still rejected by U1 CHECK; second is unreachable along documented revert paths. | Accepted and recorded in historical green report. |
 | L-10 | Some historical mutation results were produced by delegated agents. | Those are agent-reported rather than conductor-rerun evidence. | Logs retained under `evidence/mutation-wu02/`; historical green report labels provenance. |
 | L-11 | Backup crate is not composed into gateway. | WU-02 migrations are not run by API startup. | WU-10. |
-| L-12 | Current broader crate run has 13 lifecycle failures (TS-20/21/22/23/25/26/27a/29/30/32/42/56/65). | Current `domain_backup` is not green; failures are in later-unit WU-06/WU-16 lifecycle shells/tests, not `migrations::tests`. | Keep WU-02 report limited to its migration scope; resolve through the appropriate lifecycle work unit, not by changing WU-02 migrations. |
-| L-13 | Current focused Clippy check exits 0 with warnings in later-unit stores and lifecycle shell types. | Warning debt in current worktree remains. | Track with the corresponding WU-06/WU-16 implementation; not a WU-02 migration regression. |
+| L-12 | Current broader crate run has 13 lifecycle failures (TS-20/21/22/23/25/26/27a/29/30/32/42/56/65). | Current `domain_backup` is not green; failures are in later-unit WU-06/WU-17/18/19 lifecycle shells/tests, not `migrations::tests`. | Keep WU-02 report limited to its migration scope; resolve through the appropriate lifecycle work unit, not by changing WU-02 migrations. |
+| L-13 | Current focused Clippy check exits 0 with warnings in later-unit stores and lifecycle shell types. | Warning debt in current worktree remains. | Track with the corresponding WU-06/WU-17/18/19 implementation; not a WU-02 migration regression. |
 
 ## Rollback
 

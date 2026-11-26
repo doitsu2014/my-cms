@@ -47,6 +47,6 @@ No other test files or WU-01..WU-04 code changed. `Cargo.toml` and `Cargo.lock` 
 
 ## Verification refresh (Observed, 2026-11-24)
 
-- Reviewed current WU-05 source deltas. Worker, fixture adapter, test-only delayed-registration helper and deadline regression test match the behavior already recorded above; no additional unrecorded WU-05-specific behavior or test change was found. Separate in-progress WU-06/WU-16 files are present in the working tree and are outside this unit.
+- Reviewed current WU-05 source deltas. Worker, fixture adapter, test-only delayed-registration helper and deadline regression test match the behavior already recorded above; no additional unrecorded WU-05-specific behavior or test change was found. Separate in-progress WU-06/WU-17/18/19 files are present in the working tree and are outside this unit.
 - No source or test files were changed during this refresh. The baseline was reused from [baseline.md](../../baseline.md), not rerun or rewritten.
 - Refresh command logs are under `../evidence/refresh-wu05-*.log`; the refreshed pass/failure set and exact failures are recorded in [regression-report.md](regression-report.md).

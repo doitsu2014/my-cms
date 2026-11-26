@@ -8,7 +8,7 @@
   "depth": "full",
   "mode": "ai",
   "status": "active",
-  "currentStage": "build-and-verify",
+  "currentStage": "red-tests",
   "stages": {
     "problem-framing": {
       "status": "complete",
@@ -194,7 +194,7 @@
       "status": "complete",
       "startedAt": "2026-11-21T14:20:38.859Z",
       "detail": null,
-      "reportedAt": "2026-11-25T07:24:15.061Z",
+      "reportedAt": "2026-11-26T06:11:58.140Z",
       "reports": [
         {
           "at": "2026-11-22T06:56:17.464Z",
@@ -223,6 +223,21 @@
         },
         {
           "at": "2026-11-25T07:24:15.061Z",
+          "result": "complete",
+          "detail": null
+        },
+        {
+          "at": "2026-11-26T02:17:34.127Z",
+          "result": "complete",
+          "detail": null
+        },
+        {
+          "at": "2026-11-26T05:52:19.438Z",
+          "result": "complete",
+          "detail": null
+        },
+        {
+          "at": "2026-11-26T06:11:58.140Z",
           "result": "complete",
           "detail": null
         }
@@ -426,16 +441,142 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/ids.json",
           "bytes": 29033,
           "sha256": "6c5beef72aa63c32eab700b74b18cb02d5b418b6961cbb7c7f7204d8cc3c5411"
+        },
+        {
+          "output": "implementation-plan",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/implementation-plan.md",
+          "bytes": 67102,
+          "sha256": "72086a4a883df89c933ddac6a3c4b9f449edba2042e7998ce6b5c74a94930dbb"
+        },
+        {
+          "output": "interfaces-and-contracts",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/interfaces-and-contracts.md",
+          "bytes": 99933,
+          "sha256": "d28d1859d03a5db2226e657103de3e2f3d6c2468f72938f9dca11ba9618ac339"
+        },
+        {
+          "output": "functional-design",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/functional-design.md",
+          "bytes": 106190,
+          "sha256": "222bee2f1daa8166f40891c0fb1b3ad8ab51f8f4dae86fa64dc2423aa9ade08e"
+        },
+        {
+          "output": "test-strategy",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/test-strategy.md",
+          "bytes": 88093,
+          "sha256": "44bb8a50e9d04e3cea244be323d918c1d7121c20b688a76cfa1f4c12dab64465"
+        },
+        {
+          "output": "work-units",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/work-units.md",
+          "bytes": 54098,
+          "sha256": "b77c86daa521c52c4c73d82dc7165abcbc2551110337271fcf25757bb53b8ea7"
+        },
+        {
+          "output": "work-units-json",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/work-units.json",
+          "bytes": 2028,
+          "sha256": "101f68321eec2e3fba870e2db54e0477fa868c1cb70c56edd8d82b48514d8722"
+        },
+        {
+          "output": "id-registry",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/ids.json",
+          "bytes": 29033,
+          "sha256": "6c5beef72aa63c32eab700b74b18cb02d5b418b6961cbb7c7f7204d8cc3c5411"
+        },
+        {
+          "output": "implementation-plan",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/implementation-plan.md",
+          "bytes": 66442,
+          "sha256": "167ab96f464a7104dc7fc19485d56c098a3c10ac8b94d8fe25a785a930bb9023"
+        },
+        {
+          "output": "interfaces-and-contracts",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/interfaces-and-contracts.md",
+          "bytes": 99874,
+          "sha256": "474462489449fc9c7fc1c71ae9be0644ed4ab417651b9f3ea5a94c32a174e8ef"
+        },
+        {
+          "output": "functional-design",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/functional-design.md",
+          "bytes": 106010,
+          "sha256": "38d72f5e06eb5bfea327b42df7d6034cff7ad4f504a329f55b94057b74d2dc96"
+        },
+        {
+          "output": "test-strategy",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/test-strategy.md",
+          "bytes": 87982,
+          "sha256": "cf1d5754c78476b1fbaf85bcc66855ed68e3bc17801613593c7c6c9d0aa66e6c"
+        },
+        {
+          "output": "work-units",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/work-units.md",
+          "bytes": 52614,
+          "sha256": "9a505b91212c396387f126e7b9fa78273fdbee362adf8b0ba467034d0a08bbc9"
+        },
+        {
+          "output": "work-units-json",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/work-units.json",
+          "bytes": 2230,
+          "sha256": "09f11a22218cde54cd0d9001dae7cb3994186d4c41509aba7d9bb80e58914780"
+        },
+        {
+          "output": "id-registry",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/ids.json",
+          "bytes": 29033,
+          "sha256": "6c5beef72aa63c32eab700b74b18cb02d5b418b6961cbb7c7f7204d8cc3c5411"
+        },
+        {
+          "output": "implementation-plan",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/implementation-plan.md",
+          "bytes": 67618,
+          "sha256": "bc9d4a12a85d3761799464e902fb1ef40b223efe2c790cf2e3ec99644eac29c0"
+        },
+        {
+          "output": "interfaces-and-contracts",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/interfaces-and-contracts.md",
+          "bytes": 100078,
+          "sha256": "122e83190313b9ef3a39e84d3f813208d960b2501ffda48d15e0dd731410a677"
+        },
+        {
+          "output": "functional-design",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/functional-design.md",
+          "bytes": 107102,
+          "sha256": "23992433969909d6e72ecf14e4b43cd1dad3dc824eed17e504a612eb4af8d99a"
+        },
+        {
+          "output": "test-strategy",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/test-strategy.md",
+          "bytes": 89206,
+          "sha256": "b5885e4953a6e896b645f93363753f118a05ae01ef62408d1c950a47d921c305"
+        },
+        {
+          "output": "work-units",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/work-units.md",
+          "bytes": 57902,
+          "sha256": "5c1f918de08775c6166b699cf7f117bb64e3ab7aef7cc42e80525b3ee2defe8b"
+        },
+        {
+          "output": "work-units-json",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/work-units.json",
+          "bytes": 2743,
+          "sha256": "365d51d090b8359a97ad585ebb8533e2faa0b8ee697919a303f8966b4261f7f4"
+        },
+        {
+          "output": "id-registry",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/ids.json",
+          "bytes": 29593,
+          "sha256": "436738b459e696f20f3b1b22c3501538744b9f4607151515a059ebd167806120"
         }
       ],
-      "reworkRequestedAt": "2026-11-25T07:16:44.974Z",
+      "reworkRequestedAt": "2026-11-26T06:08:59.820Z",
       "resumedAt": "2026-11-25T06:56:52.214Z"
     },
     "red-tests": {
       "status": "in_progress",
       "startedAt": "2026-11-22T06:56:17.617Z",
-      "detail": "Skip redundant WU-01 red replay: this design rework changed no WU-01 production code, tests, or behavior. The historical WU-01 assertion-based red run remains documented in develop/red-tests/WU-01/red-evidence.md and failing-tests.md; current focused config (29), state-machine (3), and status (3) tests passed in the prior WU-01 build verification. Do not fabricate a new red failure against unchanged green code. Continue to WU-01 build-and-verify refresh, retaining existing full-suite failures and strict gate reporting.",
-      "reportedAt": "2026-11-25T07:26:22.307Z",
+      "detail": "Skip redundant WU-06 red replay after the 1.1.0 migration. WU-06 is already implemented and green; its original red evidence is recorded under red-tests/WU-06 or in its earlier build-and-verify records. apps/api has no uncommitted changes and the design rework of 2026-11-26 touched only WU-06 and the lifecycle unit (since split into WU-17, WU-18 and WU-19), so the evidence still describes this code.",
+      "reportedAt": "2026-11-26T06:13:40.292Z",
       "reports": [
         {
           "at": "2026-11-22T07:12:29.787Z",
@@ -601,6 +742,77 @@
           "at": "2026-11-25T07:26:22.307Z",
           "result": "skipped",
           "detail": "Skip redundant WU-01 red replay: this design rework changed no WU-01 production code, tests, or behavior. The historical WU-01 assertion-based red run remains documented in develop/red-tests/WU-01/red-evidence.md and failing-tests.md; current focused config (29), state-machine (3), and status (3) tests passed in the prior WU-01 build verification. Do not fabricate a new red failure against unchanged green code. Continue to WU-01 build-and-verify refresh, retaining existing full-suite failures and strict gate reporting."
+        },
+        {
+          "at": "2026-11-26T05:50:09.585Z",
+          "result": "blocked",
+          "detail": "Design defect: work-units.json declares WU-06 dependsOn WU-16 although WU-06 store code and focused tests are already green and WU-16 consumes the WU-06 stores; the dependency is inverted. Test ownership is also undeclared, so WU-16's 13 normal and 3 ignored lifecycle failures cannot be attributed to WU-16 and would block WU-06. Needs design rework of WU-06 and WU-16 only.",
+          "unit": "WU-06",
+          "parked": {
+            "kind": "design-defect",
+            "blockedBy": [],
+            "auto": false
+          }
+        },
+        {
+          "at": "2026-11-26T05:54:13.001Z",
+          "result": "skipped",
+          "detail": "Skip redundant WU-01 red replay after the 1.1.0 migration. WU-01 behavior is already implemented and green; red-tests/WU-01/{failing-tests.md,red-evidence.md} record the original assertion-based red run (2026-11-22: 23 ran, 22 failed on assertions). apps/api/domain_backup/src/domain has a single commit (9dbce50) and no uncommitted changes, so the red evidence still describes this code. The design rework touched only WU-06 and WU-16.",
+          "unit": "WU-01"
+        },
+        {
+          "at": "2026-11-26T06:00:04.582Z",
+          "result": "skipped",
+          "detail": "Skip redundant WU-02 red replay after the 1.1.0 migration. WU-02 is already implemented and green; its original red evidence is recorded under red-tests/WU-02 or in its earlier build-and-verify records. apps/api has no uncommitted changes and the design rework of 2026-11-26 touched only WU-06 and WU-16, so the evidence still describes this code.",
+          "unit": "WU-02"
+        },
+        {
+          "at": "2026-11-26T06:00:10.381Z",
+          "result": "skipped",
+          "detail": "Skip redundant WU-03 red replay after the 1.1.0 migration. WU-03 is already implemented and green; its original red evidence is recorded under red-tests/WU-03 or in its earlier build-and-verify records. apps/api has no uncommitted changes and the design rework of 2026-11-26 touched only WU-06 and WU-16, so the evidence still describes this code.",
+          "unit": "WU-03"
+        },
+        {
+          "at": "2026-11-26T06:00:11.396Z",
+          "result": "skipped",
+          "detail": "Skip redundant WU-04 red replay after the 1.1.0 migration. WU-04 is already implemented and green; its original red evidence is recorded under red-tests/WU-04 or in its earlier build-and-verify records. apps/api has no uncommitted changes and the design rework of 2026-11-26 touched only WU-06 and WU-16, so the evidence still describes this code.",
+          "unit": "WU-04"
+        },
+        {
+          "at": "2026-11-26T06:00:16.887Z",
+          "result": "skipped",
+          "detail": "Skip redundant WU-05 red replay after the 1.1.0 migration. WU-05 is already implemented and green; its original red evidence is recorded under red-tests/WU-05 or in its earlier build-and-verify records. apps/api has no uncommitted changes and the design rework of 2026-11-26 touched only WU-06 and WU-16, so the evidence still describes this code.",
+          "unit": "WU-05"
+        },
+        {
+          "at": "2026-11-26T06:00:48.818Z",
+          "result": "skipped",
+          "detail": "Skip redundant WU-06 red replay after the 1.1.0 migration. WU-06 is already implemented and green; its original red evidence is recorded under red-tests/WU-06 or in its earlier build-and-verify records. apps/api has no uncommitted changes and the design rework of 2026-11-26 touched only WU-06 and WU-16, so the evidence still describes this code.",
+          "unit": "WU-06"
+        },
+        {
+          "at": "2026-11-26T06:13:08.795Z",
+          "result": "skipped",
+          "detail": "Skip redundant WU-03 red replay after the 1.1.0 migration. WU-03 is already implemented and green; its original red evidence is recorded under red-tests/WU-03 or in its earlier build-and-verify records. apps/api has no uncommitted changes and the design rework of 2026-11-26 touched only WU-06 and WU-16, so the evidence still describes this code.",
+          "unit": "WU-03"
+        },
+        {
+          "at": "2026-11-26T06:13:38.376Z",
+          "result": "skipped",
+          "detail": "Skip redundant WU-04 red replay after the 1.1.0 migration. WU-04 is already implemented and green; its original red evidence is recorded under red-tests/WU-04 or in its earlier build-and-verify records. apps/api has no uncommitted changes and the design rework of 2026-11-26 touched only WU-06 and the lifecycle unit (since split into WU-17, WU-18 and WU-19), so the evidence still describes this code.",
+          "unit": "WU-04"
+        },
+        {
+          "at": "2026-11-26T06:13:39.366Z",
+          "result": "skipped",
+          "detail": "Skip redundant WU-05 red replay after the 1.1.0 migration. WU-05 is already implemented and green; its original red evidence is recorded under red-tests/WU-05 or in its earlier build-and-verify records. apps/api has no uncommitted changes and the design rework of 2026-11-26 touched only WU-06 and the lifecycle unit (since split into WU-17, WU-18 and WU-19), so the evidence still describes this code.",
+          "unit": "WU-05"
+        },
+        {
+          "at": "2026-11-26T06:13:40.292Z",
+          "result": "skipped",
+          "detail": "Skip redundant WU-06 red replay after the 1.1.0 migration. WU-06 is already implemented and green; its original red evidence is recorded under red-tests/WU-06 or in its earlier build-and-verify records. apps/api has no uncommitted changes and the design rework of 2026-11-26 touched only WU-06 and the lifecycle unit (since split into WU-17, WU-18 and WU-19), so the evidence still describes this code.",
+          "unit": "WU-06"
         }
       ],
       "units": {
@@ -610,27 +822,27 @@
         },
         "WU-01": {
           "status": "skipped",
-          "reportedAt": "2026-11-25T07:26:22.307Z"
+          "reportedAt": "2026-11-26T05:54:13.001Z"
         },
         "WU-02": {
-          "status": "pending",
-          "reportedAt": "2026-11-24T09:58:42.653Z"
+          "status": "skipped",
+          "reportedAt": "2026-11-26T06:00:04.582Z"
         },
         "WU-03": {
-          "status": "pending",
-          "reportedAt": "2026-11-24T10:29:38.404Z"
+          "status": "skipped",
+          "reportedAt": "2026-11-26T06:13:08.795Z"
         },
         "WU-04": {
-          "status": "pending",
-          "reportedAt": "2026-11-24T11:36:22.596Z"
+          "status": "skipped",
+          "reportedAt": "2026-11-26T06:13:38.376Z"
         },
         "WU-05": {
-          "status": "pending",
-          "reportedAt": "2026-11-24T13:44:53.779Z"
+          "status": "skipped",
+          "reportedAt": "2026-11-26T06:13:39.366Z"
         },
         "WU-06": {
-          "status": "pending",
-          "reportedAt": "2026-11-24T17:06:28.829Z"
+          "status": "skipped",
+          "reportedAt": "2026-11-26T06:13:40.292Z"
         }
       },
       "artifacts": [
@@ -720,13 +932,13 @@
         }
       ],
       "resumedAt": "2026-11-22T09:30:17.226Z",
-      "reworkResetAt": "2026-11-25T07:16:44.974Z"
+      "reworkResetAt": "2026-11-26T06:08:59.820Z"
     },
     "build-and-verify": {
       "status": "in_progress",
       "startedAt": "2026-11-22T07:12:29.973Z",
-      "detail": "WU-06 implementation artifacts and focused store verification are complete, but workspace regression remains red: normal workspace has 13 WU-16 lifecycle failures; ignored workspace has 3 WU-16 JobStore recovery/fencing/deadline failures. No baseline-passing test identity is among the failures. The CLI doctor also reports currentStage build-and-verify is not the first unfinished stage because red-tests remains in_progress. Per Develop exit criteria and PROJECT.md regression rule, the release-candidate gate cannot be approved until these failures are resolved or the owner directs an explicit supported scope change. Evidence: develop/build-and-verify/WU-06/*.md and verified-wu06-* logs.",
-      "reportedAt": "2026-11-25T02:25:18.022Z",
+      "detail": null,
+      "reportedAt": "2026-11-26T06:13:40.801Z",
       "reports": [
         {
           "at": "2026-11-22T07:26:43.015Z",
@@ -807,32 +1019,97 @@
           "at": "2026-11-25T02:25:18.022Z",
           "result": "blocked",
           "detail": "WU-06 implementation artifacts and focused store verification are complete, but workspace regression remains red: normal workspace has 13 WU-16 lifecycle failures; ignored workspace has 3 WU-16 JobStore recovery/fencing/deadline failures. No baseline-passing test identity is among the failures. The CLI doctor also reports currentStage build-and-verify is not the first unfinished stage because red-tests remains in_progress. Per Develop exit criteria and PROJECT.md regression rule, the release-candidate gate cannot be approved until these failures are resolved or the owner directs an explicit supported scope change. Evidence: develop/build-and-verify/WU-06/*.md and verified-wu06-* logs."
+        },
+        {
+          "at": "2026-11-26T02:17:13.868Z",
+          "result": "blocked",
+          "detail": "Release-candidate regression is red: 13 normal-workspace and 3 ignored-workspace failures, all WU-16 lifecycle/JobStore recovery, fencing and deadline tests whose implementation does not exist yet. No baseline-passing test is among them. WU-06 store scope is complete. Owner directed design rework to reorder WU-16 ahead of the regression and resolve the WU-06 -> WU-16 dependency inversion."
+        },
+        {
+          "at": "2026-11-26T05:57:41.895Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-01"
+        },
+        {
+          "at": "2026-11-26T06:00:05.084Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-02"
+        },
+        {
+          "at": "2026-11-26T06:00:10.934Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-03"
+        },
+        {
+          "at": "2026-11-26T06:00:11.881Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-04"
+        },
+        {
+          "at": "2026-11-26T06:00:17.428Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-05"
+        },
+        {
+          "at": "2026-11-26T06:00:49.342Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-06"
+        },
+        {
+          "at": "2026-11-26T06:13:31.298Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-03"
+        },
+        {
+          "at": "2026-11-26T06:13:38.901Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-04"
+        },
+        {
+          "at": "2026-11-26T06:13:39.831Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-05"
+        },
+        {
+          "at": "2026-11-26T06:13:40.801Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-06"
         }
       ],
       "units": {
         "WU-01": {
-          "status": "pending",
-          "reportedAt": "2026-11-24T09:50:16.005Z"
+          "status": "complete",
+          "reportedAt": "2026-11-26T05:57:41.895Z"
         },
         "WU-02": {
-          "status": "pending",
-          "reportedAt": "2026-11-24T10:14:49.249Z"
+          "status": "complete",
+          "reportedAt": "2026-11-26T06:00:05.084Z"
         },
         "WU-03": {
-          "status": "pending",
-          "reportedAt": "2026-11-24T11:27:09.070Z"
+          "status": "complete",
+          "reportedAt": "2026-11-26T06:13:31.298Z"
         },
         "WU-04": {
-          "status": "pending",
-          "reportedAt": "2026-11-24T12:16:26.184Z"
+          "status": "complete",
+          "reportedAt": "2026-11-26T06:13:38.901Z"
         },
         "WU-05": {
-          "status": "pending",
-          "reportedAt": "2026-11-24T14:26:22.785Z"
+          "status": "complete",
+          "reportedAt": "2026-11-26T06:13:39.831Z"
         },
         "WU-06": {
-          "status": "pending",
-          "reportedAt": "2026-11-25T02:25:18.022Z"
+          "status": "complete",
+          "reportedAt": "2026-11-26T06:13:40.801Z"
         }
       },
       "artifacts": [
@@ -1051,16 +1328,256 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-05/known-limitations.md",
           "bytes": 3609,
           "sha256": "5c3bd91cb71f7e1bf8a2b66661f37a8b9f7dcd9747f7c5efee79f8a5d7566ed4"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-01/implementation.md",
+          "bytes": 3617,
+          "sha256": "b7f6af5021f7249dce663ef672a9f02a0085d0796c9f8a9eebee3b2654430e72"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-01/green-verification-report.md",
+          "bytes": 9041,
+          "sha256": "a72b71c57280a8b702cee1638881a333fc831b996b1233b521e3e960f8aec1dd"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-01/regression-report.md",
+          "bytes": 8858,
+          "sha256": "ba801e997a5f363cc60a1d0a0cdc781e38885dad7b31c9402aaf10226a32503b"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-01/known-limitations.md",
+          "bytes": 4475,
+          "sha256": "e6c81e1954a6914a56c0c1d42134062a9739444f3ad9ddd775cc59eba7940a6a"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-02/implementation.md",
+          "bytes": 1930,
+          "sha256": "dc79508afde9ff999b95abcb801bbbba8bb059b0735407b3ef815f6425d480be"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-02/green-verification-report.md",
+          "bytes": 5127,
+          "sha256": "5cf3c5dc3ebea7fced775048d08ffc88aaa24af1cab255b5213fcd999ecee5da"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-02/regression-report.md",
+          "bytes": 3570,
+          "sha256": "b3f42e099dce28c76a73273f3e0bdef8733dc18d28238dd9aafefadcae801afa"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-02/known-limitations.md",
+          "bytes": 3554,
+          "sha256": "f597ab6d9f032fd9ec3d1fd70670b54a5c1730a5791fc70c39f9bfdfcd352acf"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/implementation.md",
+          "bytes": 6691,
+          "sha256": "343870b3dee7bb477a24e3616648b1c8e88cbbceb764936db9c4a3f4b19554a6"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/green-verification-report.md",
+          "bytes": 13832,
+          "sha256": "edee6b6c21c6a31d630b91a8a992b280800ce8667be259b20bf89ad4dd4c33b0"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/regression-report.md",
+          "bytes": 9397,
+          "sha256": "ef204c3948522f79b3ed8ad969ee6eb7cf20210f0eef6b3e7f52b25f7f04f2ac"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/known-limitations.md",
+          "bytes": 6285,
+          "sha256": "12e4843cc176729b67388e75aff3459415197a6a8926144cd16d558b3e3fbd16"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/implementation.md",
+          "bytes": 4695,
+          "sha256": "eee68a0fc695bfbd8f19f3faf45c36084f5307553ef9d36f229ae2d4d2d925f3"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/green-verification-report.md",
+          "bytes": 6108,
+          "sha256": "caf5f5275876b166be382a4caf39499f1aef909c04e166c4e0a742dfdde123ca"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/regression-report.md",
+          "bytes": 6906,
+          "sha256": "88d569bff13867fc1894aea66879527fb2237b0b4f1aae6c86ad0db6513e9252"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/known-limitations.md",
+          "bytes": 5459,
+          "sha256": "c3ba253e89e1aca05114fe832feeab4cdafb6c878cec5a0637acae4acb6e47bd"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-05/implementation.md",
+          "bytes": 6006,
+          "sha256": "fd863554422dd16d07152bf6dea8c1999b48686c4fa2dc5274e641fc8117168f"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-05/green-verification-report.md",
+          "bytes": 10721,
+          "sha256": "dea49b6fd9ae6e297cba822995edde39ca0172d47bcc5fb5ddc3bf4cf8c1f946"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-05/regression-report.md",
+          "bytes": 8852,
+          "sha256": "f8be9cd5e00e60429e0622a2970a70d3d1fa835c9ae7ed3aad03aa793e6cf96b"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-05/known-limitations.md",
+          "bytes": 3609,
+          "sha256": "5c3bd91cb71f7e1bf8a2b66661f37a8b9f7dcd9747f7c5efee79f8a5d7566ed4"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-06/implementation.md",
+          "bytes": 3481,
+          "sha256": "1bfbab7c1af590576e976fa351e5c6ab46f9470c9578277a831e8b4ea344bcc2"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-06/green-verification-report.md",
+          "bytes": 7671,
+          "sha256": "5b3929aafa80361fec60aad5cc0ba3dc0d14e2b2792329d93f7852be58aab229"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-06/regression-report.md",
+          "bytes": 6779,
+          "sha256": "a6b1a231d03f6fc7b2dbe2f711d4d0d1f8f528af2eaccb369d7fece436d141fa"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-06/known-limitations.md",
+          "bytes": 2182,
+          "sha256": "b9ff3b156020bd809cbfcdbe14897ae4feda15788d7a7d9930d3815da60c1914"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/implementation.md",
+          "bytes": 6709,
+          "sha256": "abbba7e5d45026b8e6f647753ee9074cf683e19bb009c6776c055bae5e3b2b7d"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/green-verification-report.md",
+          "bytes": 14186,
+          "sha256": "79f81a5c14a986193a13f7f96cd843c4c761de6b06a05310fddf16e2361b1420"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/regression-report.md",
+          "bytes": 10647,
+          "sha256": "82da7ce7e3408fd48ea54411f8ea9543a2d0b7a344ae1e1d5aca90266c462f85"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/known-limitations.md",
+          "bytes": 6303,
+          "sha256": "099599293ded469d8e4084bd5020f5b13c2c0f0a13dff879a597798023016783"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/implementation.md",
+          "bytes": 4707,
+          "sha256": "2e066888478ef4929bf70bef165aa48c6956ae9bd49783160dd03c168e0082b9"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/green-verification-report.md",
+          "bytes": 6454,
+          "sha256": "4ad93f9f3ce7f137020b13645501623121557f9f804caf1167ac7c8d03079471"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/regression-report.md",
+          "bytes": 8189,
+          "sha256": "a494b6852ba2f0e08f8e4611810ba1bf99680e5287e3980f16b00bc8f6c6dc5e"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/known-limitations.md",
+          "bytes": 5465,
+          "sha256": "68bccec2a022a76d02273b7401071876cafb6208fc529ff02cd969ea1551dd5d"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-05/implementation.md",
+          "bytes": 6012,
+          "sha256": "6b7ec2971b3b08e0250d19559f48ee64036b5a4aa442f99fc09732a49944ee71"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-05/green-verification-report.md",
+          "bytes": 11025,
+          "sha256": "6c7fae422ae57aa8d132fb82e87838a4fa7392464d52a654b7487a7097b4c9c1"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-05/regression-report.md",
+          "bytes": 10099,
+          "sha256": "56c1f55cc252f81ff50aec5f673331da3df839b5c492ecb966b9f25ae1a65b4e"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-05/known-limitations.md",
+          "bytes": 3615,
+          "sha256": "19f5472871c358587bd87cfee07eb3e9c37ca913254fdbbb38210580cce4b9c0"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-06/implementation.md",
+          "bytes": 3481,
+          "sha256": "1bfbab7c1af590576e976fa351e5c6ab46f9470c9578277a831e8b4ea344bcc2"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-06/green-verification-report.md",
+          "bytes": 8216,
+          "sha256": "208f3afec3d39fcb19b98a84f90dc1f6956f3ce652e7a745609cb1cff2d258cc"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-06/regression-report.md",
+          "bytes": 8279,
+          "sha256": "a7092334f589ede60d7f0dcd22a82484bb03484646ffad12925d4a9ee42719c9"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-06/known-limitations.md",
+          "bytes": 2200,
+          "sha256": "0e6fd2d5d29f164b390fcb5ac983a5c7e4d03a2653f216beca80adca090442f6"
         }
       ],
-      "reworkResetAt": "2026-11-25T07:16:44.974Z",
+      "reworkResetAt": "2026-11-26T06:08:59.820Z",
       "resumedAt": "2026-11-24T07:20:05.366Z"
     }
   },
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-25T07:48:27.269Z",
+  "updatedAt": "2026-11-26T06:13:44.654Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -1094,26 +1611,26 @@
   "units": [
     {
       "id": "WU-01",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": []
     },
     {
       "id": "WU-02",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-01"
       ]
     },
     {
       "id": "WU-03",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-02"
       ]
     },
     {
       "id": "WU-04",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-02",
         "WU-03"
@@ -1121,26 +1638,43 @@
     },
     {
       "id": "WU-05",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-03",
         "WU-04"
       ]
     },
     {
-      "id": "WU-16",
-      "status": "in_progress",
+      "id": "WU-06",
+      "status": "complete",
       "dependsOn": [
-        "WU-05"
+        "WU-03",
+        "WU-04"
       ]
     },
     {
-      "id": "WU-06",
+      "id": "WU-17",
       "status": "in_progress",
       "dependsOn": [
-        "WU-03",
-        "WU-04",
-        "WU-16"
+        "WU-05",
+        "WU-06"
+      ]
+    },
+    {
+      "id": "WU-18",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-06",
+        "WU-17"
+      ]
+    },
+    {
+      "id": "WU-19",
+      "status": "in_progress",
+      "dependsOn": [
+        "WU-06",
+        "WU-17",
+        "WU-18"
       ]
     },
     {
@@ -1155,7 +1689,9 @@
       "status": "in_progress",
       "dependsOn": [
         "WU-06",
-        "WU-16",
+        "WU-17",
+        "WU-18",
+        "WU-19",
         "WU-07"
       ]
     },
@@ -1211,5 +1747,1155 @@
       ]
     }
   ],
-  "currentUnit": "WU-01"
+  "workUnits": {
+    "schemaVersion": 1,
+    "source": {
+      "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/work-units.json",
+      "sha256": "365d51d090b8359a97ad585ebb8533e2faa0b8ee697919a303f8966b4261f7f4",
+      "registrySha256": "436738b459e696f20f3b1b22c3501538744b9f4607151515a059ebd167806120"
+    },
+    "order": [
+      "WU-01",
+      "WU-02",
+      "WU-03",
+      "WU-04",
+      "WU-05",
+      "WU-06",
+      "WU-17",
+      "WU-18",
+      "WU-19",
+      "WU-07",
+      "WU-08",
+      "WU-09",
+      "WU-10",
+      "WU-11",
+      "WU-12",
+      "WU-13",
+      "WU-14",
+      "WU-15",
+      "WU-16"
+    ],
+    "progressSeq": 10,
+    "syncedAt": "2026-11-26T06:13:44.385Z",
+    "units": {
+      "WU-01": {
+        "title": "Crate scaffold, domain types, config, clock, errors",
+        "dependsOn": [],
+        "tests": [],
+        "status": "green",
+        "selectedAt": "2026-11-26T05:54:13.061Z",
+        "steps": {
+          "red-tests": "skipped",
+          "build-and-verify": "complete"
+        },
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:1a96cc306841763abf61842158ae5061c9b913d84742907786a4c7983b5df73e",
+        "priorResults": [
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-25T07:26:22.307Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "blocked",
+            "at": "2026-11-26T02:17:13.868Z"
+          }
+        ],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-26T05:54:13.001Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T05:57:41.895Z"
+          }
+        ],
+        "reopened": [],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T05:57:41.895Z"
+      },
+      "WU-02": {
+        "title": "Migrations, entities, trigger guards, migrator table name",
+        "dependsOn": [
+          "WU-01"
+        ],
+        "tests": [],
+        "status": "green",
+        "selectedAt": "2026-11-26T06:00:04.642Z",
+        "steps": {
+          "red-tests": "skipped",
+          "build-and-verify": "complete"
+        },
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:7c765fd649db9919d5994b40720816f6c2bb7a7a7ca9b9aff7dbf0a1e6907b03",
+        "priorResults": [
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-24T09:58:42.653Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-24T10:14:49.249Z"
+          }
+        ],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-26T06:00:04.582Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T06:00:05.084Z"
+          }
+        ],
+        "reopened": [],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T06:00:05.084Z"
+      },
+      "WU-03": {
+        "title": "Job store with CAS, claim, concurrency index",
+        "dependsOn": [
+          "WU-02"
+        ],
+        "tests": [],
+        "status": "green",
+        "selectedAt": "2026-11-26T06:13:08.871Z",
+        "steps": {
+          "red-tests": "skipped",
+          "build-and-verify": "complete"
+        },
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:14f158029425b647baa77ffab038cf740659f846633fabed4f56349181ac0c63",
+        "priorResults": [
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-24T10:29:38.404Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-24T11:27:09.070Z"
+          }
+        ],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-26T06:00:10.381Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T06:00:10.934Z"
+          },
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-26T06:13:08.795Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T06:13:31.298Z"
+          }
+        ],
+        "reopened": [
+          {
+            "at": "2026-11-26T06:11:58.140Z",
+            "by": "split",
+            "tests": []
+          }
+        ],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T06:13:31.298Z"
+      },
+      "WU-04": {
+        "title": "Allocation ledger, fixture storage, namespace lock",
+        "dependsOn": [
+          "WU-02",
+          "WU-03"
+        ],
+        "tests": [],
+        "status": "green",
+        "selectedAt": "2026-11-26T06:13:38.439Z",
+        "steps": {
+          "red-tests": "skipped",
+          "build-and-verify": "complete"
+        },
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:aca3fe3a40fb1787e9693d5246542ff9afa9f3bdcc6f0d2279ce7110bfccccc9",
+        "priorResults": [
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-24T11:36:22.596Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-24T12:16:26.184Z"
+          }
+        ],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-26T06:00:11.396Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T06:00:11.881Z"
+          },
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-26T06:13:38.376Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T06:13:38.901Z"
+          }
+        ],
+        "reopened": [
+          {
+            "at": "2026-11-26T06:11:58.140Z",
+            "by": "split",
+            "tests": []
+          }
+        ],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T06:13:38.901Z"
+      },
+      "WU-05": {
+        "title": "Worker, fixture capture, terminal rules, deadline",
+        "dependsOn": [
+          "WU-03",
+          "WU-04"
+        ],
+        "tests": [],
+        "status": "green",
+        "selectedAt": "2026-11-26T06:13:39.418Z",
+        "steps": {
+          "red-tests": "skipped",
+          "build-and-verify": "complete"
+        },
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:57861ee1d24a6363ca53f75f079be6d8563ab7f04aeb956cbc3664ed82838f7a",
+        "priorResults": [
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-24T13:44:53.779Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-24T14:26:22.785Z"
+          }
+        ],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-26T06:00:16.887Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T06:00:17.428Z"
+          },
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-26T06:13:39.366Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T06:13:39.831Z"
+          }
+        ],
+        "reopened": [
+          {
+            "at": "2026-11-26T06:11:58.140Z",
+            "by": "split",
+            "tests": []
+          }
+        ],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T06:13:39.831Z"
+      },
+      "WU-06": {
+        "title": "Allocation reconciliation and retention store contracts",
+        "dependsOn": [
+          "WU-03",
+          "WU-04"
+        ],
+        "tests": [
+          "TS-42",
+          "TS-44",
+          "TS-56",
+          "TS-65"
+        ],
+        "status": "green",
+        "selectedAt": "2026-11-26T06:13:40.372Z",
+        "steps": {
+          "red-tests": "skipped",
+          "build-and-verify": "complete"
+        },
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [
+          {
+            "kind": "design-defect",
+            "blockedBy": [],
+            "blockedByUnits": [],
+            "signature": "c9bb6b8feaaaf00a6c63406877b500ec73a5a17ab7bca16462a53deabe6912e4",
+            "attempts": 0,
+            "detail": "Design defect: work-units.json declares WU-06 dependsOn WU-16 although WU-06 store code and focused tests are already green and WU-16 consumes the WU-06 stores; the dependency is inverted. Test ownership is also undeclared, so WU-16's 13 normal and 3 ignored lifecycle failures cannot be attributed to WU-16 and would block WU-06. Needs design rework of WU-06 and WU-16 only.",
+            "at": "2026-11-26T05:50:09.585Z",
+            "step": "red-tests",
+            "auto": false,
+            "resumeStatus": "pending",
+            "seq": 0,
+            "revisitedAt": "2026-11-26T05:52:19.438Z",
+            "revisitReason": "rework",
+            "revisitDetail": null,
+            "decidedBy": null
+          }
+        ],
+        "inputFingerprint": "sha256:1c9aa70c39ccfb0c30f6ae82769f153fb6bb6f88dda9fcf321785ca95cad7668",
+        "priorResults": [
+          {
+            "stage": "red-tests",
+            "result": "complete",
+            "at": "2026-11-24T17:06:28.829Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "blocked",
+            "at": "2026-11-25T02:25:18.022Z"
+          }
+        ],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-26T06:00:48.818Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T06:00:49.342Z"
+          },
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-26T06:13:40.292Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T06:13:40.801Z"
+          }
+        ],
+        "reopened": [
+          {
+            "at": "2026-11-26T05:52:19.438Z",
+            "by": "rework",
+            "tests": []
+          },
+          {
+            "at": "2026-11-26T06:11:58.140Z",
+            "by": "split",
+            "tests": []
+          }
+        ],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T06:13:40.801Z"
+      },
+      "WU-17": {
+        "title": "Lifecycle reconciler: startup and recovery reconciliation, job fencing, orphan discovery",
+        "dependsOn": [
+          "WU-05",
+          "WU-06"
+        ],
+        "tests": [
+          "TS-20",
+          "TS-21",
+          "TS-22",
+          "TS-23",
+          "TS-24",
+          "TS-25",
+          "TS-44",
+          "TS-56"
+        ],
+        "status": "pending",
+        "selectedAt": "2026-11-26T06:13:44.385Z",
+        "steps": {
+          "red-tests": null,
+          "build-and-verify": null
+        },
+        "attempts": {},
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:b86fe015474a777ecc5ba130d5d53717e76225b9d6dd9686b1fef9aefc9240b7",
+        "history": [],
+        "reopened": [],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T06:11:58.140Z"
+      },
+      "WU-18": {
+        "title": "Lifecycle cleaner: audited delete claim, unlink, retry and exhaustion",
+        "dependsOn": [
+          "WU-06",
+          "WU-17"
+        ],
+        "tests": [
+          "TS-26",
+          "TS-27",
+          "TS-30",
+          "TS-44",
+          "TS-65"
+        ],
+        "status": "pending",
+        "selectedAt": null,
+        "steps": {
+          "red-tests": null,
+          "build-and-verify": null
+        },
+        "attempts": {},
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:acb8c3b9c5c5eb708c46809c8311b41022f0fcebff3e787b9ed8f3e24fbd5716",
+        "history": [],
+        "reopened": [],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T06:11:58.140Z"
+      },
+      "WU-19": {
+        "title": "Lifecycle sweeper and runtime: expiry and deadline sweeps, retention purge, startup barrier and outage recovery",
+        "dependsOn": [
+          "WU-06",
+          "WU-17",
+          "WU-18"
+        ],
+        "tests": [
+          "TS-28",
+          "TS-29",
+          "TS-30",
+          "TS-32",
+          "TS-42",
+          "TS-65"
+        ],
+        "status": "pending",
+        "selectedAt": null,
+        "steps": {
+          "red-tests": null,
+          "build-and-verify": null
+        },
+        "attempts": {},
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:ca94a160e5afc8bc75c25ac79b449197080a10ca345e3e0ab8659cae3fb1d758",
+        "history": [],
+        "reopened": [],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T06:11:58.140Z"
+      },
+      "WU-07": {
+        "title": "Idempotency, atomic acceptance",
+        "dependsOn": [
+          "WU-03"
+        ],
+        "tests": [],
+        "status": "pending",
+        "selectedAt": null,
+        "steps": {
+          "red-tests": null,
+          "build-and-verify": null
+        },
+        "attempts": {},
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:e75536112109fe0131b25b8bc4bd9bd7b7d3495cf802bbbc143f05ee40306f1e",
+        "priorResults": [],
+        "history": [],
+        "reopened": [],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T05:50:09.585Z"
+      },
+      "WU-08": {
+        "title": "Authorization policy, instance registry, REST read and create adapters, status endpoint, error projection",
+        "dependsOn": [
+          "WU-06",
+          "WU-17",
+          "WU-18",
+          "WU-19",
+          "WU-07"
+        ],
+        "tests": [],
+        "status": "pending",
+        "selectedAt": null,
+        "steps": {
+          "red-tests": null,
+          "build-and-verify": null
+        },
+        "attempts": {},
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:82f4fb922aa466d2beeb1ab25b34102bc406d01a6adfbb5b06bda72e197f8997",
+        "priorResults": [],
+        "history": [],
+        "reopened": [
+          {
+            "at": "2026-11-26T06:11:58.140Z",
+            "by": "split",
+            "tests": []
+          }
+        ],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T06:11:58.140Z"
+      },
+      "WU-09": {
+        "title": "Disabled capabilities, download denial, previews",
+        "dependsOn": [
+          "WU-08"
+        ],
+        "tests": [],
+        "status": "pending",
+        "selectedAt": null,
+        "steps": {
+          "red-tests": null,
+          "build-and-verify": null
+        },
+        "attempts": {},
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:85c47770e0167e6e6e880f206ed63be22cef9cfe667b8bad949700d214af7330",
+        "priorResults": [],
+        "history": [],
+        "reopened": [],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T05:50:09.585Z"
+      },
+      "WU-10": {
+        "title": "Gateway integration, runtime start, loopback guard, composed-router security",
+        "dependsOn": [
+          "WU-09"
+        ],
+        "tests": [],
+        "status": "pending",
+        "selectedAt": null,
+        "steps": {
+          "red-tests": null,
+          "build-and-verify": null
+        },
+        "attempts": {},
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:4e0ffe78f35a33d34059fa67deaee172054bff6298f82e155bba7469b958a65d",
+        "priorResults": [],
+        "history": [],
+        "reopened": [],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T05:50:09.585Z"
+      },
+      "WU-11": {
+        "title": "CLI fail-closed tests and doc reconciliation",
+        "dependsOn": [
+          "WU-01"
+        ],
+        "tests": [],
+        "status": "pending",
+        "selectedAt": null,
+        "steps": {
+          "red-tests": null,
+          "build-and-verify": null
+        },
+        "attempts": {},
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:a461f19ce8cdc86ac092014e767fdb77c986ea27a33606af526de62aaf9d2e76",
+        "priorResults": [],
+        "history": [],
+        "reopened": [],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T05:50:09.585Z"
+      },
+      "WU-12": {
+        "title": "Web foundation: types, API helpers, REST client",
+        "dependsOn": [
+          "WU-08"
+        ],
+        "tests": [],
+        "status": "pending",
+        "selectedAt": null,
+        "steps": {
+          "red-tests": null,
+          "build-and-verify": null
+        },
+        "attempts": {},
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:69cdd7618426d4bb8ed0d5be695ad62a9d35c7f733bc61de7b799321a3d035cb",
+        "priorResults": [],
+        "history": [],
+        "reopened": [],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T05:50:09.585Z"
+      },
+      "WU-13": {
+        "title": "Web page, route, menu, instance selector, create panel",
+        "dependsOn": [
+          "WU-12"
+        ],
+        "tests": [],
+        "status": "pending",
+        "selectedAt": null,
+        "steps": {
+          "red-tests": null,
+          "build-and-verify": null
+        },
+        "attempts": {},
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:2012322502d1f1ba6c1936a6be9cad6ceebfd625751f961e7cb133284e75c592",
+        "priorResults": [],
+        "history": [],
+        "reopened": [],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T05:50:09.585Z"
+      },
+      "WU-14": {
+        "title": "Web status, polling, preview, banner, accessibility",
+        "dependsOn": [
+          "WU-13"
+        ],
+        "tests": [],
+        "status": "pending",
+        "selectedAt": null,
+        "steps": {
+          "red-tests": null,
+          "build-and-verify": null
+        },
+        "attempts": {},
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:6f8cb37db25ffceaa3b9ed953553cdb5ecbb28d71e661664d0c6f75e56bb3caf",
+        "priorResults": [],
+        "history": [],
+        "reopened": [],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T05:50:09.585Z"
+      },
+      "WU-15": {
+        "title": "Verification sweep: canary, e2e, doc updates, evidence for the release-candidate gate",
+        "dependsOn": [
+          "WU-10",
+          "WU-11",
+          "WU-14"
+        ],
+        "tests": [],
+        "status": "pending",
+        "selectedAt": null,
+        "steps": {
+          "red-tests": null,
+          "build-and-verify": null
+        },
+        "attempts": {},
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:1562b507811315acfe4c2c7d5a5351f3509a064944f7309bd981c661762d54e2",
+        "priorResults": [],
+        "history": [],
+        "reopened": [],
+        "removed": false,
+        "splitInto": null,
+        "updatedAt": "2026-11-26T05:50:09.585Z"
+      },
+      "WU-16": {
+        "title": "Lifecycle reconciliation, cleanup, runtime and recovery",
+        "dependsOn": [
+          "WU-05",
+          "WU-06"
+        ],
+        "tests": [
+          "TS-20",
+          "TS-21",
+          "TS-22",
+          "TS-23",
+          "TS-24",
+          "TS-25",
+          "TS-26",
+          "TS-27",
+          "TS-28",
+          "TS-29",
+          "TS-30",
+          "TS-32",
+          "TS-42",
+          "TS-44",
+          "TS-56",
+          "TS-65"
+        ],
+        "status": "pending",
+        "selectedAt": "2026-11-26T06:08:01.026Z",
+        "steps": {
+          "red-tests": null,
+          "build-and-verify": null
+        },
+        "attempts": {},
+        "blockedStreak": null,
+        "park": null,
+        "parkHistory": [],
+        "inputFingerprint": "sha256:4b5dd2904d8de6167c3009a2b6dcbdd2cd61462188b392c4f42e51110d44ef1d",
+        "priorResults": [],
+        "history": [],
+        "reopened": [
+          {
+            "at": "2026-11-26T05:52:19.438Z",
+            "by": "rework",
+            "tests": []
+          }
+        ],
+        "removed": true,
+        "splitInto": [
+          "WU-17",
+          "WU-18",
+          "WU-19"
+        ],
+        "updatedAt": "2026-11-26T06:11:58.140Z"
+      }
+    },
+    "deferredRegressions": [
+      {
+        "test": "lifecycle::lifecycle_tests::ts20_registered_row_without_file_is_transitioned_to_release_pending",
+        "ts": [
+          "TS-20"
+        ],
+        "owner": "WU-17",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "lifecycle::lifecycle_tests::ts21_file_after_register_before_mark_written_is_retained_as_owned",
+        "ts": [
+          "TS-21"
+        ],
+        "owner": "WU-17",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "lifecycle::lifecycle_tests::ts22_old_epoch_running_job_is_failed_with_restart_reason_and_audit",
+        "ts": [
+          "TS-22"
+        ],
+        "owner": "WU-17",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "lifecycle::lifecycle_tests::ts23_orphan_is_persisted_before_grace_and_ambiguous_entry_is_untouched",
+        "ts": [
+          "TS-23"
+        ],
+        "owner": "WU-17",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "lifecycle::lifecycle_tests::ts25_crashed_old_epoch_deleting_claim_returns_to_cleanup_without_retry",
+        "ts": [
+          "TS-25"
+        ],
+        "owner": "WU-17",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "lifecycle::lifecycle_tests::ts26_unlinked_file_with_deleting_row_commits_deleted_idempotently",
+        "ts": [
+          "TS-26"
+        ],
+        "owner": "WU-18",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "lifecycle::lifecycle_tests::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time",
+        "ts": [
+          "TS-27"
+        ],
+        "owner": "WU-18",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "lifecycle::lifecycle_tests::ts29_store_outage_closes_work_and_recovery_reconciles_before_reopening",
+        "ts": [
+          "TS-29"
+        ],
+        "owner": "WU-19",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "lifecycle::lifecycle_tests::ts30_fake_time_enforces_retry_expiry_grace_and_sweep_boundaries",
+        "ts": [
+          "TS-30"
+        ],
+        "owner": "WU-19",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "lifecycle::lifecycle_tests::ts32_startup_lock_epoch_reconcile_cleanup_barrier_precedes_admissions",
+        "ts": [
+          "TS-32"
+        ],
+        "owner": "WU-19",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "lifecycle::lifecycle_tests::ts42_purge_at_retention_boundary_removes_eligible_metadata_but_keeps_audit",
+        "ts": [
+          "TS-42"
+        ],
+        "owner": "WU-19",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "lifecycle::lifecycle_tests::ts65_audit_refusal_blocks_delete_claim_delete_commit_and_purge",
+        "ts": [
+          "TS-65"
+        ],
+        "owner": "WU-19",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "lifecycle::lifecycle_tests::ts56_truncated_inventory_makes_reconciliation_fail_closed",
+        "ts": [
+          "TS-56"
+        ],
+        "owner": "WU-17",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "infra::tests::reconciliation::job_store_reconciliation_inventory_and_epoch_are_durable",
+        "ts": [],
+        "owner": "WU-17",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "infra::tests::reconciliation::ts22_job_fence_cas_is_epoch_status_version_checked_and_audited_atomically",
+        "ts": [
+          "TS-22"
+        ],
+        "owner": "WU-17",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      },
+      {
+        "test": "infra::tests::reconciliation::ts30_deadline_inventory_includes_only_due_jobs_at_epoch",
+        "ts": [
+          "TS-30"
+        ],
+        "owner": "WU-19",
+        "unowned": false,
+        "status": "open",
+        "firstSeen": "2026-11-26T05:57:41.895Z",
+        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "reportedBy": [
+          "WU-01",
+          "WU-02",
+          "WU-03",
+          "WU-04",
+          "WU-05",
+          "WU-06"
+        ],
+        "resolvedAt": null,
+        "suite": "domain_backup"
+      }
+    ],
+    "sweep": {
+      "status": "pending",
+      "selectedAt": null,
+      "at": null,
+      "failures": [],
+      "attempts": 0,
+      "via": null
+    },
+    "baselineTests": [],
+    "rework": null,
+    "migration": {
+      "from": "1.0.0-stage-rows",
+      "at": "2026-11-26T05:50:09.585Z",
+      "ignoredKeys": [
+        "_"
+      ],
+      "priorResults": 12,
+      "preSha256": "cc6eee0c8cf68dcc230a882f3d8bf10eeef183e3169e51cede99a19ba17022e5"
+    }
+  },
+  "currentUnit": "WU-17"
 }
