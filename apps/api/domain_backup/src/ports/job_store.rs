@@ -211,4 +211,38 @@ pub trait JobStore: Send + Sync {
         epoch: i64,
         deadline: Duration,
     ) -> Result<Option<JobRow>, StoreError>;
+
+    /// Atomically create or increment the durable lifecycle epoch.
+    async fn advance_epoch(&self, _now: DateTime<Utc>) -> Result<i64, StoreError> {
+        Ok(0)
+    }
+
+    /// Complete, unfiltered job inventory for reconciliation.
+    async fn list_for_reconciliation(&self) -> Result<Vec<JobRow>, StoreError> {
+        Ok(Vec::new())
+    }
+
+    /// CAS fence. The status, epoch and state version must all still match; an applied
+    /// transition and `reconcile.fenced` audit entry commit in one transaction.
+    async fn fence_job(
+        &self,
+        id: Uuid,
+        expected_epoch: i64,
+        expected_status: BackupJobStatus,
+        expected_state_version: i64,
+        target_status: BackupJobStatus,
+        reason: ReasonCode,
+        now: DateTime<Utc>,
+    ) -> Result<TransitionResult, StoreError> {
+        Ok(TransitionResult::Lost)
+    }
+
+    /// Complete set of jobs whose deadline is at or before `now` in `epoch`.
+    async fn list_deadline_expired(
+        &self,
+        _now: DateTime<Utc>,
+        _epoch: i64,
+    ) -> Result<Vec<JobRow>, StoreError> {
+        Ok(Vec::new())
+    }
 }

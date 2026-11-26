@@ -10,7 +10,7 @@ use sea_orm::TransactionTrait;
 use uuid::Uuid;
 
 /// The closed event set, spelled independently of `as_str` (IFC section 7).
-const EVENT_NAMES: [&str; 16] = [
+const EVENT_NAMES: [&str; 17] = [
     "job.accepted",
     "job.running",
     "job.incomplete",
@@ -26,6 +26,7 @@ const EVENT_NAMES: [&str; 16] = [
     "ownership.ambiguous",
     "reconcile.fenced",
     "reconcile.missing_file",
+    "allocation.reconciled",
     "retention.purged",
 ];
 

@@ -11,5 +11,7 @@ mod fs_fixture_storage;
 mod fs_namespace_lock;
 mod fs_support;
 mod job_store;
+mod reconciliation;
+mod retention;
 mod support;
 mod worker;

@@ -8,3 +8,4 @@ pub mod fixture_storage;
 pub mod job_store;
 pub mod namespace_lock;
 pub mod policy;
+pub mod retention_store;

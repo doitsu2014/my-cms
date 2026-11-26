@@ -70,6 +70,7 @@ pub(super) struct RawAlloc {
     pub next_attempt_at: Option<DateTime<Utc>>,
     pub last_reason_code: Option<String>,
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     pub deleted_at: Option<DateTime<Utc>>,
 }
 
@@ -78,7 +79,7 @@ pub(super) async fn raw_alloc(c: &impl ConnectionTrait, id: Uuid) -> Option<RawA
         .query_one(pg(
             "SELECT job_id, storage_key, state, state_version, epoch, bytes_reserved, \
              expires_at, orphan_grace_until, cleanup_attempts, next_attempt_at, \
-             last_reason_code, created_at, deleted_at \
+             last_reason_code, created_at, updated_at, deleted_at \
              FROM backup_allocations WHERE id = $1",
             vec![id.into()],
         ))
@@ -97,6 +98,7 @@ pub(super) async fn raw_alloc(c: &impl ConnectionTrait, id: Uuid) -> Option<RawA
         next_attempt_at: row.try_get("", "next_attempt_at").unwrap(),
         last_reason_code: row.try_get("", "last_reason_code").unwrap(),
         created_at: row.try_get("", "created_at").unwrap(),
+        updated_at: row.try_get("", "updated_at").unwrap(),
         deleted_at: row.try_get("", "deleted_at").unwrap(),
     })
 }
@@ -132,6 +134,45 @@ pub(super) async fn audit_rows_total(c: &impl ConnectionTrait) -> i64 {
 }
 
 /// `(event, outcome)` of every audit row for one allocation, oldest first.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(super) struct RawAudit {
+    pub instance_id: String,
+    pub event: String,
+    pub outcome: String,
+    pub reason_code: Option<String>,
+    pub actor_sub: Option<String>,
+    pub job_id: Option<Uuid>,
+    pub allocation_id: Option<Uuid>,
+    pub operation: String,
+    pub digest: Option<String>,
+    pub correlation_id: String,
+}
+
+pub(super) async fn audit_rows_for_allocation(c: &impl ConnectionTrait, id: Uuid) -> Vec<RawAudit> {
+    c.query_all(pg(
+        "SELECT instance_id, event, outcome, reason_code, actor_sub, job_id, allocation_id, operation, \
+         digest::text AS digest, correlation_id FROM backup_audit WHERE allocation_id = $1 \
+         ORDER BY occurred_at, event",
+        vec![id.into()],
+    ))
+    .await
+    .expect("audit query")
+    .iter()
+    .map(|r| RawAudit {
+        instance_id: r.try_get("", "instance_id").unwrap(),
+        event: r.try_get("", "event").unwrap(),
+        outcome: r.try_get("", "outcome").unwrap(),
+        reason_code: r.try_get("", "reason_code").unwrap(),
+        actor_sub: r.try_get("", "actor_sub").unwrap(),
+        job_id: r.try_get("", "job_id").unwrap(),
+        allocation_id: r.try_get("", "allocation_id").unwrap(),
+        operation: r.try_get("", "operation").unwrap(),
+        digest: r.try_get("", "digest").unwrap(),
+        correlation_id: r.try_get("", "correlation_id").unwrap(),
+    })
+    .collect()
+}
+
 pub(super) async fn audit_events_for_allocation(
     c: &impl ConnectionTrait,
     id: Uuid,
@@ -157,6 +198,7 @@ pub(super) async fn audit_events_for_allocation(
 #[derive(Debug, Clone)]
 pub(super) struct SeedAlloc {
     pub state: AllocationState,
+    pub job_id: Option<Uuid>,
     pub bytes: u64,
     pub version: i64,
     pub attempts: i32,
@@ -168,12 +210,17 @@ impl SeedAlloc {
     pub fn new(state: AllocationState, bytes: u64) -> Self {
         Self {
             state,
+            job_id: None,
             bytes,
             version: 0,
             attempts: 0,
             next_attempt_at: None,
             grace_until: None,
         }
+    }
+    pub fn job_id(mut self, id: Uuid) -> Self {
+        self.job_id = Some(id);
+        self
     }
     pub fn version(mut self, v: i64) -> Self {
         self.version = v;
@@ -201,9 +248,10 @@ pub(super) async fn seed_alloc(c: &impl ConnectionTrait, s: SeedAlloc) -> Uuid {
         "INSERT INTO backup_allocations (id, job_id, storage_key, state, state_version, epoch, \
          bytes_reserved, expires_at, orphan_grace_until, cleanup_attempts, next_attempt_at, \
          created_at, updated_at, deleted_at) \
-         VALUES ($1, NULL, $2, $3, $4, 1, $5, $6, $7, $8, $9, $10, $10, $11)",
+         VALUES ($1, $2, $3, $4, $5, 1, $6, $7, $8, $9, $10, $11, $11, $12)",
         vec![
             id.into(),
+            s.job_id.into(),
             format!("alloc/{id}.bin").into(),
             s.state.as_str().into(),
             s.version.into(),
@@ -228,6 +276,86 @@ pub(super) struct AllocProbe {
     /// The allocation row's state as an independent connection sees it during the call
     /// (`None` = not visible yet, i.e. the row is not committed).
     pub outside_state: Option<String>,
+}
+
+/// What a retention purge probe sees when the adapter records `retention.purged`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(super) struct RetentionProbe {
+    pub saw_tx: bool,
+    pub event: AuditEventKind,
+    pub target_job_exists: bool,
+    pub target_allocation_exists: bool,
+    pub target_idempotency_exists: bool,
+}
+
+/// Audit sink that queries the caller's transaction while retention.purged is being
+/// recorded, capturing whether the eligible target rows still exist before deletion.
+#[derive(Debug)]
+pub(super) struct RetentionProbeSink {
+    inner: DbAuditSink,
+    target_job_id: uuid::Uuid,
+    target_allocation_id: uuid::Uuid,
+    pub seen: Arc<Mutex<Vec<RetentionProbe>>>,
+}
+
+impl RetentionProbeSink {
+    pub fn new(
+        conn: &DatabaseConnection,
+        target_job_id: uuid::Uuid,
+        target_allocation_id: uuid::Uuid,
+    ) -> Self {
+        Self {
+            inner: DbAuditSink::new(conn.clone()),
+            target_job_id,
+            target_allocation_id,
+            seen: Arc::default(),
+        }
+    }
+}
+
+#[async_trait]
+impl AuditSink for RetentionProbeSink {
+    async fn record(
+        &self,
+        tx: Option<&DatabaseTransaction>,
+        ev: AuditEvent,
+    ) -> Result<(), AuditError> {
+        if ev.event == AuditEventKind::RetentionPurged {
+            let tx = tx.expect("retention.purged must be recorded in the purge transaction");
+            let target_job_exists = tx
+                .query_one(super::support::pg(
+                    "SELECT id FROM backup_jobs WHERE id = $1",
+                    vec![self.target_job_id.into()],
+                ))
+                .await
+                .expect("query target job during purge audit")
+                .is_some();
+            let target_allocation_exists = tx
+                .query_one(super::support::pg(
+                    "SELECT id FROM backup_allocations WHERE id = $1",
+                    vec![self.target_allocation_id.into()],
+                ))
+                .await
+                .expect("query target allocation during purge audit")
+                .is_some();
+            let target_idempotency_exists = tx
+                .query_one(super::support::pg(
+                    "SELECT id FROM backup_idempotency WHERE job_id = $1",
+                    vec![self.target_job_id.into()],
+                ))
+                .await
+                .expect("query target idempotency during purge audit")
+                .is_some();
+            self.seen.lock().unwrap().push(RetentionProbe {
+                saw_tx: true,
+                event: ev.event,
+                target_job_exists,
+                target_allocation_exists,
+                target_idempotency_exists,
+            });
+        }
+        self.inner.record(tx, ev).await
+    }
 }
 
 /// Spy around the real sink: records whether the store handed it a transaction and what

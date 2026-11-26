@@ -382,6 +382,7 @@ pub(crate) struct MemAllocStore {
     rows: Mutex<HashMap<Uuid, Allocation>>,
     register_error: Mutex<Option<AllocationError>>,
     mark_written_error: Mutex<Option<AllocationError>>,
+    register_delay: Mutex<Option<(Arc<FakeClock>, Duration)>>,
 }
 
 impl std::fmt::Debug for MemAllocStore {
@@ -408,6 +409,7 @@ impl MemAllocStore {
             rows: Mutex::default(),
             register_error: Mutex::default(),
             mark_written_error: Mutex::default(),
+            register_delay: Mutex::default(),
         })
     }
 
@@ -417,6 +419,11 @@ impl MemAllocStore {
 
     pub fn fail_mark_written(&self, e: AllocationError) {
         *self.mark_written_error.lock().unwrap() = Some(e);
+    }
+
+    /// Advance wall and paused Tokio time during the next registration only.
+    pub fn delay_next_register(&self, clock: Arc<FakeClock>, by: Duration) {
+        *self.register_delay.lock().unwrap() = Some((clock, by));
     }
 
     pub fn all(&self) -> Vec<Allocation> {
@@ -473,6 +480,11 @@ impl AllocationStore for MemAllocStore {
         expires: DateTime<Utc>,
     ) -> Result<Allocation, AllocationError> {
         push(&self.log, "register");
+        let register_delay = { self.register_delay.lock().unwrap().take() };
+        if let Some((clock, by)) = register_delay {
+            advance_both(&clock, by).await;
+            tokio::task::yield_now().await;
+        }
         if let Some(e) = self.register_error.lock().unwrap().take() {
             return Err(e);
         }

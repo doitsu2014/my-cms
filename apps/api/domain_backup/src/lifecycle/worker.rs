@@ -9,9 +9,16 @@
 //!
 //! WU-05 red-tests compile shell: no behaviour yet.
 
+use chrono::Duration as ChronoDuration;
 use std::fmt;
 use std::sync::Arc;
 use std::time::Duration;
+
+use crate::domain::status::BackupJobStatus;
+use crate::ports::allocation_store::{Allocation, AllocationError, BudgetKind};
+use crate::ports::capture::{CaptureContext, CaptureError};
+use crate::ports::job_store::{Components, TransitionResult};
+use crate::ports::policy::PolicyDecision;
 use uuid::Uuid;
 
 use crate::domain::clock::Clock;
@@ -71,17 +78,11 @@ pub enum RunOutcome {
 }
 
 pub struct Worker {
-    #[allow(dead_code)]
     jobs: Arc<dyn JobStore>,
-    #[allow(dead_code)]
     allocations: Arc<dyn AllocationStore>,
-    #[allow(dead_code)]
     adapter: Arc<dyn CaptureAdapter>,
-    #[allow(dead_code)]
     policy: Arc<dyn ClaimPolicy>,
-    #[allow(dead_code)]
     clock: Arc<dyn Clock>,
-    #[allow(dead_code)]
     config: WorkerConfig,
 }
 
@@ -113,19 +114,218 @@ impl Worker {
     /// Claim the oldest queued job (CAS) and run it. A refused claim (audit or store
     /// failure) is returned as the error: nothing ran and the job stays queued.
     pub async fn run_next(&self) -> Result<RunOutcome, StoreError> {
-        Ok(RunOutcome::Idle)
+        let Some(claimed) = self
+            .jobs
+            .claim_next(self.config.epoch, self.config.deadline)
+            .await?
+        else {
+            return Ok(RunOutcome::Idle);
+        };
+        Ok(self.execute(claimed).await)
     }
 
     /// Run a job this worker has claimed (`running`). The row may be stale: a terminal
     /// transition that loses the compare-and-set changes nothing.
     pub async fn execute(&self, claimed: JobRow) -> RunOutcome {
-        RunOutcome::Lost { job_id: claimed.id }
+        let id = claimed.id;
+        let current = match self.jobs.get(id).await {
+            Ok(Some(row))
+                if row.status == BackupJobStatus::Running
+                    && row.state_version == claimed.state_version =>
+            {
+                row
+            }
+            _ => return RunOutcome::Lost { job_id: id },
+        };
+        if !matches!(
+            self.policy
+                .authorize_resource(&current.instance_id, id)
+                .await,
+            Ok(PolicyDecision::Allowed)
+        ) {
+            return self
+                .fail(current, ReasonCode::InstanceNotAllowed, None)
+                .await;
+        }
+        let now = self.clock.now();
+        let Some(deadline_at) = current.deadline_at else {
+            return self.fail(current, ReasonCode::PersistenceError, None).await;
+        };
+        let remaining = (deadline_at - now).to_std().unwrap_or(Duration::ZERO);
+        if remaining.is_zero() {
+            return self.fail(current, ReasonCode::DeadlineExceeded, None).await;
+        }
+        let expires = now.checked_add_signed(
+            ChronoDuration::from_std(self.config.allocation_ttl).unwrap_or(ChronoDuration::MAX),
+        );
+        let Some(expires) = expires else {
+            return self.fail(current, ReasonCode::PersistenceError, None).await;
+        };
+        let mut allocation = match self
+            .allocations
+            .register(Some(id), self.config.fixture_bytes, current.epoch, expires)
+            .await
+        {
+            Ok(allocation) => allocation,
+            Err(AllocationError::BudgetExceeded(BudgetKind::PerAllocation | BudgetKind::Total)) => {
+                return self.fail(current, ReasonCode::AllocationLimit, None).await;
+            }
+            Err(_) => return self.fail(current, ReasonCode::PersistenceError, None).await,
+        };
+        // Registration may await long enough to consume part or all of the job's
+        // deadline. Budget capture from the actual remaining time after it returns.
+        let remaining = (deadline_at - self.clock.now())
+            .to_std()
+            .unwrap_or(Duration::ZERO);
+        if remaining.is_zero() {
+            return self
+                .fail_with_allocation(current, ReasonCode::DeadlineExceeded, allocation)
+                .await;
+        }
+        let ctx = CaptureContext {
+            job_id: id,
+            instance_id: current.instance_id.clone(),
+            correlation_id: current.correlation_id.clone(),
+            storage_key: allocation.storage_key.clone(),
+        };
+        let capture = tokio::time::timeout(remaining, self.adapter.capture(&ctx)).await;
+        let outcome = match capture {
+            Err(_) => {
+                return self
+                    .fail_with_allocation(current, ReasonCode::DeadlineExceeded, allocation)
+                    .await
+            }
+            Ok(Err(CaptureError::Failed)) => {
+                return self
+                    .fail_with_allocation(current, ReasonCode::AdapterError, allocation)
+                    .await
+            }
+            Ok(Ok(outcome)) => outcome,
+        };
+        if self
+            .allocations
+            .mark_written(allocation.id, allocation.state_version)
+            .await
+            .is_err()
+        {
+            return self
+                .fail_with_allocation(current, ReasonCode::PersistenceError, allocation)
+                .await;
+        }
+        let components = outcome.components;
+        allocation.state_version += 1;
+        match self
+            .transition_retry(
+                &current,
+                BackupJobStatus::Incomplete,
+                Some(ReasonCode::RequiredComponentsUnavailable),
+                Some(components),
+            )
+            .await
+        {
+            Ok(TransitionResult::Applied) => RunOutcome::Incomplete { job_id: id },
+            Ok(TransitionResult::Lost) => {
+                self.release(&allocation).await;
+                RunOutcome::Lost { job_id: id }
+            }
+            Err(_) => RunOutcome::Stalled { job_id: id },
+        }
     }
 
     /// FN-19: a queued job that cannot be dispatched to a worker goes
     /// `queued -> failed` with `DISPATCH_FAILED`.
     pub async fn fail_dispatch(&self, job_id: Uuid) -> Result<RunOutcome, StoreError> {
-        Ok(RunOutcome::Lost { job_id })
+        let Some(row) = self.jobs.get(job_id).await? else {
+            return Ok(RunOutcome::Lost { job_id });
+        };
+        if row.status != BackupJobStatus::Queued {
+            return Ok(RunOutcome::Lost { job_id });
+        }
+        match self
+            .transition_retry(
+                &row,
+                BackupJobStatus::Failed,
+                Some(ReasonCode::DispatchFailed),
+                None,
+            )
+            .await
+        {
+            Ok(TransitionResult::Applied) => Ok(RunOutcome::Failed {
+                job_id,
+                reason: ReasonCode::DispatchFailed,
+            }),
+            Ok(TransitionResult::Lost) => Ok(RunOutcome::Lost { job_id }),
+            Err(e) => Err(e),
+        }
+    }
+
+    async fn release(&self, allocation: &Allocation) {
+        let _ = self
+            .allocations
+            .release(allocation.id, allocation.state_version)
+            .await;
+    }
+
+    async fn fail_with_allocation(
+        &self,
+        job: JobRow,
+        reason: ReasonCode,
+        allocation: Allocation,
+    ) -> RunOutcome {
+        let result = self.fail(job, reason, None).await;
+        if !matches!(result, RunOutcome::Stalled { .. }) {
+            self.release(&allocation).await;
+        }
+        result
+    }
+
+    async fn fail(
+        &self,
+        job: JobRow,
+        reason: ReasonCode,
+        components: Option<Components>,
+    ) -> RunOutcome {
+        match self
+            .transition_retry(&job, BackupJobStatus::Failed, Some(reason), components)
+            .await
+        {
+            Ok(TransitionResult::Applied) => RunOutcome::Failed {
+                job_id: job.id,
+                reason,
+            },
+            Ok(TransitionResult::Lost) => RunOutcome::Lost { job_id: job.id },
+            Err(_) => RunOutcome::Stalled { job_id: job.id },
+        }
+    }
+
+    async fn transition_retry(
+        &self,
+        job: &JobRow,
+        to: BackupJobStatus,
+        reason: Option<ReasonCode>,
+        components: Option<Components>,
+    ) -> Result<TransitionResult, StoreError> {
+        for attempt in 0..=self.config.terminal_retries {
+            match self
+                .jobs
+                .transition(
+                    job.id,
+                    (job.status, job.state_version),
+                    to,
+                    reason,
+                    components.clone(),
+                )
+                .await
+            {
+                Err(StoreError::AuditUnavailable | StoreError::StoreUnavailable)
+                    if attempt < self.config.terminal_retries =>
+                {
+                    tokio::time::sleep(self.config.terminal_retry_interval).await
+                }
+                other => return other,
+            }
+        }
+        Err(StoreError::AuditUnavailable)
     }
 }
 
@@ -715,6 +915,53 @@ mod tests {
         let allocs = h.allocs.all();
         assert_eq!(allocs.len(), 1);
         assert_eq!(allocs[0].state, AllocationState::ReleasePending);
+    }
+
+    /// TS-68: registration consumes five minutes of both wall and paused Tokio time. Capture
+    /// only gets the five minutes actually left before `deadline_at`, not the stale ten-minute
+    /// duration computed before the awaited registration.
+    #[tokio::test(start_paused = true)]
+    async fn deadline_budget_excludes_time_spent_registering_allocation() {
+        let log = new_log();
+        let adapter = ScriptedAdapter::logged(Script::Block(Box::new(Script::Ok)), log.clone());
+        let allocs = MemAllocStore::new(log.clone());
+        let h = harness_with(log, allocs, adapter.clone(), PolicyMode::Allow);
+        h.allocs
+            .delay_next_register(h.clock.clone(), Duration::from_secs(300));
+        let id = h.jobs.seed_queued(INSTANCE);
+        let worker = h.worker.clone();
+        let mut task = tokio::spawn(async move { worker.run_next().await });
+        tokio::select! {
+            _ = adapter.entered.notified() => {}
+            finished = &mut task => panic!("worker finished before capture: {finished:?}"),
+        }
+
+        advance_both(&h.clock, Duration::from_secs(299)).await;
+        assert!(
+            !task.is_finished(),
+            "599 s after claim is still inside deadline"
+        );
+        assert_eq!(h.jobs.row(id).status, BackupJobStatus::Running);
+        advance_both(&h.clock, Duration::from_secs(1)).await;
+
+        let outcome = join_within(task).await.expect("claim");
+        assert_eq!(
+            outcome,
+            RunOutcome::Failed {
+                job_id: id,
+                reason: ReasonCode::DeadlineExceeded
+            }
+        );
+        assert_failed(&h, id, ReasonCode::DeadlineExceeded);
+        assert_no_components(&h, id);
+        assert_eq!(adapter.calls(), 1, "capture entered but did not complete");
+        let allocations = h.allocs.all();
+        assert_eq!(allocations.len(), 1);
+        assert_eq!(allocations[0].state, AllocationState::ReleasePending);
+        assert_eq!(
+            h.jobs.row(id).finished_at,
+            Some(t0() + ChronoDuration::seconds(600))
+        );
     }
 
     /// TS-68 (CFG-10): the deadline is exactly 600 s, not earlier.

@@ -26,11 +26,13 @@ pub enum AuditEventKind {
     OwnershipAmbiguous,
     ReconcileFenced,
     ReconcileMissingFile,
+    /// An applied allocation reconciliation CAS (IFC sections 6.1a and 7).
+    AllocationReconciled,
     RetentionPurged,
 }
 
 impl AuditEventKind {
-    pub const ALL: [AuditEventKind; 16] = [
+    pub const ALL: [AuditEventKind; 17] = [
         AuditEventKind::JobAccepted,
         AuditEventKind::JobRunning,
         AuditEventKind::JobIncomplete,
@@ -46,6 +48,7 @@ impl AuditEventKind {
         AuditEventKind::OwnershipAmbiguous,
         AuditEventKind::ReconcileFenced,
         AuditEventKind::ReconcileMissingFile,
+        AuditEventKind::AllocationReconciled,
         AuditEventKind::RetentionPurged,
     ];
 
@@ -67,6 +70,7 @@ impl AuditEventKind {
             AuditEventKind::OwnershipAmbiguous => "ownership.ambiguous",
             AuditEventKind::ReconcileFenced => "reconcile.fenced",
             AuditEventKind::ReconcileMissingFile => "reconcile.missing_file",
+            AuditEventKind::AllocationReconciled => "allocation.reconciled",
             AuditEventKind::RetentionPurged => "retention.purged",
         }
     }

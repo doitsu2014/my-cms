@@ -18,9 +18,10 @@ use uuid::Uuid;
 
 use super::pg_error::{classify, PgFailure};
 use crate::domain::clock::Clock;
+use crate::domain::status::BackupJobStatus;
 use crate::ports::allocation_store::{
-    Allocation, AllocationError, AllocationLimits, AllocationState, AllocationStore,
-    AllocationTotals, BudgetKind, CleanupFailureOutcome,
+    Allocation, AllocationError, AllocationLimits, AllocationRecoveryRow, AllocationState,
+    AllocationStore, AllocationTotals, BudgetKind, CleanupFailureOutcome,
 };
 use crate::ports::audit::{AuditError, AuditEvent, AuditEventKind, AuditOutcome, AuditSink};
 use crate::ports::fixture_storage::StorageKey;
@@ -131,14 +132,14 @@ fn pg(sql: &str, values: Vec<Value>) -> Statement {
 }
 
 /// Outage or a bare persistence error; no driver text is carried.
-fn map_db(err: &DbErr) -> AllocationError {
+pub(crate) fn map_db(err: &DbErr) -> AllocationError {
     match classify(err) {
         PgFailure::Outage => AllocationError::StoreUnavailable,
         _ => AllocationError::Persistence,
     }
 }
 
-fn map_audit(err: AuditError) -> AllocationError {
+pub(crate) fn map_audit(err: AuditError) -> AllocationError {
     match err {
         AuditError::Rejected => AllocationError::AuditUnavailable,
         AuditError::Unavailable => AllocationError::StoreUnavailable,
@@ -579,5 +580,130 @@ impl AllocationStore for DbAllocationStore {
             Some(r) => Ok(Some(allocation(&r)?)),
             None => Ok(None),
         }
+    }
+
+    async fn list_for_reconciliation(&self) -> Result<Vec<AllocationRecoveryRow>, AllocationError> {
+        let sql = "SELECT a.id, a.job_id, a.storage_key, a.state, a.state_version, a.epoch, \
+             a.bytes_reserved, a.expires_at, a.orphan_grace_until, a.cleanup_attempts, \
+             a.next_attempt_at, a.last_reason_code, a.created_at, a.updated_at, a.deleted_at, \
+             j.status AS owner_status, j.epoch AS owner_epoch \
+             FROM backup_allocations a LEFT JOIN backup_jobs j ON j.id = a.job_id \
+             ORDER BY a.created_at, a.id";
+        let rows = self
+            .conn
+            .query_all(pg(sql, vec![]))
+            .await
+            .map_err(|e| map_db(&e))?;
+        rows.iter()
+            .map(|row| {
+                let allocation = allocation(row)?;
+                let owner_status: Option<String> = row
+                    .try_get("", "owner_status")
+                    .map_err(|_| AllocationError::Persistence)?;
+                let owner_status = owner_status
+                    .map(|status| status_from_wire(&status))
+                    .transpose()?;
+                let owner_epoch = row
+                    .try_get("", "owner_epoch")
+                    .map_err(|_| AllocationError::Persistence)?;
+                Ok(AllocationRecoveryRow {
+                    allocation,
+                    owner_status,
+                    owner_epoch,
+                })
+            })
+            .collect()
+    }
+
+    async fn reconcile_state(
+        &self,
+        id: Uuid,
+        expected: (AllocationState, i64, i64),
+        to: AllocationState,
+        now: DateTime<Utc>,
+    ) -> Result<crate::ports::job_store::TransitionResult, AllocationError> {
+        use crate::ports::job_store::TransitionResult;
+
+        let tx = self.begin().await?;
+        let row = match tx
+            .query_one(pg(
+                "UPDATE backup_allocations SET state = $5, state_version = state_version + 1, \
+                 updated_at = $6 WHERE id = $1 AND state = $2 AND state_version = $3 \
+                 AND epoch = $4 RETURNING job_id",
+                vec![
+                    id.into(),
+                    expected.0.as_str().into(),
+                    expected.1.into(),
+                    expected.2.into(),
+                    to.as_str().into(),
+                    now.into(),
+                ],
+            ))
+            .await
+        {
+            Ok(Some(row)) => row,
+            Ok(None) => {
+                rollback(tx).await;
+                return Ok(TransitionResult::Lost);
+            }
+            Err(error) => return abort(tx, map_db(&error)).await,
+        };
+        let job_id: Option<Uuid> = match row.try_get("", "job_id") {
+            Ok(job_id) => job_id,
+            Err(_) => return abort(tx, AllocationError::Persistence).await,
+        };
+        let correlation_id = match job_id {
+            Some(job_id) => match tx
+                .query_one(pg(
+                    "SELECT correlation_id FROM backup_jobs WHERE id = $1",
+                    vec![job_id.into()],
+                ))
+                .await
+            {
+                Ok(Some(owner)) => match owner.try_get::<String>("", "correlation_id") {
+                    Ok(correlation_id) => correlation_id,
+                    Err(_) => return abort(tx, AllocationError::Persistence).await,
+                },
+                Ok(None) => id.to_string(),
+                Err(error) => return abort(tx, map_db(&error)).await,
+            },
+            None => id.to_string(),
+        };
+        if let Err(error) = self
+            .audit
+            .record(
+                Some(&tx),
+                AuditEvent {
+                    occurred_at: now,
+                    actor_sub: None,
+                    instance_id: self.instance_id.clone(),
+                    job_id,
+                    allocation_id: Some(id),
+                    operation: "reconciliation".to_owned(),
+                    event: AuditEventKind::AllocationReconciled,
+                    outcome: AuditOutcome::Success,
+                    reason_code: Some("RECONCILED".to_owned()),
+                    digest: None,
+                    correlation_id,
+                },
+            )
+            .await
+        {
+            return abort(tx, map_audit(error)).await;
+        }
+        tx.commit().await.map_err(|error| map_db(&error))?;
+        Ok(TransitionResult::Applied)
+    }
+}
+
+fn status_from_wire(value: &str) -> Result<BackupJobStatus, AllocationError> {
+    match value {
+        "queued" => Ok(BackupJobStatus::Queued),
+        "running" => Ok(BackupJobStatus::Running),
+        "succeeded" => Ok(BackupJobStatus::Succeeded),
+        "failed" => Ok(BackupJobStatus::Failed),
+        "recovery-required" => Ok(BackupJobStatus::RecoveryRequired),
+        "incomplete" => Ok(BackupJobStatus::Incomplete),
+        _ => Err(AllocationError::Persistence),
     }
 }

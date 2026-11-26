@@ -7,8 +7,8 @@ use std::fmt;
 use std::sync::Arc;
 
 use crate::ports::capture::{CaptureAdapter, CaptureContext, CaptureError, CaptureOutcome};
-use crate::ports::fixture_storage::FixtureStorage;
-use crate::ports::job_store::Components;
+use crate::ports::fixture_storage::{FixtureStorage, StorageError};
+use crate::ports::job_store::{ComponentName, ComponentOutcome, ComponentState, Components};
 
 /// Fixed synthetic fixture size in bytes: a code constant, well under CFG-12
 /// (IFC section 8, non-owner guard [E]).
@@ -34,16 +34,48 @@ impl FixtureCaptureAdapter {
     /// The synthetic fixture content: exactly `FIXTURE_BYTES` bytes, deterministic,
     /// ASCII, carrying nothing from the environment.
     pub fn fixture_content() -> Vec<u8> {
-        Vec::new()
+        let mut content = b"SYNTHETIC FIXTURE - database only\n".to_vec();
+        content.resize(FIXTURE_BYTES as usize, b' ');
+        content
     }
 }
 
 #[async_trait]
 impl CaptureAdapter for FixtureCaptureAdapter {
-    async fn capture(&self, _ctx: &CaptureContext) -> Result<CaptureOutcome, CaptureError> {
-        Ok(CaptureOutcome {
-            components: Components::default(),
-        })
+    async fn capture(&self, ctx: &CaptureContext) -> Result<CaptureOutcome, CaptureError> {
+        let result = self
+            .storage
+            .write(&ctx.storage_key, &Self::fixture_content())
+            .await;
+        match result {
+            Ok(()) => Ok(CaptureOutcome {
+                components: Components(vec![
+                    ComponentState {
+                        name: ComponentName::Database,
+                        state: ComponentOutcome::SyntheticCaptured,
+                        reason_code: Some("DB_SYNTHETIC_ONLY".to_owned()),
+                    },
+                    ComponentState {
+                        name: ComponentName::Auth,
+                        state: ComponentOutcome::Unavailable,
+                        reason_code: Some("AUTH_NOT_CAPTURED".to_owned()),
+                    },
+                    ComponentState {
+                        name: ComponentName::Storage,
+                        state: ComponentOutcome::Unavailable,
+                        reason_code: Some("STORAGE_NOT_CAPTURED".to_owned()),
+                    },
+                ]),
+            }),
+            Err(
+                StorageError::NotRegistered
+                | StorageError::ExceedsReservation
+                | StorageError::AlreadyExists
+                | StorageError::Ambiguous
+                | StorageError::LedgerUnavailable
+                | StorageError::Unavailable,
+            ) => Err(CaptureError::Failed),
+        }
     }
 }
 

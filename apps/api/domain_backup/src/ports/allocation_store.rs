@@ -13,7 +13,8 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use super::fixture_storage::StorageKey;
-use super::job_store::ReasonCode;
+use super::job_store::{ReasonCode, TransitionResult};
+use crate::domain::status::BackupJobStatus;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AllocationState {
@@ -58,6 +59,14 @@ pub struct Allocation {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub deleted_at: Option<DateTime<Utc>>,
+}
+
+/// Allocation plus its optional owning job state, returned by the recovery LEFT JOIN.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AllocationRecoveryRow {
+    pub allocation: Allocation,
+    pub owner_status: Option<BackupJobStatus>,
+    pub owner_epoch: Option<i64>,
 }
 
 /// Live = every state other than `deleted` (orphans and `cleanup_failed` included).
@@ -162,4 +171,22 @@ pub trait AllocationStore: Send + Sync {
     /// Read one row (added to the IFC list so `FsFixtureStorage` can refuse a write
     /// without a registered allocation).
     async fn get(&self, id: Uuid) -> Result<Option<Allocation>, AllocationError>;
+
+    /// Complete recovery inventory joined to optional job owner data. LEFT JOIN semantics
+    /// preserve allocations with NULL or missing owners; epoch is returned as data.
+    async fn list_for_reconciliation(&self) -> Result<Vec<AllocationRecoveryRow>, AllocationError> {
+        Ok(Vec::new())
+    }
+
+    /// CAS state transition on allocation id, state, version and epoch. Applied changes
+    /// and the corresponding allocation audit event are one transaction.
+    async fn reconcile_state(
+        &self,
+        _id: Uuid,
+        _expected: (AllocationState, i64, i64),
+        _to: AllocationState,
+        _now: DateTime<Utc>,
+    ) -> Result<TransitionResult, AllocationError> {
+        Ok(TransitionResult::Lost)
+    }
 }
