@@ -8,7 +8,7 @@
   "depth": "full",
   "mode": "ai",
   "status": "active",
-  "currentStage": "red-tests",
+  "currentStage": null,
   "stages": {
     "problem-framing": {
       "status": "complete",
@@ -575,8 +575,8 @@
     "red-tests": {
       "status": "in_progress",
       "startedAt": "2026-11-22T06:56:17.617Z",
-      "detail": "Skip redundant WU-06 red replay after the 1.1.0 migration. WU-06 is already implemented and green; its original red evidence is recorded under red-tests/WU-06 or in its earlier build-and-verify records. apps/api has no uncommitted changes and the design rework of 2026-11-26 touched only WU-06 and the lifecycle unit (since split into WU-17, WU-18 and WU-19), so the evidence still describes this code.",
-      "reportedAt": "2026-11-26T06:13:40.292Z",
+      "detail": "WU-11 changes no behavior: apps/api/gateway/src/backup_cli.rs already fails closed, and the unit only adds TS-33 tests and comments. The 5 new TS-33 tests pass against the unchanged code by design (characterization tests), so no failing run exists. Their ability to fail is proved at build-and-verify by five mutations of handle_args (restore, create, list, unknown input returning success; create opening a connection), each caught. Diff check: 192 lines added, 0 removed, non-test changes are comments only, the six existing tests are unchanged.",
+      "reportedAt": "2026-11-26T06:50:34.144Z",
       "reports": [
         {
           "at": "2026-11-22T07:12:29.787Z",
@@ -813,6 +813,29 @@
           "result": "skipped",
           "detail": "Skip redundant WU-06 red replay after the 1.1.0 migration. WU-06 is already implemented and green; its original red evidence is recorded under red-tests/WU-06 or in its earlier build-and-verify records. apps/api has no uncommitted changes and the design rework of 2026-11-26 touched only WU-06 and the lifecycle unit (since split into WU-17, WU-18 and WU-19), so the evidence still describes this code.",
           "unit": "WU-06"
+        },
+        {
+          "at": "2026-11-26T06:27:09.017Z",
+          "result": "blocked",
+          "detail": "Owner directed WU-07 to be implemented before WU-17 (2026-11-26). WU-17 is not blocked by a defect; it is deferred by scheduling choice and returns with orchestrate revisit once the owner decides to start it.",
+          "unit": "WU-17",
+          "parked": {
+            "kind": "owner-decision",
+            "blockedBy": [],
+            "auto": false
+          }
+        },
+        {
+          "at": "2026-11-26T06:32:50.523Z",
+          "result": "complete",
+          "detail": "WU-07 red run: 18 pure tests (14 fail on assertions, 4 structural passes) and 14 Docker tests (13 fail on assertions, 1 structural pass) against stubs for digest, parser and handler; TS-13, TS-14b, TS-15, TS-16, TS-44a covered; earlier tests unchanged.",
+          "unit": "WU-07"
+        },
+        {
+          "at": "2026-11-26T06:50:34.144Z",
+          "result": "skipped",
+          "detail": "WU-11 changes no behavior: apps/api/gateway/src/backup_cli.rs already fails closed, and the unit only adds TS-33 tests and comments. The 5 new TS-33 tests pass against the unchanged code by design (characterization tests), so no failing run exists. Their ability to fail is proved at build-and-verify by five mutations of handle_args (restore, create, list, unknown input returning success; create opening a connection), each caught. Diff check: 192 lines added, 0 removed, non-test changes are comments only, the six existing tests are unchanged.",
+          "unit": "WU-11"
         }
       ],
       "units": {
@@ -843,6 +866,18 @@
         "WU-06": {
           "status": "skipped",
           "reportedAt": "2026-11-26T06:13:40.292Z"
+        },
+        "WU-17": {
+          "status": "blocked",
+          "reportedAt": "2026-11-26T06:27:09.017Z"
+        },
+        "WU-07": {
+          "status": "complete",
+          "reportedAt": "2026-11-26T06:32:50.523Z"
+        },
+        "WU-11": {
+          "status": "skipped",
+          "reportedAt": "2026-11-26T06:50:34.144Z"
         }
       },
       "artifacts": [
@@ -929,6 +964,18 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-06/red-evidence.md",
           "bytes": 8243,
           "sha256": "1dc6d0a17b7dad13fba39a6de938da4ee0771717ddf2212cccd762e39af5e24c"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-07/failing-tests.md",
+          "bytes": 5088,
+          "sha256": "1e9f6bed5f24db4332daf9b7da8cf556feada0e89adb4eb26c681352bacdcf0d"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-07/red-evidence.md",
+          "bytes": 3289,
+          "sha256": "4a069ac730e4ea8df60b07ca4ababab558b776b5a34304f1d779724dda292b7b"
         }
       ],
       "resumedAt": "2026-11-22T09:30:17.226Z",
@@ -938,7 +985,7 @@
       "status": "in_progress",
       "startedAt": "2026-11-22T07:12:29.973Z",
       "detail": null,
-      "reportedAt": "2026-11-26T06:13:40.801Z",
+      "reportedAt": "2026-11-26T06:54:23.788Z",
       "reports": [
         {
           "at": "2026-11-22T07:26:43.015Z",
@@ -1084,6 +1131,18 @@
           "result": "complete",
           "detail": null,
           "unit": "WU-06"
+        },
+        {
+          "at": "2026-11-26T06:43:19.948Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-07"
+        },
+        {
+          "at": "2026-11-26T06:54:23.788Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-11"
         }
       ],
       "units": {
@@ -1110,6 +1169,14 @@
         "WU-06": {
           "status": "complete",
           "reportedAt": "2026-11-26T06:13:40.801Z"
+        },
+        "WU-07": {
+          "status": "complete",
+          "reportedAt": "2026-11-26T06:43:19.948Z"
+        },
+        "WU-11": {
+          "status": "complete",
+          "reportedAt": "2026-11-26T06:54:23.788Z"
         }
       },
       "artifacts": [
@@ -1568,6 +1635,54 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-06/known-limitations.md",
           "bytes": 2200,
           "sha256": "0e6fd2d5d29f164b390fcb5ac983a5c7e4d03a2653f216beca80adca090442f6"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-07/implementation.md",
+          "bytes": 3140,
+          "sha256": "8a871c42471a9b6d814982db983514775c08dd72019fa3088c9196cd41152d90"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-07/green-verification-report.md",
+          "bytes": 3196,
+          "sha256": "6a60f67bf18b623ea17e2655f18a3396d6bb5f2df1f662f4235c2702bdd10932"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-07/regression-report.md",
+          "bytes": 2543,
+          "sha256": "439a84612760a04f4d8a7fbd4be77658a506dc0a44e8d8f367278bafc51b518c"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-07/known-limitations.md",
+          "bytes": 1539,
+          "sha256": "b9d6efe7e2e1e94ad292bff20b3386dd8f9972d7dc8cf134eef5e32019acecef"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-11/implementation.md",
+          "bytes": 2518,
+          "sha256": "c810db1600ce41bac4abfc91009ecf951d2df780a31b50b139140335940380bc"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-11/green-verification-report.md",
+          "bytes": 3136,
+          "sha256": "c57f830423721e9dad19c6811e90eee24a23e7d3ae4e22b0f3418728f4989892"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-11/regression-report.md",
+          "bytes": 2184,
+          "sha256": "694d3f5f51366d18b90693b8853c035ffbbed48da45bd6b03ab700ec51f76d24"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-11/known-limitations.md",
+          "bytes": 1475,
+          "sha256": "b3861dbaba9bc58a734a2e4d36dc4ca9bab1d59aab1a97598a1ed28b8ead22a2"
         }
       ],
       "reworkResetAt": "2026-11-26T06:08:59.820Z",
@@ -1577,7 +1692,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-26T06:13:44.654Z",
+  "updatedAt": "2026-11-26T06:54:23.794Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -1679,7 +1794,7 @@
     },
     {
       "id": "WU-07",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-03"
       ]
@@ -1711,7 +1826,7 @@
     },
     {
       "id": "WU-11",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-01"
       ]
@@ -1775,8 +1890,8 @@
       "WU-15",
       "WU-16"
     ],
-    "progressSeq": 10,
-    "syncedAt": "2026-11-26T06:13:44.385Z",
+    "progressSeq": 12,
+    "syncedAt": "2026-11-26T06:54:23.788Z",
     "units": {
       "WU-01": {
         "title": "Crate scaffold, domain types, config, clock, errors",
@@ -2181,22 +2296,42 @@
           "TS-44",
           "TS-56"
         ],
-        "status": "pending",
+        "status": "parked",
         "selectedAt": "2026-11-26T06:13:44.385Z",
         "steps": {
-          "red-tests": null,
+          "red-tests": "blocked",
           "build-and-verify": null
         },
-        "attempts": {},
+        "attempts": {
+          "red-tests": 1
+        },
         "blockedStreak": null,
-        "park": null,
+        "park": {
+          "kind": "owner-decision",
+          "blockedBy": [],
+          "blockedByUnits": [],
+          "signature": "9d48c24d82ee261eac0dec3a30610cc0bd3ab7340ee7345f2b4d7fafbaf61975",
+          "attempts": 1,
+          "detail": "Owner directed WU-07 to be implemented before WU-17 (2026-11-26). WU-17 is not blocked by a defect; it is deferred by scheduling choice and returns with orchestrate revisit once the owner decides to start it.",
+          "at": "2026-11-26T06:27:09.017Z",
+          "step": "red-tests",
+          "auto": false,
+          "resumeStatus": "pending",
+          "seq": 10
+        },
         "parkHistory": [],
         "inputFingerprint": "sha256:b86fe015474a777ecc5ba130d5d53717e76225b9d6dd9686b1fef9aefc9240b7",
-        "history": [],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "blocked",
+            "at": "2026-11-26T06:27:09.017Z"
+          }
+        ],
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T06:11:58.140Z"
+        "updatedAt": "2026-11-26T06:27:09.017Z"
       },
       "WU-18": {
         "title": "Lifecycle cleaner: audited delete claim, unlink, retry and exhaustion",
@@ -2266,23 +2401,37 @@
           "WU-03"
         ],
         "tests": [],
-        "status": "pending",
-        "selectedAt": null,
+        "status": "green",
+        "selectedAt": "2026-11-26T06:40:34.097Z",
         "steps": {
-          "red-tests": null,
-          "build-and-verify": null
+          "red-tests": "complete",
+          "build-and-verify": "complete"
         },
-        "attempts": {},
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
         "blockedStreak": null,
         "park": null,
         "parkHistory": [],
         "inputFingerprint": "sha256:e75536112109fe0131b25b8bc4bd9bd7b7d3495cf802bbbc143f05ee40306f1e",
         "priorResults": [],
-        "history": [],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "complete",
+            "at": "2026-11-26T06:32:50.523Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T06:43:19.948Z"
+          }
+        ],
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T05:50:09.585Z"
+        "updatedAt": "2026-11-26T06:43:19.948Z"
       },
       "WU-08": {
         "title": "Authorization policy, instance registry, REST read and create adapters, status endpoint, error projection",
@@ -2372,23 +2521,37 @@
           "WU-01"
         ],
         "tests": [],
-        "status": "pending",
-        "selectedAt": null,
+        "status": "green",
+        "selectedAt": "2026-11-26T06:50:34.195Z",
         "steps": {
-          "red-tests": null,
-          "build-and-verify": null
+          "red-tests": "skipped",
+          "build-and-verify": "complete"
         },
-        "attempts": {},
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
         "blockedStreak": null,
         "park": null,
         "parkHistory": [],
         "inputFingerprint": "sha256:a461f19ce8cdc86ac092014e767fdb77c986ea27a33606af526de62aaf9d2e76",
         "priorResults": [],
-        "history": [],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "skipped",
+            "at": "2026-11-26T06:50:34.144Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T06:54:23.788Z"
+          }
+        ],
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T05:50:09.585Z"
+        "updatedAt": "2026-11-26T06:54:23.788Z"
       },
       "WU-12": {
         "title": "Web foundation: types, API helpers, REST client",
@@ -2551,14 +2714,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2572,14 +2737,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2593,14 +2760,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2614,14 +2783,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2635,14 +2806,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2656,14 +2829,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2677,14 +2852,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2698,14 +2875,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2719,14 +2898,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2740,14 +2921,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2761,14 +2944,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2782,14 +2967,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2803,14 +2990,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2822,14 +3011,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2843,14 +3034,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2864,14 +3057,16 @@
         "unowned": false,
         "status": "open",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:13:40.801Z",
+        "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
           "WU-03",
           "WU-04",
           "WU-05",
-          "WU-06"
+          "WU-06",
+          "WU-07",
+          "WU-11"
         ],
         "resolvedAt": null,
         "suite": "domain_backup"
@@ -2897,5 +3092,5 @@
       "preSha256": "cc6eee0c8cf68dcc230a882f3d8bf10eeef183e3169e51cede99a19ba17022e5"
     }
   },
-  "currentUnit": "WU-17"
+  "currentUnit": "WU-11"
 }

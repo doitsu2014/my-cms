@@ -24,8 +24,8 @@ use crate::ports::audit::{
     AuditError, AuditEvent, AuditEventKind, AuditOutcome, AuditSink, Digest,
 };
 use crate::ports::job_store::{
-    AcceptResult, Components, IdemRecord, JobRow, JobStore, NewJob, ReasonCode, StoreError,
-    TransitionResult,
+    AcceptResult, Components, IdemMatch, IdemRecord, JobRow, JobStore, NewJob, ReasonCode,
+    StoreError, TransitionResult,
 };
 
 const OPERATION: &str = "backup_db_slice";
@@ -256,6 +256,61 @@ impl JobStore for DbJobStore {
         .await
         .map_err(|e| map_insert(&e))?;
         Ok(AcceptResult::Created(job))
+    }
+
+    async fn find_idempotency(
+        &self,
+        actor_sub: &str,
+        operation: &str,
+        key_digest: &str,
+        now: DateTime<Utc>,
+    ) -> Result<Option<IdemMatch>, StoreError> {
+        let row = self
+            .conn
+            .query_one(pg(
+                "SELECT job_id, request_fingerprint FROM backup_idempotency                  WHERE actor_sub = $1 AND operation = $2 AND key_digest = $3                  AND expires_at > $4",
+                vec![
+                    actor_sub.into(),
+                    operation.into(),
+                    key_digest.into(),
+                    now.into(),
+                ],
+            ))
+            .await
+            .map_err(|e| map_db(&e))?;
+        row.map(|r| {
+            Ok(IdemMatch {
+                job_id: r
+                    .try_get("", "job_id")
+                    .map_err(|_| StoreError::Persistence)?,
+                request_fingerprint: r
+                    .try_get("", "request_fingerprint")
+                    .map_err(|_| StoreError::Persistence)?,
+            })
+        })
+        .transpose()
+    }
+
+    async fn delete_expired_idempotency(
+        &self,
+        tx: &DatabaseTransaction,
+        actor_sub: &str,
+        operation: &str,
+        key_digest: &str,
+        now: DateTime<Utc>,
+    ) -> Result<(), StoreError> {
+        tx.execute(pg(
+            "DELETE FROM backup_idempotency              WHERE actor_sub = $1 AND operation = $2 AND key_digest = $3 AND expires_at <= $4",
+            vec![
+                actor_sub.into(),
+                operation.into(),
+                key_digest.into(),
+                now.into(),
+            ],
+        ))
+        .await
+        .map_err(|e| map_db(&e))?;
+        Ok(())
     }
 
     async fn get(&self, id: Uuid) -> Result<Option<JobRow>, StoreError> {

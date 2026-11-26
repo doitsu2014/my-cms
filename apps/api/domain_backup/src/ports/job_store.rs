@@ -134,7 +134,15 @@ pub struct JobRow {
     pub retain_until: DateTime<Utc>,
 }
 
-/// `Replayed` joins in WU-07 (idempotency).
+/// A stored idempotency row found for a key digest (FN-08). Digests only.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IdemMatch {
+    pub job_id: Uuid,
+    pub request_fingerprint: String,
+}
+
+/// `Replayed` is decided by the handler through [`JobStore::find_idempotency`] (WU-07),
+/// not by `accept`.
 #[derive(Debug, Clone, PartialEq)]
 pub enum AcceptResult {
     Created(JobRow),
@@ -191,6 +199,33 @@ pub trait JobStore: Send + Sync {
     ) -> Result<AcceptResult, StoreError>;
 
     async fn get(&self, id: Uuid) -> Result<Option<JobRow>, StoreError>;
+
+    /// The unexpired idempotency row for `(actor_sub, operation, key_digest)`, if any
+    /// (`expires_at > now`). A row past `expires_at` that the sweeper has not purged yet
+    /// counts as absent (IFC section 4, expiry semantics).
+    async fn find_idempotency(
+        &self,
+        _actor_sub: &str,
+        _operation: &str,
+        _key_digest: &str,
+        _now: DateTime<Utc>,
+    ) -> Result<Option<IdemMatch>, StoreError> {
+        Ok(None)
+    }
+
+    /// Delete the expired, unpurged idempotency row for the scope on the caller's
+    /// acceptance transaction, so the UNIQUE index cannot block a new request. The old
+    /// job row remains until its own retention purge.
+    async fn delete_expired_idempotency(
+        &self,
+        _tx: &DatabaseTransaction,
+        _actor_sub: &str,
+        _operation: &str,
+        _key_digest: &str,
+        _now: DateTime<Utc>,
+    ) -> Result<(), StoreError> {
+        Ok(())
+    }
 
     /// Compare-and-set on `(status, state_version)`. Writes the matching `job.*`
     /// audit row in the same transaction; an audit failure refuses the transition.

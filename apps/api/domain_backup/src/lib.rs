@@ -5,6 +5,7 @@
 #![warn(missing_debug_implementations)]
 
 pub mod domain;
+pub mod handlers;
 pub mod infra;
 pub mod lifecycle;
 pub mod migrations;

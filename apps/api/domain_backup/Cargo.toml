@@ -28,6 +28,7 @@ sea-orm = { version = "1.1.20", features = ["debug-print"] }
 sea-orm-migration = { version = "1.1.20", features = ["runtime-tokio-rustls", "sqlx-postgres"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
+sha2 = "0.10"
 thiserror = "2.0"
 tokio = { version = "1.52.3", default-features = false, features = ["macros", "rt", "sync", "time"] }
 uuid = { version = "1.23.2", features = ["v4", "serde"] }
