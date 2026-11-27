@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "unit": "WU-17",
+  "scope": "full",
+  "commands": [
+    "cargo test --workspace --no-fail-fast (from apps/api)",
+    "cargo test --workspace --no-fail-fast -- --ignored (from apps/api)"
+  ],
+  "failures": [
+    {
+      "test": "lifecycle::lifecycle_tests::ts26_unlinked_file_with_deleting_row_commits_deleted_idempotently",
+      "suite": "domain_backup",
+      "owner": "WU-18",
+      "ts": ["TS-26"]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time",
+      "suite": "domain_backup",
+      "owner": "WU-18",
+      "ts": ["TS-27"]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts29_store_outage_closes_work_and_recovery_reconciles_before_reopening",
+      "suite": "domain_backup",
+      "owner": "WU-19",
+      "ts": ["TS-29"]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts30_fake_time_enforces_retry_expiry_grace_and_sweep_boundaries",
+      "suite": "domain_backup",
+      "owner": "WU-19",
+      "ts": ["TS-30"]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts32_startup_lock_epoch_reconcile_cleanup_barrier_precedes_admissions",
+      "suite": "domain_backup",
+      "owner": "WU-19",
+      "ts": ["TS-32"]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts42_purge_at_retention_boundary_removes_eligible_metadata_but_keeps_audit",
+      "suite": "domain_backup",
+      "owner": "WU-19",
+      "ts": ["TS-42"]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts65_audit_refusal_blocks_delete_claim_delete_commit_and_purge",
+      "suite": "domain_backup",
+      "owner": "WU-19",
+      "ts": ["TS-65"]
+    },
+    {
+      "test": "infra::tests::reconciliation::ts30_deadline_inventory_includes_only_due_jobs_at_epoch",
+      "suite": "domain_backup",
+      "owner": "WU-19",
+      "ts": ["TS-30"]
+    }
+  ]
+}

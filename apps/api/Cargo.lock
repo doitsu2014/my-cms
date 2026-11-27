@@ -1258,7 +1258,10 @@ dependencies = [
 name = "domain_backup"
 version = "0.1.0"
 dependencies = [
+ "async-graphql",
  "async-trait",
+ "axum",
+ "base64",
  "chrono",
  "domain_interface",
  "sea-orm",
@@ -1270,6 +1273,7 @@ dependencies = [
  "testcontainers-modules",
  "thiserror 2.0.18",
  "tokio",
+ "tower",
  "uuid",
 ]
 

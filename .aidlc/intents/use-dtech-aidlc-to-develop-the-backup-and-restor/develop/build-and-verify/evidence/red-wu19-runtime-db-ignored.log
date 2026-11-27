@@ -1,0 +1,141 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused variable: `id`
+   --> domain_backup\src\ports\job_store.rs:264:9
+    |
+264 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `expected_epoch`
+   --> domain_backup\src\ports\job_store.rs:265:9
+    |
+265 |         expected_epoch: i64,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_epoch`
+
+warning: unused variable: `expected_status`
+   --> domain_backup\src\ports\job_store.rs:266:9
+    |
+266 |         expected_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_status`
+
+warning: unused variable: `expected_state_version`
+   --> domain_backup\src\ports\job_store.rs:267:9
+    |
+267 |         expected_state_version: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_state_version`
+
+warning: unused variable: `target_status`
+   --> domain_backup\src\ports\job_store.rs:268:9
+    |
+268 |         target_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_status`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\job_store.rs:269:9
+    |
+269 |         reason: ReasonCode,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\job_store.rs:270:9
+    |
+270 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: `domain_backup` (lib test) generated 7 warnings (run `cargo fix --lib -p domain_backup --tests` to apply 7 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d5c5af4ad2d20f53\out\domain_backup-d5c5af4ad2d20f53.exe)
+
+running 9 tests
+test infra::tests::runtime::ts32_startup_runs_lock_epoch_reconcile_cleanup_then_opens_admissions ... FAILED
+test infra::tests::runtime::ts29_recovery_reconciles_then_cleans_then_sweeps_then_reopens_without_a_new_epoch ... FAILED
+test infra::tests::runtime::ts30_the_cleaner_ticks_every_60_seconds_and_the_sweep_every_15_minutes ... FAILED
+test infra::tests::runtime::a_runtime_that_was_never_started_refuses_ticks_and_recovery ... FAILED
+test infra::tests::runtime::ts29_a_truncated_recovery_stays_closed_and_degraded_until_it_succeeds ... FAILED
+test infra::tests::runtime::ts29_a_store_outage_closes_admissions_and_stops_all_store_work ... FAILED
+test infra::tests::runtime::ts32_a_second_runtime_cannot_acquire_the_lock_and_mutates_nothing ... FAILED
+test infra::tests::runtime::ts29_three_refused_audit_sweeps_close_admissions_and_degrade ... FAILED
+test infra::tests::runtime::ts56_a_truncated_inventory_keeps_startup_closed_and_not_ready ... FAILED
+
+failures:
+
+---- infra::tests::runtime::ts32_startup_runs_lock_epoch_reconcile_cleanup_then_opens_admissions stdout ----
+
+thread 'infra::tests::runtime::ts32_startup_runs_lock_epoch_reconcile_cleanup_then_opens_admissions' (7772) panicked at domain_backup\src\infra\tests\runtime.rs:48:28:
+jobs.advance_epoch not in []
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- infra::tests::runtime::ts29_recovery_reconciles_then_cleans_then_sweeps_then_reopens_without_a_new_epoch stdout ----
+
+thread 'infra::tests::runtime::ts29_recovery_reconciles_then_cleans_then_sweeps_then_reopens_without_a_new_epoch' (45524) panicked at domain_backup\src\infra\tests\runtime.rs:263:32:
+outage: TickReport { cleaned: None, swept: None }
+
+---- infra::tests::runtime::ts30_the_cleaner_ticks_every_60_seconds_and_the_sweep_every_15_minutes stdout ----
+
+thread 'infra::tests::runtime::ts30_the_cleaner_ticks_every_60_seconds_and_the_sweep_every_15_minutes' (34064) panicked at domain_backup\src\infra\tests\runtime.rs:425:5:
+assertion `left == right` failed
+  left: None
+ right: Some([Deleted])
+
+---- infra::tests::runtime::a_runtime_that_was_never_started_refuses_ticks_and_recovery stdout ----
+
+thread 'infra::tests::runtime::a_runtime_that_was_never_started_refuses_ticks_and_recovery' (20396) panicked at domain_backup\src\infra\tests\runtime.rs:187:5:
+assertion `left == right` failed
+  left: Ok(TickReport { cleaned: None, swept: None })
+ right: Err(NotStarted)
+
+---- infra::tests::runtime::ts29_a_truncated_recovery_stays_closed_and_degraded_until_it_succeeds stdout ----
+
+thread 'infra::tests::runtime::ts29_a_truncated_recovery_stays_closed_and_degraded_until_it_succeeds' (27240) panicked at domain_backup\src\infra\tests\runtime.rs:320:32:
+outage: TickReport { cleaned: None, swept: None }
+
+---- infra::tests::runtime::ts29_a_store_outage_closes_admissions_and_stops_all_store_work stdout ----
+
+thread 'infra::tests::runtime::ts29_a_store_outage_closes_admissions_and_stops_all_store_work' (45848) panicked at domain_backup\src\infra\tests\runtime.rs:222:5:
+assertion `left == right` failed
+  left: Ok(TickReport { cleaned: None, swept: None })
+ right: Err(StoreUnavailable)
+
+---- infra::tests::runtime::ts32_a_second_runtime_cannot_acquire_the_lock_and_mutates_nothing stdout ----
+
+thread 'infra::tests::runtime::ts32_a_second_runtime_cannot_acquire_the_lock_and_mutates_nothing' (35368) panicked at domain_backup\src\infra\tests\runtime.rs:138:5:
+assertion `left == right` failed
+  left: Ok(())
+ right: Err(LockUnavailable)
+
+---- infra::tests::runtime::ts29_three_refused_audit_sweeps_close_admissions_and_degrade stdout ----
+
+thread 'infra::tests::runtime::ts29_three_refused_audit_sweeps_close_admissions_and_degrade' (20284) panicked at domain_backup\src\infra\tests\runtime.rs:369:9:
+assertion `left == right` failed: tick 1
+  left: Ok(TickReport { cleaned: None, swept: None })
+ right: Err(AuditUnavailable)
+
+---- infra::tests::runtime::ts56_a_truncated_inventory_keeps_startup_closed_and_not_ready stdout ----
+
+thread 'infra::tests::runtime::ts56_a_truncated_inventory_keeps_startup_closed_and_not_ready' (32076) panicked at domain_backup\src\infra\tests\runtime.rs:169:5:
+assertion `left == right` failed
+  left: Ok(())
+ right: Err(InventoryTruncated)
+
+
+failures:
+    infra::tests::runtime::a_runtime_that_was_never_started_refuses_ticks_and_recovery
+    infra::tests::runtime::ts29_a_store_outage_closes_admissions_and_stops_all_store_work
+    infra::tests::runtime::ts29_a_truncated_recovery_stays_closed_and_degraded_until_it_succeeds
+    infra::tests::runtime::ts29_recovery_reconciles_then_cleans_then_sweeps_then_reopens_without_a_new_epoch
+    infra::tests::runtime::ts29_three_refused_audit_sweeps_close_admissions_and_degrade
+    infra::tests::runtime::ts30_the_cleaner_ticks_every_60_seconds_and_the_sweep_every_15_minutes
+    infra::tests::runtime::ts32_a_second_runtime_cannot_acquire_the_lock_and_mutates_nothing
+    infra::tests::runtime::ts32_startup_runs_lock_epoch_reconcile_cleanup_then_opens_admissions
+    infra::tests::runtime::ts56_a_truncated_inventory_keeps_startup_closed_and_not_ready
+
+test result: FAILED. 0 passed; 9 failed; 0 ignored; 0 measured; 318 filtered out; finished in 7.67s
+
+error: test failed, to rerun pass `-p domain_backup --lib`

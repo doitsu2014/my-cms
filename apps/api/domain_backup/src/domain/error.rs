@@ -14,6 +14,7 @@ pub enum CoarseErrorCode {
     PayloadTooLarge,
     UnsupportedMediaType,
     Unavailable,
+    Unauthorized,
 }
 
 /// Internal application error; mapped to a safe body by `response::project_error`.
@@ -21,6 +22,24 @@ pub enum CoarseErrorCode {
 pub enum AppError {
     #[error("backup is disabled")]
     BackupDisabled,
+    #[error("backup capability is not ready")]
+    BackupNotReady,
+    #[error("backup operation is forbidden")]
+    Forbidden { reason_code: &'static str },
+    #[error("request validation failed")]
+    Validation { reason_code: &'static str },
+    #[error("backup service is unavailable")]
+    Unavailable { reason_code: &'static str },
+    #[error("backup request conflicts with current state")]
+    Conflict { reason_code: &'static str },
+    #[error("backup request is too large")]
+    PayloadTooLarge,
+    #[error("backup request media type is unsupported")]
+    UnsupportedMediaType,
+    #[error("backup job is not found")]
+    NotFound,
+    #[error("administrator role is required")]
+    Unauthorized,
     #[error("job not found")]
     JobNotFound,
     #[error("store unavailable")]

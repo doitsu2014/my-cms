@@ -8,7 +8,7 @@
   "depth": "full",
   "mode": "ai",
   "status": "active",
-  "currentStage": null,
+  "currentStage": "build-and-verify",
   "stages": {
     "problem-framing": {
       "status": "complete",
@@ -575,8 +575,8 @@
     "red-tests": {
       "status": "in_progress",
       "startedAt": "2026-11-22T06:56:17.617Z",
-      "detail": "WU-11 changes no behavior: apps/api/gateway/src/backup_cli.rs already fails closed, and the unit only adds TS-33 tests and comments. The 5 new TS-33 tests pass against the unchanged code by design (characterization tests), so no failing run exists. Their ability to fail is proved at build-and-verify by five mutations of handle_args (restore, create, list, unknown input returning success; create opening a connection), each caught. Diff check: 192 lines added, 0 removed, non-test changes are comments only, the six existing tests are unchanged.",
-      "reportedAt": "2026-11-26T06:50:34.144Z",
+      "detail": null,
+      "reportedAt": "2026-11-26T16:44:25.002Z",
       "reports": [
         {
           "at": "2026-11-22T07:12:29.787Z",
@@ -836,6 +836,30 @@
           "result": "skipped",
           "detail": "WU-11 changes no behavior: apps/api/gateway/src/backup_cli.rs already fails closed, and the unit only adds TS-33 tests and comments. The 5 new TS-33 tests pass against the unchanged code by design (characterization tests), so no failing run exists. Their ability to fail is proved at build-and-verify by five mutations of handle_args (restore, create, list, unknown input returning success; create opening a connection), each caught. Diff check: 192 lines added, 0 removed, non-test changes are comments only, the six existing tests are unchanged.",
           "unit": "WU-11"
+        },
+        {
+          "at": "2026-11-26T07:51:00.169Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-17"
+        },
+        {
+          "at": "2026-11-26T08:05:25.253Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-18"
+        },
+        {
+          "at": "2026-11-26T08:25:11.376Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-19"
+        },
+        {
+          "at": "2026-11-26T16:44:25.002Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-08"
         }
       ],
       "units": {
@@ -868,8 +892,8 @@
           "reportedAt": "2026-11-26T06:13:40.292Z"
         },
         "WU-17": {
-          "status": "blocked",
-          "reportedAt": "2026-11-26T06:27:09.017Z"
+          "status": "complete",
+          "reportedAt": "2026-11-26T07:51:00.169Z"
         },
         "WU-07": {
           "status": "complete",
@@ -878,6 +902,18 @@
         "WU-11": {
           "status": "skipped",
           "reportedAt": "2026-11-26T06:50:34.144Z"
+        },
+        "WU-18": {
+          "status": "complete",
+          "reportedAt": "2026-11-26T08:05:25.253Z"
+        },
+        "WU-19": {
+          "status": "complete",
+          "reportedAt": "2026-11-26T08:25:11.376Z"
+        },
+        "WU-08": {
+          "status": "complete",
+          "reportedAt": "2026-11-26T16:44:25.002Z"
         }
       },
       "artifacts": [
@@ -976,6 +1012,54 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-07/red-evidence.md",
           "bytes": 3289,
           "sha256": "4a069ac730e4ea8df60b07ca4ababab558b776b5a34304f1d779724dda292b7b"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-17/failing-tests.md",
+          "bytes": 6726,
+          "sha256": "58ea8df98f85ac56f01ac663e7608d0842c5dee5a10569ea98b874827c53a054"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-17/red-evidence.md",
+          "bytes": 4510,
+          "sha256": "1d2a66cc324fe87ab23f096b7708479737f1e6ab7c8b09bde98a32757f313193"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-18/failing-tests.md",
+          "bytes": 5853,
+          "sha256": "600fe27367aebedaedb28c8226556d023f7a0143cd4da848821e878233c10c82"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-18/red-evidence.md",
+          "bytes": 3359,
+          "sha256": "e6a1671657a457a00c6a59c0a1543ec409542237b7cc5613f6650f8541f5ea4d"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-19/failing-tests.md",
+          "bytes": 7294,
+          "sha256": "9ee568694688e8dfdf220c97fd962446bb7bcb3d4f9f73ffee0689bad90aae8b"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-19/red-evidence.md",
+          "bytes": 4593,
+          "sha256": "48bcd0277478d70e4784eb73d9f3b4454c7712ae0377dfe98ee92c501a1a7f2c"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-08/failing-tests.md",
+          "bytes": 3340,
+          "sha256": "27e1e1f7df62d10e1d4b15b26110eaaebe4158ba498ab0744bfcb57943f394f1"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-08/red-evidence.md",
+          "bytes": 3303,
+          "sha256": "3bac7fa0833df82938efb98b7fcaca24bff62cfdcb2fb41416492edb08e02c68"
         }
       ],
       "resumedAt": "2026-11-22T09:30:17.226Z",
@@ -985,7 +1069,7 @@
       "status": "in_progress",
       "startedAt": "2026-11-22T07:12:29.973Z",
       "detail": null,
-      "reportedAt": "2026-11-26T06:54:23.788Z",
+      "reportedAt": "2026-11-26T16:27:50.137Z",
       "reports": [
         {
           "at": "2026-11-22T07:26:43.015Z",
@@ -1143,6 +1227,24 @@
           "result": "complete",
           "detail": null,
           "unit": "WU-11"
+        },
+        {
+          "at": "2026-11-26T08:01:26.566Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-17"
+        },
+        {
+          "at": "2026-11-26T08:18:31.899Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-18"
+        },
+        {
+          "at": "2026-11-26T16:27:50.137Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-19"
         }
       ],
       "units": {
@@ -1177,6 +1279,18 @@
         "WU-11": {
           "status": "complete",
           "reportedAt": "2026-11-26T06:54:23.788Z"
+        },
+        "WU-17": {
+          "status": "complete",
+          "reportedAt": "2026-11-26T08:01:26.566Z"
+        },
+        "WU-18": {
+          "status": "complete",
+          "reportedAt": "2026-11-26T08:18:31.899Z"
+        },
+        "WU-19": {
+          "status": "complete",
+          "reportedAt": "2026-11-26T16:27:50.137Z"
         }
       },
       "artifacts": [
@@ -1683,6 +1797,78 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-11/known-limitations.md",
           "bytes": 1475,
           "sha256": "b3861dbaba9bc58a734a2e4d36dc4ca9bab1d59aab1a97598a1ed28b8ead22a2"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-17/implementation.md",
+          "bytes": 3430,
+          "sha256": "0f1056778785c43fcc4c5b9c1a7b4f2141e2948d71ad9ccb367fdefbd0533d35"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-17/green-verification-report.md",
+          "bytes": 5203,
+          "sha256": "70fb81a444717cd336109c55e127d898fd1898b7e08cbcbe9cedd08db98affa2"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-17/regression-report.md",
+          "bytes": 2007,
+          "sha256": "c7ceb4fe6394139c825267f105eeac7d72a778c309f4ab0fbfd61b9e80af5d13"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-17/known-limitations.md",
+          "bytes": 2195,
+          "sha256": "cec981b14c44e05bae9c2a3c0514eb736ca07e94560380a8c894e131a885d78b"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-18/implementation.md",
+          "bytes": 2607,
+          "sha256": "023cfe3176b4e943060f3a22fc9702f6e22130e7c2756b330b7c60e41be687ae"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-18/green-verification-report.md",
+          "bytes": 4196,
+          "sha256": "fb93182e21e5bec7896ea8d1993f7af41739e9f9b8a4b16ec1bf76f1da1f5a7b"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-18/regression-report.md",
+          "bytes": 2336,
+          "sha256": "3fd8c455e9e95d71f4d5be4756e8be6837e3fc2c8c59956ef366c837b9e03c90"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-18/known-limitations.md",
+          "bytes": 1976,
+          "sha256": "07aff802ebb3bb756dc75ab025e5a78cd61245c1ef6f6095d724e1187e45dac3"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-19/implementation.md",
+          "bytes": 3445,
+          "sha256": "f97f0b655f8608d22e6e9230565735f2edb82210f9f809d138ed0fb0776f3a63"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-19/green-verification-report.md",
+          "bytes": 5458,
+          "sha256": "7757ad65e58319b889d1efa06c3f2da94ce9c156dcc425572f01fe07e1dc468f"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-19/regression-report.md",
+          "bytes": 1700,
+          "sha256": "b05bf597a3bab711753289356b5adcad6c5c524bdd9dfaf24fc17d390842b9d0"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-19/known-limitations.md",
+          "bytes": 2371,
+          "sha256": "2e236e85f5a982be9eb2dae72fc322ec6d2e30802098b4356927193b5d156dac"
         }
       ],
       "reworkResetAt": "2026-11-26T06:08:59.820Z",
@@ -1692,7 +1878,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-26T06:54:23.794Z",
+  "updatedAt": "2026-11-26T20:34:08.607Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -1769,7 +1955,7 @@
     },
     {
       "id": "WU-17",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-05",
         "WU-06"
@@ -1777,7 +1963,7 @@
     },
     {
       "id": "WU-18",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-06",
         "WU-17"
@@ -1785,7 +1971,7 @@
     },
     {
       "id": "WU-19",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-06",
         "WU-17",
@@ -1890,14 +2076,14 @@
       "WU-15",
       "WU-16"
     ],
-    "progressSeq": 12,
-    "syncedAt": "2026-11-26T06:54:23.788Z",
+    "progressSeq": 15,
+    "syncedAt": "2026-11-26T20:34:08.117Z",
     "units": {
       "WU-01": {
         "title": "Crate scaffold, domain types, config, clock, errors",
         "dependsOn": [],
         "tests": [],
-        "status": "green",
+        "status": "verified",
         "selectedAt": "2026-11-26T05:54:13.061Z",
         "steps": {
           "red-tests": "skipped",
@@ -1938,7 +2124,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T05:57:41.895Z"
+        "updatedAt": "2026-11-26T16:27:50.137Z"
       },
       "WU-02": {
         "title": "Migrations, entities, trigger guards, migrator table name",
@@ -1946,7 +2132,7 @@
           "WU-01"
         ],
         "tests": [],
-        "status": "green",
+        "status": "verified",
         "selectedAt": "2026-11-26T06:00:04.642Z",
         "steps": {
           "red-tests": "skipped",
@@ -1987,7 +2173,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T06:00:05.084Z"
+        "updatedAt": "2026-11-26T16:27:50.137Z"
       },
       "WU-03": {
         "title": "Job store with CAS, claim, concurrency index",
@@ -1995,7 +2181,7 @@
           "WU-02"
         ],
         "tests": [],
-        "status": "green",
+        "status": "verified",
         "selectedAt": "2026-11-26T06:13:08.871Z",
         "steps": {
           "red-tests": "skipped",
@@ -2052,7 +2238,7 @@
         ],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T06:13:31.298Z"
+        "updatedAt": "2026-11-26T16:27:50.137Z"
       },
       "WU-04": {
         "title": "Allocation ledger, fixture storage, namespace lock",
@@ -2061,7 +2247,7 @@
           "WU-03"
         ],
         "tests": [],
-        "status": "green",
+        "status": "verified",
         "selectedAt": "2026-11-26T06:13:38.439Z",
         "steps": {
           "red-tests": "skipped",
@@ -2118,7 +2304,7 @@
         ],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T06:13:38.901Z"
+        "updatedAt": "2026-11-26T16:27:50.137Z"
       },
       "WU-05": {
         "title": "Worker, fixture capture, terminal rules, deadline",
@@ -2127,7 +2313,7 @@
           "WU-04"
         ],
         "tests": [],
-        "status": "green",
+        "status": "verified",
         "selectedAt": "2026-11-26T06:13:39.418Z",
         "steps": {
           "red-tests": "skipped",
@@ -2184,7 +2370,7 @@
         ],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T06:13:39.831Z"
+        "updatedAt": "2026-11-26T16:27:50.137Z"
       },
       "WU-06": {
         "title": "Allocation reconciliation and retention store contracts",
@@ -2198,7 +2384,7 @@
           "TS-56",
           "TS-65"
         ],
-        "status": "green",
+        "status": "verified",
         "selectedAt": "2026-11-26T06:13:40.372Z",
         "steps": {
           "red-tests": "skipped",
@@ -2278,7 +2464,7 @@
         ],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T06:13:40.801Z"
+        "updatedAt": "2026-11-26T16:27:50.137Z"
       },
       "WU-17": {
         "title": "Lifecycle reconciler: startup and recovery reconciliation, job fencing, orphan discovery",
@@ -2296,42 +2482,59 @@
           "TS-44",
           "TS-56"
         ],
-        "status": "parked",
-        "selectedAt": "2026-11-26T06:13:44.385Z",
+        "status": "verified",
+        "selectedAt": "2026-11-26T08:00:37.564Z",
         "steps": {
-          "red-tests": "blocked",
-          "build-and-verify": null
+          "red-tests": "complete",
+          "build-and-verify": "complete"
         },
         "attempts": {
-          "red-tests": 1
+          "red-tests": 2,
+          "build-and-verify": 1
         },
         "blockedStreak": null,
-        "park": {
-          "kind": "owner-decision",
-          "blockedBy": [],
-          "blockedByUnits": [],
-          "signature": "9d48c24d82ee261eac0dec3a30610cc0bd3ab7340ee7345f2b4d7fafbaf61975",
-          "attempts": 1,
-          "detail": "Owner directed WU-07 to be implemented before WU-17 (2026-11-26). WU-17 is not blocked by a defect; it is deferred by scheduling choice and returns with orchestrate revisit once the owner decides to start it.",
-          "at": "2026-11-26T06:27:09.017Z",
-          "step": "red-tests",
-          "auto": false,
-          "resumeStatus": "pending",
-          "seq": 10
-        },
-        "parkHistory": [],
+        "park": null,
+        "parkHistory": [
+          {
+            "kind": "owner-decision",
+            "blockedBy": [],
+            "blockedByUnits": [],
+            "signature": "9d48c24d82ee261eac0dec3a30610cc0bd3ab7340ee7345f2b4d7fafbaf61975",
+            "attempts": 1,
+            "detail": "Owner directed WU-07 to be implemented before WU-17 (2026-11-26). WU-17 is not blocked by a defect; it is deferred by scheduling choice and returns with orchestrate revisit once the owner decides to start it.",
+            "at": "2026-11-26T06:27:09.017Z",
+            "step": "red-tests",
+            "auto": false,
+            "resumeStatus": "pending",
+            "seq": 10,
+            "revisitedAt": "2026-11-26T07:43:39.714Z",
+            "revisitReason": "manual",
+            "revisitDetail": "Duc Tran (owner) directed in chat on 2026-11-26: run the next three work units (WU-17, WU-18, WU-19) now that WU-07 is done. The earlier scheduling deferral no longer applies. The CLI in AI mode records this as AI Orchestrator, so the release gate lists it as unconfirmed.",
+            "decidedBy": "AI Orchestrator"
+          }
+        ],
         "inputFingerprint": "sha256:b86fe015474a777ecc5ba130d5d53717e76225b9d6dd9686b1fef9aefc9240b7",
         "history": [
           {
             "stage": "red-tests",
             "result": "blocked",
             "at": "2026-11-26T06:27:09.017Z"
+          },
+          {
+            "stage": "red-tests",
+            "result": "complete",
+            "at": "2026-11-26T07:51:00.169Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T08:01:26.566Z"
           }
         ],
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T06:27:09.017Z"
+        "updatedAt": "2026-11-26T16:27:50.137Z"
       },
       "WU-18": {
         "title": "Lifecycle cleaner: audited delete claim, unlink, retry and exhaustion",
@@ -2346,22 +2549,36 @@
           "TS-44",
           "TS-65"
         ],
-        "status": "pending",
-        "selectedAt": null,
+        "status": "verified",
+        "selectedAt": "2026-11-26T08:15:40.806Z",
         "steps": {
-          "red-tests": null,
-          "build-and-verify": null
+          "red-tests": "complete",
+          "build-and-verify": "complete"
         },
-        "attempts": {},
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
         "blockedStreak": null,
         "park": null,
         "parkHistory": [],
         "inputFingerprint": "sha256:acb8c3b9c5c5eb708c46809c8311b41022f0fcebff3e787b9ed8f3e24fbd5716",
-        "history": [],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "complete",
+            "at": "2026-11-26T08:05:25.253Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T08:18:31.899Z"
+          }
+        ],
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T06:11:58.140Z"
+        "updatedAt": "2026-11-26T16:27:50.137Z"
       },
       "WU-19": {
         "title": "Lifecycle sweeper and runtime: expiry and deadline sweeps, retention purge, startup barrier and outage recovery",
@@ -2378,22 +2595,36 @@
           "TS-42",
           "TS-65"
         ],
-        "status": "pending",
-        "selectedAt": null,
+        "status": "verified",
+        "selectedAt": "2026-11-26T08:25:11.427Z",
         "steps": {
-          "red-tests": null,
-          "build-and-verify": null
+          "red-tests": "complete",
+          "build-and-verify": "complete"
         },
-        "attempts": {},
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
         "blockedStreak": null,
         "park": null,
         "parkHistory": [],
         "inputFingerprint": "sha256:ca94a160e5afc8bc75c25ac79b449197080a10ca345e3e0ab8659cae3fb1d758",
-        "history": [],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "complete",
+            "at": "2026-11-26T08:25:11.376Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-26T16:27:50.137Z"
+          }
+        ],
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T06:11:58.140Z"
+        "updatedAt": "2026-11-26T16:27:50.137Z"
       },
       "WU-07": {
         "title": "Idempotency, atomic acceptance",
@@ -2401,7 +2632,7 @@
           "WU-03"
         ],
         "tests": [],
-        "status": "green",
+        "status": "verified",
         "selectedAt": "2026-11-26T06:40:34.097Z",
         "steps": {
           "red-tests": "complete",
@@ -2431,7 +2662,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T06:43:19.948Z"
+        "updatedAt": "2026-11-26T16:27:50.137Z"
       },
       "WU-08": {
         "title": "Authorization policy, instance registry, REST read and create adapters, status endpoint, error projection",
@@ -2443,19 +2674,27 @@
           "WU-07"
         ],
         "tests": [],
-        "status": "pending",
-        "selectedAt": null,
+        "status": "red",
+        "selectedAt": "2026-11-26T16:44:37.377Z",
         "steps": {
-          "red-tests": null,
+          "red-tests": "complete",
           "build-and-verify": null
         },
-        "attempts": {},
+        "attempts": {
+          "red-tests": 1
+        },
         "blockedStreak": null,
         "park": null,
         "parkHistory": [],
         "inputFingerprint": "sha256:82f4fb922aa466d2beeb1ab25b34102bc406d01a6adfbb5b06bda72e197f8997",
         "priorResults": [],
-        "history": [],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "complete",
+            "at": "2026-11-26T16:44:25.002Z"
+          }
+        ],
         "reopened": [
           {
             "at": "2026-11-26T06:11:58.140Z",
@@ -2465,7 +2704,7 @@
         ],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T06:11:58.140Z"
+        "updatedAt": "2026-11-26T16:44:25.002Z"
       },
       "WU-09": {
         "title": "Disabled capabilities, download denial, previews",
@@ -2521,7 +2760,7 @@
           "WU-01"
         ],
         "tests": [],
-        "status": "green",
+        "status": "verified",
         "selectedAt": "2026-11-26T06:50:34.195Z",
         "steps": {
           "red-tests": "skipped",
@@ -2551,7 +2790,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T06:54:23.788Z"
+        "updatedAt": "2026-11-26T16:27:50.137Z"
       },
       "WU-12": {
         "title": "Web foundation: types, API helpers, REST client",
@@ -2712,7 +2951,7 @@
         ],
         "owner": "WU-17",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
         "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
@@ -2725,7 +2964,7 @@
           "WU-07",
           "WU-11"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T08:01:26.566Z",
         "suite": "domain_backup"
       },
       {
@@ -2735,7 +2974,7 @@
         ],
         "owner": "WU-17",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
         "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
@@ -2748,7 +2987,7 @@
           "WU-07",
           "WU-11"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T08:01:26.566Z",
         "suite": "domain_backup"
       },
       {
@@ -2758,7 +2997,7 @@
         ],
         "owner": "WU-17",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
         "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
@@ -2771,7 +3010,7 @@
           "WU-07",
           "WU-11"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T08:01:26.566Z",
         "suite": "domain_backup"
       },
       {
@@ -2781,7 +3020,7 @@
         ],
         "owner": "WU-17",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
         "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
@@ -2794,7 +3033,7 @@
           "WU-07",
           "WU-11"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T08:01:26.566Z",
         "suite": "domain_backup"
       },
       {
@@ -2804,7 +3043,7 @@
         ],
         "owner": "WU-17",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
         "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
@@ -2817,7 +3056,7 @@
           "WU-07",
           "WU-11"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T08:01:26.566Z",
         "suite": "domain_backup"
       },
       {
@@ -2827,9 +3066,9 @@
         ],
         "owner": "WU-18",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:54:23.788Z",
+        "lastSeen": "2026-11-26T08:01:26.566Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
@@ -2838,9 +3077,10 @@
           "WU-05",
           "WU-06",
           "WU-07",
-          "WU-11"
+          "WU-11",
+          "WU-17"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T08:18:31.899Z",
         "suite": "domain_backup"
       },
       {
@@ -2850,9 +3090,9 @@
         ],
         "owner": "WU-18",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:54:23.788Z",
+        "lastSeen": "2026-11-26T08:01:26.566Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
@@ -2861,9 +3101,10 @@
           "WU-05",
           "WU-06",
           "WU-07",
-          "WU-11"
+          "WU-11",
+          "WU-17"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T08:18:31.899Z",
         "suite": "domain_backup"
       },
       {
@@ -2873,9 +3114,9 @@
         ],
         "owner": "WU-19",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:54:23.788Z",
+        "lastSeen": "2026-11-26T08:18:31.899Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
@@ -2884,9 +3125,11 @@
           "WU-05",
           "WU-06",
           "WU-07",
-          "WU-11"
+          "WU-11",
+          "WU-17",
+          "WU-18"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T16:27:50.137Z",
         "suite": "domain_backup"
       },
       {
@@ -2896,9 +3139,9 @@
         ],
         "owner": "WU-19",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:54:23.788Z",
+        "lastSeen": "2026-11-26T08:01:26.566Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
@@ -2907,9 +3150,10 @@
           "WU-05",
           "WU-06",
           "WU-07",
-          "WU-11"
+          "WU-11",
+          "WU-17"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T08:18:31.899Z",
         "suite": "domain_backup"
       },
       {
@@ -2919,9 +3163,9 @@
         ],
         "owner": "WU-19",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:54:23.788Z",
+        "lastSeen": "2026-11-26T08:18:31.899Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
@@ -2930,9 +3174,11 @@
           "WU-05",
           "WU-06",
           "WU-07",
-          "WU-11"
+          "WU-11",
+          "WU-17",
+          "WU-18"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T16:27:50.137Z",
         "suite": "domain_backup"
       },
       {
@@ -2942,9 +3188,9 @@
         ],
         "owner": "WU-19",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:54:23.788Z",
+        "lastSeen": "2026-11-26T08:18:31.899Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
@@ -2953,9 +3199,11 @@
           "WU-05",
           "WU-06",
           "WU-07",
-          "WU-11"
+          "WU-11",
+          "WU-17",
+          "WU-18"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T16:27:50.137Z",
         "suite": "domain_backup"
       },
       {
@@ -2965,9 +3213,9 @@
         ],
         "owner": "WU-19",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:54:23.788Z",
+        "lastSeen": "2026-11-26T08:01:26.566Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
@@ -2976,9 +3224,10 @@
           "WU-05",
           "WU-06",
           "WU-07",
-          "WU-11"
+          "WU-11",
+          "WU-17"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T08:18:31.899Z",
         "suite": "domain_backup"
       },
       {
@@ -2988,7 +3237,7 @@
         ],
         "owner": "WU-17",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
         "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
@@ -3001,7 +3250,7 @@
           "WU-07",
           "WU-11"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T08:01:26.566Z",
         "suite": "domain_backup"
       },
       {
@@ -3009,7 +3258,7 @@
         "ts": [],
         "owner": "WU-17",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
         "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
@@ -3022,7 +3271,7 @@
           "WU-07",
           "WU-11"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T08:01:26.566Z",
         "suite": "domain_backup"
       },
       {
@@ -3032,7 +3281,7 @@
         ],
         "owner": "WU-17",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
         "lastSeen": "2026-11-26T06:54:23.788Z",
         "reportedBy": [
@@ -3045,7 +3294,7 @@
           "WU-07",
           "WU-11"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T08:01:26.566Z",
         "suite": "domain_backup"
       },
       {
@@ -3055,9 +3304,9 @@
         ],
         "owner": "WU-19",
         "unowned": false,
-        "status": "open",
+        "status": "resolved",
         "firstSeen": "2026-11-26T05:57:41.895Z",
-        "lastSeen": "2026-11-26T06:54:23.788Z",
+        "lastSeen": "2026-11-26T08:18:31.899Z",
         "reportedBy": [
           "WU-01",
           "WU-02",
@@ -3066,9 +3315,27 @@
           "WU-05",
           "WU-06",
           "WU-07",
-          "WU-11"
+          "WU-11",
+          "WU-17",
+          "WU-18"
         ],
-        "resolvedAt": null,
+        "resolvedAt": "2026-11-26T16:27:50.137Z",
+        "suite": "domain_backup"
+      },
+      {
+        "test": "lifecycle::lifecycle_tests::ts65_audit_refusal_blocks_purge",
+        "ts": [
+          "TS-65"
+        ],
+        "owner": "WU-19",
+        "unowned": false,
+        "status": "resolved",
+        "firstSeen": "2026-11-26T08:18:31.899Z",
+        "lastSeen": "2026-11-26T08:18:31.899Z",
+        "reportedBy": [
+          "WU-18"
+        ],
+        "resolvedAt": "2026-11-26T16:27:50.137Z",
         "suite": "domain_backup"
       }
     ],
@@ -3092,5 +3359,5 @@
       "preSha256": "cc6eee0c8cf68dcc230a882f3d8bf10eeef183e3169e51cede99a19ba17022e5"
     }
   },
-  "currentUnit": "WU-11"
+  "currentUnit": "WU-08"
 }

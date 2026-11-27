@@ -24,8 +24,8 @@ use crate::ports::audit::{
     AuditError, AuditEvent, AuditEventKind, AuditOutcome, AuditSink, Digest,
 };
 use crate::ports::job_store::{
-    AcceptResult, Components, IdemMatch, IdemRecord, JobRow, JobStore, NewJob, ReasonCode,
-    StoreError, TransitionResult,
+    AcceptResult, Components, IdemMatch, IdemRecord, JobCursor, JobRow, JobStore, NewJob,
+    ReasonCode, StoreError, TransitionResult,
 };
 
 const OPERATION: &str = "backup_db_slice";
@@ -323,6 +323,37 @@ impl JobStore for DbJobStore {
         row.as_ref().map(job_row).transpose()
     }
 
+    async fn list(
+        &self,
+        instance: &str,
+        limit: u32,
+        before: Option<JobCursor>,
+    ) -> Result<Vec<JobRow>, StoreError> {
+        let limit = i64::from(limit.clamp(1, 101));
+        let (sql, values) = match before {
+            Some(cursor) => (
+                format!("SELECT {JOB_COLUMNS} FROM backup_jobs WHERE instance_id = $1 AND (created_at, id) < ($2, $3) ORDER BY created_at DESC, id DESC LIMIT $4"),
+                vec![
+                    instance.to_owned().into(),
+                    cursor.created_at.into(),
+                    cursor.id.into(),
+                    limit.into(),
+                ],
+            ),
+            None => (
+                format!("SELECT {JOB_COLUMNS} FROM backup_jobs WHERE instance_id = $1 ORDER BY created_at DESC, id DESC LIMIT $2"),
+                vec![instance.to_owned().into(), limit.into()],
+            ),
+        };
+        self.conn
+            .query_all(pg(&sql, values))
+            .await
+            .map_err(|e| map_db(&e))?
+            .iter()
+            .map(job_row)
+            .collect()
+    }
+
     async fn transition(
         &self,
         id: Uuid,
@@ -465,5 +496,140 @@ impl JobStore for DbJobStore {
         }
         tx.commit().await.map_err(|e| map_db(&e))?;
         Ok(Some(job))
+    }
+
+    async fn advance_epoch(&self, now: DateTime<Utc>) -> Result<i64, StoreError> {
+        // One statement: creates epoch 1 on a fresh database, otherwise increments the
+        // singleton row. Two concurrent callers get two distinct epochs.
+        let row = self
+            .conn
+            .query_one(pg(
+                "INSERT INTO backup_epoch (id, epoch, started_at) VALUES (1, 1, $1) \
+                 ON CONFLICT (id) DO UPDATE \
+                 SET epoch = backup_epoch.epoch + 1, started_at = EXCLUDED.started_at \
+                 RETURNING epoch",
+                vec![now.into()],
+            ))
+            .await
+            .map_err(|e| map_db(&e))?
+            .ok_or(StoreError::Persistence)?;
+        row.try_get("", "epoch")
+            .map_err(|_| StoreError::Persistence)
+    }
+
+    async fn list_for_reconciliation(&self) -> Result<Vec<JobRow>, StoreError> {
+        // Complete and unfiltered. A failed query is an error, never an empty inventory.
+        let sql = format!("SELECT {JOB_COLUMNS} FROM backup_jobs ORDER BY created_at, id");
+        let rows = self
+            .conn
+            .query_all(pg(&sql, vec![]))
+            .await
+            .map_err(|e| map_db(&e))?;
+        rows.iter().map(job_row).collect()
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    async fn fence_job(
+        &self,
+        id: Uuid,
+        expected_epoch: i64,
+        expected_status: BackupJobStatus,
+        expected_state_version: i64,
+        target_status: BackupJobStatus,
+        reason: ReasonCode,
+        now: DateTime<Utc>,
+    ) -> Result<TransitionResult, StoreError> {
+        if !is_allowed(expected_status, target_status) {
+            return Err(StoreError::IllegalTransition {
+                from: expected_status,
+                to: target_status,
+            });
+        }
+        let tx = self.conn.begin().await.map_err(|e| map_db(&e))?;
+        let sql = format!(
+            "UPDATE backup_jobs SET status = $1, state_version = state_version + 1, \
+             updated_at = $2, finished_at = COALESCE(finished_at, $2), reason_code = $3 \
+             WHERE id = $4 AND epoch = $5 AND status = $6 AND state_version = $7 \
+             RETURNING {JOB_COLUMNS}"
+        );
+        let updated = tx
+            .query_one(pg(
+                &sql,
+                vec![
+                    status_to_wire(target_status).into(),
+                    now.into(),
+                    reason.as_str().to_owned().into(),
+                    id.into(),
+                    expected_epoch.into(),
+                    status_to_wire(expected_status).into(),
+                    expected_state_version.into(),
+                ],
+            ))
+            .await;
+        let row = match updated {
+            Ok(Some(r)) => r,
+            Ok(None) => {
+                rollback(tx).await;
+                return Ok(TransitionResult::Lost);
+            }
+            Err(e) => {
+                rollback(tx).await;
+                return Err(map_db(&e));
+            }
+        };
+        let job = match job_row(&row) {
+            Ok(j) => j,
+            Err(e) => {
+                rollback(tx).await;
+                return Err(e);
+            }
+        };
+        // The fence audit row records only this job transition and commits with it.
+        let audited = self
+            .audit
+            .record(
+                Some(&tx),
+                AuditEvent {
+                    occurred_at: now,
+                    actor_sub: None,
+                    instance_id: job.instance_id.clone(),
+                    job_id: Some(job.id),
+                    allocation_id: None,
+                    operation: "reconciliation".to_owned(),
+                    event: AuditEventKind::ReconcileFenced,
+                    outcome: AuditOutcome::Success,
+                    reason_code: job.reason_code.clone(),
+                    digest: None,
+                    correlation_id: job.correlation_id.clone(),
+                },
+            )
+            .await
+            .map_err(map_audit);
+        if let Err(e) = audited {
+            rollback(tx).await;
+            return Err(e);
+        }
+        tx.commit().await.map_err(|e| map_db(&e))?;
+        Ok(TransitionResult::Applied)
+    }
+
+    async fn list_deadline_expired(
+        &self,
+        now: DateTime<Utc>,
+        epoch: i64,
+    ) -> Result<Vec<JobRow>, StoreError> {
+        // `deadline_at <= now`: a job exactly at its deadline is eligible. Complete for
+        // the epoch; a failed query is an error, never an empty list.
+        let sql = format!(
+            "SELECT {JOB_COLUMNS} FROM backup_jobs \
+             WHERE status = 'running' AND deadline_at IS NOT NULL AND deadline_at <= $1 \
+             AND epoch = $2 ORDER BY deadline_at, id"
+        );
+        let rows = self
+            .conn
+            .query_all(pg(&sql, vec![now.into(), epoch.into()]))
+            .await
+            .map_err(|e| map_db(&e))?;
+        rows.iter().map(job_row).collect()
     }
 }

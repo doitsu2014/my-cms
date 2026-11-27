@@ -1,0 +1,59 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+   Compiling domain_backup v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_backup)
+warning: unused imports: `JobKind` and `project_status`
+ --> domain_backup\src\handlers\job_response.rs:5:29
+  |
+5 | use crate::domain::status::{project_status, BackupJobStatus, JobKind};
+  |                             ^^^^^^^^^^^^^^                   ^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `measured_progress` is never used
+  --> domain_backup\src\handlers\job_response.rs:66:4
+   |
+66 | fn measured_progress(components: &Components) -> Option<MeasuredProgress> {
+   |    ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `domain_backup` (lib test) generated 2 warnings (run `cargo fix --lib -p domain_backup --tests` to apply 1 suggestion)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.99s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d5c5af4ad2d20f53\out\domain_backup-d5c5af4ad2d20f53.exe)
+
+running 3 tests
+
+thread 'handlers::job_response::tests::ts49_projection_reports_progress_only_for_a_measured_database_component' (34600) panicked at domain_backup\src\handlers\job_response.rs:151:9:
+assertion `left == right` failed
+  left: Some(MeasuredProgress { completed: 0, total: 0 })
+ right: Some(MeasuredProgress { completed: 1, total: 1 })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'handlers::job_response::tests::ts12b_projection_refuses_success_and_recovery_required' (16204) panicked at domain_backup\src\handlers\job_response.rs:131:13:
+assertion `left == right` failed
+  left: Ok(JobResponse { id: "00000000-0000-0000-0000-000000000001", instance_id: "local-1", instance_label: "Local", operation: "backup_db_slice", status: Succeeded, reason_code: None, synthetic: true, download_eligible: true, components: Components([]), progress: Some(MeasuredProgress { completed: 0, total: 0 }), correlation_id: "corr-1", created_at: "2027-01-15T08:00:00+00:00", started_at: None, finished_at: None })
+ right: Err(UnreachableStatus(Succeeded))
+
+thread 'handlers::job_response::tests::ts49_projection_omits_actor_and_unmeasured_progress_and_denies_download' (21932) panicked at domain_backup\src\handlers\job_response.rs:116:9:
+assertion `left == right` failed
+  left: Object {"completed": Number(0), "total": Number(0)}
+ right: Null
+test handlers::job_response::tests::ts12b_projection_refuses_success_and_recovery_required ... FAILED
+test handlers::job_response::tests::ts49_projection_reports_progress_only_for_a_measured_database_component ... FAILED
+test handlers::job_response::tests::ts49_projection_omits_actor_and_unmeasured_progress_and_denies_download ... FAILED
+
+failures:
+
+failures:
+    handlers::job_response::tests::ts12b_projection_refuses_success_and_recovery_required
+    handlers::job_response::tests::ts49_projection_omits_actor_and_unmeasured_progress_and_denies_download
+    handlers::job_response::tests::ts49_projection_reports_progress_only_for_a_measured_database_component
+
+test result: FAILED. 0 passed; 3 failed; 0 ignored; 0 measured; 331 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p domain_backup --lib`

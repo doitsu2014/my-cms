@@ -11,6 +11,7 @@ pub mod lifecycle;
 pub mod migrations;
 pub mod migrations_cli;
 pub mod ports;
+pub mod service;
 
 #[cfg(test)]
 mod test_db;

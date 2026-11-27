@@ -7,11 +7,17 @@
 mod alloc_support;
 mod allocation_store;
 mod audit_sink;
+mod cleaner;
 mod fs_fixture_storage;
 mod fs_namespace_lock;
 mod fs_support;
+mod http_api;
 mod job_store;
+mod lifecycle_support;
+mod reconciler;
 mod reconciliation;
 mod retention;
+mod runtime;
 mod support;
+mod sweeper;
 mod worker;

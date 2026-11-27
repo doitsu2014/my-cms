@@ -21,7 +21,10 @@ path = "src/lib.rs"
 #   spine's later choices (WU-02 and WU-05 onward). They are NOT added in WU-01 because
 #   no WU-01 code uses them; add them in the unit that first needs them.
 [dependencies]
+async-graphql = { version = "7.2.1", features = ["dynamic-schema"] }
 async-trait = "0.1"
+axum = { version = "0.8.9", features = ["http2", "tracing"] }
+base64 = "0.22.1"
 chrono = { version = "0.4.44", features = ["serde"] }
 domain_interface = { path = "../domain_interface" }
 sea-orm = { version = "1.1.20", features = ["debug-print"] }
@@ -34,6 +37,8 @@ tokio = { version = "1.52.3", default-features = false, features = ["macros", "r
 uuid = { version = "1.23.2", features = ["v4", "serde"] }
 
 [dev-dependencies]
+async-graphql = { version = "7.2.1", features = ["dynamic-schema"] }
+tower = { version = "0.5.3", features = ["util"] }
 testcontainers = "0.27.3"
 testcontainers-modules = { version = "0.15.0", features = ["postgres"] }
 tokio = { version = "1.52.3", features = ["full", "test-util"] }

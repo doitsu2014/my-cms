@@ -1,0 +1,194 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused import: `ConnectionTrait`
+  --> domain_backup\src\infra\tests\cleaner.rs:32:15
+   |
+32 | use sea_orm::{ConnectionTrait, DatabaseConnection, DatabaseTransaction};
+   |               ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `id`
+   --> domain_backup\src\ports\job_store.rs:264:9
+    |
+264 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `expected_epoch`
+   --> domain_backup\src\ports\job_store.rs:265:9
+    |
+265 |         expected_epoch: i64,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_epoch`
+
+warning: unused variable: `expected_status`
+   --> domain_backup\src\ports\job_store.rs:266:9
+    |
+266 |         expected_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_status`
+
+warning: unused variable: `expected_state_version`
+   --> domain_backup\src\ports\job_store.rs:267:9
+    |
+267 |         expected_state_version: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_state_version`
+
+warning: unused variable: `target_status`
+   --> domain_backup\src\ports\job_store.rs:268:9
+    |
+268 |         target_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_status`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\job_store.rs:269:9
+    |
+269 |         reason: ReasonCode,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\job_store.rs:270:9
+    |
+270 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\sweeper.rs:17:1
+   |
+17 | pub struct Sweeper;
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> domain_backup\src\lib.rs:5:9
+   |
+ 5 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_backup` (lib test) generated 9 warnings (run `cargo fix --lib -p domain_backup --tests` to apply 8 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.54s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d5c5af4ad2d20f53\out\domain_backup-d5c5af4ad2d20f53.exe)
+
+running 12 tests
+test infra::tests::cleaner::ts65_a_refused_claim_audit_blocks_the_claim_and_the_unlink ... FAILED
+test infra::tests::cleaner::ts21_full_sequence_an_existing_file_is_removed_only_after_the_audited_claim ... FAILED
+test infra::tests::cleaner::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time ... FAILED
+test infra::tests::cleaner::ts25_stale_deleting_claim_is_reset_then_reclaimed_with_a_fresh_audited_claim ... FAILED
+test infra::tests::cleaner::ts26_failed_deleted_commit_after_unlink_leaves_deleting_and_restart_recovers_idempotently ... FAILED
+test infra::tests::cleaner::ts26_a_missing_file_counts_as_removed_and_commits_deleted_with_audit ... FAILED
+test infra::tests::cleaner::ts30_retry_is_due_exactly_at_its_backoff_time_and_not_before ... FAILED
+test infra::tests::cleaner::ts27a_a_retry_that_succeeds_commits_deleted_and_keeps_the_attempt_count ... FAILED
+test infra::tests::cleaner::rows_that_are_not_claimable_are_lost_without_unlink_or_audit ... FAILED
+test infra::tests::cleaner::clean_due_handles_due_rows_and_leaves_future_retries_untouched ... FAILED
+test infra::tests::cleaner::ts20_full_sequence_fence_reconcile_claim_then_deleted_for_a_missing_file ... FAILED
+test infra::tests::cleaner::ts23_orphan_is_removed_only_at_or_after_its_grace_and_after_an_audited_claim ... FAILED
+
+failures:
+
+---- infra::tests::cleaner::ts65_a_refused_claim_audit_blocks_the_claim_and_the_unlink stdout ----
+
+thread 'infra::tests::cleaner::ts65_a_refused_claim_audit_blocks_the_claim_and_the_unlink' (11344) panicked at domain_backup\src\infra\tests\cleaner.rs:575:5:
+assertion `left == right` failed
+  left: Ok(NotDue)
+ right: Err(AuditUnavailable)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- infra::tests::cleaner::ts21_full_sequence_an_existing_file_is_removed_only_after_the_audited_claim stdout ----
+
+thread 'infra::tests::cleaner::ts21_full_sequence_an_existing_file_is_removed_only_after_the_audited_claim' (6976) panicked at domain_backup\src\infra\tests\cleaner.rs:646:5:
+assertion `left == right` failed
+  left: Ok([])
+ right: Ok([Deleted])
+
+---- infra::tests::cleaner::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time stdout ----
+
+thread 'infra::tests::cleaner::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time' (7036) panicked at domain_backup\src\infra\tests\cleaner.rs:376:5:
+assertion `left == right` failed
+  left: Ok([])
+ right: Ok([RetryScheduled])
+
+---- infra::tests::cleaner::ts25_stale_deleting_claim_is_reset_then_reclaimed_with_a_fresh_audited_claim stdout ----
+
+thread 'infra::tests::cleaner::ts25_stale_deleting_claim_is_reset_then_reclaimed_with_a_fresh_audited_claim' (36960) panicked at domain_backup\src\infra\tests\cleaner.rs:678:5:
+assertion `left == right` failed
+  left: Ok([])
+ right: Ok([Deleted])
+
+---- infra::tests::cleaner::ts26_failed_deleted_commit_after_unlink_leaves_deleting_and_restart_recovers_idempotently stdout ----
+
+thread 'infra::tests::cleaner::ts26_failed_deleted_commit_after_unlink_leaves_deleting_and_restart_recovers_idempotently' (44636) panicked at domain_backup\src\infra\tests\cleaner.rs:271:5:
+assertion `left == right` failed
+  left: Ok(NotDue)
+ right: Err(AuditUnavailable)
+
+---- infra::tests::cleaner::ts26_a_missing_file_counts_as_removed_and_commits_deleted_with_audit stdout ----
+
+thread 'infra::tests::cleaner::ts26_a_missing_file_counts_as_removed_and_commits_deleted_with_audit' (27864) panicked at domain_backup\src\infra\tests\cleaner.rs:339:5:
+assertion `left == right` failed
+  left: Ok(NotDue)
+ right: Ok(Deleted)
+
+---- infra::tests::cleaner::ts30_retry_is_due_exactly_at_its_backoff_time_and_not_before stdout ----
+
+thread 'infra::tests::cleaner::ts30_retry_is_due_exactly_at_its_backoff_time_and_not_before' (23012) panicked at domain_backup\src\infra\tests\cleaner.rs:508:5:
+assertion `left == right` failed: due exactly at next_attempt_at
+  left: Ok(NotDue)
+ right: Ok(Deleted)
+
+---- infra::tests::cleaner::ts27a_a_retry_that_succeeds_commits_deleted_and_keeps_the_attempt_count stdout ----
+
+thread 'infra::tests::cleaner::ts27a_a_retry_that_succeeds_commits_deleted_and_keeps_the_attempt_count' (41496) panicked at domain_backup\src\infra\tests\cleaner.rs:455:5:
+assertion `left == right` failed
+  left: Ok(NotDue)
+ right: Ok(RetryScheduled)
+
+---- infra::tests::cleaner::rows_that_are_not_claimable_are_lost_without_unlink_or_audit stdout ----
+
+thread 'infra::tests::cleaner::rows_that_are_not_claimable_are_lost_without_unlink_or_audit' (10060) panicked at domain_backup\src\infra\tests\cleaner.rs:726:9:
+assertion `left == right` failed: 653142db-70ff-4b9b-9487-7413026f1eae
+  left: Ok(NotDue)
+ right: Ok(Lost)
+
+---- infra::tests::cleaner::clean_due_handles_due_rows_and_leaves_future_retries_untouched stdout ----
+
+thread 'infra::tests::cleaner::clean_due_handles_due_rows_and_leaves_future_retries_untouched' (45980) panicked at domain_backup\src\infra\tests\cleaner.rs:771:5:
+assertion `left == right` failed
+  left: Ok([])
+ right: Ok([Deleted])
+
+---- infra::tests::cleaner::ts20_full_sequence_fence_reconcile_claim_then_deleted_for_a_missing_file stdout ----
+
+thread 'infra::tests::cleaner::ts20_full_sequence_fence_reconcile_claim_then_deleted_for_a_missing_file' (19392) panicked at domain_backup\src\infra\tests\cleaner.rs:606:5:
+assertion `left == right` failed
+  left: Ok([])
+ right: Ok([Deleted])
+
+---- infra::tests::cleaner::ts23_orphan_is_removed_only_at_or_after_its_grace_and_after_an_audited_claim stdout ----
+
+thread 'infra::tests::cleaner::ts23_orphan_is_removed_only_at_or_after_its_grace_and_after_an_audited_claim' (41856) panicked at domain_backup\src\infra\tests\cleaner.rs:545:5:
+assertion `left == right` failed
+  left: Ok([])
+ right: Ok([Deleted])
+
+
+failures:
+    infra::tests::cleaner::clean_due_handles_due_rows_and_leaves_future_retries_untouched
+    infra::tests::cleaner::rows_that_are_not_claimable_are_lost_without_unlink_or_audit
+    infra::tests::cleaner::ts20_full_sequence_fence_reconcile_claim_then_deleted_for_a_missing_file
+    infra::tests::cleaner::ts21_full_sequence_an_existing_file_is_removed_only_after_the_audited_claim
+    infra::tests::cleaner::ts23_orphan_is_removed_only_at_or_after_its_grace_and_after_an_audited_claim
+    infra::tests::cleaner::ts25_stale_deleting_claim_is_reset_then_reclaimed_with_a_fresh_audited_claim
+    infra::tests::cleaner::ts26_a_missing_file_counts_as_removed_and_commits_deleted_with_audit
+    infra::tests::cleaner::ts26_failed_deleted_commit_after_unlink_leaves_deleting_and_restart_recovers_idempotently
+    infra::tests::cleaner::ts27a_a_retry_that_succeeds_commits_deleted_and_keeps_the_attempt_count
+    infra::tests::cleaner::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time
+    infra::tests::cleaner::ts30_retry_is_due_exactly_at_its_backoff_time_and_not_before
+    infra::tests::cleaner::ts65_a_refused_claim_audit_blocks_the_claim_and_the_unlink
+
+test result: FAILED. 0 passed; 12 failed; 0 ignored; 0 measured; 300 filtered out; finished in 10.06s
+
+error: test failed, to rerun pass `-p domain_backup --lib`

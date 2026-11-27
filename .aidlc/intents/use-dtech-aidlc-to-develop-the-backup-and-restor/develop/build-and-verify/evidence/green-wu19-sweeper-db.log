@@ -1,0 +1,26 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+   Compiling domain_backup v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_backup)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.22s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d5c5af4ad2d20f53\out\domain_backup-d5c5af4ad2d20f53.exe)
+
+running 11 tests
+test infra::tests::sweeper::the_sweep_ignores_a_job_of_another_epoch_even_past_its_deadline ... ok
+test infra::tests::sweeper::ts30_a_queued_job_fails_dispatch_failed_at_the_queued_age_bound ... ok
+test infra::tests::sweeper::one_sweep_runs_deadline_then_expiry_then_purge_then_discovery ... ok
+test infra::tests::sweeper::the_sweep_discovers_an_unowned_file_without_deleting_it ... ok
+test infra::tests::sweeper::a_deadline_failed_job_releases_its_unexpired_written_allocation ... ok
+test infra::tests::sweeper::ts28_an_expired_written_allocation_of_a_running_job_is_kept_until_the_owner_ends ... ok
+test infra::tests::sweeper::ts42_the_sweep_purges_through_the_injected_retention_store_and_keeps_audit ... ok
+test infra::tests::sweeper::ts30_a_running_job_fails_deadline_exceeded_exactly_at_its_deadline_and_not_before ... ok
+test infra::tests::sweeper::a_truncated_scan_fails_the_sweep_after_the_earlier_steps_and_persists_no_orphan ... ok
+test infra::tests::sweeper::ts65_a_refused_purge_audit_removes_nothing ... ok
+test infra::tests::sweeper::ts30_a_written_allocation_is_released_exactly_at_its_24_hour_expiry ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 320 filtered out; finished in 9.62s
+

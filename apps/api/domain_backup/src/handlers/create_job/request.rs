@@ -23,7 +23,7 @@ struct Body {
 }
 
 /// `application/json`, ignoring case and any parameters such as `charset`.
-fn is_json(content_type: Option<&str>) -> bool {
+pub fn is_json_content_type(content_type: Option<&str>) -> bool {
     content_type
         .and_then(|ct| ct.split(';').next())
         .is_some_and(|media| media.trim().eq_ignore_ascii_case("application/json"))
@@ -36,7 +36,7 @@ pub fn parse_create_request(
     body: &[u8],
     configured_instance: &str,
 ) -> Result<CreateRequest, CreateJobError> {
-    if !is_json(content_type) {
+    if !is_json_content_type(content_type) {
         return Err(CreateJobError::UnsupportedMediaType);
     }
     if body.len() > MAX_BODY_BYTES {

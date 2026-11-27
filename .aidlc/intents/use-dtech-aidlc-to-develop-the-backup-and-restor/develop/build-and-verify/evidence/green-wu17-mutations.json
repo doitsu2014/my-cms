@@ -1,0 +1,59 @@
+[
+ {
+  "name": "registered allocation released even when its owner is running",
+  "compileError": false,
+  "failed": [
+   "current_epoch_running_job_and_its_registered_allocation_are_left_to_the_worker"
+  ]
+ },
+ {
+  "name": "written allocation released even when its owner is running",
+  "compileError": false,
+  "failed": [
+   "an_expired_written_allocation_of_a_running_job_is_not_released"
+  ]
+ },
+ {
+  "name": "stale-claim reset ignores the epoch",
+  "compileError": false,
+  "failed": [
+   "ts25_current_epoch_deleting_claim_belongs_to_the_live_cleaner"
+  ]
+ },
+ {
+  "name": "cleanup_failed allocation is released",
+  "compileError": false,
+  "failed": [
+   "cleanup_failed_allocation_is_terminal_for_automation_and_never_touched"
+  ]
+ },
+ {
+  "name": "missing file is audited even when the file is present",
+  "compileError": false,
+  "failed": [
+   "ts24_unexpired_incomplete_allocation_with_its_file_present_is_retained_silently"
+  ]
+ },
+ {
+  "name": "current-epoch jobs are fenced too",
+  "compileError": false,
+  "failed": [
+   "ts23_sweep_discovery_persists_a_file_added_after_start_and_never_deletes_or_fences",
+   "current_epoch_running_job_and_its_registered_allocation_are_left_to_the_worker",
+   "an_expired_written_allocation_of_a_running_job_is_not_released"
+  ]
+ },
+ {
+  "name": "truncation is ignored",
+  "compileError": false,
+  "failed": [
+   "ts23_truncated_sweep_discovery_persists_nothing",
+   "ts56_truncated_inventory_fails_closed_before_any_write"
+  ]
+ },
+ {
+  "name": "missing-file audit is written without checking the owner is incomplete",
+  "compileError": false,
+  "failed": []
+ }
+]

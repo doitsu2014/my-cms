@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "unit": "WU-19",
+  "scope": "full",
+  "commands": [
+    "cargo test --workspace --no-fail-fast (from apps/api)",
+    "cargo test --workspace --no-fail-fast -- --ignored (from apps/api)"
+  ],
+  "failures": []
+}

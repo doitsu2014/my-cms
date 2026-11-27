@@ -18,7 +18,7 @@ Choose `team` or `enterprise` when appropriate. Then open Claude Code in this pr
 
 The slash command is available after onboarding has projected the skill into this project; it does not initialize the project. Use `/dtech-aidlc --status` and `/dtech-aidlc --doctor` to inspect progress and validate setup; run `dtech-aidlc version` to check the CLI version. Use `dtech-aidlc harness refresh` to update the projected skill after upgrading the engine.
 
-- The methodology (phases, agents, contracts, templates) is not copied into the project. The CLI directive gives the absolute path of each file inside the installed engine; treat those files as read-only.
+The methodology (phases, agents, contracts, templates) is materialized read-only under `.aidlc/engine/methodology/` on first use. The CLI directive gives the absolute path of each file; treat those files as read-only.
 
 ## Project knowledge
 

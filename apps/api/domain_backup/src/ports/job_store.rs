@@ -111,6 +111,12 @@ pub struct IdemRecord {
     pub expires_at: DateTime<Utc>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct JobCursor {
+    pub created_at: DateTime<Utc>,
+    pub id: Uuid,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct JobRow {
     pub id: Uuid,
@@ -200,6 +206,16 @@ pub trait JobStore: Send + Sync {
 
     async fn get(&self, id: Uuid) -> Result<Option<JobRow>, StoreError>;
 
+    /// Read one instance's jobs in stable newest-first order (IF-03).
+    async fn list(
+        &self,
+        _instance: &str,
+        _limit: u32,
+        _before: Option<JobCursor>,
+    ) -> Result<Vec<JobRow>, StoreError> {
+        Ok(Vec::new())
+    }
+
     /// The unexpired idempotency row for `(actor_sub, operation, key_digest)`, if any
     /// (`expires_at > now`). A row past `expires_at` that the sweeper has not purged yet
     /// counts as absent (IFC section 4, expiry semantics).
@@ -259,15 +275,16 @@ pub trait JobStore: Send + Sync {
 
     /// CAS fence. The status, epoch and state version must all still match; an applied
     /// transition and `reconcile.fenced` audit entry commit in one transaction.
+    #[allow(clippy::too_many_arguments)]
     async fn fence_job(
         &self,
-        id: Uuid,
-        expected_epoch: i64,
-        expected_status: BackupJobStatus,
-        expected_state_version: i64,
-        target_status: BackupJobStatus,
-        reason: ReasonCode,
-        now: DateTime<Utc>,
+        _id: Uuid,
+        _expected_epoch: i64,
+        _expected_status: BackupJobStatus,
+        _expected_state_version: i64,
+        _target_status: BackupJobStatus,
+        _reason: ReasonCode,
+        _now: DateTime<Utc>,
     ) -> Result<TransitionResult, StoreError> {
         Ok(TransitionResult::Lost)
     }

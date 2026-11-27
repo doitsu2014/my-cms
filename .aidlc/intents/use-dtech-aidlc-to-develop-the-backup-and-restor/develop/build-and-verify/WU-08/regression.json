@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "unit": "WU-08",
+  "scope": "full",
+  "commands": [
+    "cargo test -p domain_backup --no-fail-fast (from apps/api)",
+    "cargo test -p domain_backup -- --ignored (from apps/api)",
+    "cargo test -p domain_backup infra::tests::http_api:: -- --ignored --nocapture (from apps/api)",
+    "cargo test --workspace --no-fail-fast (from apps/api)",
+    "cargo test --workspace --no-fail-fast -- --ignored (from apps/api)",
+    "cargo fmt --all -- --check (from apps/api)",
+    "cargo clippy -p domain_backup --all-targets --message-format=short (from apps/api)",
+    "cargo check --workspace (from apps/api)"
+  ],
+  "failures": []
+}
