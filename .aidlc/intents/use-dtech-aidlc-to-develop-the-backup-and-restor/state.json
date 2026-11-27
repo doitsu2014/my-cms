@@ -1905,7 +1905,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-27T09:46:46.346Z",
+  "updatedAt": "2026-11-27T12:33:12.606Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -2104,7 +2104,7 @@
       "WU-16"
     ],
     "progressSeq": 15,
-    "syncedAt": "2026-11-27T09:46:46.090Z",
+    "syncedAt": "2026-11-27T12:33:12.360Z",
     "units": {
       "WU-01": {
         "title": "Crate scaffold, domain types, config, clock, errors",

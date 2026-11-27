@@ -39,6 +39,8 @@ uuid = { version = "1.23.2", features = ["v4", "serde"] }
 [dev-dependencies]
 async-graphql = { version = "7.2.1", features = ["dynamic-schema"] }
 tower = { version = "0.5.3", features = ["util"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", default-features = false, features = ["fmt", "registry", "std"] }
 testcontainers = "0.27.3"
 testcontainers-modules = { version = "0.15.0", features = ["postgres"] }
 tokio = { version = "1.52.3", features = ["full", "test-util"] }

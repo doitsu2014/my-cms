@@ -29,8 +29,9 @@ use domain_interface::{AuthenticatedActor, DomainContext};
 use sea_orm::ConnectionTrait;
 use serde_json::Value;
 use std::path::Path;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tower::ServiceExt;
+use tracing_subscriber::layer::SubscriberExt;
 use uuid::Uuid;
 
 fn config(root: &Path) -> BackupConfigState {
@@ -96,6 +97,38 @@ async fn body(response: axum::response::Response) -> (StatusCode, Value) {
     let value = serde_json::from_slice(&bytes)
         .unwrap_or_else(|_| panic!("unexpected {status} response body: {payload}"));
     (status, value)
+}
+
+#[derive(Clone)]
+struct CapturedEvents(Arc<Mutex<Vec<String>>>);
+
+impl<S> tracing_subscriber::Layer<S> for CapturedEvents
+where
+    S: tracing::Subscriber,
+{
+    fn on_event(
+        &self,
+        event: &tracing::Event<'_>,
+        _context: tracing_subscriber::layer::Context<'_, S>,
+    ) {
+        let mut fields = EventFields::default();
+        event.record(&mut fields);
+        self.0.lock().unwrap().push(fields.0);
+    }
+}
+
+#[derive(Default)]
+struct EventFields(String);
+
+impl tracing::field::Visit for EventFields {
+    fn record_debug(&mut self, field: &tracing::field::Field, value: &dyn std::fmt::Debug) {
+        use std::fmt::Write as _;
+        let _ = write!(self.0, "{}={value:?};", field.name());
+    }
+}
+
+fn scan_canary<'a>(contents: impl IntoIterator<Item = &'a str>, canary: &str) -> bool {
+    contents.into_iter().any(|value| value.contains(canary))
 }
 
 #[tokio::test]
@@ -415,10 +448,21 @@ async fn ts45_instances_and_status_return_the_configured_safe_contract() {
         );
     }
 
-    // Positive control: the scanner below must detect the canary when deliberately present.
-    let positive_control_log = format!("explicitly logged CANARY-valid-route-key-0001");
-    assert!(positive_control_log.contains("CANARY-valid-route-key-0001"));
+    // Install a scoped tracing subscriber; positive control exercises the actual scanner.
+    let captured_events = Arc::new(Mutex::new(Vec::new()));
+    let subscriber = tracing_subscriber::registry().with(CapturedEvents(captured_events.clone()));
+    let _subscriber_guard = tracing::subscriber::set_default(subscriber);
+    let log_canary = "CANARY-positive-control-0001";
+    tracing::info!(canary = log_canary, "positive-control");
+    let positive_control_events = captured_events.lock().unwrap().clone();
+    assert!(scan_canary(
+        positive_control_events.iter().map(String::as_str),
+        log_canary
+    ));
+    captured_events.lock().unwrap().clear();
+
     let valid_replay_key = "CANARY-valid-route-key-0001";
+    let request_canary = "CANARY-request-body-0001";
     let jobs_before_accept = jobs_for_instance(&db.conn, "local-1").await;
     let idempotency_before_accept = idempotency_rows(&db.conn).await;
     let audit_before_accept = audit_count_for_instance(&db.conn, "local-1").await;
@@ -434,7 +478,9 @@ async fn ts45_instances_and_status_return_the_configured_safe_contract() {
             .body(Body::from(br#"{"instance_id":"local-1"}"#.to_vec()))
             .unwrap()
     };
-    let (created_status, created) = body(app.clone().oneshot(valid_request()).await.unwrap()).await;
+    let created_response = app.clone().oneshot(valid_request()).await.unwrap();
+    let created_headers = format!("{:?}", created_response.headers());
+    let (created_status, created) = body(created_response).await;
     assert_eq!(created_status, StatusCode::ACCEPTED);
     let created_id = created["job"]["id"].as_str().unwrap().to_owned();
     let digest = key_digest("test-admin", OPERATION, valid_replay_key);
@@ -534,6 +580,37 @@ async fn ts45_instances_and_status_return_the_configured_safe_contract() {
         audit_after_accept
     );
 
+    let canary_body_request = Request::builder()
+        .method("POST")
+        .uri("/backup/jobs")
+        .header(header::HOST, "localhost:8989")
+        .header("Origin", "http://localhost:3002")
+        .header(header::CONTENT_TYPE, "application/json")
+        .header("Idempotency-Key", "CANARY-invalid-key-0001")
+        .extension(admin())
+        .body(Body::from(format!(
+            r#"{{"instance_id":"local-1","secret":"{request_canary}"}}"#
+        )))
+        .unwrap();
+    let (canary_status, canary_error) =
+        body(app.clone().oneshot(canary_body_request).await.unwrap()).await;
+    assert_eq!(canary_status, StatusCode::BAD_REQUEST);
+    assert_eq!(canary_error["reason_code"], "MALFORMED_REQUEST");
+    assert!(!canary_error.to_string().contains(request_canary));
+    let invalid_path_canary = "/backup/jobs/CANARY-invalid-path-0001";
+    let (invalid_path_status, invalid_path_error) = body(
+        app.clone()
+            .oneshot(request("GET", invalid_path_canary))
+            .await
+            .unwrap(),
+    )
+    .await;
+    assert_eq!(invalid_path_status, StatusCode::NOT_FOUND);
+    assert_eq!(invalid_path_error["reason_code"], "JOB_NOT_FOUND");
+    assert!(!invalid_path_error
+        .to_string()
+        .contains("CANARY-invalid-path-0001"));
+
     let wrong_role = Request::builder()
         .method("GET")
         .uri("/backup/instances")
@@ -618,7 +695,6 @@ async fn ts45_instances_and_status_return_the_configured_safe_contract() {
     )
     .await;
     assert_eq!(status, StatusCode::OK);
-    let _ = status_json;
     let metrics = app_state.metric_snapshot();
     assert!(metrics.iter().any(|(labels, count)| {
         labels.job_kind.as_str() == "backup_db_slice"
@@ -649,6 +725,77 @@ async fn ts45_instances_and_status_return_the_configured_safe_contract() {
             .iter()
             .all(|(key, _)| ["job_kind", "outcome", "error_code"].contains(key))
     }));
+    for (_, metric_value) in &metrics {
+        assert!(!metric_value.to_string().contains("CANARY"));
+    }
+    for (labels, _) in &metrics {
+        for (_, value) in labels.attributes() {
+            assert!(!value.contains("CANARY"));
+        }
+    }
+    let metric_text = format!("{metrics:?}");
+    assert!(!metric_text.contains("CANARY"));
+    let status_text = status_json.to_string();
+    assert!(!status_text.contains("CANARY"));
+
+    let event_snapshot = captured_events.lock().unwrap().clone();
+    for canary in [
+        valid_replay_key,
+        request_canary,
+        "CANARY-invalid-key-0001",
+        "CANARY-invalid-path-0001",
+        log_canary,
+    ] {
+        assert!(!scan_canary(
+            event_snapshot.iter().map(String::as_str),
+            canary
+        ));
+    }
+
+    for table in [
+        "backup_jobs",
+        "backup_idempotency",
+        "backup_audit",
+        "backup_allocations",
+        "backup_epoch",
+    ] {
+        let sql = format!(
+            "SELECT COALESCE(string_agg(row_to_json(r)::text, ''), '') AS content FROM {table} r"
+        );
+        let persisted: String = db
+            .conn
+            .query_one(pg(&sql, vec![]))
+            .await
+            .unwrap()
+            .unwrap()
+            .try_get("", "content")
+            .unwrap();
+        for canary in [
+            valid_replay_key,
+            request_canary,
+            "CANARY-invalid-key-0001",
+            "CANARY-invalid-path-0001",
+            log_canary,
+        ] {
+            assert!(
+                !persisted.contains(canary),
+                "canary {canary} must not appear in {table}"
+            );
+        }
+    }
+    let response_text = format!(
+        "headers={created_headers}; created={created}; replay={replay}; conflict={conflict}; \
+         denials={denied}{host_error}{error}; status={status_json}"
+    );
+    for canary in [
+        valid_replay_key,
+        request_canary,
+        "CANARY-invalid-key-0001",
+        "CANARY-invalid-path-0001",
+        log_canary,
+    ] {
+        assert!(!response_text.contains(canary));
+    }
 }
 
 #[tokio::test]
