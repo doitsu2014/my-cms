@@ -12,6 +12,7 @@ use axum::{Json, Router};
 use base64::Engine;
 use chrono::{DateTime, Utc};
 use domain_interface::{AuthenticatedActor, DomainContext};
+use sea_orm::{ConnectionTrait, DbBackend, Statement};
 use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
@@ -19,9 +20,12 @@ use uuid::Uuid;
 use crate::domain::config::BackupConfigState;
 use crate::domain::error::AppError;
 use crate::domain::instance::{BackupInstance, InstanceRegistry};
+use crate::domain::metrics::{
+    MetricErrorCode, MetricJobKind, MetricLabels, MetricOutcome, MetricRecorder,
+};
 use crate::domain::policy::{authorize_operation, AuthorizationFailure, BackupPolicy};
 use crate::domain::response::{project_create_error, project_error, SafeErrorBody};
-use crate::handlers::create_job::{AcceptContext, Accepted, CreateJobHandler};
+use crate::handlers::create_job::{AcceptContext, Accepted, CreateJobError, CreateJobHandler};
 use crate::handlers::job_response::JobResponse;
 use crate::handlers::status::{project_status, CleanupStatus, StatusResponse};
 use crate::infra::db_audit_sink::DbAuditSink;
@@ -42,6 +46,7 @@ pub struct BackupApiState {
     pub correlation_id: Arc<dyn Fn() -> String + Send + Sync>,
     pub db_healthy: bool,
     pub cleanup: Option<CleanupStatus>,
+    pub metrics: Arc<MetricRecorder>,
     store: Arc<dyn JobStore>,
     audit: Arc<dyn AuditSink>,
 }
@@ -56,6 +61,26 @@ impl std::fmt::Debug for BackupApiState {
             .field("db_healthy", &self.db_healthy)
             .field("cleanup", &self.cleanup)
             .finish_non_exhaustive()
+    }
+}
+
+fn nonnegative_count(value: i64) -> u64 {
+    u64::try_from(value).unwrap_or(0)
+}
+
+fn create_metric_error(error: CreateJobError) -> MetricErrorCode {
+    match error {
+        CreateJobError::UnsupportedMediaType => MetricErrorCode::UnsupportedMediaType,
+        CreateJobError::PayloadTooLarge => MetricErrorCode::PayloadTooLarge,
+        CreateJobError::MalformedRequest
+        | CreateJobError::IdempotencyKeyRequired
+        | CreateJobError::IdempotencyKeyInvalid
+        | CreateJobError::InstanceNotAllowed => MetricErrorCode::ValidationError,
+        CreateJobError::IdempotencyKeyReused | CreateJobError::ConcurrencyLimit => {
+            MetricErrorCode::Conflict
+        }
+        CreateJobError::AuditUnavailable => MetricErrorCode::AuditUnavailable,
+        CreateJobError::StoreUnavailable => MetricErrorCode::StoreUnavailable,
     }
 }
 
@@ -77,6 +102,7 @@ impl BackupApiState {
             correlation_id: Arc::new(|| Uuid::new_v4().to_string()),
             db_healthy: true,
             cleanup: None,
+            metrics: Arc::new(MetricRecorder::default()),
             store,
             audit,
         }
@@ -91,6 +117,40 @@ impl BackupApiState {
         self.store = store;
         self.audit = audit;
         self
+    }
+
+    pub fn metric_snapshot(&self) -> Vec<(MetricLabels, u64)> {
+        self.metrics.snapshot()
+    }
+
+    fn record_metric(&self, outcome: MetricOutcome, error_code: MetricErrorCode) {
+        self.metrics.record(MetricLabels {
+            job_kind: MetricJobKind::BackupDbSlice,
+            outcome,
+            error_code,
+        });
+    }
+
+    fn record_refusal(&self, error: &AppError) {
+        self.record_metric(
+            MetricOutcome::Refused,
+            match error {
+                AppError::BackupDisabled => MetricErrorCode::BackupDisabled,
+                AppError::BackupNotReady => MetricErrorCode::BackupNotReady,
+                AppError::Forbidden { .. } | AppError::Unauthorized => MetricErrorCode::Forbidden,
+                AppError::Validation { .. } => MetricErrorCode::ValidationError,
+                AppError::PayloadTooLarge => MetricErrorCode::PayloadTooLarge,
+                AppError::UnsupportedMediaType => MetricErrorCode::UnsupportedMediaType,
+                AppError::Conflict { .. } => MetricErrorCode::Conflict,
+                AppError::Unavailable { reason_code } if *reason_code == "AUDIT_UNAVAILABLE" => {
+                    MetricErrorCode::AuditUnavailable
+                }
+                AppError::StoreUnavailable
+                | AppError::Unavailable { .. }
+                | AppError::NotFound
+                | AppError::JobNotFound => MetricErrorCode::StoreUnavailable,
+            },
+        );
     }
 
     fn config_enabled(&self) -> Option<&crate::domain::config::BackupConfig> {
@@ -162,6 +222,12 @@ async fn authorization(
         state.configured_port,
         &allowed_origins,
     ) {
+        let metric_error = match error {
+            AuthorizationFailure::RoleRequired
+            | AuthorizationFailure::HostNotAllowed
+            | AuthorizationFailure::OriginNotAllowed => MetricErrorCode::Forbidden,
+        };
+        state.record_metric(MetricOutcome::Denied, metric_error);
         return project_auth_error(error, &state.correlation_id()).into_response();
     }
     if let Some(actor) = actor {
@@ -184,6 +250,7 @@ async fn list_instances(
     Extension(_actor): Extension<AuthenticatedActor>,
 ) -> Response {
     if let Some(error) = state.operational_error() {
+        state.record_refusal(&error);
         return project_error(&error, &state.correlation_id()).into_response();
     }
     let registry = state.registry().expect("enabled config checked");
@@ -202,6 +269,7 @@ async fn create_job(
     body: Body,
 ) -> Response {
     if let Some(error) = state.operational_error() {
+        state.record_refusal(&error);
         return project_error(&error, &state.correlation_id()).into_response();
     }
     let config = state.config_enabled().expect("enabled config checked");
@@ -213,6 +281,10 @@ async fn create_job(
         .get("Idempotency-Key")
         .and_then(|value| value.to_str().ok());
     if !crate::handlers::create_job::request::is_json_content_type(content_type) {
+        state.record_metric(
+            MetricOutcome::Refused,
+            MetricErrorCode::UnsupportedMediaType,
+        );
         return project_create_error(
             crate::handlers::create_job::CreateJobError::UnsupportedMediaType,
             &request_id,
@@ -225,6 +297,7 @@ async fn create_job(
         .and_then(|value| value.parse::<usize>().ok())
         .is_some_and(|n| n > crate::handlers::create_job::MAX_BODY_BYTES)
     {
+        state.record_metric(MetricOutcome::Refused, MetricErrorCode::PayloadTooLarge);
         return project_create_error(
             crate::handlers::create_job::CreateJobError::PayloadTooLarge,
             &request_id,
@@ -234,11 +307,12 @@ async fn create_job(
     let bytes = match to_bytes(body, crate::handlers::create_job::MAX_BODY_BYTES + 1).await {
         Ok(bytes) => bytes,
         Err(_) => {
+            state.record_metric(MetricOutcome::Refused, MetricErrorCode::PayloadTooLarge);
             return project_create_error(
                 crate::handlers::create_job::CreateJobError::PayloadTooLarge,
                 &request_id,
             )
-            .into_response()
+            .into_response();
         }
     };
     let parsed = match crate::handlers::create_job::parse_create_request(
@@ -248,7 +322,10 @@ async fn create_job(
         config.instance_id(),
     ) {
         Ok(request) => request,
-        Err(error) => return project_create_error(error, &request_id).into_response(),
+        Err(error) => {
+            state.record_metric(MetricOutcome::Refused, create_metric_error(error));
+            return project_create_error(error, &request_id).into_response();
+        }
     };
     let handler = CreateJobHandler::new(
         state.conn.clone(),
@@ -272,7 +349,10 @@ async fn create_job(
         )
         .await
     {
-        Ok(Accepted::Created(row)) => create_response(&state, row, StatusCode::ACCEPTED),
+        Ok(Accepted::Created(row)) => {
+            state.record_metric(MetricOutcome::Accepted, MetricErrorCode::None);
+            create_response(&state, row, StatusCode::ACCEPTED)
+        }
         Ok(Accepted::Replayed(row)) => {
             let mut response = create_response(&state, row, StatusCode::OK);
             response.headers_mut().insert(
@@ -281,7 +361,10 @@ async fn create_job(
             );
             response
         }
-        Err(error) => project_create_error(error, &state.correlation_id()).into_response(),
+        Err(error) => {
+            state.record_metric(MetricOutcome::Refused, create_metric_error(error));
+            project_create_error(error, &state.correlation_id()).into_response()
+        }
     }
 }
 
@@ -467,13 +550,53 @@ async fn status(
     Extension(state): Extension<Arc<BackupApiState>>,
     Extension(_actor): Extension<AuthenticatedActor>,
 ) -> Response {
-    let cleanup = if state.db_healthy {
-        state.cleanup
-    } else {
-        None
-    };
-    let response: StatusResponse = project_status(&state.config, state.runtime.as_deref(), cleanup);
+    let mut response: StatusResponse =
+        project_status(&state.config, state.runtime.as_deref(), state.cleanup);
+    if let Some(config) = state.config_enabled() {
+        if state.db_healthy {
+            match durable_cleanup_status(&state.conn, config.instance_id()).await {
+                Ok(cleanup) => {
+                    response.escalation.visible |=
+                        cleanup.exhausted > 0 || cleanup.ownership_incidents > 0;
+                    response.cleanup = Some(cleanup);
+                }
+                Err(_) => {
+                    response.state = "degraded".to_owned();
+                    response.db_healthy = false;
+                    response.admissions_open = false;
+                    response.reconciliation = None;
+                    response.cleanup = None;
+                    response.escalation.visible = true;
+                }
+            }
+        }
+    }
     (StatusCode::OK, Json(response)).into_response()
+}
+
+async fn durable_cleanup_status(
+    conn: &sea_orm::DatabaseConnection,
+    instance_id: &str,
+) -> Result<CleanupStatus, sea_orm::DbErr> {
+    let sql = Statement::from_sql_and_values(
+        DbBackend::Postgres,
+        "SELECT \
+            (SELECT COUNT(*) FROM backup_allocations a WHERE a.state IN ('release_pending','orphan_discovered','deleting') AND (a.job_id IS NULL OR EXISTS (SELECT 1 FROM backup_jobs j WHERE j.id = a.job_id AND j.instance_id = $1)))::bigint AS pending, \
+            (SELECT COUNT(*) FROM backup_allocations a WHERE a.state = 'cleanup_failed' AND (a.job_id IS NULL OR EXISTS (SELECT 1 FROM backup_jobs j WHERE j.id = a.job_id AND j.instance_id = $1)))::bigint AS exhausted, \
+            (SELECT COUNT(*) FROM backup_allocations a WHERE a.state = 'orphan_discovered' AND (a.job_id IS NULL OR EXISTS (SELECT 1 FROM backup_jobs j WHERE j.id = a.job_id AND j.instance_id = $1)))::bigint AS orphan_discovered, \
+            (SELECT COUNT(*) FROM backup_audit WHERE event = 'ownership.ambiguous' AND instance_id = $1)::bigint AS ownership_incidents",
+        vec![instance_id.to_owned().into()],
+    );
+    let row = conn
+        .query_one(sql)
+        .await?
+        .expect("aggregate query returns one row");
+    Ok(CleanupStatus {
+        pending: nonnegative_count(row.try_get_by("pending")?),
+        exhausted: nonnegative_count(row.try_get_by("exhausted")?),
+        orphan_discovered: nonnegative_count(row.try_get_by("orphan_discovered")?),
+        ownership_incidents: nonnegative_count(row.try_get_by("ownership_incidents")?),
+    })
 }
 
 pub async fn json_rejection(

@@ -1,14 +1,18 @@
 # WU-08 regression report
 
-- **Status:** Full workspace normal and ignored suites passed on the final WU-08 working tree.
-- **Comparison baseline:** `develop/baseline.md` (2026-11-22 baseline: 290 normal passes, 0 failures; 39/39 ignored pass). Baseline was preserved.
+- **Status:** Full workspace normal and Docker-backed ignored suites passed on the final WU-08 working tree (2026-11-27).
+- **Comparison baseline:** `develop/baseline.md` (2026-11-22: 290 normal passed, 0 failed; 39/39 ignored passed). Baseline was preserved.
+- **Attribution:** `regression.json`, scope `full`, empty failures array.
 
-## Commands and results
+## Final regression runs
 
-| Command (from `apps/api`) | Observed result | Attribution |
-|---|---|---|
-| `cargo test --workspace --no-fail-fast` | Pass: 399 passed, 0 failed, 207 ignored across workspace. `domain_backup`: 141 passed, 0 failed, 202 ignored. | No regression failures. |
-| `cargo test --workspace --no-fail-fast -- --ignored` | Pass: 207 ignored tests passed, 0 failed. `domain_backup`: 202 passed, 0 failed. | No regression failures. |
-| Focused `cargo test -p domain_backup infra::tests::http_api:: -- --ignored --nocapture` | Pass: all 3 WU-08 HTTP integration tests. | TS-04/TS-49, TS-45/IF-11 assertions, TS-63 invalid UUID mapping. |
+Commands run from `apps/api` after the final WU-08 source/test changes:
 
-`failures` is empty in `regression.json`. The baseline's existing ignored tests remain ignored in the normal run and passed in the ignored run. Regression results establish suite health only; they do not close the WU-08 gaps recorded in `implementation.md` and `known-limitations.md`.
+| Command | Exit | Result | Log |
+|---|---:|---|---|
+| `cargo test --workspace --no-fail-fast` | 0 | 399 passed, 0 failed; 207 ignored | `evidence/regression-wu08-final-normal.log` |
+| `cargo test --workspace --no-fail-fast -- --ignored` | 0 | 207 ignored tests passed, 0 failed; domain_backup 202 passed | `evidence/regression-wu08-final-ignored.log` |
+
+The domain_backup normal suite passes 142/142; its ignored suite passes 202/202. Focused HTTP integration tests pass 3/3, projection tests pass 3/3, and metric recorder tests pass 2/2. Formatting, crate clippy, workspace check and `ids check` pass (see `green-verification-report.md`).
+
+No regression failure was observed against the preserved baseline. This demonstrates test-suite health only; it does not complete WU-08's remaining contract and production-composition work. No failures were omitted or reclassified.

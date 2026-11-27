@@ -1,36 +1,39 @@
 # WU-08 green verification report
 
-- **Status:** Partial; the work unit is not complete. Standalone API tests pass, while the service-created API state has no ready runtime, so production reads/create remain not-ready. No gateway composition change was made.
-- **Environment:** Windows 11; cargo/rustc 1.100.0; Docker 29.7.2 available.
+- **Status:** Partial; WU-08 is not complete. Workspace regressions pass, but required WU-08 behavior and production composition remain incomplete.
+- **Environment:** Windows 11; cargo/rustc 1.100.0; Docker 29.7.2.
 - **Baseline:** Reused unchanged from `develop/baseline.md` (2026-11-22).
 
-## Checks observed
+## Final checks observed on the current source tree (2026-11-27)
 
-| Check | Result |
-|---|---|
-| `cargo check -p domain_backup` | Pass for current source/service declaration; does not demonstrate a ready runtime or composed-service behavior. |
-| `cargo test -q -p domain_backup --no-fail-fast` | Pass: 141 passed, 0 failed, 202 ignored. |
-| `cargo test -p domain_backup -- --ignored` | Pass: 202 passed, 0 failed with Docker/PostgreSQL. |
-| `cargo test -p domain_backup infra::tests::http_api:: -- --ignored --nocapture` | Pass: 3 standalone REST tests (TS-04/TS-49, TS-45/status, TS-63 invalid UUID). |
-| `cargo fmt --all -- --check` | Pass. |
-| `cargo clippy -p domain_backup --all-targets --message-format=short` | Pass. |
-| `cargo check --workspace` | Pass. Existing warnings in sibling crates and the Rust future-incompatibility notice were observed. |
-| `cargo test --workspace --no-fail-fast` | Pass: 399 passed, 0 failed, 207 ignored. `domain_backup`: 141 passed, 202 ignored. Baseline's 290 normal tests had no failures; all normal tests remain passing. |
-| `cargo test --workspace --no-fail-fast -- --ignored` | Pass: 207 ignored tests passed, 0 failed. `domain_backup`: 202 passed. Baseline's 39/39 ignored tests remain green. |
-| `dtech-aidlc --project D:/orca/my-cms/makara ids check --stage build-and-verify` | `ok: true`; no unregistered identifiers. |
+| Check | Result | Evidence |
+|---|---|---|
+| `cargo test -p domain_backup --no-fail-fast` | 142 passed, 0 failed, 202 ignored | package run observed; included in full workspace normal suite |
+| `cargo test -p domain_backup --no-fail-fast -- --ignored` | 202 passed, 0 failed | package run observed; included in full workspace ignored suite |
+| `cargo test -p domain_backup infra::tests::http_api:: -- --ignored --nocapture` | 3 passed, 0 failed | final focused HTTP run observed |
+| `cargo test -p domain_backup handlers::job_response -- --nocapture` | 3 passed, 0 failed | `evidence/green-wu08-projection.log` |
+| `cargo test -p domain_backup domain::metrics:: -- --nocapture` | 2 passed, 0 failed | focused unit run observed; also included in package/workspace suites |
+| Projection mutation check | 4/4 mutants killed by focused tests | `evidence/green-wu08-mutations.json` |
+| `cargo test --workspace --no-fail-fast` | 399 passed, 0 failed, 207 ignored | `evidence/regression-wu08-final-normal.log` |
+| `cargo test --workspace --no-fail-fast -- --ignored` | 207 passed, 0 failed; domain_backup 202 passed | `evidence/regression-wu08-final-ignored.log` |
+| `cargo fmt --all -- --check` | pass | `evidence/green-wu08-fmt.log` |
+| `cargo clippy -p domain_backup --all-targets --message-format=short` | exit 0 | `evidence/green-wu08-clippy.log` |
+| `cargo check --workspace` | exit 0; sibling-crate warnings remain | `evidence/green-wu08-check-workspace.log` |
+| `dtech-aidlc --project D:/orca/my-cms/makara ids check --stage build-and-verify` | `ok: true`; no unregistered IDs | `evidence/green-wu08-ids.log` |
 
-## Trace table
+## Verified contract coverage
 
-| Story | Criterion | Function | Test | Result |
-|---|---|---|---|---|
-| US-01 | AC-001 | FN-02 | `infra::tests::http_api::ts45_instances_and_status_return_the_configured_safe_contract` | Passed standalone |
-| US-05 | AC-005 | FN-03 | `domain::policy::tests::ts59_requires_admin_then_loopback_host_and_exact_post_origin` | Passed at policy unit level |
-| US-05 | AC-005 | FN-04 | `domain::policy::tests::ts05b_claim_policy_rechecks_only_the_registered_instance` | Passed |
-| US-02 | AC-002 | FN-09 | `infra::tests::http_api::ts04_foreign_and_unknown_ids_are_the_same_404_and_ts49_is_safe`; list validation in TS-45 test | Passed standalone |
-| US-02 | AC-002 | FN-10 | `handlers::job_response::tests::ts12b_projection_refuses_success_and_recovery_required` and two TS-49 tests | Passed |
-| US-02 | AC-002 | FN-36 | `handlers::status::tests::ts27b_disabled_state_and_closed_disabled_reasons_are_projected`; ready status in TS-45 test | Partial; durable cleanup/escalation counts remain |
-| US-05 | AC-005 | FN-35 | safe error assertions in HTTP tests | Partial; complete extractor matrix remains |
-| US-05 | AC-005 | FN-05..FN-08 | existing WU-07 parser/acceptance suite | Not fully verified through WU-08 route adapter |
-| US-05 | AC-005 | FN-37 | package/workspace check | Build passes; production runtime composition is not verified |
+- **TS-45 / FN-02:** configured single local instance and capability projection.
+- **TS-59 / FN-03:** administrator role, loopback Host and exact configured POST Origin policy at the handler adapter boundary; gateway middleware order is WU-10.
+- **TS-05b / FN-04:** claim-time configured-instance policy.
+- **TS-04 / FN-09:** foreign/unknown job IDs are equivalent 404s; list is instance-scoped with bounded pagination.
+- **TS-12b, TS-49 / FN-10:** forbidden U1 statuses refused, download ineligible, internal fields omitted, progress only when measured.
+- **TS-06 / FN-05:** strict create payload rejects unknown/unsafe fields and disallowed instance without durable side effects; accepted create and replay persist one job, idempotency row and audit event. A sequential second-key conflict is checked against an active job; no simultaneous race is claimed.
+- **TS-27b / FN-36:** IF-11 projects durable cleanup counts and escalation visibility.
+- **TS-57 / FN-36:** route operations update enum-backed in-memory counters; status exposes exact attribute keys (`job_kind`, `outcome`, `error_code`) and values only from closed enums. Gateway telemetry exporter integration is not included.
+- **TS-60, TS-62, TS-63:** declared and streamed over-limit bodies, missing/wrong JSON content type, malformed/unknown-field create bodies, invalid UUID, and bad/unknown list query inputs are exercised; not every extractor transport edge is covered.
+- Raw idempotency key canary is asserted absent from responses and persisted audit/idempotency/job/allocation/epoch records in the create route test.
 
-No unimplemented WU-08 criteria are claimed as passing.
+## Limits and unverified scope
+
+WU-08 is not complete. TS-17 full API log/metrics canary scanning and gateway OTLP/exporter integration remain unverified. Reconciliation timestamps/results are simplified runtime projection fields. `DomainBackupService::register_routes` has no ready runtime; production read/create stay `BACKUP_NOT_READY` until WU-10 startup composition. Gateway auth ordering, effective bind, CFG-17/18 ingress, CORS/cookies and composed-router security are WU-10. See [implementation.md](implementation.md) and [known-limitations.md](known-limitations.md); no unimplemented criterion is claimed as passing.

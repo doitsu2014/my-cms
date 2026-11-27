@@ -1,8 +1,11 @@
 //! WU-08 REST contract tests against the API adapter and PostgreSQL.
 
+use super::alloc_support::{seed_alloc, SeedAlloc};
 use super::support::*;
 use crate::domain::config::{BackupConfig, BackupConfigState};
+use crate::domain::idempotency::{key_digest, OPERATION};
 use crate::domain::status::BackupJobStatus;
+use crate::handlers::create_job::{AcceptContext, CreateJobHandler};
 use crate::handlers::http::{routes, BackupApiState};
 use crate::infra::db_allocation_store::DbAllocationStore;
 use crate::infra::db_audit_sink::DbAuditSink;
@@ -23,6 +26,7 @@ use crate::test_db::backup_test_db;
 use axum::body::{to_bytes, Body};
 use axum::http::{header, Request, StatusCode};
 use domain_interface::{AuthenticatedActor, DomainContext};
+use sea_orm::ConnectionTrait;
 use serde_json::Value;
 use std::path::Path;
 use std::sync::Arc;
@@ -214,8 +218,31 @@ async fn ts45_instances_and_status_return_the_configured_safe_contract() {
     ));
     runtime.start().await.unwrap();
     assert_eq!(runtime.state(), RuntimeState::Ready);
-    let app = routes(BackupApiState::new(db.conn.clone(), config).with_runtime(runtime))
-        .with_state(test_domain_context(db.conn.clone()));
+    let foreign_job = seed(
+        &db.conn,
+        Seed::new("other-instance", BackupJobStatus::Failed),
+    )
+    .await;
+    seed_alloc(
+        &db.conn,
+        SeedAlloc::new(
+            crate::ports::allocation_store::AllocationState::ReleasePending,
+            100,
+        )
+        .job_id(foreign_job),
+    )
+    .await;
+    seed_alloc(
+        &db.conn,
+        SeedAlloc::new(
+            crate::ports::allocation_store::AllocationState::CleanupFailed,
+            100,
+        )
+        .job_id(foreign_job),
+    )
+    .await;
+    let app_state = BackupApiState::new(db.conn.clone(), config).with_runtime(runtime);
+    let app = routes(app_state.clone()).with_state(test_domain_context(db.conn.clone()));
     let (status, instance_json) = body(
         app.clone()
             .oneshot(request("GET", "/backup/instances"))
@@ -241,12 +268,19 @@ async fn ts45_instances_and_status_return_the_configured_safe_contract() {
     assert_eq!(status, StatusCode::OK);
     assert_eq!(status_json["state"], "ready");
     assert_eq!(status_json["synthetic_only"], true);
+    assert_eq!(status_json["cleanup"]["pending"], 0);
+    assert_eq!(status_json["cleanup"]["exhausted"], 0);
+    assert_eq!(status_json["cleanup"]["orphan_discovered"], 0);
+    assert_eq!(status_json["cleanup"]["ownership_incidents"], 0);
+    assert_eq!(
+        status_json["cleanup"]["pending"], 0,
+        "foreign pending rows are excluded"
+    );
+    assert_eq!(
+        status_json["cleanup"]["exhausted"], 0,
+        "foreign cleanup failures are excluded"
+    );
 
-    for uri in ["/backup/jobs?limit=101", "/backup/jobs?cursor=not-a-cursor"] {
-        let (status, error) = body(app.clone().oneshot(request("GET", uri)).await.unwrap()).await;
-        assert_eq!(status, StatusCode::BAD_REQUEST);
-        assert_eq!(error["reason_code"], "MALFORMED_REQUEST");
-    }
     let (status, empty_list) = body(
         app.clone()
             .oneshot(request("GET", "/backup/jobs"))
@@ -257,6 +291,275 @@ async fn ts45_instances_and_status_return_the_configured_safe_contract() {
     assert_eq!(status, StatusCode::OK);
     assert_eq!(empty_list["jobs"].as_array().unwrap().len(), 0);
     assert_eq!(empty_list["next_cursor"], Value::Null);
+
+    let failed_job = seed(&db.conn, Seed::new("local-1", BackupJobStatus::Failed)).await;
+    let _cleanup_failed = seed_alloc(
+        &db.conn,
+        SeedAlloc::new(
+            crate::ports::allocation_store::AllocationState::CleanupFailed,
+            100,
+        )
+        .job_id(failed_job),
+    )
+    .await;
+    let (status, durable_status) = body(
+        app.clone()
+            .oneshot(request("GET", "/backup/status"))
+            .await
+            .unwrap(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(durable_status["cleanup"]["exhausted"], 1);
+    assert_eq!(durable_status["cleanup"]["ownership_incidents"], 0);
+    assert_eq!(durable_status["escalation"]["visible"], true);
+
+    for uri in [
+        "/backup/jobs?limit=101",
+        "/backup/jobs?limit=abc",
+        "/backup/jobs?cursor=not-a-cursor",
+        "/backup/jobs?unknown=value",
+    ] {
+        let (status, error) = body(app.clone().oneshot(request("GET", uri)).await.unwrap()).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        assert_eq!(error["reason_code"], "MALFORMED_REQUEST");
+    }
+    for bad_json in [
+        br#"{"#.as_slice(),
+        br#"{"instance_id":"local-1","extra":true}"#.as_slice(),
+        br#"{"instance_id":1}"#.as_slice(),
+    ] {
+        let invalid = Request::builder()
+            .method("POST")
+            .uri("/backup/jobs")
+            .header(header::HOST, "localhost:8989")
+            .header("Origin", "http://localhost:3002")
+            .header(header::CONTENT_TYPE, "application/json")
+            .header("Idempotency-Key", "key-12345678")
+            .extension(admin())
+            .body(Body::from(bad_json.to_vec()))
+            .unwrap();
+        let (status, error) = body(app.clone().oneshot(invalid).await.unwrap()).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        assert_eq!(error["reason_code"], "MALFORMED_REQUEST");
+        assert!(!error.to_string().contains("extra"));
+    }
+    let wrong_length_body = Request::builder()
+        .method("POST")
+        .uri("/backup/jobs")
+        .header(header::HOST, "localhost:8989")
+        .header("Origin", "http://localhost:3002")
+        .header(header::CONTENT_TYPE, "application/json")
+        .header("Idempotency-Key", "key-12345678")
+        .header(header::CONTENT_LENGTH, "1")
+        .extension(admin())
+        .body(Body::from(vec![
+            b' ';
+            crate::handlers::create_job::MAX_BODY_BYTES
+                + 1
+        ]))
+        .unwrap();
+    let (status, error) = body(app.clone().oneshot(wrong_length_body).await.unwrap()).await;
+    assert_eq!(status, StatusCode::PAYLOAD_TOO_LARGE);
+    assert_eq!(error["reason_code"], "PAYLOAD_TOO_LARGE");
+
+    for (payload, reason) in [
+        (
+            br#"{"instance_id":"local-1","target_url":"http://attacker"}"#.to_vec(),
+            "MALFORMED_REQUEST",
+        ),
+        (
+            br#"{"instance_id":"local-1","url":"http://CANARY.invalid"}"#.to_vec(),
+            "MALFORMED_REQUEST",
+        ),
+        (
+            br#"{"instance_id":"local-1","dsn":"postgres://CANARY.invalid"}"#.to_vec(),
+            "MALFORMED_REQUEST",
+        ),
+        (
+            br#"{"instance_id":"local-1","key":"CANARY-secret"}"#.to_vec(),
+            "MALFORMED_REQUEST",
+        ),
+        (
+            br#"{"instance_id":"local-1","synthetic":false}"#.to_vec(),
+            "MALFORMED_REQUEST",
+        ),
+        (
+            br#"{"instance_id":"other"}"#.to_vec(),
+            "INSTANCE_NOT_ALLOWED",
+        ),
+    ] {
+        let before_jobs = jobs_for_instance(&db.conn, "local-1").await;
+        let before_idem = idempotency_rows(&db.conn).await;
+        let before_audit = audit_count_for_instance(&db.conn, "local-1").await;
+        let response = Request::builder()
+            .method("POST")
+            .uri("/backup/jobs")
+            .header(header::HOST, "localhost:8989")
+            .header("Origin", "http://localhost:3002")
+            .header(header::CONTENT_TYPE, "application/json")
+            .header("Idempotency-Key", "key-12345678")
+            .extension(admin())
+            .body(Body::from(payload))
+            .unwrap();
+        let (status, error) = body(app.clone().oneshot(response).await.unwrap()).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST);
+        assert_eq!(error["reason_code"], reason);
+        assert!(!error.to_string().contains("attacker"));
+        assert!(!error.to_string().contains("other"));
+        assert_eq!(jobs_for_instance(&db.conn, "local-1").await, before_jobs);
+        assert_eq!(idempotency_rows(&db.conn).await, before_idem);
+        assert_eq!(
+            audit_count_for_instance(&db.conn, "local-1").await,
+            before_audit
+        );
+    }
+
+    // Positive control: the scanner below must detect the canary when deliberately present.
+    let positive_control_log = format!("explicitly logged CANARY-valid-route-key-0001");
+    assert!(positive_control_log.contains("CANARY-valid-route-key-0001"));
+    let valid_replay_key = "CANARY-valid-route-key-0001";
+    let jobs_before_accept = jobs_for_instance(&db.conn, "local-1").await;
+    let idempotency_before_accept = idempotency_rows(&db.conn).await;
+    let audit_before_accept = audit_count_for_instance(&db.conn, "local-1").await;
+    let valid_request = || {
+        Request::builder()
+            .method("POST")
+            .uri("/backup/jobs")
+            .header(header::HOST, "localhost:8989")
+            .header("Origin", "http://localhost:3002")
+            .header(header::CONTENT_TYPE, "application/json")
+            .header("Idempotency-Key", valid_replay_key)
+            .extension(admin())
+            .body(Body::from(br#"{"instance_id":"local-1"}"#.to_vec()))
+            .unwrap()
+    };
+    let (created_status, created) = body(app.clone().oneshot(valid_request()).await.unwrap()).await;
+    assert_eq!(created_status, StatusCode::ACCEPTED);
+    let created_id = created["job"]["id"].as_str().unwrap().to_owned();
+    let digest = key_digest("test-admin", OPERATION, valid_replay_key);
+    assert!(
+        !audit_rows_for_job(&db.conn, Uuid::parse_str(&created_id).unwrap())
+            .await
+            .iter()
+            .any(|event| event.digest.as_deref() == Some(valid_replay_key)),
+        "raw idempotency key must not appear in audit"
+    );
+    let (replay_status, replay) = body(app.clone().oneshot(valid_request()).await.unwrap()).await;
+    assert_eq!(replay_status, StatusCode::OK);
+    assert_eq!(replay["job"]["id"], created_id);
+    assert!(!created.to_string().contains(valid_replay_key));
+    assert!(!replay.to_string().contains(valid_replay_key));
+    let audit_text: String = db
+        .conn
+        .query_one(pg(
+            "SELECT COALESCE(string_agg(row_to_json(a)::text, ''), '') AS content FROM backup_audit a",
+            vec![],
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "content")
+        .unwrap();
+    let idempotency_text: String = db
+        .conn
+        .query_one(pg(
+            "SELECT COALESCE(string_agg(row_to_json(i)::text, ''), '') AS content FROM backup_idempotency i",
+            vec![],
+        ))
+        .await
+        .unwrap()
+        .unwrap()
+        .try_get("", "content")
+        .unwrap();
+    assert!(!audit_text.contains(valid_replay_key));
+    assert!(!idempotency_text.contains(valid_replay_key));
+    for table in ["backup_jobs", "backup_allocations", "backup_epoch"] {
+        let sql = format!(
+            "SELECT COALESCE(string_agg(row_to_json(r)::text, ''), '') AS content FROM {table} r"
+        );
+        let persisted: String = db
+            .conn
+            .query_one(pg(&sql, vec![]))
+            .await
+            .unwrap()
+            .unwrap()
+            .try_get("", "content")
+            .unwrap();
+        assert!(
+            !persisted.contains(valid_replay_key),
+            "raw key must not appear in {table}"
+        );
+    }
+    assert_eq!(
+        idempotency_rows(&db.conn).await,
+        idempotency_before_accept + 1
+    );
+    assert_eq!(
+        jobs_for_instance(&db.conn, "local-1").await,
+        jobs_before_accept + 1
+    );
+    assert_eq!(
+        audit_count_for_instance(&db.conn, "local-1").await,
+        audit_before_accept + 1
+    );
+    assert_eq!(digest.len(), 64);
+    assert!(!created.to_string().contains("CANARY-valid-route-key-0001"));
+    assert!(!replay.to_string().contains("CANARY-valid-route-key-0001"));
+
+    let jobs_after_accept = jobs_for_instance(&db.conn, "local-1").await;
+    let idempotency_after_accept = idempotency_rows(&db.conn).await;
+    let audit_after_accept = audit_count_for_instance(&db.conn, "local-1").await;
+    let concurrent_create = Request::builder()
+        .method("POST")
+        .uri("/backup/jobs")
+        .header(header::HOST, "localhost:8989")
+        .header("Origin", "http://localhost:3002")
+        .header(header::CONTENT_TYPE, "application/json")
+        .header("Idempotency-Key", "second-route-key-0001")
+        .extension(admin())
+        .body(Body::from(br#"{"instance_id":"local-1"}"#.to_vec()))
+        .unwrap();
+    let (conflict_status, conflict) =
+        body(app.clone().oneshot(concurrent_create).await.unwrap()).await;
+    assert_eq!(conflict_status, StatusCode::CONFLICT);
+    assert_eq!(conflict["reason_code"], "CONCURRENCY_LIMIT");
+    assert_eq!(
+        jobs_for_instance(&db.conn, "local-1").await,
+        jobs_after_accept
+    );
+    assert_eq!(idempotency_rows(&db.conn).await, idempotency_after_accept);
+    assert_eq!(
+        audit_count_for_instance(&db.conn, "local-1").await,
+        audit_after_accept
+    );
+
+    let wrong_role = Request::builder()
+        .method("GET")
+        .uri("/backup/instances")
+        .header(header::HOST, "localhost:8989")
+        .extension(AuthenticatedActor {
+            user_id: "writer-sub".into(),
+            email: None,
+            primary_role: "authenticated".into(),
+            app_roles: vec!["my-headless-cms-writer".into()],
+        })
+        .body(Body::empty())
+        .unwrap();
+    let (denied_status, denied) = body(app.clone().oneshot(wrong_role).await.unwrap()).await;
+    assert_eq!(denied_status, StatusCode::FORBIDDEN);
+    assert_eq!(denied["reason_code"], "ROLE_REQUIRED");
+
+    let wrong_host = Request::builder()
+        .method("GET")
+        .uri("/backup/instances")
+        .header(header::HOST, "public.example:8989")
+        .extension(admin())
+        .body(Body::empty())
+        .unwrap();
+    let (host_status, host_error) = body(app.clone().oneshot(wrong_host).await.unwrap()).await;
+    assert_eq!(host_status, StatusCode::FORBIDDEN);
+    assert_eq!(host_error["reason_code"], "HOST_NOT_ALLOWED");
 
     let wrong_origin = Request::builder()
         .method("POST")
@@ -271,19 +574,24 @@ async fn ts45_instances_and_status_return_the_configured_safe_contract() {
     assert_eq!(status, StatusCode::FORBIDDEN);
     assert_eq!(error["reason_code"], "ORIGIN_NOT_ALLOWED");
 
-    let wrong_content_type = Request::builder()
-        .method("POST")
-        .uri("/backup/jobs")
-        .header(header::HOST, "localhost:8989")
-        .header("Origin", "http://localhost:3002")
-        .header(header::CONTENT_TYPE, "text/plain")
-        .header("Idempotency-Key", "key-12345678")
-        .extension(admin())
-        .body(Body::from(br#"{"instance_id":"local-1"}"#.to_vec()))
-        .unwrap();
-    let (status, error) = body(app.clone().oneshot(wrong_content_type).await.unwrap()).await;
-    assert_eq!(status, StatusCode::UNSUPPORTED_MEDIA_TYPE);
-    assert_eq!(error["reason_code"], "UNSUPPORTED_MEDIA_TYPE");
+    for content_type in [None, Some("text/plain")] {
+        let mut builder = Request::builder()
+            .method("POST")
+            .uri("/backup/jobs")
+            .header(header::HOST, "localhost:8989")
+            .header("Origin", "http://localhost:3002")
+            .header("Idempotency-Key", "key-12345678")
+            .extension(admin());
+        if let Some(content_type) = content_type {
+            builder = builder.header(header::CONTENT_TYPE, content_type);
+        }
+        let request = builder
+            .body(Body::from(br#"{"instance_id":"local-1"}"#.to_vec()))
+            .unwrap();
+        let (status, error) = body(app.clone().oneshot(request).await.unwrap()).await;
+        assert_eq!(status, StatusCode::UNSUPPORTED_MEDIA_TYPE);
+        assert_eq!(error["reason_code"], "UNSUPPORTED_MEDIA_TYPE");
+    }
 
     let oversized = Request::builder()
         .method("POST")
@@ -298,9 +606,49 @@ async fn ts45_instances_and_status_return_the_configured_safe_contract() {
         .extension(admin())
         .body(Body::empty())
         .unwrap();
-    let (status, error) = body(app.oneshot(oversized).await.unwrap()).await;
+    let (status, error) = body(app.clone().oneshot(oversized).await.unwrap()).await;
     assert_eq!(status, StatusCode::PAYLOAD_TOO_LARGE);
     assert_eq!(error["reason_code"], "PAYLOAD_TOO_LARGE");
+
+    let (status, status_json) = body(
+        app.clone()
+            .oneshot(request("GET", "/backup/status"))
+            .await
+            .unwrap(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let _ = status_json;
+    let metrics = app_state.metric_snapshot();
+    assert!(metrics.iter().any(|(labels, count)| {
+        labels.job_kind.as_str() == "backup_db_slice"
+            && labels.outcome == crate::domain::metrics::MetricOutcome::Accepted
+            && labels.error_code == crate::domain::metrics::MetricErrorCode::None
+            && *count == 1
+    }));
+    assert!(metrics.iter().any(|(labels, _)| {
+        labels.outcome == crate::domain::metrics::MetricOutcome::Refused
+            && labels.error_code == crate::domain::metrics::MetricErrorCode::ValidationError
+    }));
+    assert!(metrics.iter().any(|(labels, _)| {
+        labels.outcome == crate::domain::metrics::MetricOutcome::Denied
+            && labels.error_code == crate::domain::metrics::MetricErrorCode::Forbidden
+    }));
+    for error_code in [
+        crate::domain::metrics::MetricErrorCode::UnsupportedMediaType,
+        crate::domain::metrics::MetricErrorCode::PayloadTooLarge,
+    ] {
+        assert!(metrics.iter().any(|(labels, _)| {
+            labels.outcome == crate::domain::metrics::MetricOutcome::Refused
+                && labels.error_code == error_code
+        }));
+    }
+    assert!(metrics.iter().all(|(labels, _)| {
+        labels
+            .attributes()
+            .iter()
+            .all(|(key, _)| ["job_kind", "outcome", "error_code"].contains(key))
+    }));
 }
 
 #[tokio::test]
@@ -338,7 +686,7 @@ async fn ts04_foreign_and_unknown_ids_are_the_same_404_and_ts49_is_safe() {
     ));
     let cleaner = Arc::new(Cleaner::new(allocs.clone(), storage));
     let sweeper = Arc::new(Sweeper::new(
-        jobs,
+        jobs.clone(),
         allocs,
         retention,
         reconciler.clone(),
@@ -351,14 +699,58 @@ async fn ts04_foreign_and_unknown_ids_are_the_same_404_and_ts49_is_safe() {
         Arc::new(|root: &Path| {
             <FsNamespaceLock as crate::ports::namespace_lock::NamespaceLock>::try_acquire(root)
         }),
-        clock,
+        clock.clone(),
         RuntimeConfig::new(temp.root()),
     ));
     runtime.start().await.unwrap();
     let app = routes(BackupApiState::new(db.conn.clone(), config).with_runtime(runtime))
         .with_state(test_domain_context(db.conn.clone()));
     let foreign_id = seed(&db.conn, Seed::new("foreign", BackupJobStatus::Queued)).await;
-    let own_id = seed(&db.conn, Seed::new("local-1", BackupJobStatus::Queued)).await;
+    let replay_key = "foreign-replay-key-01";
+    let replay_request = crate::handlers::create_job::request::parse_create_request(
+        Some("application/json"),
+        Some(replay_key),
+        br#"{"instance_id":"local-1"}"#,
+        "local-1",
+    )
+    .unwrap();
+    let replay_handler = CreateJobHandler::new(
+        db.conn.clone(),
+        jobs.clone(),
+        audit.clone(),
+        clock.clone(),
+        30,
+        1,
+    );
+    let replayed_job = replay_handler
+        .create(
+            &AcceptContext {
+                actor_sub: "test-admin".to_owned(),
+                correlation_id: "replay-test".to_owned(),
+            },
+            replay_request,
+        )
+        .await
+        .expect("seed replayable job");
+    let replay_job_id = match replayed_job {
+        crate::handlers::create_job::Accepted::Created(row) => row.id,
+        _ => panic!("first acceptance must create a job"),
+    };
+    let own_id = replay_job_id;
+    let replay_http_request = Request::builder()
+        .method("POST")
+        .uri("/backup/jobs")
+        .header(header::HOST, "localhost:8989")
+        .header("Origin", "http://localhost:3002")
+        .header(header::CONTENT_TYPE, "application/json")
+        .header("Idempotency-Key", replay_key)
+        .extension(admin())
+        .body(Body::from(br#"{"instance_id":"local-1"}"#.to_vec()))
+        .unwrap();
+    let (replay_status, replay_body) =
+        body(app.clone().oneshot(replay_http_request).await.unwrap()).await;
+    assert_eq!(replay_status, StatusCode::OK);
+    assert_eq!(replay_body["job"]["id"], replay_job_id.to_string());
     for id in [foreign_id, Uuid::new_v4()] {
         let (status, json) = body(
             app.clone()
@@ -370,6 +762,18 @@ async fn ts04_foreign_and_unknown_ids_are_the_same_404_and_ts49_is_safe() {
         assert_eq!(status, StatusCode::NOT_FOUND);
         assert_eq!(json["reason_code"], "JOB_NOT_FOUND");
     }
+    let (status, foreign_list) = body(
+        app.clone()
+            .oneshot(request("GET", "/backup/jobs?limit=20"))
+            .await
+            .unwrap(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let listed = foreign_list["jobs"].as_array().unwrap();
+    assert_eq!(listed.len(), 1);
+    assert_eq!(listed[0]["id"], own_id.to_string());
+    assert!(listed.iter().all(|job| job["id"] != foreign_id.to_string()));
     let (status, json) = body(
         app.oneshot(request("GET", &format!("/backup/jobs/{own_id}")))
             .await

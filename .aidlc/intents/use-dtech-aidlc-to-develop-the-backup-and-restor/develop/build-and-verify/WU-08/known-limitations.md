@@ -1,13 +1,12 @@
 # WU-08 known limitations
 
-- **Status:** Open; the WU-08 implementation is partial.
-- The verification proves only the bounded slice in `implementation.md`, not all WU-08 done criteria.
-- `DomainBackupService::register_routes` constructs `BackupApiState` without a ready `Runtime`; service read/create handlers therefore return `BACKUP_NOT_READY`. Startup/runtime injection is incomplete and gateway lifecycle composition is WU-10.
-- Standalone route integration tests create a ready runtime and a placeholder `DomainContext`. In production, the returned `Router<DomainContext>` carries handler state via `Extension<Arc<BackupApiState>>`; survival and ordering through the real gateway auth/compose layers remain unverified.
-- TS-17 API canary scanning across responses/logs/audit/metrics is not implemented/run. Full web bundle canary is WU-15.
-- TS-57 has a closed typed label vocabulary but no metric emitter; actual emitted label sets are untested.
-- IF-11 uses simplified in-memory status values. Durable cleanup/reconciliation/ownership counts and complete escalation visibility are not integrated; TS-27b remains partial.
-- TS-06 route-level create rejection coverage, full TS-60 streamed/Content-Length boundary coverage, and complete TS-62/TS-63 extractor mapping remain. `json_rejection` exists but is not wired across the route extractors.
-- Gateway auth-before-handler ordering, effective bind, CFG-17/CFG-18 ingress limits, CORS/cookie behavior and composed router security are outside this slice and unverified (WU-10).
-- No web checks, canary/bundle scan, CI, e2e, performance, launch or deployment check is claimed.
-- **Rollback note:** source-only changes; no migrations or data changes. No gateway registration or deployment was changed. A rollback can revert the WU-08 code files; no destructive rollback operation was performed.
+- **Status:** Partial implementation; WU-08 must not be reported complete yet.
+- **Production composition:** `DomainBackupService::register_routes` creates `BackupApiState` without a ready `Runtime`; standalone tests inject a test Runtime. Production read/create therefore remain `BACKUP_NOT_READY` until WU-10 startup and gateway composition. Gateway auth ordering, effective bind, CFG-17/18 ingress, CORS/cookies and composed-router security were not changed/tested here.
+- **Metrics:** TS-57 has an in-memory recorder wired to accepted/refused/denied API paths. IF-11 exposes snapshots with the three exact, enum-backed keys and no free-form label values. OTLP/exporter integration and emitted telemetry are not verified.
+- **Canary:** Route integration checks the request-key canary is absent from create/replay responses and backup audit, idempotency, job, allocation and epoch records. Full TS-17 scanning across captured logs, all response variants and metrics is still outstanding; web-bundle scan is WU-15.
+- **Status:** Durable pending, exhausted, orphan-discovered and ambiguous-ownership counts are queried and TS-27b escalation visibility is tested. Reconciliation completion timestamp/result fields remain simplified and not persisted/projected from runtime history.
+- **Request rejection:** Tests cover malformed/unknown-field create JSON, URL/DSN/key/target/synthetic field rejection, unknown instance, declared and streamed oversize bodies, missing/wrong Content-Type, invalid UUID, bad/unknown list limit/cursor, Host and Origin rejection. Complete extractor/transport/parser matrix is not covered; `json_rejection` is not wired to a `Json` extractor.
+- **Create flow:** One accepted create/replay plus sequential conflict against an existing active job are exercised at route level with durable counts. This does not race concurrent requests; WU-07 owns the handler's concurrency and audit-outage tests.
+- **Platform:** Verified on Windows 11 with Docker/PostgreSQL 15; Unix-specific behavior was not exercised.
+- **Out of scope:** WU-09 disabled/download/preview handlers, WU-10 gateway/runtime composition, web units, WU-15 full canary/e2e/performance/release evidence. No schema/migration, deployment, or launch change was made.
+- **Rollback:** Source and tests only; no data or migration rollback is required. No rollback action was performed.

@@ -75,6 +75,22 @@ The directive carries `orchestrationMode`: `"human"` (default) or `"ai"`. In hum
 
 In AI mode, use Claude Code's dynamic `Workflow` tool for the stages of every in-scope lifecycle phase: Analyze, Ideate, Develop, Launch, and Curate when included by the selected scope and depth. Run one workflow for each stage directive: start it after `orchestrate next` selects the stage, scope it to that stage's expected artifacts, and let it finish before you report the stage. Stages arrive one `orchestrate next` at a time, so a workflow that spans a whole phase would either sit idle or run ahead of the CLI. Do not run workflows for Archived, and do not run workflows for phases omitted by scope or depth. The workflow may delegate independent research, drafting, and checks, but it must follow the CLI's stage order and must not pre-create artifacts for stages that `orchestrate next` has not selected. Use the current directive's `stage.model` for a stage's worker preference where supported. If `Workflow` is unavailable or disallowed, do the stage work directly and disclose the fallback; never claim a workflow ran when it did not. In human mode, do not require dynamic workflows.
 
+### Workflow script safety
+
+These rules apply to every Claude Code `Workflow` call in this skill, including phase-stage workflows and parallel work-unit workers, in either orchestration mode. Before authoring or repairing a Workflow script, load Claude Code's `workflow-authoring` skill and follow its script contract. Workflow scripts are plain JavaScript, not TypeScript. For prompts containing Markdown or inline code, prefer an array of ordinary quoted strings joined with `.join("\n")`; backticks inside ordinary quoted strings are literal characters. For example:
+
+```js
+const prompt = [
+  "Work only on the assigned unit.",
+  "Inspect `handlers/job_response.rs` as directed.",
+  "Do not edit workflow state or run orchestration commands."
+].join("\n");
+```
+
+If using a JavaScript template literal, escape each literal backtick as `\``. Triple-backtick Markdown fences do not escape JavaScript backticks. Keep prompt text as string values rather than accidentally embedding it as executable script syntax, and inspect the surrounding quotes when a parser reports a line and column.
+
+If Workflow returns `Invalid workflow script`, treat it as a script parse failure: agents have not started. Fix the reported syntax issue before retrying; do not retry the unchanged script or treat the error as a project-code/test failure. After a corrected run, inspect its result and report only work that actually completed.
+
 The conductor remains the sole workflow-state owner. Workflow participants may work only on assigned stage artifacts; they must not run orchestration/report commands, alter `.aidlc/state.json` or `.aidlc/audit.jsonl`, change permissions, approve gates, or perform external/destructive actions. Keep a single writer per final artifact and have the conductor review outputs against the stage directive and contracts before reporting.
 
 In AI mode, you approve gates yourself — but only when the directive's `gateMode` is `ai`, and only after research. When `gateMode` is `human`, present the gate to the owner exactly as in human mode. Before reporting an AI-decided gate stage complete:

@@ -1068,8 +1068,8 @@
     "build-and-verify": {
       "status": "in_progress",
       "startedAt": "2026-11-22T07:12:29.973Z",
-      "detail": null,
-      "reportedAt": "2026-11-26T16:27:50.137Z",
+      "detail": "Owner-directed WU-08 revisit completed additional registered test coverage: route-level TS-06 create rejection and durable no-side-effect assertions, accepted create/replay and canary absence in responses/audit/idempotency tables, TS-27b durable cleanup/escalation counts, TS-57 in-memory closed-label counter recording exposed via IF-11 with route assertions, additional TS-61 query errors, TS-62 missing/wrong content-type, TS-63 malformed JSON/unknown fields/invalid UUID, TS-59 Host and Origin, TS-60 declared and streamed over-cap bodies. Current package/workspace normal+ignored suites, format, clippy, workspace check, focused tests and IDs check pass. Still incomplete by design/authority: no full TS-17 scan of captured logs and all output/metrics, metrics remain in-memory status snapshots (no approved exporter wiring), reconciliation timestamps/results are simplified, complete rejection matrix not covered, and production service has no ready Runtime until WU-10 startup composition (which cannot be implemented in WU-08 scope). See updated WU-08 implementation.md and known-limitations.md.",
+      "reportedAt": "2026-11-27T08:10:54.130Z",
       "reports": [
         {
           "at": "2026-11-22T07:26:43.015Z",
@@ -1245,6 +1245,29 @@
           "result": "complete",
           "detail": null,
           "unit": "WU-19"
+        },
+        {
+          "at": "2026-11-27T04:44:29.100Z",
+          "result": "blocked",
+          "detail": "WU-08 remains partial after a thin verified slice: although final workspace tests/fmt/clippy/check/IDs pass, remaining WU-08 requirements include TS-17 full API canary scan across logs/metrics, TS-57 metrics emission, complete TS-62/TS-63 rejection matrix, production runtime/service wiring (currently BACKUP_NOT_READY), and trace completeness. See develop/build-and-verify/WU-08/implementation.md and known-limitations.md. A unit with no declared tests cannot be reported complete against its Done-when criteria until these gaps are resolved; gateway startup/composition remains WU-10 scope.",
+          "unit": "WU-08"
+        },
+        {
+          "at": "2026-11-27T04:47:58.126Z",
+          "result": "blocked",
+          "detail": "WU-08 implementation and current verification artifacts are committed and all current suites pass, but WU-08 is demonstrably partial against work-units Done when: missing full TS-17 captured log/metric canary scan, missing TS-57 metric emission/tests, incomplete TS-62/TS-63 rejection matrix, and service runtime wiring deferred to WU-10. No design changes performed. WU-08 must be revisited after remaining contract work and its dependencies are clarified.",
+          "unit": "WU-08",
+          "parked": {
+            "kind": "owner-decision",
+            "blockedBy": [],
+            "auto": false
+          }
+        },
+        {
+          "at": "2026-11-27T08:10:54.130Z",
+          "result": "blocked",
+          "detail": "Owner-directed WU-08 revisit completed additional registered test coverage: route-level TS-06 create rejection and durable no-side-effect assertions, accepted create/replay and canary absence in responses/audit/idempotency tables, TS-27b durable cleanup/escalation counts, TS-57 in-memory closed-label counter recording exposed via IF-11 with route assertions, additional TS-61 query errors, TS-62 missing/wrong content-type, TS-63 malformed JSON/unknown fields/invalid UUID, TS-59 Host and Origin, TS-60 declared and streamed over-cap bodies. Current package/workspace normal+ignored suites, format, clippy, workspace check, focused tests and IDs check pass. Still incomplete by design/authority: no full TS-17 scan of captured logs and all output/metrics, metrics remain in-memory status snapshots (no approved exporter wiring), reconciliation timestamps/results are simplified, complete rejection matrix not covered, and production service has no ready Runtime until WU-10 startup composition (which cannot be implemented in WU-08 scope). See updated WU-08 implementation.md and known-limitations.md.",
+          "unit": "WU-08"
         }
       ],
       "units": {
@@ -1291,6 +1314,10 @@
         "WU-19": {
           "status": "complete",
           "reportedAt": "2026-11-26T16:27:50.137Z"
+        },
+        "WU-08": {
+          "status": "blocked",
+          "reportedAt": "2026-11-27T08:10:54.130Z"
         }
       },
       "artifacts": [
@@ -1878,7 +1905,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-26T20:34:08.607Z",
+  "updatedAt": "2026-11-27T09:46:46.346Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -2077,7 +2104,7 @@
       "WU-16"
     ],
     "progressSeq": 15,
-    "syncedAt": "2026-11-26T20:34:08.117Z",
+    "syncedAt": "2026-11-27T09:46:46.090Z",
     "units": {
       "WU-01": {
         "title": "Crate scaffold, domain types, config, clock, errors",
@@ -2674,18 +2701,40 @@
           "WU-07"
         ],
         "tests": [],
-        "status": "red",
-        "selectedAt": "2026-11-26T16:44:37.377Z",
+        "status": "blocked",
+        "selectedAt": "2026-11-27T08:11:41.500Z",
         "steps": {
           "red-tests": "complete",
-          "build-and-verify": null
+          "build-and-verify": "blocked"
         },
         "attempts": {
-          "red-tests": 1
+          "red-tests": 1,
+          "build-and-verify": 3
         },
-        "blockedStreak": null,
+        "blockedStreak": {
+          "signature": "b3942b0ef5eaee0f81521612c910a1c0ded107fffef87f34f0b1633f0f8bda3d",
+          "count": 1
+        },
         "park": null,
-        "parkHistory": [],
+        "parkHistory": [
+          {
+            "kind": "owner-decision",
+            "blockedBy": [],
+            "blockedByUnits": [],
+            "signature": "6368c6152ff8ec74bc616a9c699ae5467f428c25a38374526e03f71bf13e6d86",
+            "attempts": 2,
+            "detail": "WU-08 implementation and current verification artifacts are committed and all current suites pass, but WU-08 is demonstrably partial against work-units Done when: missing full TS-17 captured log/metric canary scan, missing TS-57 metric emission/tests, incomplete TS-62/TS-63 rejection matrix, and service runtime wiring deferred to WU-10. No design changes performed. WU-08 must be revisited after remaining contract work and its dependencies are clarified.",
+            "at": "2026-11-27T04:47:58.126Z",
+            "step": "build-and-verify",
+            "auto": false,
+            "resumeStatus": "blocked",
+            "seq": 15,
+            "revisitedAt": "2026-11-27T05:14:04.672Z",
+            "revisitReason": "manual",
+            "revisitDetail": "Owner requests revisiting WU-08 to finish remaining tests and complete its approved scope; continue bounded tests within registered WU-08 identifiers, leave WU-10 gateway composition and WU-09 disabled/download/preview scope to their units.",
+            "decidedBy": "AI Orchestrator"
+          }
+        ],
         "inputFingerprint": "sha256:82f4fb922aa466d2beeb1ab25b34102bc406d01a6adfbb5b06bda72e197f8997",
         "priorResults": [],
         "history": [
@@ -2693,6 +2742,21 @@
             "stage": "red-tests",
             "result": "complete",
             "at": "2026-11-26T16:44:25.002Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "blocked",
+            "at": "2026-11-27T04:44:29.100Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "blocked",
+            "at": "2026-11-27T04:47:58.126Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "blocked",
+            "at": "2026-11-27T08:10:54.130Z"
           }
         ],
         "reopened": [
@@ -2704,7 +2768,7 @@
         ],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T16:44:25.002Z"
+        "updatedAt": "2026-11-27T08:10:54.130Z"
       },
       "WU-09": {
         "title": "Disabled capabilities, download denial, previews",

@@ -3,14 +3,14 @@
   "unit": "WU-08",
   "scope": "full",
   "commands": [
-    "cargo test -p domain_backup --no-fail-fast (from apps/api)",
-    "cargo test -p domain_backup -- --ignored (from apps/api)",
-    "cargo test -p domain_backup infra::tests::http_api:: -- --ignored --nocapture (from apps/api)",
-    "cargo test --workspace --no-fail-fast (from apps/api)",
-    "cargo test --workspace --no-fail-fast -- --ignored (from apps/api)",
-    "cargo fmt --all -- --check (from apps/api)",
-    "cargo clippy -p domain_backup --all-targets --message-format=short (from apps/api)",
-    "cargo check --workspace (from apps/api)"
+    "cargo test --workspace --no-fail-fast (from apps/api; evidence: evidence/regression-wu08-final-normal.log)",
+    "cargo test --workspace --no-fail-fast -- --ignored (from apps/api; evidence: evidence/regression-wu08-final-ignored.log)",
+    "cargo test -p domain_backup infra::tests::http_api:: -- --ignored --nocapture (from apps/api; evidence: evidence/green-wu08-http-api.log)",
+    "cargo test -p domain_backup handlers::job_response -- --nocapture (from apps/api; evidence: evidence/green-wu08-projection.log)",
+    "cargo fmt --all -- --check (from apps/api; evidence: evidence/green-wu08-fmt.log)",
+    "cargo clippy -p domain_backup --all-targets --message-format=short (from apps/api; evidence: evidence/green-wu08-clippy.log)",
+    "cargo check --workspace (from apps/api; evidence: evidence/green-wu08-check-workspace.log)",
+    "dtech-aidlc --project D:/orca/my-cms/makara ids check --stage build-and-verify (evidence: evidence/green-wu08-ids.log)"
   ],
   "failures": []
 }
