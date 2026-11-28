@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "harness": "claude",
-  "engineVersion": "1.2.2",
+  "engineVersion": "1.3.1",
   "files": {
     "SKILL.md": {
-      "sha256": "773bc8f3f87ecc94793af96899bf383a2ee90b434229650e20e8a1eda73d61a3"
+      "sha256": "a130fff889abc0e8aa4bc6fe0ebc83aa5441d60e6b9f9ca166495245a9f0168b"
     },
     "onboarding.md": {
       "sha256": "cfc07ac29e7b9585db20eced7bf6a0a902c0bd70667babc69e3c5a172e2b8bfc"
