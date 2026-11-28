@@ -1,0 +1,16 @@
+
+> admin_side@1.0.0 test /Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/web
+> vitest run
+
+
+ RUN  v4.1.8 /Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/web
+
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+ Test Files  20 passed (20)
+      Tests  82 passed (82)
+   Start at  19:57:34
+   Duration  2.52s (transform 955ms, setup 892ms, import 4.54s, tests 2.95s, environment 8.71s)
+

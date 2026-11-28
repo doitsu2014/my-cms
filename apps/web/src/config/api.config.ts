@@ -64,6 +64,15 @@ export const getApiUrl = (path: string): string => {
 };
 
 /**
+ * Get the URL for a backup endpoint (IF-01..IF-04, IF-11 under `/backup`)
+ * @param path - path below `/backup`, for example `/jobs` or `/jobs/{id}?limit=20`
+ */
+export const getBackupApiUrl = (path: string): string => {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return getApiUrl(`/backup${cleanPath}`);
+};
+
+/**
  * Create headers with authentication token
  * @param token - JWT access token
  * @param additionalHeaders - Additional headers to include

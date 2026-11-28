@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "unit": "WU-08",
+  "scope": "full",
+  "commands": [
+    "cargo test --workspace --no-fail-fast (from apps/api; evidence/regression-wu08-macos-normal.log)",
+    "cargo test --workspace --no-fail-fast -- --ignored (from apps/api; evidence/regression-wu08-macos-ignored.log)",
+    "cargo test -p domain_backup infra::tests::http_api:: -- --ignored (from apps/api; evidence/green-wu08-macos-http-api.log)",
+    "cargo fmt --all -- --check (from apps/api; evidence/green-wu08-macos-fmt.log)",
+    "cargo clippy -p domain_backup --all-targets --message-format=short (from apps/api; evidence/green-wu08-macos-clippy.log)",
+    "cargo check --workspace (from apps/api; evidence/green-wu08-macos-check.log)",
+    "dtech-aidlc ids check --stage build-and-verify (evidence/green-wu08-macos-ids.log)"
+  ],
+  "failures": []
+}

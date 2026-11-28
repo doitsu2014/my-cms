@@ -3,6 +3,12 @@
 //! This intentionally does not execute a destructive database restore. A safe
 //! full Supabase restore requires a verified platform-wide recovery procedure,
 //! including Supabase-managed schemas and service coordination.
+//!
+//! Vocabulary: the `outcome` strings of [`Manifest`] (`success`, `failed`) belong to this
+//! manifest format only. They are unrelated to the job status of the `domain_backup` crate
+//! (`queued`, `running`, `incomplete`, `failed`) and are never mapped to or from it. This
+//! CLI stays fail-closed: `create`, `list` and `restore` never contact a database or an
+//! object store in this build (TS-33).
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
@@ -25,6 +31,7 @@ struct Manifest {
     database_sha256: Option<String>,
     objects: Vec<ObjectEntry>,
     complete: bool,
+    /// Manifest-local vocabulary (`success`, `failed`); not a `domain_backup` job status.
     outcome: String,
 }
 
@@ -197,5 +204,190 @@ mod tests {
     fn reports_missing_credentials_without_echoing_secrets() {
         let error = "backup failed: AWS credentials are not configured";
         assert!(!error.contains("sentinel-secret"));
+    }
+
+    // ---- TS-33: `handle_args` fails closed (WU-11). Environment variables are
+    // process-global, so every test below holds ENV_LOCK and restores what it changed.
+
+    use std::ffi::OsString;
+    use std::net::TcpListener;
+
+    static ENV_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
+    const ENV_KEYS: [&str; 7] = [
+        "AWS_ACCESS_KEY_ID",
+        "AWS_PROFILE",
+        "AWS_WEB_IDENTITY_TOKEN_FILE",
+        "BACKUP_S3_ENDPOINT",
+        "BACKUP_LOCAL_ROOT",
+        "DATABASE_URL",
+        "SUPABASE_DB_URL",
+    ];
+
+    /// Sets exactly the given variables (clearing every other one the CLI could read) and
+    /// restores the previous values on drop.
+    struct EnvScope {
+        saved: Vec<(&'static str, Option<OsString>)>,
+    }
+
+    impl EnvScope {
+        fn with(set: &[(&'static str, &str)]) -> Self {
+            let saved = ENV_KEYS
+                .iter()
+                .map(|k| (*k, env::var_os(k)))
+                .collect::<Vec<_>>();
+            for k in ENV_KEYS {
+                env::remove_var(k);
+            }
+            for (k, v) in set {
+                env::set_var(k, v);
+            }
+            Self { saved }
+        }
+    }
+
+    impl Drop for EnvScope {
+        fn drop(&mut self) {
+            for (k, v) in self.saved.drain(..) {
+                match v {
+                    Some(v) => env::set_var(k, v),
+                    None => env::remove_var(k),
+                }
+            }
+        }
+    }
+
+    fn args(parts: &[&str]) -> Vec<String> {
+        parts.iter().map(|s| (*s).to_owned()).collect()
+    }
+
+    const FAILURE: ExitCode = ExitCode::FAILURE;
+    const SUCCESS: ExitCode = ExitCode::SUCCESS;
+
+    #[tokio::test]
+    async fn ts33_restore_always_refuses_and_never_succeeds() {
+        let _lock = ENV_LOCK.lock().await;
+        let long = "a".repeat(81);
+        // Without and with every credential and setting present.
+        for set in [
+            &[][..],
+            &[
+                ("AWS_ACCESS_KEY_ID", "AKIAFAKEFAKEFAKE"),
+                ("BACKUP_S3_ENDPOINT", "http://127.0.0.1:9"),
+                ("BACKUP_LOCAL_ROOT", "backups"),
+            ][..],
+        ] {
+            let _env = EnvScope::with(set);
+            for case in [
+                args(&["restore"]),
+                args(&["restore", "backup_2026-01"]),
+                args(&["restore", "../prod"]),
+                args(&["restore", "id/../../x"]),
+                args(&["restore", ""]),
+                args(&["restore", &long]),
+            ] {
+                assert_eq!(handle_args(&case).await, FAILURE, "{case:?}");
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn ts33_create_fails_closed_in_every_configuration() {
+        let _lock = ENV_LOCK.lock().await;
+        let credentials: [&[(&'static str, &str)]; 4] = [
+            &[],
+            &[("AWS_ACCESS_KEY_ID", "AKIAFAKEFAKEFAKE")],
+            &[("AWS_PROFILE", "backup")],
+            &[("AWS_WEB_IDENTITY_TOKEN_FILE", "token")],
+        ];
+        let settings: [&[(&'static str, &str)]; 4] = [
+            &[],
+            &[("BACKUP_S3_ENDPOINT", "http://127.0.0.1:9")],
+            &[("BACKUP_LOCAL_ROOT", "backups")],
+            &[
+                ("BACKUP_S3_ENDPOINT", "http://127.0.0.1:9"),
+                ("BACKUP_LOCAL_ROOT", "backups"),
+            ],
+        ];
+        for c in credentials {
+            for s in settings {
+                let set: Vec<_> = c.iter().chain(s.iter()).copied().collect();
+                let _env = EnvScope::with(&set);
+                assert_eq!(
+                    handle_args(&args(&["create"])).await,
+                    FAILURE,
+                    "create must never succeed: {set:?}"
+                );
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn ts33_list_fails_closed_with_and_without_credentials() {
+        let _lock = ENV_LOCK.lock().await;
+        for set in [
+            &[][..],
+            &[("AWS_ACCESS_KEY_ID", "AKIAFAKEFAKEFAKE")][..],
+            &[
+                ("AWS_PROFILE", "backup"),
+                ("BACKUP_S3_ENDPOINT", "http://127.0.0.1:9"),
+            ][..],
+        ] {
+            let _env = EnvScope::with(set);
+            assert_eq!(handle_args(&args(&["list"])).await, FAILURE, "{set:?}");
+        }
+    }
+
+    #[tokio::test]
+    async fn ts33_unknown_and_empty_input_fail_closed_and_only_help_succeeds() {
+        let _lock = ENV_LOCK.lock().await;
+        let _env = EnvScope::with(&[]);
+        for case in [
+            args(&[]),
+            args(&[""]),
+            args(&["backup"]),
+            args(&["frobnicate"]),
+            args(&["CREATE"]),
+            args(&["Restore", "b1"]),
+            args(&["create-all"]),
+            args(&["--version"]),
+            args(&["-x"]),
+        ] {
+            assert_eq!(handle_args(&case).await, FAILURE, "{case:?}");
+        }
+        // The one documented success path is the help text.
+        assert_eq!(handle_args(&args(&["--help"])).await, SUCCESS);
+        assert_eq!(handle_args(&args(&["-h"])).await, SUCCESS);
+    }
+
+    #[tokio::test]
+    async fn ts33_a_fully_configured_cli_contacts_no_database_or_object_store() {
+        let _lock = ENV_LOCK.lock().await;
+        // A local listener stands in for both the S3 endpoint and the database. Any
+        // connection attempt made while `handle_args` runs is queued on it.
+        let listener = TcpListener::bind("127.0.0.1:0").expect("bind local listener");
+        listener.set_nonblocking(true).expect("nonblocking");
+        let addr = listener.local_addr().expect("local addr");
+        let endpoint = format!("http://{addr}");
+        let db = format!("postgres://user:pass@{addr}/db");
+        let _env = EnvScope::with(&[
+            ("AWS_ACCESS_KEY_ID", "AKIAFAKEFAKEFAKE"),
+            ("BACKUP_S3_ENDPOINT", endpoint.as_str()),
+            ("BACKUP_LOCAL_ROOT", "backups"),
+            ("DATABASE_URL", db.as_str()),
+            ("SUPABASE_DB_URL", db.as_str()),
+        ]);
+        for case in [
+            args(&["create"]),
+            args(&["list"]),
+            args(&["restore", "backup_2026-01"]),
+            args(&["unknown"]),
+        ] {
+            assert_eq!(handle_args(&case).await, FAILURE, "{case:?}");
+        }
+        match listener.accept() {
+            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {}
+            other => panic!("the CLI contacted the endpoint or database: {other:?}"),
+        }
     }
 }

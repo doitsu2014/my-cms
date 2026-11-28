@@ -1,0 +1,32 @@
+WU-06 writer lifecycle contamination check
+Starting status snapshot was captured before any WU-06 edits.
+Starting status:
+ M apps/api/domain_backup/src/lifecycle/mod.rs
+?? apps/api/domain_backup/src/lifecycle/lifecycle_tests.rs
+?? apps/api/domain_backup/src/lifecycle/cleaner.rs
+?? apps/api/domain_backup/src/lifecycle/reconciler.rs
+?? apps/api/domain_backup/src/lifecycle/runtime.rs
+?? apps/api/domain_backup/src/lifecycle/sweeper.rs
+Starting SHA-256 values (recorded before WU-06 edits):
+apps/api/domain_backup/src/lifecycle/mod.rs 7D9FA66AEB8B32660D6F5039526638E5102A588976FC59FC3EA36F3BD2D80C5E
+apps/api/domain_backup/src/lifecycle/lifecycle_tests.rs 153568C005FB23990FAD33F6B01BC9D2C32BB82CA4B507CD67DCA69A3CAD96D3
+apps/api/domain_backup/src/lifecycle/cleaner.rs 3E8E99FABA0BB87DE5873033361B74699A88842CD250D2905984CDAA8E4F21AB
+apps/api/domain_backup/src/lifecycle/reconciler.rs F13EE0556BF17422C89DE3556ED3567CDD4EDF3DDDFE1EE56EADBFEAF6FCFCED
+apps/api/domain_backup/src/lifecycle/runtime.rs 39F0D9F1F7CD24E42580E91346364AA766FC36F7993A0946F4ED3F226E5BA8F5
+apps/api/domain_backup/src/lifecycle/sweeper.rs 14AF6EE26BB69BD621650620B416454DDD29FDB943ACD3955A2770C3A6520A3E
+Final git status:
+ M apps/api/domain_backup/src/lifecycle/mod.rs
+?? apps/api/domain_backup/src/lifecycle/cleaner.rs
+?? apps/api/domain_backup/src/lifecycle/lifecycle_tests.rs
+?? apps/api/domain_backup/src/lifecycle/reconciler.rs
+?? apps/api/domain_backup/src/lifecycle/runtime.rs
+?? apps/api/domain_backup/src/lifecycle/sweeper.rs
+Final SHA-256 values:
+apps/api/domain_backup/src/lifecycle/mod.rs 7D9FA66AEB8B32660D6F5039526638E5102A588976FC59FC3EA36F3BD2D80C5E
+apps/api/domain_backup/src/lifecycle/lifecycle_tests.rs 153568C005FB23990FAD33F6B01BC9D2C32BB82CA4B507CD67DCA69A3CAD96D3
+apps/api/domain_backup/src/lifecycle/cleaner.rs 3E8E99FABA0BB87DE5873033361B74699A88842CD250D2905984CDAA8E4F21AB
+apps/api/domain_backup/src/lifecycle/reconciler.rs F13EE0556BF17422C89DE3556ED3567CDD4EDF3DDDFE1EE56EADBFEAF6FCFCED
+apps/api/domain_backup/src/lifecycle/runtime.rs 39F0D9F1F7CD24E42580E91346364AA766FC36F7993A0946F4ED3F226E5BA8F5
+apps/api/domain_backup/src/lifecycle/sweeper.rs 14AF6EE26BB69BD621650620B416454DDD29FDB943ACD3955A2770C3A6520A3E
+UNCHANGED_HASHES=True
+Conclusion: WU-06 writer did not modify or delete lifecycle files.

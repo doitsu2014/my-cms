@@ -1,0 +1,156 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused variable: `id`
+   --> domain_backup\src\ports\job_store.rs:264:9
+    |
+264 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `expected_epoch`
+   --> domain_backup\src\ports\job_store.rs:265:9
+    |
+265 |         expected_epoch: i64,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_epoch`
+
+warning: unused variable: `expected_status`
+   --> domain_backup\src\ports\job_store.rs:266:9
+    |
+266 |         expected_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_status`
+
+warning: unused variable: `expected_state_version`
+   --> domain_backup\src\ports\job_store.rs:267:9
+    |
+267 |         expected_state_version: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_state_version`
+
+warning: unused variable: `target_status`
+   --> domain_backup\src\ports\job_store.rs:268:9
+    |
+268 |         target_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_status`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\job_store.rs:269:9
+    |
+269 |         reason: ReasonCode,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\job_store.rs:270:9
+    |
+270 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: `domain_backup` (lib test) generated 7 warnings (run `cargo fix --lib -p domain_backup --tests` to apply 7 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.55s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d5c5af4ad2d20f53\out\domain_backup-d5c5af4ad2d20f53.exe)
+
+running 10 tests
+test infra::tests::sweeper::the_sweep_ignores_a_job_of_another_epoch_even_past_its_deadline ... FAILED
+test infra::tests::sweeper::ts65_a_refused_purge_audit_removes_nothing ... FAILED
+test infra::tests::sweeper::ts30_a_written_allocation_is_released_exactly_at_its_24_hour_expiry ... FAILED
+test infra::tests::sweeper::the_sweep_discovers_an_unowned_file_without_deleting_it ... FAILED
+test infra::tests::sweeper::one_sweep_runs_deadline_then_expiry_then_purge_then_discovery ... FAILED
+test infra::tests::sweeper::ts28_an_expired_written_allocation_of_a_running_job_is_kept_until_the_owner_ends ... FAILED
+test infra::tests::sweeper::ts42_the_sweep_purges_through_the_injected_retention_store_and_keeps_audit ... FAILED
+test infra::tests::sweeper::ts30_a_queued_job_fails_dispatch_failed_at_the_queued_age_bound ... FAILED
+test infra::tests::sweeper::a_truncated_scan_fails_the_sweep_after_the_earlier_steps_and_persists_no_orphan ... FAILED
+test infra::tests::sweeper::ts30_a_running_job_fails_deadline_exceeded_exactly_at_its_deadline_and_not_before ... FAILED
+
+failures:
+
+---- infra::tests::sweeper::the_sweep_ignores_a_job_of_another_epoch_even_past_its_deadline stdout ----
+
+thread 'infra::tests::sweeper::the_sweep_ignores_a_job_of_another_epoch_even_past_its_deadline' (33288) panicked at domain_backup\src\infra\tests\sweeper.rs:90:5:
+assertion `left == right` failed
+  left: 0
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- infra::tests::sweeper::ts65_a_refused_purge_audit_removes_nothing stdout ----
+
+thread 'infra::tests::sweeper::ts65_a_refused_purge_audit_removes_nothing' (32748) panicked at domain_backup\src\infra\tests\sweeper.rs:317:5:
+assertion `left == right` failed
+  left: Ok(SweepReport { deadlines: 0, queued_expired: 0, expired: 0, purged: 0, discovered_orphans: 0 })
+ right: Err(AuditUnavailable)
+
+---- infra::tests::sweeper::ts30_a_written_allocation_is_released_exactly_at_its_24_hour_expiry stdout ----
+
+thread 'infra::tests::sweeper::ts30_a_written_allocation_is_released_exactly_at_its_24_hour_expiry' (22700) panicked at domain_backup\src\infra\tests\sweeper.rs:211:5:
+assertion `left == right` failed: released exactly at expires_at
+  left: 0
+ right: 1
+
+---- infra::tests::sweeper::the_sweep_discovers_an_unowned_file_without_deleting_it stdout ----
+
+thread 'infra::tests::sweeper::the_sweep_discovers_an_unowned_file_without_deleting_it' (27124) panicked at domain_backup\src\infra\tests\sweeper.rs:334:5:
+assertion `left == right` failed
+  left: 0
+ right: 1
+
+---- infra::tests::sweeper::one_sweep_runs_deadline_then_expiry_then_purge_then_discovery stdout ----
+
+thread 'infra::tests::sweeper::one_sweep_runs_deadline_then_expiry_then_purge_then_discovery' (24140) panicked at domain_backup\src\infra\tests\sweeper.rs:395:5:
+assertion `left == right` failed
+  left: SweepReport { deadlines: 0, queued_expired: 0, expired: 0, purged: 0, discovered_orphans: 0 }
+ right: SweepReport { deadlines: 1, queued_expired: 0, expired: 1, purged: 2, discovered_orphans: 1 }
+
+---- infra::tests::sweeper::ts28_an_expired_written_allocation_of_a_running_job_is_kept_until_the_owner_ends stdout ----
+
+thread 'infra::tests::sweeper::ts28_an_expired_written_allocation_of_a_running_job_is_kept_until_the_owner_ends' (43392) panicked at domain_backup\src\infra\tests\sweeper.rs:168:5:
+assertion `left == right` failed
+  left: 0
+ right: 1
+
+---- infra::tests::sweeper::ts42_the_sweep_purges_through_the_injected_retention_store_and_keeps_audit stdout ----
+
+thread 'infra::tests::sweeper::ts42_the_sweep_purges_through_the_injected_retention_store_and_keeps_audit' (33188) panicked at domain_backup\src\infra\tests\sweeper.rs:266:5:
+assertion `left == right` failed: only the eligible job is purged
+  left: 0
+ right: 1
+
+---- infra::tests::sweeper::ts30_a_queued_job_fails_dispatch_failed_at_the_queued_age_bound stdout ----
+
+thread 'infra::tests::sweeper::ts30_a_queued_job_fails_dispatch_failed_at_the_queued_age_bound' (19196) panicked at domain_backup\src\infra\tests\sweeper.rs:111:5:
+assertion `left == right` failed
+  left: 0
+ right: 1
+
+---- infra::tests::sweeper::a_truncated_scan_fails_the_sweep_after_the_earlier_steps_and_persists_no_orphan stdout ----
+
+thread 'infra::tests::sweeper::a_truncated_scan_fails_the_sweep_after_the_earlier_steps_and_persists_no_orphan' (13024) panicked at domain_backup\src\infra\tests\sweeper.rs:353:5:
+assertion `left == right` failed
+  left: Ok(SweepReport { deadlines: 0, queued_expired: 0, expired: 0, purged: 0, discovered_orphans: 0 })
+ right: Err(InventoryTruncated)
+
+---- infra::tests::sweeper::ts30_a_running_job_fails_deadline_exceeded_exactly_at_its_deadline_and_not_before stdout ----
+
+thread 'infra::tests::sweeper::ts30_a_running_job_fails_deadline_exceeded_exactly_at_its_deadline_and_not_before' (16328) panicked at domain_backup\src\infra\tests\sweeper.rs:60:5:
+assertion `left == right` failed: exactly at the deadline is eligible
+  left: 0
+ right: 2
+
+
+failures:
+    infra::tests::sweeper::a_truncated_scan_fails_the_sweep_after_the_earlier_steps_and_persists_no_orphan
+    infra::tests::sweeper::one_sweep_runs_deadline_then_expiry_then_purge_then_discovery
+    infra::tests::sweeper::the_sweep_discovers_an_unowned_file_without_deleting_it
+    infra::tests::sweeper::the_sweep_ignores_a_job_of_another_epoch_even_past_its_deadline
+    infra::tests::sweeper::ts28_an_expired_written_allocation_of_a_running_job_is_kept_until_the_owner_ends
+    infra::tests::sweeper::ts30_a_queued_job_fails_dispatch_failed_at_the_queued_age_bound
+    infra::tests::sweeper::ts30_a_running_job_fails_deadline_exceeded_exactly_at_its_deadline_and_not_before
+    infra::tests::sweeper::ts30_a_written_allocation_is_released_exactly_at_its_24_hour_expiry
+    infra::tests::sweeper::ts42_the_sweep_purges_through_the_injected_retention_store_and_keeps_audit
+    infra::tests::sweeper::ts65_a_refused_purge_audit_removes_nothing
+
+test result: FAILED. 0 passed; 10 failed; 0 ignored; 0 measured; 317 filtered out; finished in 13.19s
+
+error: test failed, to rerun pass `-p domain_backup --lib`

@@ -1,0 +1,15 @@
+## mutation 9c: UNIQUE scope widened with request_fingerprint (2026-11-22T18:34:52+07:00)
+52:        CONSTRAINT backup_idempotency_scope_unique UNIQUE (actor_sub, operation, key_digest, request_fingerprint)
+test migrations::tests::idempotency_unique_and_restrict_fk ... ok
+test migrations::tests::idempotency_scope_ignores_request_fingerprint ... FAILED
+test migrations::tests::terminal_job_without_idempotency_row_can_be_deleted_and_audit_has_no_fk ... ok
+thread 'migrations::tests::idempotency_scope_ignores_request_fingerprint' (5784) panicked at domain_backup\src\migrations\tests.rs:1091:5:
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 68 filtered out; finished in 3.59s
+
+## mutation 15a: key_digest char(64) -> text
+        key_digest text NOT NULL,
+test migrations::tests::other_backup_table_columns_match_the_contract ... FAILED
+test migrations::tests::backup_jobs_columns_match_the_contract ... ok
+thread 'migrations::tests::other_backup_table_columns_match_the_contract' (31336) panicked at domain_backup\src\migrations\tests.rs:501:5:
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 69 filtered out; finished in 2.77s
+restored byte-identical

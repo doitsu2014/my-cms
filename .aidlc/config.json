@@ -1,0 +1,30 @@
+{
+  "harness": "claude",
+  "scope": "solo",
+  "initializedAt": "2026-11-19T15:31:07.334Z",
+  "agentModels": {
+    "brief-analyst": "fable",
+    "context-risk-analyst": "fable",
+    "solution-explorer": "opus",
+    "decision-facilitator": "opus",
+    "implementation-planner": "sonnet",
+    "builder-verifier": "sonnet",
+    "release-coordinator": "sonnet",
+    "operations-handoff": "sonnet",
+    "outcome-curator": "sonnet",
+    "knowledge-steward": "haiku",
+    "record-keeper": "haiku",
+    "knowledge-archivist": "sonnet"
+  },
+  "mode": "ai",
+  "prerequisites": {
+    "docker": {
+      "check": "docker info",
+      "hint": "Start Docker Desktop; DB-backed tests (testcontainers) and migration checks need it",
+      "stages": [
+        "red-tests",
+        "build-and-verify"
+      ]
+    }
+  }
+}

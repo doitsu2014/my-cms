@@ -1,0 +1,1099 @@
+{
+  "schemaVersion": 1,
+  "ids": {
+    "FN": [
+      {
+        "id": "FN-01",
+        "title": "F-01 (legacy id): BackupConfig::from_env/validate (domain/config.rs)",
+        "traces": [
+          "AC-003",
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-02",
+        "title": "F-02 (legacy id): InstanceRegistry::list/get (domain/instance.rs)",
+        "traces": [
+          "AC-001"
+        ]
+      },
+      {
+        "id": "FN-03",
+        "title": "F-03 (legacy id): authorize_operation (domain/policy.rs)",
+        "traces": [
+          "AC-001",
+          "AC-005"
+        ]
+      },
+      {
+        "id": "FN-04",
+        "title": "F-04 (legacy id): authorize_resource (domain/policy.rs)",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "FN-05",
+        "title": "F-05 (legacy id): parse_create_request (handlers/create_job/request.rs)",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "FN-06",
+        "title": "F-06 (legacy id): validate_key/digest/fingerprint (domain/idempotency.rs)",
+        "traces": [
+          "AC-005",
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-07",
+        "title": "F-07 (legacy id): accept_job (handlers/create_job)",
+        "traces": [
+          "AC-002",
+          "AC-005"
+        ]
+      },
+      {
+        "id": "FN-08",
+        "title": "F-08 (legacy id): replay_or_conflict (same handler)",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-09",
+        "title": "F-09 (legacy id): get_job, list_jobs",
+        "traces": [
+          "AC-002",
+          "AC-005"
+        ]
+      },
+      {
+        "id": "FN-10",
+        "title": "F-10 (legacy id): project_job (handlers/*/response.rs)",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-11",
+        "title": "F-11 (legacy id): deny_download",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-12",
+        "title": "F-12 (legacy id): reject_disabled_capability",
+        "traces": [
+          "AC-003",
+          "AC-005"
+        ]
+      },
+      {
+        "id": "FN-13",
+        "title": "F-13 (legacy id): preview_preflight",
+        "traces": [
+          "AC-003",
+          "AC-004"
+        ]
+      },
+      {
+        "id": "FN-14",
+        "title": "F-14 (legacy id): preview_restore_confirmation",
+        "traces": [
+          "AC-004"
+        ]
+      },
+      {
+        "id": "FN-15",
+        "title": "F-15 (legacy id): transition_job (ports/job_store.rs, infra/db_job_store.rs, domain/state_machine.rs)",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-16",
+        "title": "F-16 (legacy id): claim_next_job, worker loop (lifecycle/worker.rs)",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-17",
+        "title": "F-17 (legacy id): FixtureCaptureAdapter::capture (lifecycle/fixture_capture.rs)",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-18",
+        "title": "F-18 (legacy id): complete_incomplete (lifecycle/worker.rs)",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-19",
+        "title": "F-19 (legacy id): fail_job",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-20",
+        "title": "F-20 (legacy id): enforce_deadline (worker.rs, sweeper.rs)",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-21",
+        "title": "F-21 (legacy id): register_allocation (ports/allocation_store.rs)",
+        "traces": [
+          "AC-002",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "FN-22",
+        "title": "F-22 (legacy id): FsFixtureStorage::write/delete/inventory",
+        "traces": [
+          "AC-002",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "FN-23",
+        "title": "F-23 (legacy id): mark_allocation_written",
+        "traces": [
+          "AC-002",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "FN-24",
+        "title": "F-24 (legacy id): FsNamespaceLock::try_acquire",
+        "traces": [
+          "AC-002",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "FN-25",
+        "title": "F-25 (legacy id): bump_epoch_and_fence (lifecycle/reconciler.rs)",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-26",
+        "title": "F-26 (legacy id): reconcile_jobs",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-27",
+        "title": "F-27 (legacy id): reconcile_inventory",
+        "traces": [
+          "AC-002",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "FN-28",
+        "title": "F-28 (legacy id): discover_orphan",
+        "traces": [
+          "AC-002",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "FN-29",
+        "title": "F-29 (legacy id): clean_allocation (lifecycle/cleaner.rs)",
+        "traces": [
+          "AC-002",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "FN-30",
+        "title": "F-30 (legacy id): retry_or_exhaust",
+        "traces": [
+          "AC-002",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "FN-31",
+        "title": "F-31 (legacy id): db_outage_guard (lifecycle/runtime.rs)",
+        "traces": [
+          "AC-002",
+          "AC-005"
+        ]
+      },
+      {
+        "id": "FN-32",
+        "title": "F-32 (legacy id): schedule_sweeps (lifecycle/sweeper.rs)",
+        "traces": [
+          "AC-002",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "FN-33",
+        "title": "F-33 (legacy id): purge_retention",
+        "traces": [
+          "AC-002",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "FN-34",
+        "title": "F-34 (legacy id): AuditSink::record (ports/audit.rs, infra/db_audit_sink.rs)",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "FN-35",
+        "title": "F-35 (legacy id): project_error (domain/response.rs)",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "FN-36",
+        "title": "F-36 (legacy id): status_handler",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-37",
+        "title": "F-37 (legacy id): DomainBackupService (service.rs)",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "FN-38",
+        "title": "F-38 (legacy id): gateway compose changes",
+        "traces": [
+          "AC-002",
+          "AC-005"
+        ]
+      },
+      {
+        "id": "FN-39",
+        "title": "F-39 (legacy id): is_loopback_bind(&str) -> bool (domain/config.rs)",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "FN-40",
+        "title": "F-40 (legacy id): backup_cli::handle_args",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-41",
+        "title": "F-41 (legacy id): domains/backup.ts (web REST client)",
+        "traces": [
+          "AC-001",
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-42",
+        "title": "F-42 (legacy id): Route and menu (web)",
+        "traces": [
+          "AC-001"
+        ]
+      },
+      {
+        "id": "FN-43",
+        "title": "F-43 (legacy id): InstanceSelector (web)",
+        "traces": [
+          "AC-001"
+        ]
+      },
+      {
+        "id": "FN-44",
+        "title": "F-44 (legacy id): JobCreatePanel (web)",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-45",
+        "title": "F-45 (legacy id): JobStatusBadge, JobDetail (web)",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-46",
+        "title": "F-46 (legacy id): useBackupJobs (web)",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "FN-47",
+        "title": "F-47 (legacy id): SyntheticPreviewPanel (web)",
+        "traces": [
+          "AC-003",
+          "AC-004"
+        ]
+      },
+      {
+        "id": "FN-48",
+        "title": "F-48 (legacy id): Safe error rendering (web)",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "FN-49",
+        "title": "F-49 (legacy id): BackupStatusBanner (web)",
+        "traces": [
+          "AC-002"
+        ]
+      }
+    ],
+    "IF": [
+      {
+        "id": "IF-01",
+        "title": "GET /backup/instances",
+        "traces": [
+          "FN-02",
+          "AC-001"
+        ]
+      },
+      {
+        "id": "IF-02",
+        "title": "POST /backup/jobs",
+        "traces": [
+          "FN-05",
+          "FN-08",
+          "AC-002",
+          "AC-005"
+        ]
+      },
+      {
+        "id": "IF-03",
+        "title": "GET /backup/jobs",
+        "traces": [
+          "FN-09",
+          "AC-002"
+        ]
+      },
+      {
+        "id": "IF-04",
+        "title": "GET /backup/jobs/{job_id}",
+        "traces": [
+          "FN-09",
+          "AC-005"
+        ]
+      },
+      {
+        "id": "IF-05",
+        "title": "GET /backup/jobs/{job_id}/download",
+        "traces": [
+          "FN-11",
+          "AC-002"
+        ]
+      },
+      {
+        "id": "IF-06",
+        "title": "POST /backup/packages",
+        "traces": [
+          "FN-12",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "IF-07",
+        "title": "POST /backup/preflight",
+        "traces": [
+          "FN-12",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "IF-08",
+        "title": "POST /backup/restore",
+        "traces": [
+          "FN-12",
+          "AC-004"
+        ]
+      },
+      {
+        "id": "IF-09",
+        "title": "POST /backup/previews/preflight",
+        "traces": [
+          "FN-13",
+          "AC-003",
+          "AC-004"
+        ]
+      },
+      {
+        "id": "IF-10",
+        "title": "POST /backup/previews/restore-confirmation",
+        "traces": [
+          "FN-14",
+          "AC-004"
+        ]
+      },
+      {
+        "id": "IF-11",
+        "title": "GET /backup/status",
+        "traces": [
+          "FN-36",
+          "AC-002",
+          "AC-006"
+        ]
+      }
+    ],
+    "TS": [
+      {
+        "id": "TS-01",
+        "title": "Config defaults equal owner values exactly (CFG-05..CFG-14 bounds; CFG-15 escalation owner)",
+        "traces": [
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-02",
+        "title": "Invalid or missing required config makes backup disabled with disabled_reason INVALID_CONFIG (closed set NOT_CONFIGURED, NON_LOOPBACK_BIND,…",
+        "traces": [
+          "AC-003",
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-03",
+        "title": "Composed router: missing, expired, forged (HS256 with a wrong secret, so no JWKS fetch), writer and non-admin tokens denied before handler…",
+        "traces": [
+          "AC-001",
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-04",
+        "title": "Foreign and unknown job ids give non-disclosing 404 on read, list, replay, download",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-05",
+        "title": "split into TS-05a, TS-05b: Worker claim re-check goes through the policy port; revoked or unknown instance fails the job (test double)",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-06",
+        "title": "Unknown instance, extra fields, URL, DSN, key fields rejected on create (strict JSON parse F-05)",
+        "traces": [
+          "AC-001",
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-07",
+        "title": "Composed router: content type required (415), no cookie-only mutation auth, no CORS layer on backup routes, no custom header required (bear…",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-08",
+        "title": "split into TS-08a, TS-08b: F-39 loopback guard, unit: is_loopback_bind parses HOST as an IP; non-loopback IP, 0.0.0.0, :: and non-IP hostna…",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-09",
+        "title": "Upload, preflight, restore, download denied; body stream not polled; no ledger rows or files (spies); download is 403 DOWNLOAD_DENIED for e…",
+        "traces": [
+          "AC-002",
+          "AC-003",
+          "AC-005",
+          "AC-004"
+        ]
+      },
+      {
+        "id": "TS-10",
+        "title": "Client flags cannot select real adapter; runtime composition holds only fixture adapter",
+        "traces": [
+          "AC-002",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-11",
+        "title": "Status enum keeps every documented value (including succeeded and recovery-required) and adds incomplete (ADR-002, D-10). Exhaustive enumer…",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-12",
+        "title": "split into TS-12a, TS-12b: Web: zod schema and UI accept and render every status value (exhaustive handling, including succeeded and recove…",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-13",
+        "title": "Idempotency replay, changed-request conflict, concurrent replays; raw key absent from all tables",
+        "traces": [
+          "AC-002",
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-14",
+        "title": "split into TS-14a, TS-14b: Store level: partial unique index violation when a second queued/running job exists for the instance",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-15",
+        "title": "Audit unavailable: no job, no allocation, no accepted response",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-16",
+        "title": "Commit failure injection: no accepted response; idempotent retry resolves",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-17",
+        "title": "Secret canary absent from backup-handled responses, logs, audit rows, errors and metrics (API part WU-08); full run adds the web bundle sca…",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-18",
+        "title": "Malicious strings in labels/errors render escaped in UI",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-19",
+        "title": "Path safety: traversal, absolute, symlink, junction/reparse (Windows), forged orphan names, ambiguous ownership never deleted",
+        "traces": [
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-20",
+        "title": "Crash window 1: ledger commit before file creation",
+        "traces": [
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-21",
+        "title": "Window 2: file creation before ledger update",
+        "traces": [
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-22",
+        "title": "Window 3: worker interruption",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-23",
+        "title": "Window 4: orphan namespace entry",
+        "traces": [
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-24",
+        "title": "Window 5: missing file",
+        "traces": [
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-25",
+        "title": "Window 6: cleaner claim before unlink",
+        "traces": [
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-26",
+        "title": "Window 7: unlink before final commit",
+        "traces": [
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-27",
+        "title": "split into TS-27a, TS-27b: Window 8, ledger level: retry exhaustion (3 attempts, 1-minute backoff) yields cleanup_failed and the exhausted…",
+        "traces": [
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-28",
+        "title": "Window 9: active worker vs sweeper race; expiry alone does not delete active work",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-29",
+        "title": "Window 10: metadata DB outage; no deletion, safe signal, reconcile before reopening",
+        "traces": [
+          "AC-002",
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-30",
+        "title": "Bounds with fake clock: 256 MiB per allocation, 1 GiB total, 10 min deadline, 3 cleanup attempts in total (CFG-08) with 1-minute backoff be…",
+        "traces": [
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-31",
+        "title": "Private permissions (Unix: modes 0700/0600; Windows: PARTIAL evidence only, see TS-02 definition and T-14 note), no static mapping, no publ…",
+        "traces": [
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-32",
+        "title": "Startup order; second process refused ownership; admissions closed until reconcile finishes",
+        "traces": [
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-33",
+        "title": "backup_cli::handle_args: create, list, restore, unknown input fail closed; no DB or S3 contact",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-34",
+        "title": "Migrations: fresh, upgrade beside posts and seo, separate migration table, trigger presence (structural, not an authorization test)",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-35",
+        "title": "Web route guard, administrator-only menu item, left-menu.test.tsx extended. UX only; not evidence for any server-side authorization scenario",
+        "traces": []
+      },
+      {
+        "id": "TS-36",
+        "title": "Web polling with fake timers; stops on terminal; cleans up on unmount",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-37",
+        "title": "Web accessibility: keyboard, text status, announcements, labels; manual AT review separate",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-38",
+        "title": "Empty or unavailable instance list disables submission",
+        "traces": [
+          "AC-001"
+        ]
+      },
+      {
+        "id": "TS-39",
+        "title": "Job creation latency measured; no target claimed",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-40",
+        "title": "Temporary bytes and concurrency bounded under load",
+        "traces": []
+      },
+      {
+        "id": "TS-41",
+        "title": "API-level: admin creates job, ends incomplete; direct GET .../download returns 403 DOWNLOAD_DENIED. UI-level: the UI exposes no download co…",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-42",
+        "title": "Retention purge at 30 days; audit rows kept",
+        "traces": []
+      },
+      {
+        "id": "TS-43",
+        "title": "Preview confirm and cancel enqueue nothing, call no mutation port",
+        "traces": [
+          "AC-004"
+        ]
+      },
+      {
+        "id": "TS-44",
+        "title": "split into TS-44a, TS-44b: job.accepted audit event: actor, instance, job, time and outcome populated; no excluded fields (credentials, tok…",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-45",
+        "title": "GET /backup/instances (IF-01): exactly the configured instance, safe label, environment local, capabilities upload/preflight/restore/downlo…",
+        "traces": [
+          "AC-001"
+        ]
+      },
+      {
+        "id": "TS-46",
+        "title": "Web instance selector renders the instance label and environment label",
+        "traces": [
+          "AC-001"
+        ]
+      },
+      {
+        "id": "TS-47",
+        "title": "Worker happy path: job ends incomplete with REQUIRED_COMPONENTS_UNAVAILABLE and the exact components array (database DB_SYNTHETIC_ONLY, aut…",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-48",
+        "title": "Worker failure outcomes: ADAPTER_ERROR, PERSISTENCE_ERROR (mark_written CAS failure), ALLOCATION_LIMIT (budget exceeded), DISPATCH_FAILED (…",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-49",
+        "title": "Job projection F-10: reference and status shown, progress null unless counters measured, safe error text only",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-50",
+        "title": "Web BackupStatusBanner (F-49): render IF-11 payloads (escalation.visible true/false, state degraded/not_ready, cleanup.exhausted > 0, disab…",
+        "traces": []
+      },
+      {
+        "id": "TS-51",
+        "title": "Web SyntheticPreviewPanel (F-47): labelled synthetic; confirmation names the fixture package, target instance label and data in scope; uplo…",
+        "traces": [
+          "AC-004",
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-52",
+        "title": "Web JobCreatePanel (F-44): fresh crypto.randomUUID() key per submit; double-submit guard; REST client (domains/backup.ts) strict parsing an…",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-53",
+        "title": "preview_preflight (F-13): canned result only for a trusted fixture id; uploaded files and paths never accepted",
+        "traces": [
+          "AC-003",
+          "AC-004"
+        ]
+      },
+      {
+        "id": "TS-54",
+        "title": "reserved and unused (keeps TS-55..TS-58 numbering stable); never assign"
+      },
+      {
+        "id": "TS-55",
+        "title": "Ingress limits as gateway layers on the backup router (design C10): request timeout (CFG-17) and header-size limit (CFG-18) return a safe e…",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-56",
+        "title": "Bounded inventory (design C10): FixtureStorage::inventory takes a max-entries bound and returns a truncation flag; over-bound yields trunca…",
+        "traces": [
+          "AC-003"
+        ]
+      },
+      {
+        "id": "TS-57",
+        "title": "Metric labels are the closed set job_kind, outcome, error_code only (design C10); no id, path or actor values; canary-bearing inputs never…",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-58",
+        "title": "Gate/review check: Q-04, Q-06, Q-07, Q-10, Q-11, Q-12, audit retention and the non-owner guards are listed as open in the implementation pl…",
+        "traces": [
+          "AC-006"
+        ]
+      },
+      {
+        "id": "TS-59",
+        "title": "Host/Origin policy (IFC 2.1, T-04): on every backup route a Host outside the loopback forms (127.0.0.1, localhost, [::1]) with the configur…",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-60",
+        "title": "Body cap: IF-02, IF-09 and IF-10 reject a body over 16 KiB (by Content-Length and by streamed length) with 413 PAYLOAD_TOO_LARGE in the cra…",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-61",
+        "title": "IF-03 limit above 100 or malformed cursor gives 400 with reason_code MALFORMED_REQUEST (coarse error_code ValidationError) in the crate err…",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-62",
+        "title": "Wrong or missing JSON Content-Type on IF-02, IF-09, IF-10 gives 415 UNSUPPORTED_MEDIA_TYPE in the crate error body (handler level; TS-07 co…",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-63",
+        "title": "Malformed JSON, unknown field and non-UUID path parameter give 4xx in the crate error body with no echo of input",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-64",
+        "title": "IF-09 and IF-10 responses carry the IFC 2.9 identification fields fixture_label, target_instance_id, target_instance_label, target_environm…",
+        "traces": [
+          "AC-004"
+        ]
+      },
+      {
+        "id": "TS-65",
+        "title": "Audit unavailable refuses the deletion claim, the deletion commit and the retention purge: no unlink, no row change, no purge",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-66",
+        "title": "Migration revert keeps backup_audit rows and its append-only trigger; the down migration refuses while audit rows exist",
+        "traces": [
+          "AC-005"
+        ]
+      },
+      {
+        "id": "TS-67",
+        "title": "Worker claim: queued to running CAS has one winner under duplicate dispatch; a late or duplicate worker cannot overwrite a terminal job; th…",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-68",
+        "title": "Deadline: worker::tests::deadline_exceeded_fails_job (blocked capture adapter, advance_both(600 s), CAS running to failed DEADLINE_EXCEEDED…",
+        "traces": [
+          "AC-002"
+        ]
+      },
+      {
+        "id": "TS-69",
+        "title": "Audit sink records in the caller transaction: AuditSink::record (F-34) writes the audit row on the caller's transaction; rolling that trans…",
+        "traces": [
+          "AC-005"
+        ]
+      }
+    ],
+    "WU": [
+      {
+        "id": "WU-01",
+        "title": "Crate scaffold, domain types, config, clock, errors"
+      },
+      {
+        "id": "WU-02",
+        "title": "Migrations, entities, trigger guards, migrator table name"
+      },
+      {
+        "id": "WU-03",
+        "title": "Job store with CAS, claim, concurrency index"
+      },
+      {
+        "id": "WU-04",
+        "title": "Allocation ledger, fixture storage, namespace lock"
+      },
+      {
+        "id": "WU-05",
+        "title": "Worker, fixture capture, terminal rules, deadline"
+      },
+      {
+        "id": "WU-06",
+        "title": "Allocation reconciliation and retention store contracts"
+      },
+      {
+        "id": "WU-17",
+        "title": "Lifecycle reconciler: startup and recovery reconciliation, job fencing, orphan discovery"
+      },
+      {
+        "id": "WU-18",
+        "title": "Lifecycle cleaner: audited delete claim, unlink, retry and exhaustion"
+      },
+      {
+        "id": "WU-19",
+        "title": "Lifecycle sweeper and runtime: expiry and deadline sweeps, retention purge, startup barrier and outage recovery"
+      },
+      {
+        "id": "WU-07",
+        "title": "Idempotency, atomic acceptance"
+      },
+      {
+        "id": "WU-08",
+        "title": "Authorization policy, instance registry, REST read and create adapters, status endpoint, error projection"
+      },
+      {
+        "id": "WU-09",
+        "title": "Disabled capabilities, download denial, previews"
+      },
+      {
+        "id": "WU-10",
+        "title": "Gateway integration, runtime start, loopback guard, composed-router security"
+      },
+      {
+        "id": "WU-11",
+        "title": "CLI fail-closed tests and doc reconciliation"
+      },
+      {
+        "id": "WU-12",
+        "title": "Web foundation: types, API helpers, REST client"
+      },
+      {
+        "id": "WU-13",
+        "title": "Web page, route, menu, instance selector, create panel"
+      },
+      {
+        "id": "WU-14",
+        "title": "Web status, polling, preview, banner, accessibility"
+      },
+      {
+        "id": "WU-15",
+        "title": "Verification sweep: canary, e2e, doc updates, evidence for the release-candidate gate"
+      }
+    ],
+    "CFG": [
+      {
+        "id": "CFG-01",
+        "title": "BACKUP_ENABLED"
+      },
+      {
+        "id": "CFG-02",
+        "title": "BACKUP_INSTANCE_ID"
+      },
+      {
+        "id": "CFG-03",
+        "title": "BACKUP_INSTANCE_LABEL"
+      },
+      {
+        "id": "CFG-04",
+        "title": "BACKUP_STORAGE_ROOT"
+      },
+      {
+        "id": "CFG-05",
+        "title": "BACKUP_STAGING_EXPIRY_SECS"
+      },
+      {
+        "id": "CFG-06",
+        "title": "BACKUP_ORPHAN_GRACE_SECS"
+      },
+      {
+        "id": "CFG-07",
+        "title": "BACKUP_SWEEP_INTERVAL_SECS"
+      },
+      {
+        "id": "CFG-08",
+        "title": "BACKUP_CLEANUP_MAX_ATTEMPTS"
+      },
+      {
+        "id": "CFG-09",
+        "title": "BACKUP_CLEANUP_BACKOFF_SECS"
+      },
+      {
+        "id": "CFG-10",
+        "title": "BACKUP_JOB_DEADLINE_SECS"
+      },
+      {
+        "id": "CFG-11",
+        "title": "BACKUP_MAX_CONCURRENT_JOBS"
+      },
+      {
+        "id": "CFG-12",
+        "title": "BACKUP_ALLOC_MAX_BYTES"
+      },
+      {
+        "id": "CFG-13",
+        "title": "BACKUP_TOTAL_MAX_BYTES"
+      },
+      {
+        "id": "CFG-14",
+        "title": "BACKUP_RETENTION_DAYS"
+      },
+      {
+        "id": "CFG-15",
+        "title": "BACKUP_ESCALATION_OWNER"
+      },
+      {
+        "id": "CFG-16",
+        "title": "BACKUP_ALLOWED_ORIGINS"
+      },
+      {
+        "id": "CFG-17",
+        "title": "BACKUP_REQUEST_TIMEOUT_SECS"
+      },
+      {
+        "id": "CFG-18",
+        "title": "BACKUP_MAX_HEADER_BYTES"
+      }
+    ]
+  },
+  "note": "Backfilled 2026-11-22 for dtech-aidlc 0.7.0 from the reported implementation-design artifacts (designed under 0.6.4). FN-xx registers the legacy F-xx function ids; letter-suffixed tests (TS-05a, TS-08a, ...) are registered under their base number. No identifier was invented. WU-06/WU-16 sequencing rework reuses all registered identifiers; no new identifier was needed or added. 2026-11-26: WU-16 was split by the owner into WU-17, WU-18 and WU-19 (WU-16 dropped; earlier evidence of completed units still mentions it by name); these three work-unit identifiers were added and no other identifier changed."
+}

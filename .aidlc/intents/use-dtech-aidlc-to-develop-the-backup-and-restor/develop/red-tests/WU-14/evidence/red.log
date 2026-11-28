@@ -1,0 +1,2457 @@
+
+ RUN  v4.1.8 /Users/doitsu2014/workspaces/doitsu-technology/my-cms/.claude/worktrees/wf_4a2c2c5b-6a2-1/apps/web
+
+ ❯ src/domains/backup.test.ts (37 tests | 3 failed) 15ms
+     × posts only fixture_id to the preflight path with JSON content type and the bearer token 1ms
+     × posts fixture_id and decision to the restore-confirmation path 0ms
+     × rejects a preview body that does not match the contract and surfaces typed errors 1ms
+ ❯ src/app/admin/backup/hooks/use-backup-status.test.ts (4 tests | 3 failed) 14ms
+     × loads the IF-11 status once on mount with the caller token 7ms
+     × reports an error phase with no status when the request fails 2ms
+     × refresh reloads the status 3ms
+ ❯ src/app/admin/backup/components/job-status-badge.test.tsx (11 tests | 10 failed) 24ms
+     × ts12a_renders_queued_as_text_with_no_download_control 12ms
+     × ts12a_renders_running_as_text_with_no_download_control 2ms
+     × ts12a_renders_succeeded_as_text_with_no_download_control 1ms
+     × ts12a_renders_failed_as_text_with_no_download_control 1ms
+     × ts12a_renders_recovery-required_as_text_with_no_download_control 3ms
+     × ts12a_renders_incomplete_as_text_with_no_download_control 1ms
+     × ts12a_renders_unknown_as_text_with_no_download_control 1ms
+     × ts37_status_is_text_and_the_icon_is_hidden_from_assistive_technology 1ms
+     × labels an incomplete job as synthetic, database-only and not restorable when detailed 1ms
+     × ts12a_unknown_status_shows_the_safe_fallback_and_never_a_success_label 1ms
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts (14 tests | 13 failed) 35ms
+     × ts36_loads_once_on_mount_with_the_caller_token 7ms
+     × ts36_polls_every_2s_while_any_job_is_non_terminal 3ms
+     × ts36_stops_polling_when_every_job_is_terminal 3ms
+     × ts36_does_not_poll_at_all_when_the_first_list_is_all_terminal_or_empty 4ms
+     × ts36_backs_off_by_doubling_from_2s_to_a_30s_ceiling_on_request_errors 3ms
+     × ts36_resets_the_backoff_after_a_success 6ms
+     × ts36_keeps_the_last_jobs_while_a_poll_fails 1ms
+     × ts36_treats_unknown_as_non_terminal_for_at_most_10_polls_then_stops_with_exhausted 1ms
+     × ts36_an_unknown_status_that_resolves_to_terminal_stops_normally_without_exhaustion 1ms
+     × ts36_cleans_up_on_unmount_so_no_timer_or_request_survives 1ms
+     × ts36_an_in_flight_response_after_unmount_is_ignored_and_schedules_nothing 1ms
+     × ts36_refresh_reloads_immediately_and_restarts_polling_after_a_stop 1ms
+     × ts36_a_token_change_restarts_the_load_with_the_new_token 1ms
+ ❯ src/app/admin/backup/components/backup-status-banner.test.tsx (12 tests | 11 failed) 69ms
+     × ts50_escalation_visible_names_the_project_owner_and_cleanup_exhaustion 51ms
+     × ts50_escalation_visible_for_ownership_incidents_alone 2ms
+     × ts50_ready_without_escalation_shows_a_status_and_no_escalation_text 2ms
+     × ts50_not_ready_state_is_announced_without_escalation 1ms
+     × ts50_database_unhealthy_is_stated_in_text 2ms
+     × ts50_disabled_with_reason_NOT_CONFIGURED_states_the_reason_and_names_the_project_owner 1ms
+     × ts50_disabled_with_reason_NON_LOOPBACK_BIND_states_the_reason_and_names_the_project_owner 1ms
+     × ts50_disabled_with_reason_INVALID_CONFIG_states_the_reason_and_names_the_project_owner 1ms
+     × ts50_disabled_with_a_null_reason_still_renders_a_generic_disabled_message 1ms
+     × shows fixed copy while loading and when the status request failed 1ms
+     × ts18_html_bearing_owner_string_renders_escaped 2ms
+ ❯ src/app/admin/backup/components/job-list.test.tsx (7 tests | 7 failed) 72ms
+     × renders a labelled table with each job status as text 53ms
+     × ts12a_every_status_row_renders_without_any_download_control 2ms
+     × ts37_a_job_is_selected_with_the_keyboard_and_marks_the_current_one 10ms
+     × ts37_announces_loading_empty_and_polling_states_through_a_polite_live_region 2ms
+     × shows an alert for a request failure that is still being retried, with fixed copy 1ms
+     × ts36_shows_an_error_banner_and_a_manual_refresh_when_unknown_status_polling_is_exhausted 1ms
+     × ts18_html_bearing_server_strings_render_escaped 2ms
+ ❯ src/app/admin/backup/components/job-detail.test.tsx (10 tests | 10 failed) 70ms
+     × ts12a_status_queued_parses_renders_and_offers_no_download 57ms
+     × ts12a_status_running_parses_renders_and_offers_no_download 2ms
+     × ts12a_status_succeeded_parses_renders_and_offers_no_download 2ms
+     × ts12a_status_failed_parses_renders_and_offers_no_download 1ms
+     × ts12a_status_recovery-required_parses_renders_and_offers_no_download 1ms
+     × ts12a_status_incomplete_parses_renders_and_offers_no_download 1ms
+     × ts12a_an_unrecognised_status_renders_the_safe_fallback_with_no_download 2ms
+     × shows the incomplete outcome, reason, components and measured progress as text 1ms
+     × says progress is not measured when the server reports none, and shows no components message 1ms
+     × ts18_html_bearing_server_strings_render_escaped_and_never_as_markup 2ms
+ ❯ src/app/admin/backup/components/synthetic-preview-panel.test.tsx (10 tests | 10 failed) 66ms
+     × ts51_is_labelled_synthetic_and_shows_upload_as_unavailable 51ms
+     × ts51_preflight_names_the_fixture_package_target_instance_and_data_in_scope 2ms
+     × ts51_the_selected_fixture_is_the_one_sent 2ms
+     × ts51_confirm_posts_the_decision_and_shows_executed_false_with_the_identification_fields 2ms
+     × ts51_cancel_posts_cancel_and_confirms_nothing_changed 2ms
+     × ts51_an_incompatible_or_corrupt_package_cannot_be_confirmed 1ms
+     × ts51_a_failed_request_shows_fixed_copy_and_never_the_server_string 1ms
+     × ts51_a_second_click_while_a_request_is_in_flight_sends_one_request 1ms
+     × ts37_controls_have_accessible_names_and_work_from_the_keyboard 1ms
+     × ts18_html_bearing_server_strings_render_escaped 1ms
+ ❯ src/app/admin/backup/page.status.test.tsx (5 tests | 5 failed) 5072ms
+     × renders the status banner, the job list and the synthetic preview panel 1030ms
+     × shows the escalation banner with the project owner when IF-11 says so 1010ms
+     × selecting a job shows its detail with status text and no download control 1011ms
+     × refreshes the job list and status after a job is created 1009ms
+     × keeps the page usable when the jobs and status requests fail 1011ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 72 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/domains/backup.test.ts > TS-51 client: synthetic preview calls (IF-09, IF-10) > posts only fixture_id to the preflight path with JSON content type and the bearer token
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ lastCall src/domains/backup.test.ts:93:21
+     91|
+     92| function lastCall() {
+     93|   expect(fetchMock).toHaveBeenCalledTimes(1);
+       |                     ^
+     94|   const [url, options] = fetchMock.mock.calls[0] as [string, RequestIn…
+     95|   return { url, options };
+ ❯ src/domains/backup.test.ts:345:30
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/73]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-51 client: synthetic preview calls (IF-09, IF-10) > posts fixture_id and decision to the restore-confirmation path
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ lastCall src/domains/backup.test.ts:93:21
+     91|
+     92| function lastCall() {
+     93|   expect(fetchMock).toHaveBeenCalledTimes(1);
+       |                     ^
+     94|   const [url, options] = fetchMock.mock.calls[0] as [string, RequestIn…
+     95|   return { url, options };
+ ❯ src/domains/backup.test.ts:359:30
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/73]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-51 client: synthetic preview calls (IF-09, IF-10) > rejects a preview body that does not match the contract and surfaces typed errors
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ src/domains/backup.test.ts:377:64
+    375|   it('rejects a preview body that does not match the contract and surf…
+    376|     fetchMock.mockResolvedValue(json({ synthetic: true }));
+    377|     await expect(previewBackupPreflight('tok', 'fixture-valid')).rejec…
+       |                                                                ^
+    378|       expect.objectContaining({ reasonCode: 'INVALID_RESPONSE' }),
+    379|     );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/73]⎯
+
+ FAIL  src/app/admin/backup/page.status.test.tsx > AdminBackupPage status wiring (WU-14) > renders the status banner, the job list and the synthetic preview panel
+TestingLibraryElementError: Unable to find role="table" and name `/backup jobs/i`
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"breadcrumbs text-sm mb-4"[39m
+      [36m>[39m
+        [36m<ul>[39m
+          [36m<li>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 hover:text-primary transition-colors"[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"/admin"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-house w-4 h-4"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mAdmin[0m
+            [36m</a>[39m
+          [36m</li>[39m
+          [36m<li>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 opacity-70"[39m
+            [36m>[39m
+              [0mBackup[0m
+            [36m</span>[39m
+          [36m</li>[39m
+        [36m</ul>[39m
+      [36m</div>[39m
+      [36m<div>[39m
+        [36m<h1[39m
+          [33mclass[39m=[32m"text-2xl font-bold"[39m
+        [36m>[39m
+          [0mBackup[0m
+        [36m</h1>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-base-content/60 text-sm mt-1"[39m
+        [36m>[39m
+          [0mCreate a synthetic backup job for an eligible instance.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"card bg-base-200"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"card-body space-y-4"[39m
+        [36m>[39m
+          [36m<fieldset[39m
+            [33mclass[39m=[32m"space-y-2"[39m
+          [36m>[39m
+            [36m<legend[39m
+              [33mclass[39m=[32m"font-semibold mb-2"[39m
+            [36m>[39m
+              [0mInstance[0m
+            [36m</legend>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"flex items-center gap-3 cursor-pointer"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33mchecked[39m=[32m""[39m
+                [33mclass[39m=[32m"radio radio-primary"[39m
+                [33mname[39m=[32m"backup-instance"[39m
+                [33mtype[39m=[32m"radio"[39m
+                [33mvalue[39m=[32m"local-1"[39m
+              [36m/>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"font-medium"[39m
+              [36m>[39m
+                [0mLocal development instance[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"badge badge-outline"[39m
+              [36m>[39m
+                [0mlocal[0m
+              [36m</span>[39m
+            [36m</label>[39m
+          [36m</fieldset>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-primary"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCreate backup[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"breadcrumbs text-sm mb-4"[39m
+      [36m>[39m
+        [36m<ul>[39m
+          [36m<li>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 hover:text-primary transition-colors"[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"/admin"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-house w-4 h-4"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mAdmin[0m
+            [36m</a>[39m
+          [36m</li>[39m
+          [36m<li>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 opacity-70"[39m
+            [36m>[39m
+              [0mBackup[0m
+            [36m</span>[39m
+          [36m</li>[39m
+        [36m</ul>[39m
+      [36m</div>[39m
+      [36m<div>[39m
+        [36m<h1[39m
+          [33mclass[39m=[32m"text-2xl font-bold"[39m
+        [36m>[39m
+          [0mBackup[0m
+        [36m</h1>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-base-content/60 text-sm mt-1"[39m
+        [36m>[39m
+          [0mCreate a synthetic backup job for an eligible instance.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"card bg-base-200"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"card-body space-y-4"[39m
+        [36m>[39m
+          [36m<fieldset[39m
+            [33mclass[39m=[32m"space-y-2"[39m
+          [36m>[39m
+            [36m<legend[39m
+              [33mclass[39m=[32m"font-semibold mb-2"[39m
+            [36m>[39m
+              [0mInstance[0m
+            [36m</legend>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"flex items-center gap-3 cursor-pointer"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33mchecked[39m=[32m""[39m
+                [33mclass[39m=[32m"radio radio-primary"[39m
+                [33mname[39m=[32m"backup-instance"[39m
+                [33mtype[39m=[32m"radio"[39m
+                [33mvalue[39m=[32m"local-1"[39m
+              [36m/>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"font-medium"[39m
+              [36m>[39m
+                [0mLocal development instance[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"badge badge-outline"[39m
+              [36m>[39m
+                [0mlocal[0m
+              [36m</span>[39m
+            [36m</label>[39m
+          [36m</fieldset>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-primary"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCreate backup[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/app/admin/backup/page.status.test.tsx:79:25
+     77|   it('renders the status banner, the job list and the synthetic previe…
+     78|     renderPage();
+     79|     expect(await screen.findByRole('table', { name: /backup jobs/i }))…
+       |                         ^
+     80|     expect(await screen.findByText(/backup is ready/i)).toBeInTheDocum…
+     81|     expect(statusMock).toHaveBeenCalledWith('tok');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/73]⎯
+
+ FAIL  src/app/admin/backup/page.status.test.tsx > AdminBackupPage status wiring (WU-14) > shows the escalation banner with the project owner when IF-11 says so
+TestingLibraryElementError: Unable to find an element with the text: /escalate to the project owner/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"breadcrumbs text-sm mb-4"[39m
+      [36m>[39m
+        [36m<ul>[39m
+          [36m<li>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 hover:text-primary transition-colors"[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"/admin"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-house w-4 h-4"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mAdmin[0m
+            [36m</a>[39m
+          [36m</li>[39m
+          [36m<li>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 opacity-70"[39m
+            [36m>[39m
+              [0mBackup[0m
+            [36m</span>[39m
+          [36m</li>[39m
+        [36m</ul>[39m
+      [36m</div>[39m
+      [36m<div>[39m
+        [36m<h1[39m
+          [33mclass[39m=[32m"text-2xl font-bold"[39m
+        [36m>[39m
+          [0mBackup[0m
+        [36m</h1>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-base-content/60 text-sm mt-1"[39m
+        [36m>[39m
+          [0mCreate a synthetic backup job for an eligible instance.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"card bg-base-200"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"card-body space-y-4"[39m
+        [36m>[39m
+          [36m<fieldset[39m
+            [33mclass[39m=[32m"space-y-2"[39m
+          [36m>[39m
+            [36m<legend[39m
+              [33mclass[39m=[32m"font-semibold mb-2"[39m
+            [36m>[39m
+              [0mInstance[0m
+            [36m</legend>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"flex items-center gap-3 cursor-pointer"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33mchecked[39m=[32m""[39m
+                [33mclass[39m=[32m"radio radio-primary"[39m
+                [33mname[39m=[32m"backup-instance"[39m
+                [33mtype[39m=[32m"radio"[39m
+                [33mvalue[39m=[32m"local-1"[39m
+              [36m/>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"font-medium"[39m
+              [36m>[39m
+                [0mLocal development instance[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"badge badge-outline"[39m
+              [36m>[39m
+                [0mlocal[0m
+              [36m</span>[39m
+            [36m</label>[39m
+          [36m</fieldset>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-primary"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCreate backup[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"breadcrumbs text-sm mb-4"[39m
+      [36m>[39m
+        [36m<ul>[39m
+          [36m<li>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 hover:text-primary transition-colors"[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"/admin"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-house w-4 h-4"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mAdmin[0m
+            [36m</a>[39m
+          [36m</li>[39m
+          [36m<li>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 opacity-70"[39m
+            [36m>[39m
+              [0mBackup[0m
+            [36m</span>[39m
+          [36m</li>[39m
+        [36m</ul>[39m
+      [36m</div>[39m
+      [36m<div>[39m
+        [36m<h1[39m
+          [33mclass[39m=[32m"text-2xl font-bold"[39m
+        [36m>[39m
+          [0mBackup[0m
+        [36m</h1>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-base-content/60 text-sm mt-1"[39m
+        [36m>[39m
+          [0mCreate a synthetic backup job for an eligible instance.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"card bg-base-200"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"card-body space-y-4"[39m
+        [36m>[39m
+          [36m<fieldset[39m
+            [33mclass[39m=[32m"space-y-2"[39m
+          [36m>[39m
+            [36m<legend[39m
+              [33mclass[39m=[32m"font-semibold mb-2"[39m
+            [36m>[39m
+              [0mInstance[0m
+            [36m</legend>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"flex items-center gap-3 cursor-pointer"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33mchecked[39m=[32m""[39m
+                [33mclass[39m=[32m"radio radio-primary"[39m
+                [33mname[39m=[32m"backup-instance"[39m
+                [33mtype[39m=[32m"radio"[39m
+                [33mvalue[39m=[32m"local-1"[39m
+              [36m/>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"font-medium"[39m
+              [36m>[39m
+                [0mLocal development instance[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"badge badge-outline"[39m
+              [36m>[39m
+                [0mlocal[0m
+              [36m</span>[39m
+            [36m</label>[39m
+          [36m</fieldset>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-primary"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCreate backup[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/app/admin/backup/page.status.test.tsx:95:25
+     93|     });
+     94|     renderPage();
+     95|     expect(await screen.findByText(/escalate to the project owner/i)).…
+       |                         ^
+     96|   });
+     97|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/73]⎯
+
+ FAIL  src/app/admin/backup/page.status.test.tsx > AdminBackupPage status wiring (WU-14) > selecting a job shows its detail with status text and no download control
+TestingLibraryElementError: Unable to find role="table" and name `/backup jobs/i`
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"breadcrumbs text-sm mb-4"[39m
+      [36m>[39m
+        [36m<ul>[39m
+          [36m<li>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 hover:text-primary transition-colors"[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"/admin"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-house w-4 h-4"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mAdmin[0m
+            [36m</a>[39m
+          [36m</li>[39m
+          [36m<li>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 opacity-70"[39m
+            [36m>[39m
+              [0mBackup[0m
+            [36m</span>[39m
+          [36m</li>[39m
+        [36m</ul>[39m
+      [36m</div>[39m
+      [36m<div>[39m
+        [36m<h1[39m
+          [33mclass[39m=[32m"text-2xl font-bold"[39m
+        [36m>[39m
+          [0mBackup[0m
+        [36m</h1>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-base-content/60 text-sm mt-1"[39m
+        [36m>[39m
+          [0mCreate a synthetic backup job for an eligible instance.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"card bg-base-200"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"card-body space-y-4"[39m
+        [36m>[39m
+          [36m<fieldset[39m
+            [33mclass[39m=[32m"space-y-2"[39m
+          [36m>[39m
+            [36m<legend[39m
+              [33mclass[39m=[32m"font-semibold mb-2"[39m
+            [36m>[39m
+              [0mInstance[0m
+            [36m</legend>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"flex items-center gap-3 cursor-pointer"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33mchecked[39m=[32m""[39m
+                [33mclass[39m=[32m"radio radio-primary"[39m
+                [33mname[39m=[32m"backup-instance"[39m
+                [33mtype[39m=[32m"radio"[39m
+                [33mvalue[39m=[32m"local-1"[39m
+              [36m/>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"font-medium"[39m
+              [36m>[39m
+                [0mLocal development instance[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"badge badge-outline"[39m
+              [36m>[39m
+                [0mlocal[0m
+              [36m</span>[39m
+            [36m</label>[39m
+          [36m</fieldset>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-primary"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCreate backup[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"breadcrumbs text-sm mb-4"[39m
+      [36m>[39m
+        [36m<ul>[39m
+          [36m<li>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 hover:text-primary transition-colors"[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"/admin"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-house w-4 h-4"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mAdmin[0m
+            [36m</a>[39m
+          [36m</li>[39m
+          [36m<li>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 opacity-70"[39m
+            [36m>[39m
+              [0mBackup[0m
+            [36m</span>[39m
+          [36m</li>[39m
+        [36m</ul>[39m
+      [36m</div>[39m
+      [36m<div>[39m
+        [36m<h1[39m
+          [33mclass[39m=[32m"text-2xl font-bold"[39m
+        [36m>[39m
+          [0mBackup[0m
+        [36m</h1>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-base-content/60 text-sm mt-1"[39m
+        [36m>[39m
+          [0mCreate a synthetic backup job for an eligible instance.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"card bg-base-200"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"card-body space-y-4"[39m
+        [36m>[39m
+          [36m<fieldset[39m
+            [33mclass[39m=[32m"space-y-2"[39m
+          [36m>[39m
+            [36m<legend[39m
+              [33mclass[39m=[32m"font-semibold mb-2"[39m
+            [36m>[39m
+              [0mInstance[0m
+            [36m</legend>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"flex items-center gap-3 cursor-pointer"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33mchecked[39m=[32m""[39m
+                [33mclass[39m=[32m"radio radio-primary"[39m
+                [33mname[39m=[32m"backup-instance"[39m
+                [33mtype[39m=[32m"radio"[39m
+                [33mvalue[39m=[32m"local-1"[39m
+              [36m/>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"font-medium"[39m
+              [36m>[39m
+                [0mLocal development instance[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"badge badge-outline"[39m
+              [36m>[39m
+                [0mlocal[0m
+              [36m</span>[39m
+            [36m</label>[39m
+          [36m</fieldset>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-primary"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCreate backup[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/app/admin/backup/page.status.test.tsx:100:32
+     98|   it('selecting a job shows its detail with status text and no downloa…
+     99|     renderPage();
+    100|     const table = await screen.findByRole('table', { name: /backup job…
+       |                                ^
+    101|     fireEvent.click(within(table).getByRole('button', { name: /job-b/ …
+    102|     const detail = await screen.findByRole('region', { name: /backup j…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/73]⎯
+
+ FAIL  src/app/admin/backup/page.status.test.tsx > AdminBackupPage status wiring (WU-14) > refreshes the job list and status after a job is created
+TestingLibraryElementError: Unable to find role="table" and name `/backup jobs/i`
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"breadcrumbs text-sm mb-4"[39m
+      [36m>[39m
+        [36m<ul>[39m
+          [36m<li>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 hover:text-primary transition-colors"[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"/admin"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-house w-4 h-4"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mAdmin[0m
+            [36m</a>[39m
+          [36m</li>[39m
+          [36m<li>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 opacity-70"[39m
+            [36m>[39m
+              [0mBackup[0m
+            [36m</span>[39m
+          [36m</li>[39m
+        [36m</ul>[39m
+      [36m</div>[39m
+      [36m<div>[39m
+        [36m<h1[39m
+          [33mclass[39m=[32m"text-2xl font-bold"[39m
+        [36m>[39m
+          [0mBackup[0m
+        [36m</h1>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-base-content/60 text-sm mt-1"[39m
+        [36m>[39m
+          [0mCreate a synthetic backup job for an eligible instance.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"card bg-base-200"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"card-body space-y-4"[39m
+        [36m>[39m
+          [36m<fieldset[39m
+            [33mclass[39m=[32m"space-y-2"[39m
+          [36m>[39m
+            [36m<legend[39m
+              [33mclass[39m=[32m"font-semibold mb-2"[39m
+            [36m>[39m
+              [0mInstance[0m
+            [36m</legend>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"flex items-center gap-3 cursor-pointer"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33mchecked[39m=[32m""[39m
+                [33mclass[39m=[32m"radio radio-primary"[39m
+                [33mname[39m=[32m"backup-instance"[39m
+                [33mtype[39m=[32m"radio"[39m
+                [33mvalue[39m=[32m"local-1"[39m
+              [36m/>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"font-medium"[39m
+              [36m>[39m
+                [0mLocal development instance[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"badge badge-outline"[39m
+              [36m>[39m
+                [0mlocal[0m
+              [36m</span>[39m
+            [36m</label>[39m
+          [36m</fieldset>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-primary"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCreate backup[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"breadcrumbs text-sm mb-4"[39m
+      [36m>[39m
+        [36m<ul>[39m
+          [36m<li>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 hover:text-primary transition-colors"[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"/admin"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-house w-4 h-4"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mAdmin[0m
+            [36m</a>[39m
+          [36m</li>[39m
+          [36m<li>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 opacity-70"[39m
+            [36m>[39m
+              [0mBackup[0m
+            [36m</span>[39m
+          [36m</li>[39m
+        [36m</ul>[39m
+      [36m</div>[39m
+      [36m<div>[39m
+        [36m<h1[39m
+          [33mclass[39m=[32m"text-2xl font-bold"[39m
+        [36m>[39m
+          [0mBackup[0m
+        [36m</h1>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-base-content/60 text-sm mt-1"[39m
+        [36m>[39m
+          [0mCreate a synthetic backup job for an eligible instance.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"card bg-base-200"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"card-body space-y-4"[39m
+        [36m>[39m
+          [36m<fieldset[39m
+            [33mclass[39m=[32m"space-y-2"[39m
+          [36m>[39m
+            [36m<legend[39m
+              [33mclass[39m=[32m"font-semibold mb-2"[39m
+            [36m>[39m
+              [0mInstance[0m
+            [36m</legend>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"flex items-center gap-3 cursor-pointer"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33mchecked[39m=[32m""[39m
+                [33mclass[39m=[32m"radio radio-primary"[39m
+                [33mname[39m=[32m"backup-instance"[39m
+                [33mtype[39m=[32m"radio"[39m
+                [33mvalue[39m=[32m"local-1"[39m
+              [36m/>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"font-medium"[39m
+              [36m>[39m
+                [0mLocal development instance[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"badge badge-outline"[39m
+              [36m>[39m
+                [0mlocal[0m
+              [36m</span>[39m
+            [36m</label>[39m
+          [36m</fieldset>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-primary"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCreate backup[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/app/admin/backup/page.status.test.tsx:112:18
+    110|     createMock.mockResolvedValue({ job: created, replayed: false });
+    111|     renderPage();
+    112|     await screen.findByRole('table', { name: /backup jobs/i });
+       |                  ^
+    113|     const before = jobsMock.mock.calls.length;
+    114|     const statusBefore = statusMock.mock.calls.length;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/73]⎯
+
+ FAIL  src/app/admin/backup/page.status.test.tsx > AdminBackupPage status wiring (WU-14) > keeps the page usable when the jobs and status requests fail
+TestingLibraryElementError: Unable to find an element with the text: /backup status is unavailable/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"breadcrumbs text-sm mb-4"[39m
+      [36m>[39m
+        [36m<ul>[39m
+          [36m<li>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 hover:text-primary transition-colors"[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"/admin"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-house w-4 h-4"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mAdmin[0m
+            [36m</a>[39m
+          [36m</li>[39m
+          [36m<li>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 opacity-70"[39m
+            [36m>[39m
+              [0mBackup[0m
+            [36m</span>[39m
+          [36m</li>[39m
+        [36m</ul>[39m
+      [36m</div>[39m
+      [36m<div>[39m
+        [36m<h1[39m
+          [33mclass[39m=[32m"text-2xl font-bold"[39m
+        [36m>[39m
+          [0mBackup[0m
+        [36m</h1>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-base-content/60 text-sm mt-1"[39m
+        [36m>[39m
+          [0mCreate a synthetic backup job for an eligible instance.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"card bg-base-200"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"card-body space-y-4"[39m
+        [36m>[39m
+          [36m<fieldset[39m
+            [33mclass[39m=[32m"space-y-2"[39m
+          [36m>[39m
+            [36m<legend[39m
+              [33mclass[39m=[32m"font-semibold mb-2"[39m
+            [36m>[39m
+              [0mInstance[0m
+            [36m</legend>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"flex items-center gap-3 cursor-pointer"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33mchecked[39m=[32m""[39m
+                [33mclass[39m=[32m"radio radio-primary"[39m
+                [33mname[39m=[32m"backup-instance"[39m
+                [33mtype[39m=[32m"radio"[39m
+                [33mvalue[39m=[32m"local-1"[39m
+              [36m/>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"font-medium"[39m
+              [36m>[39m
+                [0mLocal development instance[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"badge badge-outline"[39m
+              [36m>[39m
+                [0mlocal[0m
+              [36m</span>[39m
+            [36m</label>[39m
+          [36m</fieldset>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-primary"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCreate backup[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"space-y-6"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"breadcrumbs text-sm mb-4"[39m
+      [36m>[39m
+        [36m<ul>[39m
+          [36m<li>[39m
+            [36m<a[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 hover:text-primary transition-colors"[39m
+              [33mdata-discover[39m=[32m"true"[39m
+              [33mhref[39m=[32m"/admin"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-house w-4 h-4"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [0mAdmin[0m
+            [36m</a>[39m
+          [36m</li>[39m
+          [36m<li>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"inline-flex items-center gap-2 opacity-70"[39m
+            [36m>[39m
+              [0mBackup[0m
+            [36m</span>[39m
+          [36m</li>[39m
+        [36m</ul>[39m
+      [36m</div>[39m
+      [36m<div>[39m
+        [36m<h1[39m
+          [33mclass[39m=[32m"text-2xl font-bold"[39m
+        [36m>[39m
+          [0mBackup[0m
+        [36m</h1>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"text-base-content/60 text-sm mt-1"[39m
+        [36m>[39m
+          [0mCreate a synthetic backup job for an eligible instance.[0m
+        [36m</p>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"card bg-base-200"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"card-body space-y-4"[39m
+        [36m>[39m
+          [36m<fieldset[39m
+            [33mclass[39m=[32m"space-y-2"[39m
+          [36m>[39m
+            [36m<legend[39m
+              [33mclass[39m=[32m"font-semibold mb-2"[39m
+            [36m>[39m
+              [0mInstance[0m
+            [36m</legend>[39m
+            [36m<label[39m
+              [33mclass[39m=[32m"flex items-center gap-3 cursor-pointer"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33mchecked[39m=[32m""[39m
+                [33mclass[39m=[32m"radio radio-primary"[39m
+                [33mname[39m=[32m"backup-instance"[39m
+                [33mtype[39m=[32m"radio"[39m
+                [33mvalue[39m=[32m"local-1"[39m
+              [36m/>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"font-medium"[39m
+              [36m>[39m
+                [0mLocal development instance[0m
+              [36m</span>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"badge badge-outline"[39m
+              [36m>[39m
+                [0mlocal[0m
+              [36m</span>[39m
+            [36m</label>[39m
+          [36m</fieldset>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"space-y-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"btn btn-primary"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mCreate backup[0m
+            [36m</button>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/app/admin/backup/page.status.test.tsx:127:25
+    125|     statusMock.mockRejectedValue(new Error('boom'));
+    126|     renderPage();
+    127|     expect(await screen.findByText(/backup status is unavailable/i)).t…
+       |                         ^
+    128|     expect(await screen.findByText(/unable to refresh backup jobs/i)).…
+    129|     expect(screen.getByRole('button', { name: /create backup/i })).toB…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-jobs.test.ts > useBackupJobs (TS-36) > ts36_loads_once_on_mount_with_the_caller_token
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'tok' ]
+
+Number of calls: 0
+
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts:54:22
+     52|     expect(result.current.phase).toBe('loading');
+     53|     await flush();
+     54|     expect(listMock).toHaveBeenCalledWith('tok');
+       |                      ^
+     55|     expect(result.current.phase).toBe('ready');
+     56|     expect(result.current.jobs).toHaveLength(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-jobs.test.ts > useBackupJobs (TS-36) > ts36_polls_every_2s_while_any_job_is_non_terminal
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts:63:22
+     61|     const { result } = renderHook(() => useBackupJobs('tok'));
+     62|     await flush();
+     63|     expect(listMock).toHaveBeenCalledTimes(1);
+       |                      ^
+     64|     expect(result.current.polling).toBe(true);
+     65|     await advance(1999);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-jobs.test.ts > useBackupJobs (TS-36) > ts36_stops_polling_when_every_job_is_terminal
+AssertionError: expected "vi.fn()" to be called 2 times, but got 0 times
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts:81:22
+     79|     await flush();
+     80|     await advance(2000);
+     81|     expect(listMock).toHaveBeenCalledTimes(2);
+       |                      ^
+     82|     expect(result.current.jobs[0].status).toBe('incomplete');
+     83|     expect(result.current.polling).toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-jobs.test.ts > useBackupJobs (TS-36) > ts36_does_not_poll_at_all_when_the_first_list_is_all_terminal_or_empty
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts:93:22
+     91|     await flush();
+     92|     await advance(30000);
+     93|     expect(listMock).toHaveBeenCalledTimes(1);
+       |                      ^
+     94|   });
+     95|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-jobs.test.ts > useBackupJobs (TS-36) > ts36_backs_off_by_doubling_from_2s_to_a_30s_ceiling_on_request_errors
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts:100:22
+     98|     const { result } = renderHook(() => useBackupJobs('tok'));
+     99|     await flush();
+    100|     expect(listMock).toHaveBeenCalledTimes(1);
+       |                      ^
+    101|     expect(result.current.phase).toBe('error');
+    102|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-jobs.test.ts > useBackupJobs (TS-36) > ts36_resets_the_backoff_after_a_success
+AssertionError: expected 'loading' to be 'ready' // Object.is equality
+
+Expected: "ready"
+Received: "loading"
+
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts:124:34
+    122|     await advance(2000); // fail, next in 4s
+    123|     await advance(4000); // success (running), next in 2s
+    124|     expect(result.current.phase).toBe('ready');
+       |                                  ^
+    125|     expect(listMock).toHaveBeenCalledTimes(3);
+    126|     await advance(2000); // fail again, backoff restarts at 2s (not 8s)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-jobs.test.ts > useBackupJobs (TS-36) > ts36_keeps_the_last_jobs_while_a_poll_fails
+AssertionError: expected 'loading' to be 'error' // Object.is equality
+
+Expected: "error"
+Received: "loading"
+
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts:139:34
+    137|     await flush();
+    138|     await advance(2000);
+    139|     expect(result.current.phase).toBe('error');
+       |                                  ^
+    140|     expect(result.current.jobs).toHaveLength(1);
+    141|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-jobs.test.ts > useBackupJobs (TS-36) > ts36_treats_unknown_as_non_terminal_for_at_most_10_polls_then_stops_with_exhausted
+AssertionError: expected "vi.fn()" to be called 10 times, but got 0 times
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts:149:22
+    147|     expect(result.current.exhausted).toBe(false);
+    148|     await advance(2000 * 20);
+    149|     expect(listMock).toHaveBeenCalledTimes(MAX_UNKNOWN_POLLS);
+       |                      ^
+    150|     expect(result.current.exhausted).toBe(true);
+    151|     expect(result.current.polling).toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-jobs.test.ts > useBackupJobs (TS-36) > ts36_an_unknown_status_that_resolves_to_terminal_stops_normally_without_exhaustion
+AssertionError: expected "vi.fn()" to be called 3 times, but got 0 times
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts:167:22
+    165|     expect(result.current.polling).toBe(false);
+    166|     await advance(30000);
+    167|     expect(listMock).toHaveBeenCalledTimes(3);
+       |                      ^
+    168|   });
+    169|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-jobs.test.ts > useBackupJobs (TS-36) > ts36_cleans_up_on_unmount_so_no_timer_or_request_survives
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts:174:22
+    172|     const { unmount } = renderHook(() => useBackupJobs('tok'));
+    173|     await flush();
+    174|     expect(listMock).toHaveBeenCalledTimes(1);
+       |                      ^
+    175|     expect(vi.getTimerCount()).toBeGreaterThan(0);
+    176|     unmount();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-jobs.test.ts > useBackupJobs (TS-36) > ts36_an_in_flight_response_after_unmount_is_ignored_and_schedules_nothing
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts:190:22
+    188|     expect(vi.getTimerCount()).toBe(0);
+    189|     await advance(60000);
+    190|     expect(listMock).toHaveBeenCalledTimes(1);
+       |                      ^
+    191|   });
+    192|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-jobs.test.ts > useBackupJobs (TS-36) > ts36_refresh_reloads_immediately_and_restarts_polling_after_a_stop
+AssertionError: expected "vi.fn()" to be called 2 times, but got 0 times
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts:200:22
+    198|     act(() => result.current.refresh());
+    199|     await flush();
+    200|     expect(listMock).toHaveBeenCalledTimes(2);
+       |                      ^
+    201|     expect(result.current.polling).toBe(true);
+    202|     await advance(2000);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-jobs.test.ts > useBackupJobs (TS-36) > ts36_a_token_change_restarts_the_load_with_the_new_token
+AssertionError: expected last "vi.fn()" call to have been called with [ 'b' ]
+
+- Expected:
+[
+  "b",
+]
+
++ Received:
+undefined
+
+ ❯ src/app/admin/backup/hooks/use-backup-jobs.test.ts:212:22
+    210|     rerender({ token: 'b' });
+    211|     await flush();
+    212|     expect(listMock).toHaveBeenLastCalledWith('b');
+       |                      ^
+    213|     expect(listMock).toHaveBeenCalledTimes(2);
+    214|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-status.test.ts > useBackupStatus (F-49) > loads the IF-11 status once on mount with the caller token
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'tok' ]
+
+Number of calls: 0
+
+ ❯ src/app/admin/backup/hooks/use-backup-status.test.ts:32:24
+     30|     expect(result.current.phase).toBe('loading');
+     31|     await act(async () => {});
+     32|     expect(statusMock).toHaveBeenCalledWith('tok');
+       |                        ^
+     33|     expect(result.current.phase).toBe('ready');
+     34|     expect(result.current.status).toEqual(ready);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-status.test.ts > useBackupStatus (F-49) > reports an error phase with no status when the request fails
+AssertionError: expected 'loading' to be 'error' // Object.is equality
+
+Expected: "error"
+Received: "loading"
+
+ ❯ src/app/admin/backup/hooks/use-backup-status.test.ts:41:34
+     39|     const { result } = renderHook(() => useBackupStatus('tok'));
+     40|     await act(async () => {});
+     41|     expect(result.current.phase).toBe('error');
+       |                                  ^
+     42|     expect(result.current.status).toBeNull();
+     43|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-status.test.ts > useBackupStatus (F-49) > reports an error phase with no status when the request fails
+BackupApiError: Backup request failed (HTTP 403)
+ ❯ src/app/admin/backup/hooks/use-backup-status.test.ts:38:34
+     36|
+     37|   it('reports an error phase with no status when the request fails', a…
+     38|     statusMock.mockRejectedValue(new BackupApiError(403, 'Forbidden', …
+       |                                  ^
+     39|     const { result } = renderHook(() => useBackupStatus('tok'));
+     40|     await act(async () => {});
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/73]⎯
+
+ FAIL  src/app/admin/backup/hooks/use-backup-status.test.ts > useBackupStatus (F-49) > refresh reloads the status
+AssertionError: expected "vi.fn()" to be called 2 times, but got 0 times
+ ❯ src/app/admin/backup/hooks/use-backup-status.test.ts:51:24
+     49|     act(() => result.current.refresh());
+     50|     await act(async () => {});
+     51|     expect(statusMock).toHaveBeenCalledTimes(2);
+       |                        ^
+     52|     expect(result.current.status?.state).toBe('degraded');
+     53|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/73]⎯
+
+ FAIL  src/app/admin/backup/components/backup-status-banner.test.tsx > BackupStatusBanner > ts50_escalation_visible_names_the_project_owner_and_cleanup_exhaustion
+TestingLibraryElementError: Unable to find an accessible element with the role "alert"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/backup-status-banner.test.tsx:37:27
+     35|     };
+     36|     render(<BackupStatusBanner status={status} phase="ready" />);
+     37|     const banner = screen.getByRole('alert');
+       |                           ^
+     38|     expect(banner).toHaveTextContent(/degraded/i);
+     39|     expect(banner).toHaveTextContent(/escalate to the project owner/i);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/73]⎯
+
+ FAIL  src/app/admin/backup/components/backup-status-banner.test.tsx > BackupStatusBanner > ts50_escalation_visible_for_ownership_incidents_alone
+TestingLibraryElementError: Unable to find an accessible element with the role "alert"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/backup-status-banner.test.tsx:50:19
+     48|     };
+     49|     render(<BackupStatusBanner status={status} phase="ready" />);
+     50|     expect(screen.getByRole('alert')).toHaveTextContent(/project owner…
+       |                   ^
+     51|     expect(screen.getByRole('alert')).toHaveTextContent(/1 ownership/i…
+     52|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/73]⎯
+
+ FAIL  src/app/admin/backup/components/backup-status-banner.test.tsx > BackupStatusBanner > ts50_ready_without_escalation_shows_a_status_and_no_escalation_text
+TestingLibraryElementError: Unable to find an accessible element with the role "status"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/backup-status-banner.test.tsx:56:19
+     54|   it('ts50_ready_without_escalation_shows_a_status_and_no_escalation_t…
+     55|     render(<BackupStatusBanner status={ready} phase="ready" />);
+     56|     expect(screen.getByRole('status')).toHaveTextContent(/ready/i);
+       |                   ^
+     57|     expect(screen.getByRole('status')).toHaveTextContent(/synthetic/i);
+     58|     expect(screen.queryByText(/project owner/i)).not.toBeInTheDocument…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/73]⎯
+
+ FAIL  src/app/admin/backup/components/backup-status-banner.test.tsx > BackupStatusBanner > ts50_not_ready_state_is_announced_without_escalation
+TestingLibraryElementError: Unable to find an accessible element with the role "status"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/backup-status-banner.test.tsx:64:19
+     62|   it('ts50_not_ready_state_is_announced_without_escalation', () => {
+     63|     render(<BackupStatusBanner status={{ ...ready, state: 'not_ready',…
+     64|     expect(screen.getByRole('status')).toHaveTextContent(/not ready/i);
+       |                   ^
+     65|     expect(screen.queryByText(/project owner/i)).not.toBeInTheDocument…
+     66|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/73]⎯
+
+ FAIL  src/app/admin/backup/components/backup-status-banner.test.tsx > BackupStatusBanner > ts50_database_unhealthy_is_stated_in_text
+TestingLibraryElementError: Unable to find an accessible element with the role "alert"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/backup-status-banner.test.tsx:70:19
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/73]⎯
+
+ FAIL  src/app/admin/backup/components/backup-status-banner.test.tsx > BackupStatusBanner > ts50_disabled_with_reason_NOT_CONFIGURED_states_the_reason_and_names_the_project_owner
+ FAIL  src/app/admin/backup/components/backup-status-banner.test.tsx > BackupStatusBanner > ts50_disabled_with_reason_NON_LOOPBACK_BIND_states_the_reason_and_names_the_project_owner
+ FAIL  src/app/admin/backup/components/backup-status-banner.test.tsx > BackupStatusBanner > ts50_disabled_with_reason_INVALID_CONFIG_states_the_reason_and_names_the_project_owner
+TestingLibraryElementError: Unable to find an accessible element with the role "alert"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/backup-status-banner.test.tsx:80:27
+     78|   ] as const)('ts50_disabled_with_reason_%s_states_the_reason_and_name…
+     79|     render(<BackupStatusBanner status={disabled(reason)} phase="ready"…
+     80|     const banner = screen.getByRole('alert');
+       |                           ^
+     81|     expect(banner).toHaveTextContent(/backup is disabled/i);
+     82|     expect(banner).toHaveTextContent(pattern);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/73]⎯
+
+ FAIL  src/app/admin/backup/components/backup-status-banner.test.tsx > BackupStatusBanner > ts50_disabled_with_a_null_reason_still_renders_a_generic_disabled_message
+TestingLibraryElementError: Unable to find an accessible element with the role "alert"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/backup-status-banner.test.tsx:88:19
+     86|   it('ts50_disabled_with_a_null_reason_still_renders_a_generic_disable…
+     87|     render(<BackupStatusBanner status={disabled(null)} phase="ready" /…
+     88|     expect(screen.getByRole('alert')).toHaveTextContent(/backup is dis…
+       |                   ^
+     89|   });
+     90|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/73]⎯
+
+ FAIL  src/app/admin/backup/components/backup-status-banner.test.tsx > BackupStatusBanner > shows fixed copy while loading and when the status request failed
+TestingLibraryElementError: Unable to find an accessible element with the role "status"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/backup-status-banner.test.tsx:100:19
+     98|   it('shows fixed copy while loading and when the status request faile…
+     99|     const { rerender } = render(<BackupStatusBanner status={null} phas…
+    100|     expect(screen.getByRole('status')).toHaveTextContent(/checking bac…
+       |                   ^
+    101|     rerender(<BackupStatusBanner status={null} phase="error" />);
+    102|     expect(screen.getByRole('alert')).toHaveTextContent(/backup status…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/73]⎯
+
+ FAIL  src/app/admin/backup/components/backup-status-banner.test.tsx > BackupStatusBanner > ts18_html_bearing_owner_string_renders_escaped
+AssertionError: expected '' to contain '&lt;img'
+
+- Expected
++ Received
+
+- &lt;img
+
+ ❯ src/app/admin/backup/components/backup-status-banner.test.tsx:111:33
+    109|     const { container } = render(<BackupStatusBanner status={status} p…
+    110|     expect(container.querySelector('img')).toBeNull();
+    111|     expect(container.innerHTML).toContain('&lt;img');
+       |                                 ^
+    112|     expect((window as unknown as { __canary?: number }).__canary).toBe…
+    113|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-detail.test.tsx > JobDetail > ts12a_status_queued_parses_renders_and_offers_no_download
+ FAIL  src/app/admin/backup/components/job-detail.test.tsx > JobDetail > ts12a_status_running_parses_renders_and_offers_no_download
+ FAIL  src/app/admin/backup/components/job-detail.test.tsx > JobDetail > ts12a_status_succeeded_parses_renders_and_offers_no_download
+ FAIL  src/app/admin/backup/components/job-detail.test.tsx > JobDetail > ts12a_status_failed_parses_renders_and_offers_no_download
+ FAIL  src/app/admin/backup/components/job-detail.test.tsx > JobDetail > ts12a_status_recovery-required_parses_renders_and_offers_no_download
+ FAIL  src/app/admin/backup/components/job-detail.test.tsx > JobDetail > ts12a_status_incomplete_parses_renders_and_offers_no_download
+TestingLibraryElementError: Unable to find an accessible element with the role "heading" and name `/backup job details/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-detail.test.tsx:44:19
+     42|     const parsed = backupJobSchema.parse({ ...baseJob, status });
+     43|     const { container } = render(<JobDetail job={parsed} />);
+     44|     expect(screen.getByRole('heading', { name: /backup job details/i }…
+       |                   ^
+     45|     expect(screen.getByText(baseJob.id)).toBeInTheDocument();
+     46|     expect(screen.queryByRole('button', { name: /download/i })).not.to…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-detail.test.tsx > JobDetail > ts12a_an_unrecognised_status_renders_the_safe_fallback_with_no_download
+TestingLibraryElementError: Unable to find an element with the text: Unknown status. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-detail.test.tsx:56:19
+     54|     expect(parsed.status).toBe('unknown');
+     55|     render(<JobDetail job={parsed} />);
+     56|     expect(screen.getByText('Unknown status')).toBeInTheDocument();
+       |                   ^
+     57|     expect(screen.queryByRole('button', { name: /download/i })).not.to…
+     58|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-detail.test.tsx > JobDetail > shows the incomplete outcome, reason, components and measured progress as text
+TestingLibraryElementError: Unable to find an element with the text: Incomplete. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-detail.test.tsx:62:19
+     60|   it('shows the incomplete outcome, reason, components and measured pr…
+     61|     render(<JobDetail job={incompleteJob} />);
+     62|     expect(screen.getByText('Incomplete')).toBeInTheDocument();
+       |                   ^
+     63|     expect(screen.getByText(/synthetic, database-only, not restorable/…
+     64|     expect(screen.getByText('REQUIRED_COMPONENTS_UNAVAILABLE')).toBeIn…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-detail.test.tsx > JobDetail > says progress is not measured when the server reports none, and shows no components message
+TestingLibraryElementError: Unable to find an element with the text: /not measured/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-detail.test.tsx:76:19
+     74|   it('says progress is not measured when the server reports none, and …
+     75|     render(<JobDetail job={baseJob} />);
+     76|     expect(screen.getByText(/not measured/i)).toBeInTheDocument();
+       |                   ^
+     77|     expect(screen.getByText(/no component results recorded/i)).toBeInT…
+     78|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-detail.test.tsx > JobDetail > ts18_html_bearing_server_strings_render_escaped_and_never_as_markup
+AssertionError: expected '' to contain '&lt;img'
+
+- Expected
++ Received
+
+- &lt;img
+
+ ❯ src/app/admin/backup/components/job-detail.test.tsx:94:33
+     92|     expect(container.querySelector('[onerror]')).toBeNull();
+     93|     expect(container.innerHTML).not.toContain('<img');
+     94|     expect(container.innerHTML).toContain('&lt;img');
+       |                                 ^
+     95|     expect(screen.getAllByText(CANARY).length).toBeGreaterThanOrEqual(…
+     96|     expect((window as unknown as { __canary?: number }).__canary).toBe…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-list.test.tsx > JobList > renders a labelled table with each job status as text
+TestingLibraryElementError: Unable to find an accessible element with the role "table" and name `/backup jobs/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-list.test.tsx:38:26
+     36|   it('renders a labelled table with each job status as text', () => {
+     37|     render(<JobList {...props({ jobs: [job('job-a', { status: 'running…
+     38|     const table = screen.getByRole('table', { name: /backup jobs/i });
+       |                          ^
+     39|     expect(within(table).getByText('job-a')).toBeInTheDocument();
+     40|     expect(within(table).getByText('Running')).toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-list.test.tsx > JobList > ts12a_every_status_row_renders_without_any_download_control
+TestingLibraryElementError: Unable to find an accessible element with the role "row"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:109:15
+ ❯ src/app/admin/backup/components/job-list.test.tsx:48:19
+     46|     const statuses = ['queued', 'running', 'succeeded', 'failed', 'rec…
+     47|     const { container } = render(<JobList {...props({ jobs: statuses.m…
+     48|     expect(screen.getAllByRole('row')).toHaveLength(statuses.length + …
+       |                   ^
+     49|     expect(screen.queryByRole('button', { name: /download/i })).not.to…
+     50|     expect(container.querySelector('a, [download]')).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[41/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-list.test.tsx > JobList > ts37_a_job_is_selected_with_the_keyboard_and_marks_the_current_one
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/job-a/`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-list.test.tsx:59:19
+     57|     const { rerender } = render(<JobList {...props({ jobs: [job('job-a…
+     58|     await user.tab();
+     59|     expect(screen.getByRole('button', { name: /job-a/ })).toHaveFocus(…
+       |                   ^
+     60|     await user.tab();
+     61|     expect(screen.getByRole('button', { name: /job-b/ })).toHaveFocus(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-list.test.tsx > JobList > ts37_announces_loading_empty_and_polling_states_through_a_polite_live_region
+TestingLibraryElementError: Unable to find an accessible element with the role "status"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-list.test.tsx:72:19
+     70|   it('ts37_announces_loading_empty_and_polling_states_through_a_polite…
+     71|     const { rerender } = render(<JobList {...props({ phase: 'loading' …
+     72|     expect(screen.getByRole('status')).toHaveTextContent(/loading back…
+       |                   ^
+     73|
+     74|     rerender(<JobList {...props({ phase: 'ready' })} />);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-list.test.tsx > JobList > shows an alert for a request failure that is still being retried, with fixed copy
+TestingLibraryElementError: Unable to find an accessible element with the role "alert"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-list.test.tsx:88:19
+     86|   it('shows an alert for a request failure that is still being retried…
+     87|     render(<JobList {...props({ jobs: [job('job-a')], phase: 'error', …
+     88|     expect(screen.getByRole('alert')).toHaveTextContent(/unable to ref…
+       |                   ^
+     89|     expect(screen.getByRole('table', { name: /backup jobs/i })).toBeIn…
+     90|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-list.test.tsx > JobList > ts36_shows_an_error_banner_and_a_manual_refresh_when_unknown_status_polling_is_exhausted
+TestingLibraryElementError: Unable to find an accessible element with the role "alert"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-list.test.tsx:95:19
+     93|     const onRefresh = vi.fn();
+     94|     render(<JobList {...props({ jobs: [job('job-a', { status: 'unknown…
+     95|     expect(screen.getByRole('alert')).toHaveTextContent(/status could …
+       |                   ^
+     96|     fireEvent.click(screen.getByRole('button', { name: /refresh/i }));
+     97|     expect(onRefresh).toHaveBeenCalledTimes(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-list.test.tsx > JobList > ts18_html_bearing_server_strings_render_escaped
+AssertionError: expected '' to contain '&lt;script&gt;'
+
+- Expected
++ Received
+
+- &lt;script&gt;
+
+ ❯ src/app/admin/backup/components/job-list.test.tsx:105:33
+    103|     const { container } = render(<JobList {...props({ jobs: [job(canar…
+    104|     expect(container.querySelector('script')).toBeNull();
+    105|     expect(container.innerHTML).toContain('&lt;script&gt;');
+       |                                 ^
+    106|     expect(screen.getByRole('button', { name: new RegExp(canary.replac…
+    107|     expect((window as unknown as { __canary?: number }).__canary).toBe…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-status-badge.test.tsx > JobStatusBadge > ts12a_renders_queued_as_text_with_no_download_control
+TestingLibraryElementError: Unable to find an element with the text: Queued. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-status-badge.test.tsx:20:19
+     18|   it.each([...KNOWN_BACKUP_JOB_STATUSES, 'unknown' as const])('ts12a_r…
+     19|     const { container } = render(<JobStatusBadge status={status} />);
+     20|     expect(screen.getByText(LABELS[status])).toBeInTheDocument();
+       |                   ^
+     21|     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+     22|     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[47/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-status-badge.test.tsx > JobStatusBadge > ts12a_renders_running_as_text_with_no_download_control
+TestingLibraryElementError: Unable to find an element with the text: Running. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-status-badge.test.tsx:20:19
+     18|   it.each([...KNOWN_BACKUP_JOB_STATUSES, 'unknown' as const])('ts12a_r…
+     19|     const { container } = render(<JobStatusBadge status={status} />);
+     20|     expect(screen.getByText(LABELS[status])).toBeInTheDocument();
+       |                   ^
+     21|     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+     22|     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-status-badge.test.tsx > JobStatusBadge > ts12a_renders_succeeded_as_text_with_no_download_control
+TestingLibraryElementError: Unable to find an element with the text: Succeeded. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-status-badge.test.tsx:20:19
+     18|   it.each([...KNOWN_BACKUP_JOB_STATUSES, 'unknown' as const])('ts12a_r…
+     19|     const { container } = render(<JobStatusBadge status={status} />);
+     20|     expect(screen.getByText(LABELS[status])).toBeInTheDocument();
+       |                   ^
+     21|     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+     22|     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[49/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-status-badge.test.tsx > JobStatusBadge > ts12a_renders_failed_as_text_with_no_download_control
+TestingLibraryElementError: Unable to find an element with the text: Failed. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-status-badge.test.tsx:20:19
+     18|   it.each([...KNOWN_BACKUP_JOB_STATUSES, 'unknown' as const])('ts12a_r…
+     19|     const { container } = render(<JobStatusBadge status={status} />);
+     20|     expect(screen.getByText(LABELS[status])).toBeInTheDocument();
+       |                   ^
+     21|     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+     22|     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[50/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-status-badge.test.tsx > JobStatusBadge > ts12a_renders_recovery-required_as_text_with_no_download_control
+TestingLibraryElementError: Unable to find an element with the text: Recovery required. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-status-badge.test.tsx:20:19
+     18|   it.each([...KNOWN_BACKUP_JOB_STATUSES, 'unknown' as const])('ts12a_r…
+     19|     const { container } = render(<JobStatusBadge status={status} />);
+     20|     expect(screen.getByText(LABELS[status])).toBeInTheDocument();
+       |                   ^
+     21|     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+     22|     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[51/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-status-badge.test.tsx > JobStatusBadge > ts12a_renders_incomplete_as_text_with_no_download_control
+TestingLibraryElementError: Unable to find an element with the text: Incomplete. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-status-badge.test.tsx:20:19
+     18|   it.each([...KNOWN_BACKUP_JOB_STATUSES, 'unknown' as const])('ts12a_r…
+     19|     const { container } = render(<JobStatusBadge status={status} />);
+     20|     expect(screen.getByText(LABELS[status])).toBeInTheDocument();
+       |                   ^
+     21|     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+     22|     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-status-badge.test.tsx > JobStatusBadge > ts12a_renders_unknown_as_text_with_no_download_control
+TestingLibraryElementError: Unable to find an element with the text: Unknown status. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-status-badge.test.tsx:20:19
+     18|   it.each([...KNOWN_BACKUP_JOB_STATUSES, 'unknown' as const])('ts12a_r…
+     19|     const { container } = render(<JobStatusBadge status={status} />);
+     20|     expect(screen.getByText(LABELS[status])).toBeInTheDocument();
+       |                   ^
+     21|     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+     22|     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[53/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-status-badge.test.tsx > JobStatusBadge > ts37_status_is_text_and_the_icon_is_hidden_from_assistive_technology
+TestingLibraryElementError: Unable to find an element with the text: Failed. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-status-badge.test.tsx:29:19
+     27|   it('ts37_status_is_text_and_the_icon_is_hidden_from_assistive_techno…
+     28|     const { container } = render(<JobStatusBadge status="failed" />);
+     29|     expect(screen.getByText('Failed')).toBeVisible();
+       |                   ^
+     30|     const svg = container.querySelector('svg');
+     31|     expect(svg).not.toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[54/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-status-badge.test.tsx > JobStatusBadge > labels an incomplete job as synthetic, database-only and not restorable when detailed
+TestingLibraryElementError: Unable to find an element with the text: Incomplete. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-status-badge.test.tsx:37:19
+     35|   it('labels an incomplete job as synthetic, database-only and not res…
+     36|     render(<JobStatusBadge status="incomplete" detailed />);
+     37|     expect(screen.getByText('Incomplete')).toBeInTheDocument();
+       |                   ^
+     38|     expect(screen.getByText(/synthetic, database-only, not restorable/…
+     39|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[55/73]⎯
+
+ FAIL  src/app/admin/backup/components/job-status-badge.test.tsx > JobStatusBadge > ts12a_unknown_status_shows_the_safe_fallback_and_never_a_success_label
+TestingLibraryElementError: Unable to find an element with the text: Unknown status. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/job-status-badge.test.tsx:48:19
+     46|   it('ts12a_unknown_status_shows_the_safe_fallback_and_never_a_success…
+     47|     render(<JobStatusBadge status="unknown" />);
+     48|     expect(screen.getByText('Unknown status')).toBeInTheDocument();
+       |                   ^
+     49|     expect(screen.queryByText(/succeeded/i)).not.toBeInTheDocument();
+     50|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[56/73]⎯
+
+ FAIL  src/app/admin/backup/components/synthetic-preview-panel.test.tsx > SyntheticPreviewPanel > ts51_is_labelled_synthetic_and_shows_upload_as_unavailable
+TestingLibraryElementError: Unable to find an accessible element with the role "heading" and name `/synthetic/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/synthetic-preview-panel.test.tsx:57:19
+     55|   it('ts51_is_labelled_synthetic_and_shows_upload_as_unavailable', () …
+     56|     render(<SyntheticPreviewPanel token="tok" />);
+     57|     expect(screen.getByRole('heading', { name: /synthetic/i })).toBeIn…
+       |                   ^
+     58|     expect(screen.getByText(/no real package/i)).toBeInTheDocument();
+     59|     const upload = screen.getByRole('button', { name: /upload.*unavail…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[57/73]⎯
+
+ FAIL  src/app/admin/backup/components/synthetic-preview-panel.test.tsx > SyntheticPreviewPanel > ts51_preflight_names_the_fixture_package_target_instance_and_data_in_scope
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/run preflight/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ runPreflight src/app/admin/backup/components/synthetic-preview-panel.test.tsx:46:51
+     44| });
+     45|
+     46| const runPreflight = () => fireEvent.click(screen.getByRole('button', …
+       |                                                   ^
+     47|
+     48| describe('SyntheticPreviewPanel', () => {
+ ❯ src/app/admin/backup/components/synthetic-preview-panel.test.tsx:68:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[58/73]⎯
+
+ FAIL  src/app/admin/backup/components/synthetic-preview-panel.test.tsx > SyntheticPreviewPanel > ts51_the_selected_fixture_is_the_one_sent
+TestingLibraryElementError: Unable to find a label with the text of: /synthetic fixture package/i
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getAllByLabelText node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/queries/label-text.js:111:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/synthetic-preview-panel.test.tsx:83:37
+     81|     const user = userEvent.setup();
+     82|     render(<SyntheticPreviewPanel token="tok" />);
+     83|     await user.selectOptions(screen.getByLabelText(/synthetic fixture …
+       |                                     ^
+     84|     runPreflight();
+     85|     await screen.findByText('Synthetic corrupt fixture');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[59/73]⎯
+
+ FAIL  src/app/admin/backup/components/synthetic-preview-panel.test.tsx > SyntheticPreviewPanel > ts51_confirm_posts_the_decision_and_shows_executed_false_with_the_identification_fields
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/run preflight/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ runPreflight src/app/admin/backup/components/synthetic-preview-panel.test.tsx:46:51
+     44| });
+     45|
+     46| const runPreflight = () => fireEvent.click(screen.getByRole('button', …
+       |                                                   ^
+     47|
+     48| describe('SyntheticPreviewPanel', () => {
+ ❯ src/app/admin/backup/components/synthetic-preview-panel.test.tsx:93:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[60/73]⎯
+
+ FAIL  src/app/admin/backup/components/synthetic-preview-panel.test.tsx > SyntheticPreviewPanel > ts51_cancel_posts_cancel_and_confirms_nothing_changed
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/run preflight/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ runPreflight src/app/admin/backup/components/synthetic-preview-panel.test.tsx:46:51
+     44| });
+     45|
+     46| const runPreflight = () => fireEvent.click(screen.getByRole('button', …
+       |                                                   ^
+     47|
+     48| describe('SyntheticPreviewPanel', () => {
+ ❯ src/app/admin/backup/components/synthetic-preview-panel.test.tsx:106:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[61/73]⎯
+
+ FAIL  src/app/admin/backup/components/synthetic-preview-panel.test.tsx > SyntheticPreviewPanel > ts51_an_incompatible_or_corrupt_package_cannot_be_confirmed
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/run preflight/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ runPreflight src/app/admin/backup/components/synthetic-preview-panel.test.tsx:46:51
+     44| });
+     45|
+     46| const runPreflight = () => fireEvent.click(screen.getByRole('button', …
+       |                                                   ^
+     47|
+     48| describe('SyntheticPreviewPanel', () => {
+ ❯ src/app/admin/backup/components/synthetic-preview-panel.test.tsx:115:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[62/73]⎯
+
+ FAIL  src/app/admin/backup/components/synthetic-preview-panel.test.tsx > SyntheticPreviewPanel > ts51_a_failed_request_shows_fixed_copy_and_never_the_server_string
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/run preflight/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ runPreflight src/app/admin/backup/components/synthetic-preview-panel.test.tsx:46:51
+     44| });
+     45|
+     46| const runPreflight = () => fireEvent.click(screen.getByRole('button', …
+       |                                                   ^
+     47|
+     48| describe('SyntheticPreviewPanel', () => {
+ ❯ src/app/admin/backup/components/synthetic-preview-panel.test.tsx:125:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[63/73]⎯
+
+ FAIL  src/app/admin/backup/components/synthetic-preview-panel.test.tsx > SyntheticPreviewPanel > ts51_a_second_click_while_a_request_is_in_flight_sends_one_request
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/run preflight/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ runPreflight src/app/admin/backup/components/synthetic-preview-panel.test.tsx:46:51
+     44| });
+     45|
+     46| const runPreflight = () => fireEvent.click(screen.getByRole('button', …
+       |                                                   ^
+     47|
+     48| describe('SyntheticPreviewPanel', () => {
+ ❯ src/app/admin/backup/components/synthetic-preview-panel.test.tsx:132:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[64/73]⎯
+
+ FAIL  src/app/admin/backup/components/synthetic-preview-panel.test.tsx > SyntheticPreviewPanel > ts37_controls_have_accessible_names_and_work_from_the_keyboard
+TestingLibraryElementError: Unable to find a label with the text of: /synthetic fixture package/i
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getAllByLabelText node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/queries/label-text.js:111:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/synthetic-preview-panel.test.tsx:143:19
+    141|     const user = userEvent.setup();
+    142|     render(<SyntheticPreviewPanel token="tok" />);
+    143|     expect(screen.getByLabelText(/synthetic fixture package/i)).toBeIn…
+       |                   ^
+    144|     await user.tab();
+    145|     expect(screen.getByLabelText(/synthetic fixture package/i)).toHave…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[65/73]⎯
+
+ FAIL  src/app/admin/backup/components/synthetic-preview-panel.test.tsx > SyntheticPreviewPanel > ts18_html_bearing_server_strings_render_escaped
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/run preflight/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ runPreflight src/app/admin/backup/components/synthetic-preview-panel.test.tsx:46:51
+     44| });
+     45|
+     46| const runPreflight = () => fireEvent.click(screen.getByRole('button', …
+       |                                                   ^
+     47|
+     48| describe('SyntheticPreviewPanel', () => {
+ ❯ src/app/admin/backup/components/synthetic-preview-panel.test.tsx:160:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[66/73]⎯
+
+
+ Test Files  9 failed | 3 passed (12)
+      Tests  72 failed | 54 passed (126)
+   Start at  20:51:27
+   Duration  6.10s (transform 767ms, setup 1.08s, import 2.14s, tests 5.71s, environment 6.88s)
+

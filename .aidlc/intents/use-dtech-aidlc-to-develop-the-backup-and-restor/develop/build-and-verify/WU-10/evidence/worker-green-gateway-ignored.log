@@ -1,0 +1,164 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/domain/response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_media/src/lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/domain/response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/bucket/access/access_handler.rs:14:1
+   |
+14 | / pub struct BucketAccessPolicy {
+15 | |     pub storage: SupabaseStorage,
+16 | |     pub cache: Arc<Cache<String, bool>>,
+17 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/create/create_handler.rs:9:1
+   |
+ 9 | / pub struct CreateMediaHandler {
+10 | |     pub media_config: Arc<MediaConfig>,
+11 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+ --> domain_media/src/handlers/delete/delete_handler.rs:5:1
+  |
+5 | / pub struct DeleteMediaHandler {
+6 | |     pub media_config: Arc<MediaConfig>,
+7 | | }
+  | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/list/list_handler.rs:8:1
+   |
+ 8 | / pub struct ListMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/read/metadata_handler.rs:8:1
+   |
+ 8 | / pub struct MetadataMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/read/read_handler.rs:24:1
+   |
+24 | / pub struct ReadMediaHandler {
+25 | |     pub media_config: Arc<MediaConfig>,
+26 | |     pub media_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
+27 | | }
+   | |_^
+
+warning: `domain_media` (lib) generated 8 warnings
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user/src/domain/response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_user/src/lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user/src/domain/response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: `domain_user` (lib) generated 2 warnings
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts/src/domain/response.rs:21:1
+   |
+21 | / pub struct ApiResponseWith<TData>
+22 | | where
+23 | |     TData: Serialize,
+...  |
+26 | |     data: TData,
+27 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_posts/src/lib.rs:9:9
+   |
+ 9 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts/src/domain/response.rs:61:1
+   |
+61 | / pub struct ApiResponseError {
+62 | |     error_code: ErrorCode,
+63 | |     errors: Vec<String>,
+64 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts/src/migrations/mod.rs:19:1
+   |
+19 | pub struct Migrator;
+   | ^^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_posts` (lib) generated 3 warnings
+warning: function `now_seconds` is never used
+  --> gateway/src/backup_cli.rs:66:4
+   |
+66 | fn now_seconds() -> Result<u64, String> {
+   |    ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `gateway` (bin "my-cms-api" test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.56s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/main.rs (target/debug/build/gateway/3058346c4858ab06/out/my_cms_api-3058346c4858ab06)
+
+running 4 tests
+test migration_tests::database_with_only_posts_applied_upgrades_cleanly ... ok
+test migration_tests::posts_and_seo_migrations_apply_on_fresh_database_and_second_boot ... ok
+test tests::backup_runtime_starts_after_migrations_and_composed_api_is_ready ... ok
+test tests::scheduler_step_ticks_and_recovers_after_outage ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 40 filtered out; finished in 2.56s
+

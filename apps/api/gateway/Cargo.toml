@@ -20,6 +20,7 @@ domain_auth = { path = "../domain_auth" }
 domain_media = { path = "../domain_media" }
 domain_user = { path = "../domain_user" }
 domain_seo = { path = "../domain_seo" }
+domain_backup = { path = "../domain_backup" }
 
 axum = { version = "0.8.9", features = ["http2", "tracing", "multipart"] }
 tokio = { version = "1.52.3", features = ["full"] }
@@ -39,3 +40,5 @@ async-graphql-axum = { version = "7.2.1" }
 
 [dev-dependencies]
 test_helpers = { path = "../test_helpers" }
+# Mints HS256 test tokens for the composed-router security tests (TS-03, TS-07, TS-55); same version as domain_auth.
+jsonwebtoken = "9.3.1"

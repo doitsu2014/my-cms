@@ -1,0 +1,21 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.45s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d5c5af4ad2d20f53\out\domain_backup-d5c5af4ad2d20f53.exe)
+
+running 7 tests
+test infra::tests::reconciliation::reconciliation_audit_failure_rolls_back_allocation_and_audit ... ok
+test infra::tests::reconciliation::allocation_reconciliation_cas_updates_state_and_audits_atomically ... ok
+test infra::tests::reconciliation::lost_allocation_reconciliation_cas_has_no_audit_or_state_change ... ok
+test infra::tests::reconciliation::job_store_reconciliation_inventory_and_epoch_are_durable ... ok
+test infra::tests::reconciliation::ts56_allocation_inventory_preserves_nullable_orphan_owners ... ok
+test infra::tests::reconciliation::ts30_deadline_inventory_includes_only_due_jobs_at_epoch ... ok
+test infra::tests::reconciliation::ts22_job_fence_cas_is_epoch_status_version_checked_and_audited_atomically ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 324 filtered out; finished in 9.42s
+

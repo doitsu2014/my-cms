@@ -1,0 +1,193 @@
+[
+ {
+  "file": "sweeper.rs",
+  "name": "deadline boundary exclusive",
+  "compileError": false,
+  "killedBy": 1,
+  "failed": [
+   "sweeper::ts30_a_queued_job_fails_dispatch_failed_at_the_queued_age_bound"
+  ]
+ },
+ {
+  "file": "sweeper.rs",
+  "name": "queued job never fails",
+  "compileError": false,
+  "killedBy": 1,
+  "failed": [
+   "sweeper::ts30_a_queued_job_fails_dispatch_failed_at_the_queued_age_bound"
+  ]
+ },
+ {
+  "file": "sweeper.rs",
+  "name": "running deadline failure reason wrong",
+  "compileError": false,
+  "killedBy": 2,
+  "failed": [
+   "sweeper::ts30_a_running_job_fails_deadline_exceeded_exactly_at_its_deadline_and_not_before",
+   "runtime::ts29_recovery_reconciles_then_cleans_then_sweeps_then_reopens_without_a_new_epoch"
+  ]
+ },
+ {
+  "file": "sweeper.rs",
+  "name": "expiry boundary exclusive",
+  "compileError": false,
+  "killedBy": 1,
+  "failed": [
+   "sweeper::ts30_a_written_allocation_is_released_exactly_at_its_24_hour_expiry"
+  ]
+ },
+ {
+  "file": "sweeper.rs",
+  "name": "expiry releases a running owner",
+  "compileError": false,
+  "killedBy": 1,
+  "failed": [
+   "sweeper::ts28_an_expired_written_allocation_of_a_running_job_is_kept_until_the_owner_ends"
+  ]
+ },
+ {
+  "file": "sweeper.rs",
+  "name": "expiry releases non-written allocations",
+  "compileError": false,
+  "killedBy": 2,
+  "failed": [
+   "sweeper::ts42_the_sweep_purges_through_the_injected_retention_store_and_keeps_audit",
+   "sweeper::ts65_a_refused_purge_audit_removes_nothing"
+  ]
+ },
+ {
+  "file": "sweeper.rs",
+  "name": "purge skipped",
+  "compileError": false,
+  "killedBy": 4,
+  "failed": [
+   "runtime::ts29_recovery_reconciles_then_cleans_then_sweeps_then_reopens_without_a_new_epoch",
+   "sweeper::one_sweep_runs_deadline_then_expiry_then_purge_then_discovery",
+   "sweeper::ts42_the_sweep_purges_through_the_injected_retention_store_and_keeps_audit",
+   "sweeper::ts65_a_refused_purge_audit_removes_nothing"
+  ]
+ },
+ {
+  "file": "sweeper.rs",
+  "name": "discovery skipped",
+  "compileError": false,
+  "killedBy": 3,
+  "failed": [
+   "sweeper::a_truncated_scan_fails_the_sweep_after_the_earlier_steps_and_persists_no_orphan",
+   "sweeper::the_sweep_discovers_an_unowned_file_without_deleting_it",
+   "sweeper::one_sweep_runs_deadline_then_expiry_then_purge_then_discovery"
+  ]
+ },
+ {
+  "file": "sweeper.rs",
+  "name": "expiry step before deadline step",
+  "compileError": false,
+  "killedBy": 1,
+  "failed": [
+   "sweeper::one_sweep_runs_deadline_then_expiry_then_purge_then_discovery"
+  ]
+ },
+ {
+  "file": "runtime.rs",
+  "name": "admissions open before cleanup",
+  "compileError": false,
+  "killedBy": 1,
+  "failed": [
+   "runtime::ts32_startup_runs_lock_epoch_reconcile_cleanup_then_opens_admissions"
+  ]
+ },
+ {
+  "file": "runtime.rs",
+  "name": "start skips the cleanup",
+  "compileError": false,
+  "killedBy": 1,
+  "failed": [
+   "runtime::ts32_startup_runs_lock_epoch_reconcile_cleanup_then_opens_admissions"
+  ]
+ },
+ {
+  "file": "runtime.rs",
+  "name": "recovery bumps the epoch",
+  "compileError": false,
+  "killedBy": 1,
+  "failed": [
+   "runtime::ts29_recovery_reconciles_then_cleans_then_sweeps_then_reopens_without_a_new_epoch"
+  ]
+ },
+ {
+  "file": "runtime.rs",
+  "name": "recovery skips the sweep",
+  "compileError": false,
+  "killedBy": 2,
+  "failed": [
+   "runtime::ts29_recovery_reconciles_then_cleans_then_sweeps_then_reopens_without_a_new_epoch",
+   "runtime::ts29_three_refused_audit_sweeps_close_admissions_and_degrade"
+  ]
+ },
+ {
+  "file": "runtime.rs",
+  "name": "recovery reopens even when reconcile fails",
+  "compileError": false,
+  "killedBy": 0,
+  "failed": []
+ },
+ {
+  "file": "runtime.rs",
+  "name": "clean period boundary exclusive",
+  "compileError": false,
+  "killedBy": 1,
+  "failed": [
+   "runtime::ts30_the_cleaner_ticks_every_60_seconds_and_the_sweep_every_15_minutes"
+  ]
+ },
+ {
+  "file": "runtime.rs",
+  "name": "refusal limit off by one",
+  "compileError": false,
+  "killedBy": 1,
+  "failed": [
+   "runtime::ts29_three_refused_audit_sweeps_close_admissions_and_degrade"
+  ]
+ },
+ {
+  "file": "runtime.rs",
+  "name": "audit refusals never reset by a good sweep",
+  "compileError": false,
+  "killedBy": 0,
+  "failed": []
+ },
+ {
+  "file": "runtime.rs",
+  "name": "store outage does not close admissions",
+  "compileError": false,
+  "killedBy": 1,
+  "failed": [
+   "runtime::ts29_a_store_outage_closes_admissions_and_stops_all_store_work"
+  ]
+ },
+ {
+  "file": "runtime.rs",
+  "name": "closed runtime still ticks",
+  "compileError": false,
+  "killedBy": 1,
+  "failed": [
+   "runtime::ts29_a_store_outage_closes_admissions_and_stops_all_store_work"
+  ]
+ },
+ {
+  "file": "runtime.rs",
+  "name": "failed sweep moves last_sweep",
+  "compileError": false,
+  "killedBy": 1,
+  "failed": [
+   "runtime::ts29_three_refused_audit_sweeps_close_admissions_and_degrade"
+  ]
+ },
+ {
+  "file": "runtime.rs",
+  "name": "truncated tick closes admissions",
+  "compileError": false,
+  "killedBy": 0,
+  "failed": []
+ }
+]

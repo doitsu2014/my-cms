@@ -1,0 +1,227 @@
+## cargo test -p domain_backup --no-fail-fast (2026-11-22T14:10:46+07:00)
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused dependency `thiserror`
+  --> domain_backup\Cargo.toml:26:1
+   |
+26 | thiserror = "2.0"
+   | ^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `thiserror`
+warning: `domain_backup` (manifest) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.15s
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d328355dd4fe0c32\out\domain_backup-d328355dd4fe0c32.exe)
+
+running 23 tests
+test domain::config::tests::disabled_reason_closed_set_spelling ... FAILED
+test domain::config::tests::defaults_match_owner_values ... FAILED
+test domain::config::tests::allowed_origins_required_and_well_formed ... FAILED
+test domain::config::tests::bounds_other_than_default_disable_with_invalid_config ... FAILED
+test domain::config::tests::disabled_reason_projection_covers_null ... FAILED
+test domain::config::tests::enabled_without_storage_root_refuses ... FAILED
+test domain::config::tests::escalation_owner_cannot_be_overridden ... FAILED
+test domain::config::tests::disabled_unless_backup_enabled_is_true ... FAILED
+test domain::config::tests::host_default_is_loopback_and_non_loopback_host_disables ... FAILED
+test domain::config::tests::ingress_limits_required ... FAILED
+test domain::config::tests::invalid_numeric_env_refuses_capability ... FAILED
+test domain::config::tests::non_canonical_and_overflowing_numbers_are_invalid ... FAILED
+test domain::config::tests::non_loopback_bind_takes_precedence_over_invalid_config ... FAILED
+test domain::config::tests::not_configured_takes_precedence ... FAILED
+test domain::config::tests::is_loopback_bind_accepts_only_loopback_ip_literals ... FAILED
+test domain::state_machine::tests::no_transition_reaches_succeeded_or_recovery_required ... FAILED
+test domain::state_machine::tests::only_the_four_u1_edges_are_allowed ... FAILED
+test domain::state_machine::tests::terminal_states_have_no_outgoing_transitions ... FAILED
+test domain::status::tests::all_lists_every_variant_once ... ok
+test domain::status::tests::no_write_or_projection_yields_succeeded_or_recovery_required ... FAILED
+test domain::status::tests::wire_spelling_keeps_documented_values_and_adds_incomplete ... FAILED
+test domain::config::tests::invalid_config_always_yields_disabled_state ... FAILED
+test domain::config::tests::storage_root_rejects_forbidden_and_relative_paths ... FAILED
+
+failures:
+
+---- domain::config::tests::disabled_reason_closed_set_spelling stdout ----
+
+thread 'domain::config::tests::disabled_reason_closed_set_spelling' (28720) panicked at domain_backup\src\domain\config.rs:320:9:
+assertion `left == right` failed
+  left: ""
+ right: "NOT_CONFIGURED"
+
+---- domain::config::tests::defaults_match_owner_values stdout ----
+
+thread 'domain::config::tests::defaults_match_owner_values' (24904) panicked at domain_backup\src\domain\config.rs:191:9:
+assertion `left == right` failed
+  left: 0
+ right: 86400
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- domain::config::tests::allowed_origins_required_and_well_formed stdout ----
+
+thread 'domain::config::tests::allowed_origins_required_and_well_formed' (35512) panicked at domain_backup\src\domain\config.rs:173:9:
+assertion `left == right` failed: missing
+  left: Enabled(BackupConfig { instance_id: "", instance_label: "", storage_root: "", bounds: BackupBounds { staging_expiry_secs: 0, orphan_grace_secs: 0, sweep_interval_secs: 0, cleanup_max_attempts: 0, cleanup_backoff_secs: 0, job_deadline_secs: 0, max_concurrent_jobs: 0, alloc_max_bytes: 0, total_max_bytes: 0, retention_days: 0, escalation_owner: "" }, allowed_origins: [], request_timeout_secs: 0, max_header_bytes: 0 })
+ right: Disabled { reason: InvalidConfig }
+
+---- domain::config::tests::bounds_other_than_default_disable_with_invalid_config stdout ----
+
+thread 'domain::config::tests::bounds_other_than_default_disable_with_invalid_config' (3952) panicked at domain_backup\src\domain\config.rs:173:9:
+assertion `left == right` failed: BACKUP_STAGING_EXPIRY_SECS below default
+  left: Enabled(BackupConfig { instance_id: "", instance_label: "", storage_root: "", bounds: BackupBounds { staging_expiry_secs: 0, orphan_grace_secs: 0, sweep_interval_secs: 0, cleanup_max_attempts: 0, cleanup_backoff_secs: 0, job_deadline_secs: 0, max_concurrent_jobs: 0, alloc_max_bytes: 0, total_max_bytes: 0, retention_days: 0, escalation_owner: "" }, allowed_origins: [], request_timeout_secs: 0, max_header_bytes: 0 })
+ right: Disabled { reason: InvalidConfig }
+
+---- domain::config::tests::disabled_reason_projection_covers_null stdout ----
+
+thread 'domain::config::tests::disabled_reason_projection_covers_null' (30000) panicked at domain_backup\src\domain\config.rs:261:9:
+assertion `left == right` failed
+  left: None
+ right: Some("NOT_CONFIGURED")
+
+---- domain::config::tests::enabled_without_storage_root_refuses stdout ----
+
+thread 'domain::config::tests::enabled_without_storage_root_refuses' (36684) panicked at domain_backup\src\domain\config.rs:173:9:
+assertion `left == right` failed: CFG-04 missing
+  left: Enabled(BackupConfig { instance_id: "", instance_label: "", storage_root: "", bounds: BackupBounds { staging_expiry_secs: 0, orphan_grace_secs: 0, sweep_interval_secs: 0, cleanup_max_attempts: 0, cleanup_backoff_secs: 0, job_deadline_secs: 0, max_concurrent_jobs: 0, alloc_max_bytes: 0, total_max_bytes: 0, retention_days: 0, escalation_owner: "" }, allowed_origins: [], request_timeout_secs: 0, max_header_bytes: 0 })
+ right: Disabled { reason: InvalidConfig }
+
+---- domain::config::tests::escalation_owner_cannot_be_overridden stdout ----
+
+thread 'domain::config::tests::escalation_owner_cannot_be_overridden' (25360) panicked at domain_backup\src\domain\config.rs:527:17:
+assertion `left == right` failed
+  left: ""
+ right: "project_owner"
+
+---- domain::config::tests::disabled_unless_backup_enabled_is_true stdout ----
+
+thread 'domain::config::tests::disabled_unless_backup_enabled_is_true' (6500) panicked at domain_backup\src\domain\config.rs:222:13:
+assertion `left == right` failed: None
+  left: Enabled(BackupConfig { instance_id: "", instance_label: "", storage_root: "", bounds: BackupBounds { staging_expiry_secs: 0, orphan_grace_secs: 0, sweep_interval_secs: 0, cleanup_max_attempts: 0, cleanup_backoff_secs: 0, job_deadline_secs: 0, max_concurrent_jobs: 0, alloc_max_bytes: 0, total_max_bytes: 0, retention_days: 0, escalation_owner: "" }, allowed_origins: [], request_timeout_secs: 0, max_header_bytes: 0 })
+ right: Disabled { reason: NotConfigured }
+
+---- domain::config::tests::host_default_is_loopback_and_non_loopback_host_disables stdout ----
+
+thread 'domain::config::tests::host_default_is_loopback_and_non_loopback_host_disables' (3508) panicked at domain_backup\src\domain\config.rs:309:13:
+assertion `left == right` failed: HOST=0.0.0.0
+  left: Enabled(BackupConfig { instance_id: "", instance_label: "", storage_root: "", bounds: BackupBounds { staging_expiry_secs: 0, orphan_grace_secs: 0, sweep_interval_secs: 0, cleanup_max_attempts: 0, cleanup_backoff_secs: 0, job_deadline_secs: 0, max_concurrent_jobs: 0, alloc_max_bytes: 0, total_max_bytes: 0, retention_days: 0, escalation_owner: "" }, allowed_origins: [], request_timeout_secs: 0, max_header_bytes: 0 })
+ right: Disabled { reason: NonLoopbackBind }
+
+---- domain::config::tests::ingress_limits_required stdout ----
+
+thread 'domain::config::tests::ingress_limits_required' (31352) panicked at domain_backup\src\domain\config.rs:173:9:
+assertion `left == right` failed: BACKUP_REQUEST_TIMEOUT_SECS absent
+  left: Enabled(BackupConfig { instance_id: "", instance_label: "", storage_root: "", bounds: BackupBounds { staging_expiry_secs: 0, orphan_grace_secs: 0, sweep_interval_secs: 0, cleanup_max_attempts: 0, cleanup_backoff_secs: 0, job_deadline_secs: 0, max_concurrent_jobs: 0, alloc_max_bytes: 0, total_max_bytes: 0, retention_days: 0, escalation_owner: "" }, allowed_origins: [], request_timeout_secs: 0, max_header_bytes: 0 })
+ right: Disabled { reason: InvalidConfig }
+
+---- domain::config::tests::invalid_numeric_env_refuses_capability stdout ----
+
+thread 'domain::config::tests::invalid_numeric_env_refuses_capability' (34836) panicked at domain_backup\src\domain\config.rs:173:9:
+assertion `left == right` failed: BACKUP_STAGING_EXPIRY_SECS="abc"
+  left: Enabled(BackupConfig { instance_id: "", instance_label: "", storage_root: "", bounds: BackupBounds { staging_expiry_secs: 0, orphan_grace_secs: 0, sweep_interval_secs: 0, cleanup_max_attempts: 0, cleanup_backoff_secs: 0, job_deadline_secs: 0, max_concurrent_jobs: 0, alloc_max_bytes: 0, total_max_bytes: 0, retention_days: 0, escalation_owner: "" }, allowed_origins: [], request_timeout_secs: 0, max_header_bytes: 0 })
+ right: Disabled { reason: InvalidConfig }
+
+---- domain::config::tests::non_canonical_and_overflowing_numbers_are_invalid stdout ----
+
+thread 'domain::config::tests::non_canonical_and_overflowing_numbers_are_invalid' (8240) panicked at domain_backup\src\domain\config.rs:173:9:
+assertion `left == right` failed: BACKUP_STAGING_EXPIRY_SECS="+86400"
+  left: Enabled(BackupConfig { instance_id: "", instance_label: "", storage_root: "", bounds: BackupBounds { staging_expiry_secs: 0, orphan_grace_secs: 0, sweep_interval_secs: 0, cleanup_max_attempts: 0, cleanup_backoff_secs: 0, job_deadline_secs: 0, max_concurrent_jobs: 0, alloc_max_bytes: 0, total_max_bytes: 0, retention_days: 0, escalation_owner: "" }, allowed_origins: [], request_timeout_secs: 0, max_header_bytes: 0 })
+ right: Disabled { reason: InvalidConfig }
+
+---- domain::config::tests::non_loopback_bind_takes_precedence_over_invalid_config stdout ----
+
+thread 'domain::config::tests::non_loopback_bind_takes_precedence_over_invalid_config' (3272) panicked at domain_backup\src\domain\config.rs:251:9:
+assertion `left == right` failed
+  left: Enabled(BackupConfig { instance_id: "", instance_label: "", storage_root: "", bounds: BackupBounds { staging_expiry_secs: 0, orphan_grace_secs: 0, sweep_interval_secs: 0, cleanup_max_attempts: 0, cleanup_backoff_secs: 0, job_deadline_secs: 0, max_concurrent_jobs: 0, alloc_max_bytes: 0, total_max_bytes: 0, retention_days: 0, escalation_owner: "" }, allowed_origins: [], request_timeout_secs: 0, max_header_bytes: 0 })
+ right: Disabled { reason: NonLoopbackBind }
+
+---- domain::config::tests::not_configured_takes_precedence stdout ----
+
+thread 'domain::config::tests::not_configured_takes_precedence' (11828) panicked at domain_backup\src\domain\config.rs:230:9:
+assertion `left == right` failed: empty environment
+  left: Enabled(BackupConfig { instance_id: "", instance_label: "", storage_root: "", bounds: BackupBounds { staging_expiry_secs: 0, orphan_grace_secs: 0, sweep_interval_secs: 0, cleanup_max_attempts: 0, cleanup_backoff_secs: 0, job_deadline_secs: 0, max_concurrent_jobs: 0, alloc_max_bytes: 0, total_max_bytes: 0, retention_days: 0, escalation_owner: "" }, allowed_origins: [], request_timeout_secs: 0, max_header_bytes: 0 })
+ right: Disabled { reason: NotConfigured }
+
+---- domain::config::tests::is_loopback_bind_accepts_only_loopback_ip_literals stdout ----
+
+thread 'domain::config::tests::is_loopback_bind_accepts_only_loopback_ip_literals' (36712) panicked at domain_backup\src\domain\config.rs:617:13:
+"0.0.0.0" must not be loopback
+
+---- domain::state_machine::tests::no_transition_reaches_succeeded_or_recovery_required stdout ----
+
+thread 'domain::state_machine::tests::no_transition_reaches_succeeded_or_recovery_required' (16056) panicked at domain_backup\src\domain\state_machine.rs:20:17:
+Queued -> Succeeded must not be allowed for a U1 job
+
+---- domain::state_machine::tests::only_the_four_u1_edges_are_allowed stdout ----
+
+thread 'domain::state_machine::tests::only_the_four_u1_edges_are_allowed' (13824) panicked at domain_backup\src\domain\state_machine.rs:53:21:
+Queued -> Queued must be rejected
+
+---- domain::state_machine::tests::terminal_states_have_no_outgoing_transitions stdout ----
+
+thread 'domain::state_machine::tests::terminal_states_have_no_outgoing_transitions' (15096) panicked at domain_backup\src\domain\state_machine.rs:33:17:
+Incomplete -> Queued must be rejected
+
+---- domain::status::tests::no_write_or_projection_yields_succeeded_or_recovery_required stdout ----
+
+thread 'domain::status::tests::no_write_or_projection_yields_succeeded_or_recovery_required' (420) panicked at domain_backup\src\domain\status.rs:93:21:
+assertion `left == right` failed: write of Succeeded must be refused
+  left: Ok(Succeeded)
+ right: Err(StatusRefused(Succeeded))
+
+---- domain::status::tests::wire_spelling_keeps_documented_values_and_adds_incomplete stdout ----
+
+thread 'domain::status::tests::wire_spelling_keeps_documented_values_and_adds_incomplete' (33752) panicked at domain_backup\src\domain\status.rs:117:13:
+assertion `left == right` failed
+  left: "\"Queued\""
+ right: "\"queued\""
+
+---- domain::config::tests::invalid_config_always_yields_disabled_state stdout ----
+
+thread 'domain::config::tests::invalid_config_always_yields_disabled_state' (7628) panicked at domain_backup\src\domain\config.rs:296:13:
+BACKUP_STAGING_EXPIRY_SECS="86399": expected Disabled, got Enabled(BackupConfig { instance_id: "", instance_label: "", storage_root: "", bounds: BackupBounds { staging_expiry_secs: 0, orphan_grace_secs: 0, sweep_interval_secs: 0, cleanup_max_attempts: 0, cleanup_backoff_secs: 0, job_deadline_secs: 0, max_concurrent_jobs: 0, alloc_max_bytes: 0, total_max_bytes: 0, retention_days: 0, escalation_owner: "" }, allowed_origins: [], request_timeout_secs: 0, max_header_bytes: 0 })
+
+---- domain::config::tests::storage_root_rejects_forbidden_and_relative_paths stdout ----
+
+thread 'domain::config::tests::storage_root_rejects_forbidden_and_relative_paths' (35884) panicked at domain_backup\src\domain\config.rs:440:9:
+assertion `left == right` failed: equal to forbidden
+  left: Ok(())
+ right: Err(UnderForbiddenPath)
+
+
+failures:
+    domain::config::tests::allowed_origins_required_and_well_formed
+    domain::config::tests::bounds_other_than_default_disable_with_invalid_config
+    domain::config::tests::defaults_match_owner_values
+    domain::config::tests::disabled_reason_closed_set_spelling
+    domain::config::tests::disabled_reason_projection_covers_null
+    domain::config::tests::disabled_unless_backup_enabled_is_true
+    domain::config::tests::enabled_without_storage_root_refuses
+    domain::config::tests::escalation_owner_cannot_be_overridden
+    domain::config::tests::host_default_is_loopback_and_non_loopback_host_disables
+    domain::config::tests::ingress_limits_required
+    domain::config::tests::invalid_config_always_yields_disabled_state
+    domain::config::tests::invalid_numeric_env_refuses_capability
+    domain::config::tests::is_loopback_bind_accepts_only_loopback_ip_literals
+    domain::config::tests::non_canonical_and_overflowing_numbers_are_invalid
+    domain::config::tests::non_loopback_bind_takes_precedence_over_invalid_config
+    domain::config::tests::not_configured_takes_precedence
+    domain::config::tests::storage_root_rejects_forbidden_and_relative_paths
+    domain::state_machine::tests::no_transition_reaches_succeeded_or_recovery_required
+    domain::state_machine::tests::only_the_four_u1_edges_are_allowed
+    domain::state_machine::tests::terminal_states_have_no_outgoing_transitions
+    domain::status::tests::no_write_or_projection_yields_succeeded_or_recovery_required
+    domain::status::tests::wire_spelling_keeps_documented_values_and_adds_incomplete
+
+test result: FAILED. 1 passed; 22 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+error: test failed, to rerun pass `-p domain_backup --lib`
+   Doc-tests domain_backup
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: 1 target failed:
+    `-p domain_backup --lib`
+EXIT: 101

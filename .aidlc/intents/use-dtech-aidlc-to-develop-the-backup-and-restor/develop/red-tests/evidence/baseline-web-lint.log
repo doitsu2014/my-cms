@@ -1,0 +1,32 @@
+
+> admin_side@1.0.0 lint D:\orca\my-cms\makara\apps\web
+> eslint .
+
+
+Oops! Something went wrong! :(
+
+ESLint: 9.36.0
+
+
+A config object has a "plugins" key defined as an array of strings. It looks something like this:
+
+    {
+        "plugins": ["react-hooks"]
+    }
+
+Flat config requires "plugins" to be an object, like this:
+
+    {
+        plugins: {
+            react-hooks: pluginObject
+        }
+    }
+
+Please see the following page for information on how to convert your config object into the correct format:
+https://eslint.org/docs/latest/use/configure/migration-guide#importing-plugins-and-custom-parsers
+
+If you're using a shareable config that you cannot rewrite in flat config format, then use the compatibility utility:
+https://eslint.org/docs/latest/use/configure/migration-guide#using-eslintrc-configs-in-flat-config
+
+ ELIFECYCLE  Command failed with exit code 2.
+EXIT: 2

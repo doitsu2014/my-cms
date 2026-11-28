@@ -1,0 +1,89 @@
+=== RUST red: cargo test -p domain_backup --lib verification_sweep --no-fail-fast -- --include-ignored --test-threads=3 --nocapture (apps/api)
+running 5 tests
+test infra::tests::verification_sweep::ts41_admin_creates_job_ends_incomplete_and_download_is_denied ... ok
+
+thread 'infra::tests::verification_sweep::ts58_feature_doc_lists_open_items_as_open_and_synthetic_only' (11960057) panicked at domain_backup/src/infra/tests/verification_sweep.rs:379:9:
+docs/features/backup-restore.md must list Q-04 as open
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test infra::tests::verification_sweep::ts58_feature_doc_lists_open_items_as_open_and_synthetic_only ... FAILED
+test infra::tests::verification_sweep::ts58_implementation_plan_lists_open_items_as_open ... ok
+TS39_LATENCY_MS samples=30 min=1.09 median=1.38 p95=4.04 max=6.32 (no target; P-01..P-05 open)
+test infra::tests::verification_sweep::ts39_job_creation_latency_is_measured_without_a_target ... ok
+TS40_LOAD rounds=5 creators_per_round=12 workers_per_round=4 accepted=5 concurrency_limited=55 worker_runs=5 jobs=5 terminal=5 max_active_jobs=1 max_live_reserved_bytes=20480 max_single_allocation_bytes=4096 max_disk_bytes=20480 (budget per alloc=268435456, total=1073741824)
+test infra::tests::verification_sweep::ts40_concurrency_and_temporary_bytes_stay_bounded_under_load ... ok
+
+failures:
+
+failures:
+    infra::tests::verification_sweep::ts58_feature_doc_lists_open_items_as_open_and_synthetic_only
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 372 filtered out; finished in 1.37s
+
+error: test failed, to rerun pass `-p domain_backup --lib`
+error: 1 target failed:
+    `-p domain_backup --lib`
+
+=== WEB red: pnpm exec vitest run scripts (apps/web), scanner stub returns []
+
+ RUN  v4.1.8 /Users/doitsu2014/workspaces/doitsu-technology/my-cms/.claude/worktrees/wf_7bd2a7ba-228-1/apps/web
+
+ ❯ scripts/bundle-canary-scan.test.mjs (4 tests | 2 failed) 8ms
+     × positive control: reports a canary placed in a js asset 4ms
+     × positive control: reports a canary in html, css, json and map files 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/bundle-canary-scan.test.mjs > TS-17 bundle canary scanner > positive control: reports a canary placed in a js asset
+AssertionError: expected [] to deeply equal [ ObjectContaining{…} ]
+
+- Expected
++ Received
+
+- [
+-   ObjectContaining {
+-     "canary": "CANARY-backup-dsn-0001",
+-     "file": "static/js/main.abc.js",
+-   },
+- ]
++ []
+
+ ❯ scripts/bundle-canary-scan.test.mjs:43:18
+     41|     });
+     42|     const hits = await scanDirectory(dist, Object.values(BUILD_CANARIE…
+     43|     expect(hits).toEqual([
+       |                  ^
+     44|       expect.objectContaining({ canary, file: join('static', 'js', 'ma…
+     45|     ]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  scripts/bundle-canary-scan.test.mjs > TS-17 bundle canary scanner > positive control: reports a canary in html, css, json and map files
+AssertionError: expected [] to deeply equal [ 'CANARY-backup-dsn-0001', …(3) ]
+
+- Expected
++ Received
+
+- [
+-   "CANARY-backup-dsn-0001",
+-   "CANARY-backup-storage-key-0002",
+-   "CANARY-public-backup-secret-0004",
+-   "CANARY-vite-backup-secret-0003",
+- ]
++ []
+
+ ❯ scripts/bundle-canary-scan.test.mjs:57:46
+     55|     });
+     56|     const hits = await scanDirectory(dist, Object.values(BUILD_CANARIE…
+     57|     expect(hits.map((h) => h.canary).sort()).toEqual([a, b, c, d].sort…
+       |                                              ^
+     58|   });
+     59|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 2 passed (4)
+   Start at  21:03:41
+   Duration  655ms (transform 15ms, setup 45ms, import 8ms, tests 8ms, environment 438ms)
+

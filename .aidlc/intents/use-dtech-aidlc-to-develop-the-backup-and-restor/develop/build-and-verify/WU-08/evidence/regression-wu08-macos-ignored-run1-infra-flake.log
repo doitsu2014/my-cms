@@ -1,0 +1,582 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user/src/domain/response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_user/src/lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user/src/domain/response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/domain/response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_media/src/lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/domain/response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/bucket/access/access_handler.rs:14:1
+   |
+14 | / pub struct BucketAccessPolicy {
+15 | |     pub storage: SupabaseStorage,
+16 | |     pub cache: Arc<Cache<String, bool>>,
+17 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/create/create_handler.rs:9:1
+   |
+ 9 | / pub struct CreateMediaHandler {
+10 | |     pub media_config: Arc<MediaConfig>,
+11 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+ --> domain_media/src/handlers/delete/delete_handler.rs:5:1
+  |
+5 | / pub struct DeleteMediaHandler {
+6 | |     pub media_config: Arc<MediaConfig>,
+7 | | }
+  | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/list/list_handler.rs:8:1
+   |
+ 8 | / pub struct ListMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/read/metadata_handler.rs:8:1
+   |
+ 8 | / pub struct MetadataMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/read/read_handler.rs:24:1
+   |
+24 | / pub struct ReadMediaHandler {
+25 | |     pub media_config: Arc<MediaConfig>,
+26 | |     pub media_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
+27 | | }
+   | |_^
+
+warning: `domain_user` (lib) generated 2 warnings
+warning: `domain_media` (lib) generated 8 warnings
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts/src/domain/response.rs:21:1
+   |
+21 | / pub struct ApiResponseWith<TData>
+22 | | where
+23 | |     TData: Serialize,
+...  |
+26 | |     data: TData,
+27 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_posts/src/lib.rs:9:9
+   |
+ 9 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts/src/domain/response.rs:61:1
+   |
+61 | / pub struct ApiResponseError {
+62 | |     error_code: ErrorCode,
+63 | |     errors: Vec<String>,
+64 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts/src/migrations/mod.rs:19:1
+   |
+19 | pub struct Migrator;
+   | ^^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_posts` (lib) generated 3 warnings
+warning: function `now_seconds` is never used
+  --> gateway/src/backup_cli.rs:66:4
+   |
+66 | fn now_seconds() -> Result<u64, String> {
+   |    ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `gateway` (bin "my-cms-api" test) generated 1 warning
+warning: `domain_user` (lib test) generated 2 warnings (2 duplicates)
+warning: `domain_media` (lib test) generated 8 warnings (8 duplicates)
+warning: `domain_posts` (lib test) generated 3 warnings (3 duplicates)
+warning: unused dependency `futures`
+  --> domain_interface/Cargo.toml:17:1
+   |
+17 | futures = "0.3"
+   | ^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `futures`
+warning: `domain_interface` (manifest) generated 1 warning
+warning: unused dependency `async-std`
+  --> domain_media/Cargo.toml:14:1
+   |
+14 | async-std = { version = "1.13.2", features = ["attributes"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `async-std`
+warning: `domain_media` (manifest) generated 1 warning
+warning: unused dependency `async-std`
+  --> domain_posts/Cargo.toml:14:1
+   |
+14 | async-std = { version = "1.13.2", features = ["attributes"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `async-std`
+warning: unused dependency `domain_auth`
+  --> domain_posts/Cargo.toml:21:1
+   |
+21 | domain_auth = { path = "../domain_auth" }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `domain_auth`
+help: to still use for development builds, move to `dev-dependencies`
+warning: unused dependency `dotenv`
+  --> domain_posts/Cargo.toml:20:1
+   |
+20 | dotenv = "0.15.0"
+   | ^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `dotenv`
+warning: unused dependency `fake`
+  --> domain_posts/Cargo.toml:23:1
+   |
+23 | fake = { version = "4.4.0", features = ["derive"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `fake`
+help: to still use for development builds, move to `dev-dependencies`
+warning: unused dependency `moka`
+  --> domain_posts/Cargo.toml:34:1
+   |
+34 | moka = { version = "0.12.15", features = ["future"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `moka`
+warning: unused dependency `nanoid`
+  --> domain_posts/Cargo.toml:35:1
+   |
+35 | nanoid = "0.4.0"
+   | ^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `nanoid`
+warning: unused dependency `tracing-error`
+  --> domain_posts/Cargo.toml:70:1
+   |
+70 | tracing-error = "0.2.1"
+   | ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `tracing-error`
+warning: unused dependency `tracing-opentelemetry-instrumentation-sdk`
+  --> domain_posts/Cargo.toml:77:1
+   |
+77 | tracing-opentelemetry-instrumentation-sdk = "0.30.0"
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `tracing-opentelemetry-instrumentation-sdk`
+warning: `domain_posts` (manifest) generated 8 warnings
+warning: unused dependency `async-std`
+  --> domain_user/Cargo.toml:14:1
+   |
+14 | async-std = { version = "1.13.2", features = ["attributes"] }
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `async-std`
+warning: unused dependency `tower-cookies`
+  --> domain_user/Cargo.toml:26:1
+   |
+26 | tower-cookies = "0.11.0"
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider removing the dependency on `tower-cookies`
+warning: `domain_user` (manifest) generated 2 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.48s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/lib.rs (target/debug/build/domain_auth/43d49a837f9f2b95/out/domain_auth-43d49a837f9f2b95)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/build/domain_auth/adf86cce256b47d2/out/domain_auth-adf86cce256b47d2)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/build/domain_backup/2d69b5ff654334f8/out/domain_backup-2d69b5ff654334f8)
+
+running 203 tests
+test handlers::create_job::tests::ts44a_job_accepted_event_has_every_field_and_no_excluded_content ... ok
+test handlers::create_job::tests::ts13_the_key_is_scoped_by_actor ... ok
+test handlers::create_job::tests::ts13_same_key_same_body_replays_the_existing_job ... ok
+test handlers::create_job::tests::ts13_raw_key_is_absent_from_every_table_and_only_digests_are_stored ... ok
+test handlers::create_job::tests::ts13_concurrent_same_key_different_body_yields_accept_and_key_reused ... ok
+test handlers::create_job::tests::ts15_an_audit_outage_is_store_unavailable_and_persists_nothing ... ok
+test handlers::create_job::tests::ts44a_the_accepted_event_is_written_on_the_acceptance_transaction ... ok
+test handlers::create_job::tests::ts14b_a_second_key_is_concurrency_limit_and_a_replay_never_is ... ok
+test handlers::create_job::tests::ts15_a_rejected_audit_write_persists_nothing ... ok
+test handlers::create_job::tests::ts13_an_expired_but_unpurged_key_is_a_new_request ... ok
+test handlers::create_job::tests::ts13_same_key_different_body_is_key_reused ... ok
+test handlers::create_job::tests::ts16_a_failed_commit_is_not_accepted_and_a_retry_resolves ... ok
+test handlers::create_job::tests::ts14b_concurrent_different_keys_leave_exactly_one_active_job ... ok
+test handlers::create_job::tests::ts13_concurrent_same_key_same_body_yields_one_job_and_replays ... ok
+test infra::tests::allocation_store::concurrent_registrations_never_exceed_the_total_budget ... ok
+test infra::tests::allocation_store::claim_and_delete_commit_are_refused_when_audit_fails ... ok
+test infra::tests::allocation_store::claim_for_delete_audits_in_the_same_transaction_and_is_conditional ... ok
+test infra::tests::allocation_store::claim_for_delete_stamps_the_current_epoch ... ok
+test infra::tests::allocation_store::claim_for_delete_waits_for_the_backoff_to_pass ... ok
+test infra::tests::allocation_store::cleanup_failures_retry_with_backoff_then_exhaust_after_three ... ok
+test infra::tests::allocation_store::due_for_cleanup_returns_exactly_the_due_rows ... ok
+test infra::tests::allocation_store::get_returns_the_committed_row ... ok
+test infra::tests::allocation_store::insert_orphan_audits_in_the_same_transaction_and_fails_closed ... ok
+test infra::tests::allocation_store::racing_mark_written_and_release_have_one_winner ... ok
+test infra::tests::allocation_store::insert_orphan_persists_the_discovered_file_with_grace ... ok
+test infra::tests::allocation_store::forced_interleaving_never_exceeds_the_total_budget ... ok
+test infra::tests::allocation_store::insert_orphan_twice_keeps_the_first_grace ... ok
+test infra::tests::allocation_store::mark_deleted_commits_with_audit_and_has_no_shortcut ... ok
+test infra::tests::allocation_store::mark_written_is_a_compare_and_set ... ok
+test infra::tests::allocation_store::mark_written_with_a_wrong_version_on_a_registered_row_loses ... ok
+test infra::tests::allocation_store::record_cleanup_failure_only_applies_to_a_deleting_row ... ok
+test infra::tests::allocation_store::register_accepts_a_zero_byte_reservation ... ok
+test infra::tests::allocation_store::register_commits_a_registered_row_with_the_opaque_key ... ok
+test infra::tests::allocation_store::register_enforces_the_1_gib_total_budget_durably ... ok
+test infra::tests::allocation_store::register_enforces_the_256_mib_per_allocation_budget ... ok
+test infra::tests::allocation_store::register_is_refused_and_rolled_back_when_audit_fails ... ok
+test infra::tests::allocation_store::register_writes_allocation_registered_audit_in_the_same_transaction ... ok
+test infra::tests::allocation_store::release_moves_registered_and_written_to_release_pending ... ok
+test infra::tests::allocation_store::rows_are_stamped_from_the_injected_clock ... ok
+test infra::tests::allocation_store::the_ledger_row_exists_before_the_first_byte_is_written ... ok
+test infra::tests::allocation_store::total_budget_counts_every_state_except_deleted ... ok
+test infra::tests::audit_sink::a_row_recorded_on_the_callers_transaction_is_visible_only_after_commit ... ok
+test infra::tests::audit_sink::an_audit_write_failure_is_reported_not_swallowed ... ok
+test infra::tests::audit_sink::every_column_of_the_event_is_persisted ... ok
+test infra::tests::audit_sink::every_event_kind_is_stored_with_its_closed_set_name ... ok
+test infra::tests::audit_sink::recording_is_plain_insert_and_never_touches_existing_rows ... ok
+test infra::tests::audit_sink::recording_without_a_transaction_commits_immediately ... ok
+test infra::tests::audit_sink::rolling_back_the_callers_transaction_leaves_no_audit_row ... ok
+test infra::tests::audit_sink::sqlstates_split_into_statement_rejections_and_fail_closed_outages ... ok
+test infra::tests::allocation_store::register_fails_closed_when_the_ledger_is_unreachable ... ok
+test infra::tests::cleaner::a_concurrent_change_during_the_unlink_makes_the_deleted_commit_lost ... ok
+test infra::tests::cleaner::clean_due_handles_due_rows_and_leaves_future_retries_untouched ... ok
+test infra::tests::cleaner::rows_that_are_not_claimable_are_lost_without_unlink_or_audit ... ok
+test infra::tests::cleaner::ts21_full_sequence_an_existing_file_is_removed_only_after_the_audited_claim ... ok
+test infra::tests::cleaner::ts20_full_sequence_fence_reconcile_claim_then_deleted_for_a_missing_file ... ok
+test infra::tests::cleaner::ts23_orphan_is_removed_only_at_or_after_its_grace_and_after_an_audited_claim ... ok
+test infra::tests::cleaner::ts25_stale_deleting_claim_is_reset_then_reclaimed_with_a_fresh_audited_claim ... ok
+test infra::tests::cleaner::ts26_a_missing_file_counts_as_removed_and_commits_deleted_with_audit ... ok
+test infra::tests::cleaner::ts26_failed_deleted_commit_after_unlink_leaves_deleting_and_restart_recovers_idempotently ... ok
+test infra::tests::cleaner::ts27a_a_retry_that_succeeds_commits_deleted_and_keeps_the_attempt_count ... ok
+test infra::tests::cleaner::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time ... ok
+test infra::tests::cleaner::ts30_retry_is_due_exactly_at_its_backoff_time_and_not_before ... ok
+test infra::tests::job_store::a_claim_and_a_queued_failure_race_to_exactly_one_winner ... ok
+test infra::tests::cleaner::ts65_a_refused_claim_audit_blocks_the_claim_and_the_unlink ... ok
+test infra::tests::http_api::ts04_foreign_and_unknown_ids_are_the_same_404_and_ts49_is_safe ... ok
+test infra::tests::http_api::ts17_store_outage_paths_are_safe_and_status_stays_200_degraded ... ok
+test infra::tests::http_api::ts45_instances_and_status_return_the_configured_safe_contract ... ok
+test infra::tests::http_api::ts63_invalid_uuid_is_mapped_to_crate_404_after_runtime_ready ... ok
+test infra::tests::job_store::a_claim_blocked_on_a_row_taken_by_another_transaction_does_not_claim_it_again ... ok
+test infra::tests::job_store::a_late_worker_cannot_overwrite_a_terminal_result ... ok
+test infra::tests::job_store::a_stale_version_or_status_loses_and_changes_nothing ... ok
+test infra::tests::job_store::a_transition_blocked_on_the_row_lock_loses_after_the_winner_commits ... ok
+test infra::tests::job_store::a_transition_hands_its_own_uncommitted_transaction_to_the_audit_sink ... ok
+test infra::tests::job_store::a_transition_writes_one_job_audit_row_with_its_event_and_ids ... ok
+test infra::tests::job_store::accept_inserts_a_queued_job_and_its_idempotency_row ... ok
+test infra::tests::job_store::accept_refuses_digests_that_are_not_sha256_hex_without_writing ... ok
+test infra::tests::job_store::accept_is_part_of_the_callers_transaction ... ok
+test infra::tests::job_store::accept_succeeds_after_the_active_job_is_terminal_and_for_other_instances ... ok
+test infra::tests::job_store::an_audit_failure_refuses_the_claim ... ok
+test infra::tests::job_store::an_audit_failure_refuses_the_transition ... ok
+test infra::tests::job_store::concurrent_accepts_for_one_instance_create_exactly_one_job ... ok
+test infra::tests::job_store::an_audit_outage_is_a_store_outage_for_transitions_and_claims ... ok
+test infra::tests::job_store::concurrent_claims_never_claim_a_job_twice ... ok
+test infra::tests::job_store::an_audit_row_written_before_the_sink_fails_rolls_back_with_the_claim ... ok
+test infra::tests::job_store::an_audit_row_written_before_the_sink_fails_rolls_back_with_the_transition ... ok
+test infra::tests::job_store::an_idempotency_key_collision_is_a_unique_violation_not_a_persistence_error ... ok
+test infra::tests::job_store::claim_next_claims_the_oldest_queued_job ... ok
+test infra::tests::job_store::claim_next_never_reclaims_a_running_or_terminal_job ... ok
+test infra::tests::job_store::exactly_one_of_n_concurrent_claims_wins ... ok
+test infra::tests::job_store::conflicting_accept_leaves_no_job_or_idempotency_row ... ok
+test infra::tests::job_store::duplicate_job_id_is_a_persistence_error_not_a_concurrency_conflict ... ok
+test infra::tests::job_store::each_legal_edge_applies_bumps_the_version_and_stamps_times ... ok
+test infra::tests::job_store::racing_terminal_transitions_have_exactly_one_winner ... ok
+test infra::tests::job_store::edges_outside_the_u1_graph_are_refused_without_changes ... ok
+test infra::tests::job_store::get_returns_the_stored_row_and_none_for_an_unknown_id ... ok
+test infra::tests::job_store::omitting_components_keeps_the_stored_components ... ok
+test infra::tests::job_store::second_accept_conflicts_while_a_job_is_running ... ok
+test infra::tests::job_store::second_accept_conflicts_while_the_first_job_is_queued ... ok
+test infra::tests::job_store::terminal_rows_are_immutable_through_the_store ... ok
+test infra::tests::job_store::the_claim_hands_its_own_uncommitted_transaction_to_the_audit_sink ... ok
+test infra::tests::job_store::the_job_audit_row_excludes_free_text_stored_on_the_job ... ok
+test infra::tests::reconciler::an_expired_written_allocation_of_a_running_job_is_not_released ... ok
+test infra::tests::job_store::transition_of_an_unknown_job_is_not_found ... ok
+test infra::tests::reconciler::advance_epoch_is_durable_and_strictly_increasing ... ok
+test infra::tests::reconciler::cleanup_failed_allocation_is_terminal_for_automation_and_never_touched ... ok
+test infra::tests::reconciler::current_epoch_running_job_and_its_registered_allocation_are_left_to_the_worker ... ok
+test infra::tests::reconciler::ts20_old_epoch_job_and_registered_allocation_without_file_are_fenced_then_released ... ok
+test infra::tests::reconciler::ts21_registered_allocation_with_file_is_retained_as_owned_and_released_not_orphaned ... ok
+test infra::tests::reconciler::ts22_lost_allocation_cas_changes_nothing_and_emits_no_event ... ok
+test infra::tests::reconciler::ts22_lost_job_fence_cas_changes_nothing_and_emits_no_event ... ok
+test infra::tests::reconciler::ts22_restart_advances_epoch_fences_running_and_queued_jobs_and_never_resumes ... ok
+test infra::tests::reconciler::ts23_sweep_discovery_persists_a_file_added_after_start_and_never_deletes_or_fences ... ok
+test infra::tests::reconciler::ts23_truncated_sweep_discovery_persists_nothing ... ok
+test infra::tests::reconciler::ts23_unowned_file_becomes_a_graced_orphan_and_ambiguous_names_stay_untouched ... ok
+test infra::tests::reconciler::ts24_failed_owner_or_expired_written_allocation_becomes_release_eligible ... ok
+test infra::tests::reconciler::ts24_missing_file_audit_failure_fails_reconciliation_and_changes_no_state ... ok
+test infra::tests::reconciler::ts24_unexpired_incomplete_allocation_with_its_file_present_is_retained_silently ... ok
+test infra::tests::reconciler::ts24_unexpired_incomplete_allocation_with_missing_file_audits_each_full_scan_unchanged ... ok
+test infra::tests::reconciler::ts25_current_epoch_deleting_claim_belongs_to_the_live_cleaner ... ok
+test infra::tests::reconciler::ts25_stale_deleting_claim_returns_to_release_pending_without_consuming_a_retry ... ok
+test infra::tests::reconciler::ts44b_ownerless_registered_allocation_is_released_with_allocation_correlation ... ok
+test infra::tests::reconciler::ts56_truncated_inventory_fails_closed_before_any_write ... ok
+test infra::tests::reconciliation::allocation_reconciliation_cas_updates_state_and_audits_atomically ... ok
+test infra::tests::reconciliation::job_store_reconciliation_inventory_and_epoch_are_durable ... ok
+test infra::tests::reconciliation::lost_allocation_reconciliation_cas_has_no_audit_or_state_change ... ok
+test infra::tests::reconciliation::reconciliation_audit_failure_rolls_back_allocation_and_audit ... ok
+test infra::tests::reconciliation::ts22_job_fence_cas_is_epoch_status_version_checked_and_audited_atomically ... ok
+test infra::tests::reconciliation::ts30_deadline_inventory_includes_only_due_jobs_at_epoch ... ok
+test infra::tests::reconciliation::ts56_allocation_inventory_preserves_nullable_orphan_owners ... ok
+test infra::tests::retention::retention_purge_audit_failure_rolls_back_every_table ... ok
+test infra::tests::retention::retention_purge_orders_eligible_rows_and_retains_audit_and_ineligible_rows ... ok
+test infra::tests::runtime::ts29_a_good_sweep_resets_the_refused_audit_count ... ok
+test infra::tests::runtime::ts29_a_refused_reconcile_audit_keeps_recovery_closed ... ok
+test infra::tests::runtime::ts29_a_store_outage_closes_admissions_and_stops_all_store_work ... ok
+test infra::tests::runtime::ts29_a_truncated_recovery_stays_closed_and_degraded_until_it_succeeds ... ok
+test infra::tests::runtime::ts29_recovery_reconciles_then_cleans_then_sweeps_then_reopens_without_a_new_epoch ... ok
+test infra::tests::runtime::ts29_three_refused_audit_sweeps_close_admissions_and_degrade ... ok
+test infra::tests::runtime::ts30_the_cleaner_ticks_every_60_seconds_and_the_sweep_every_15_minutes ... ok
+test infra::tests::runtime::ts32_a_second_runtime_cannot_acquire_the_lock_and_mutates_nothing ... ok
+test infra::tests::runtime::ts32_startup_runs_lock_epoch_reconcile_cleanup_then_opens_admissions ... ok
+test infra::tests::runtime::ts56_a_truncated_inventory_keeps_startup_closed_and_not_ready ... ok
+test infra::tests::runtime::ts56_a_truncated_sweep_scan_degrades_but_keeps_admissions_open ... ok
+test infra::tests::sweeper::a_deadline_failed_job_releases_its_unexpired_written_allocation ... ok
+test infra::tests::sweeper::a_truncated_scan_fails_the_sweep_after_the_earlier_steps_and_persists_no_orphan ... ok
+test infra::tests::sweeper::the_sweep_discovers_an_unowned_file_without_deleting_it ... ok
+test infra::tests::sweeper::one_sweep_runs_deadline_then_expiry_then_purge_then_discovery ... ok
+test infra::tests::sweeper::the_sweep_ignores_a_job_of_another_epoch_even_past_its_deadline ... ok
+test infra::tests::sweeper::ts28_an_expired_written_allocation_of_a_running_job_is_kept_until_the_owner_ends ... ok
+test infra::tests::sweeper::ts30_a_queued_job_fails_dispatch_failed_at_the_queued_age_bound ... ok
+test infra::tests::sweeper::ts30_a_running_job_fails_deadline_exceeded_exactly_at_its_deadline_and_not_before ... ok
+test infra::tests::sweeper::ts30_a_written_allocation_is_released_exactly_at_its_24_hour_expiry ... ok
+test infra::tests::sweeper::ts42_the_sweep_purges_through_the_injected_retention_store_and_keeps_audit ... ok
+test infra::tests::sweeper::ts65_a_refused_purge_audit_removes_nothing ... ok
+test infra::tests::worker::ts05a_denied_policy_at_claim_fails_job_without_running_it ... ok
+test infra::tests::worker::ts44b_incomplete_event_outcome_is_failure ... ok
+test infra::tests::worker::ts44b_job_events_are_complete_and_free_of_excluded_fields ... ok
+test infra::tests::worker::ts44b_job_events_use_the_system_actor ... ok
+test infra::tests::worker::ts44b_refused_terminal_audit_leaves_job_running_without_unaudited_effect ... ok
+test infra::tests::worker::ts47_queued_job_runs_through_fixture_adapter_and_ends_incomplete ... ok
+test infra::tests::worker::ts48_adapter_error_fails_job_and_releases_allocation ... ok
+test infra::tests::worker::ts48_allocation_limit_fails_job_without_a_row_or_a_file ... ok
+test infra::tests::worker::ts67_simultaneous_dispatch_has_exactly_one_winner ... ok
+test infra::tests::worker::ts48_dispatch_failed_fails_queued_job ... ok
+test infra::tests::worker::ts48_registration_refused_fails_job_persistence_error ... ok
+test infra::tests::worker::ts48_total_budget_exhausted_fails_job_allocation_limit ... ok
+test infra::tests::worker::ts67_duplicate_dispatch_has_exactly_one_winner ... ok
+test infra::tests::worker::ts67_late_worker_cannot_overwrite_a_terminal_job ... ok
+test migrations::tests::allocation_checks_and_epoch_singleton ... ok
+test migrations::tests::allocation_job_fk_and_column_defaults ... ok
+test infra::tests::worker::ts44b_refused_running_audit_leaves_job_queued_and_nothing_runs ... ok
+test migrations::tests::audit_cannot_be_truncated ... ok
+test migrations::tests::audit_digest_is_char_64 ... ok
+test migrations::tests::audit_rows_cannot_be_updated_or_deleted ... ok
+test migrations::tests::backup_jobs_columns_match_the_contract ... ok
+test migrations::tests::backup_jobs_defaults_apply ... ok
+test migrations::tests::backup_jobs_row_checks_reject_bad_rows ... ok
+test migrations::tests::both_guard_triggers_are_present ... ok
+test infra::tests::runtime::a_runtime_that_was_never_started_refuses_ticks_and_recovery ... FAILED
+test migrations::tests::down_one_step_removes_only_the_jobs_trigger ... ok
+test migrations::tests::down_refuses_while_an_allocation_is_not_deleted ... ok
+test migrations::tests::down_refuses_while_audit_rows_exist_and_keeps_everything ... ok
+test migrations::tests::down_succeeds_when_every_allocation_is_deleted ... ok
+test migrations::tests::down_without_audit_rows_keeps_audit_table_and_trigger_and_drops_the_rest ... ok
+test migrations::tests::every_status_transition_pair_is_allowed_or_rejected_exactly ... ok
+test migrations::tests::fresh_database_gets_all_five_backup_tables ... ok
+test migrations::tests::idempotency_scope_ignores_request_fingerprint ... ok
+test migrations::tests::idempotency_unique_and_restrict_fk ... ok
+test migrations::tests::illegal_non_terminal_transitions_are_rejected ... ok
+test migrations::tests::legal_transitions_are_allowed ... ok
+test migrations::tests::migration_records_only_in_seaql_migrations_backup ... ok
+test migrations::tests::migrations_cli_run_applies_on_a_fresh_database ... ok
+test migrations::tests::only_one_active_job_per_instance ... ok
+test migrations::tests::other_backup_table_columns_match_the_contract ... ok
+test migrations::tests::second_up_is_a_no_op ... ok
+test migrations::tests::secondary_indexes_exist ... ok
+test migrations::tests::status_column_accepts_every_documented_value_when_u1_guard_is_removed ... ok
+test migrations::tests::status_column_check_keeps_all_six_documented_values ... ok
+test migrations::tests::terminal_job_cannot_be_updated ... ok
+test migrations::tests::terminal_job_without_idempotency_row_can_be_deleted_and_audit_has_no_fk ... ok
+test migrations::tests::u1_job_cannot_be_inserted_as_succeeded_or_recovery_required ... ok
+test migrations::tests::u1_job_cannot_be_updated_to_succeeded_or_recovery_required ... ok
+test migrations::tests::upgrade_beside_posts_and_seo_leaves_their_tables_untouched ... ok
+test migrations::tests::upgrade_from_000001_to_000002 ... ok
+
+failures:
+
+---- infra::tests::runtime::a_runtime_that_was_never_started_refuses_ticks_and_recovery stdout ----
+
+thread 'infra::tests::runtime::a_runtime_that_was_never_started_refuses_ticks_and_recovery' (11505505) panicked at domain_backup/src/test_db.rs:27:10:
+postgres port: PortNotExposed { id: "489bbdbbd9a0fa2ae73e26de721529023126f425e1f2a91de9df35587c7aad09", port: Tcp(5432) }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    infra::tests::runtime::a_runtime_that_was_never_started_refuses_ticks_and_recovery
+
+test result: FAILED. 202 passed; 1 failed; 0 ignored; 0 measured; 145 filtered out; finished in 35.97s
+
+error: test failed, to rerun pass `-p domain_backup --lib`
+     Running unittests src/lib.rs (target/debug/build/domain_interface/51f50959d7029d0e/out/domain_interface-51f50959d7029d0e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/build/domain_media/b9dfcfa8d30694fd/out/domain_media-b9dfcfa8d30694fd)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 101 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/build/domain_posts/4d84eb3189899250/out/domain_posts-4d84eb3189899250)
+
+running 2 tests
+test api::post::graphql::tests::immutable_post_introspection_returns_seven_entities ... ok
+test api::post::graphql::tests::mutable_post_with_writer_jwt_accepts_mutation ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 50 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/build/domain_seo/63d12a4eeb1544cd/out/domain_seo-63d12a4eeb1544cd)
+
+running 1 test
+test integration_tests::tests::migration_and_public_lifecycle_cover_disable_enable_update_delete ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 0.87s
+
+     Running unittests src/lib.rs (target/debug/build/domain_user/4eabecf23f6b330c/out/domain_user-4eabecf23f6b330c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 36 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/build/gateway/e80e604f9a28a36b/out/my_cms_api-e80e604f9a28a36b)
+
+running 2 tests
+test migration_tests::database_with_only_posts_applied_upgrades_cleanly ... ok
+test migration_tests::posts_and_seo_migrations_apply_on_fresh_database_and_second_boot ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 22 filtered out; finished in 9.53s
+
+     Running unittests src/lib.rs (target/debug/build/test_helpers/9c0fa2e20adf58b4/out/test_helpers-9c0fa2e20adf58b4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_auth
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_backup
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_interface
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_media
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_posts
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_seo
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests domain_user
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests test_helpers
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: 1 target failed:
+    `-p domain_backup --lib`

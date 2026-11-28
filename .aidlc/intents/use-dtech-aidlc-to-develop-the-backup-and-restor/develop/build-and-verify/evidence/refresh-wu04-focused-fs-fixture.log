@@ -1,0 +1,143 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused variable: `id`
+   --> domain_backup\src\ports\allocation_store.rs:185:9
+    |
+185 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `expected`
+   --> domain_backup\src\ports\allocation_store.rs:186:9
+    |
+186 |         expected: (AllocationState, i64, i64),
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected`
+
+warning: unused variable: `to`
+   --> domain_backup\src\ports\allocation_store.rs:187:9
+    |
+187 |         to: AllocationState,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_to`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\allocation_store.rs:188:9
+    |
+188 |         reason: Option<ReasonCode>,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\allocation_store.rs:189:9
+    |
+189 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: unused variable: `id`
+   --> domain_backup\src\ports\job_store.rs:229:9
+    |
+229 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+
+warning: unused variable: `expected_epoch`
+   --> domain_backup\src\ports\job_store.rs:230:9
+    |
+230 |         expected_epoch: i64,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_epoch`
+
+warning: unused variable: `expected_status`
+   --> domain_backup\src\ports\job_store.rs:231:9
+    |
+231 |         expected_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_status`
+
+warning: unused variable: `expected_state_version`
+   --> domain_backup\src\ports\job_store.rs:232:9
+    |
+232 |         expected_state_version: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_state_version`
+
+warning: unused variable: `target_status`
+   --> domain_backup\src\ports\job_store.rs:233:9
+    |
+233 |         target_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_status`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\job_store.rs:234:9
+    |
+234 |         reason: ReasonCode,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\job_store.rs:235:9
+    |
+235 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\cleaner.rs:20:1
+   |
+20 | pub struct Cleaner;
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> domain_backup\src\lib.rs:5:9
+   |
+ 5 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\reconciler.rs:20:1
+   |
+20 | pub struct Reconciler;
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\sweeper.rs:17:1
+   |
+17 | pub struct Sweeper;
+   | ^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_backup` (lib test) generated 15 warnings (run `cargo fix --lib -p domain_backup --tests` to apply 12 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.48s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/3b844752f3f297a2\out\domain_backup-3b844752f3f297a2.exe)
+
+running 30 tests
+test infra::tests::fs_fixture_storage::classify_non_regular_entries_as_ambiguous_even_with_a_valid_name ... ok
+test infra::tests::fs_fixture_storage::classify_forged_and_non_opaque_names_as_ambiguous ... ok
+test infra::tests::fs_fixture_storage::classify_valid_opaque_name_follows_the_ledger_table ... ok
+test infra::tests::fs_fixture_storage::open_refuses_a_relative_root ... ok
+test infra::tests::fs_fixture_storage::storage_key_is_derived_from_the_allocation_id_only ... ok
+test infra::tests::fs_fixture_storage::storage_key_parse_refuses_every_non_opaque_name ... ok
+test infra::tests::fs_fixture_storage::open_refuses_a_root_that_is_a_file ... ok
+test infra::tests::fs_fixture_storage::delete_fails_closed_when_the_namespace_directories_are_missing ... ok
+test infra::tests::fs_fixture_storage::open_creates_root_and_alloc_directories ... ok
+test infra::tests::fs_fixture_storage::delete_removes_a_regular_file_and_a_missing_file_is_already_absent ... ok
+test infra::tests::fs_fixture_storage::write_beyond_the_reserved_bytes_is_refused_without_a_partial_file ... ok
+test infra::tests::fs_fixture_storage::delete_refuses_a_directory_at_the_key_path ... ok
+test infra::tests::fs_fixture_storage::delete_never_follows_or_removes_a_file_symlink ... ok
+test infra::tests::fs_fixture_storage::write_creates_exactly_the_opaque_key_file ... ok
+test infra::tests::fs_fixture_storage::delete_never_removes_a_case_folded_forged_file ... ok
+test infra::tests::fs_fixture_storage::delete_leaves_every_other_entry_on_disk ... ok
+test infra::tests::fs_fixture_storage::write_fails_closed_when_the_ledger_is_unavailable ... ok
+test infra::tests::fs_fixture_storage::write_is_refused_for_every_state_except_registered ... ok
+test infra::tests::fs_fixture_storage::write_never_goes_through_a_dangling_symlink ... ok
+test infra::tests::fs_fixture_storage::write_without_a_registered_allocation_is_refused_and_writes_nothing ... ok
+test infra::tests::fs_fixture_storage::write_never_goes_through_a_file_symlink_to_an_existing_file ... ok
+test infra::tests::fs_fixture_storage::inventory_never_exceeds_max_entries_and_flags_truncation ... ok
+test infra::tests::fs_fixture_storage::write_never_overwrites_an_existing_file ... ok
+test infra::tests::fs_fixture_storage::open_refuses_a_root_that_is_a_link ... ok
+test infra::tests::fs_fixture_storage::open_refuses_an_alloc_directory_that_is_a_link ... ok
+test infra::tests::fs_fixture_storage::delete_never_follows_or_removes_a_link ... ok
+test infra::tests::fs_fixture_storage::inventory_reports_kinds_and_never_follows_links ... ok
+test infra::tests::fs_fixture_storage::write_never_goes_through_a_link_at_the_key_path ... ok
+test infra::tests::fs_fixture_storage::write_refuses_when_alloc_is_swapped_for_a_link_after_open ... ok
+test infra::tests::fs_fixture_storage::inventory_bound_holds_for_a_large_namespace ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 227 filtered out; finished in 0.27s
+

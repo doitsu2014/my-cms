@@ -1,0 +1,22 @@
+# WU-04 conductor mutations 2026-11-22T23:38:38+07:00
+## mark_written version check dropped:  updated_at = $3 WHERE id = $1 AND state = 'registered' AND $2::bigint IS NOT NULL",
+test infra::tests::allocation_store::mark_written_with_a_wrong_version_on_a_registered_row_loses ... FAILED
+test infra::tests::allocation_store::racing_mark_written_and_release_have_one_winner ... ok
+test infra::tests::allocation_store::mark_written_is_a_compare_and_set ... ok
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 184 filtered out; finished in 2.88s
+## mark_written version weakened to >=:  updated_at = $3 WHERE id = $1 AND state = 'registered' AND state_version <= $2",
+test infra::tests::allocation_store::mark_written_with_a_wrong_version_on_a_registered_row_loses ... FAILED
+test infra::tests::allocation_store::racing_mark_written_and_release_have_one_winner ... ok
+test infra::tests::allocation_store::mark_written_is_a_compare_and_set ... ok
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 184 filtered out; finished in 2.90s
+restored
+
+## delete fail-closed reverted (line 110):  return Ok(DeleteOutcome::AlreadyAbsent);
+restored
+
+## delete fail-closed reverted, retry on the correct line (the first attempt edited line 110 outside delete and is void) 2026-11-22T23:39:07+07:00
+            return Err(StorageError::Unavailable);
+mutated line 232:  return Ok(DeleteOutcome::AlreadyAbsent);
+test infra::tests::fs_fixture_storage::delete_fails_closed_when_the_namespace_directories_are_missing ... FAILED
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 186 filtered out; finished in 0.00s
+restored

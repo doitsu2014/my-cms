@@ -1,0 +1,42 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+   Compiling domain_backup v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/api/domain_backup)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.28s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/lib.rs (target/debug/build/domain_backup/90b1972bd40892cb/out/domain_backup-90b1972bd40892cb)
+
+running 21 tests
+test domain::fixtures::tests::ts53_catalog_trusts_exactly_three_synthetic_fixtures_by_exact_id ... ok
+test handlers::download_denied::tests::ts09_download_role_and_host_checks_precede_everything ... ok
+test handlers::disabled_capability::tests::ts09_denied_capabilities_create_no_files_and_record_one_denied_metric_each ... ok
+test infra::tests::capabilities_api::ts09_disabled_capabilities_leave_no_ledger_rows_or_files ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::capabilities_api::ts09_download_and_capability_denials_survive_an_audit_failure ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::capabilities_api::ts09_download_is_denied_for_every_status_and_changes_nothing ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::capabilities_api::ts09_download_unknown_foreign_and_malformed_ids_are_404_and_unaudited ... ignored, requires Docker for PostgreSQL testcontainer
+test handlers::disabled_capability::tests::ts09_role_host_and_origin_checks_precede_capability_disabled ... ok
+test infra::tests::capabilities_api::ts10_client_flags_cannot_select_a_real_adapter ... ignored, requires Docker for PostgreSQL testcontainer
+test handlers::preview::tests::ts53_preflight_preview_returns_the_canned_result_for_each_trusted_fixture ... ok
+test handlers::download_denied::tests::ts09_download_is_503_not_denied_while_backup_is_disabled_or_not_ready ... ok
+test handlers::preview::tests::ts43_confirm_and_cancel_previews_enqueue_nothing ... ok
+test handlers::disabled_capability::tests::ts09_capability_denial_attempts_audit_and_audit_failure_still_denies ... ok
+test handlers::preview::tests::ts60_preview_routes_enforce_media_type_and_the_16_kib_body_cap ... ok
+test handlers::disabled_capability::tests::ts09_disabled_capabilities_return_403_whatever_the_backup_state ... ok
+test handlers::preview::tests::ts64_request_supplied_target_values_are_rejected_not_echoed ... ok
+test handlers::disabled_capability::tests::ts09_disabled_capabilities_never_poll_the_request_body ... ok
+test handlers::preview::tests::ts64_restore_confirmation_preview_carries_the_identification_fields ... ok
+test handlers::preview::tests::ts09_preview_precedence_matrix ... ok
+test handlers::preview::tests::ts53_unknown_fixture_ids_paths_and_uploads_are_rejected ... ok
+test handlers::disabled_capability::tests::ts10_runtime_composition_holds_only_the_fixture_adapter ... ok
+
+test result: ok. 16 passed; 0 failed; 5 ignored; 0 measured; 349 filtered out; finished in 0.02s
+
+   Doc-tests domain_backup
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

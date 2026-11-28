@@ -1,0 +1,115 @@
+COMMAND: dtech-aidlc ids check
+STARTED: 2026-11-24T21:04:40.5639144+07:00
+
+{
+  "intentId": "use-dtech-aidlc-to-develop-the-backup-and-restor",
+  "registry": {
+    "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/ids.json",
+    "exists": true,
+    "counts": {
+      "FN": 49,
+      "IF": 11,
+      "TS": 69,
+      "WU": 16,
+      "CFG": 18
+    }
+  },
+  "applies": true,
+  "ok": true,
+  "stages": [
+    {
+      "stage": "implementation-design",
+      "checked": [
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/functional-design.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/implementation-plan.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/interfaces-and-contracts.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/test-strategy.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/implementation-design/work-units.md"
+      ],
+      "unregistered": []
+    },
+    {
+      "stage": "red-tests",
+      "checked": [
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-01/failing-tests.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-01/red-evidence.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-02/failing-tests.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-02/red-evidence.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-03/failing-tests.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-03/red-evidence.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-04/failing-tests.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-04/red-evidence.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-05/failing-tests.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-05/red-evidence.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-06/failing-tests.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-06/red-evidence.md"
+      ],
+      "unregistered": []
+    },
+    {
+      "stage": "build-and-verify",
+      "checked": [
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-01/green-verification-report.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-01/implementation.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-01/known-limitations.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-01/regression-report.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-02/green-verification-report.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-02/implementation.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-02/known-limitations.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-02/regression-report.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/green-verification-report.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/implementation.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/known-limitations.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-03/regression-report.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/green-verification-report.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/implementation.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/known-limitations.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-04/regression-report.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-05/green-verification-report.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-05/implementation.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-05/known-limitations.md",
+        ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-05/regression-report.md"
+      ],
+      "unregistered": []
+    }
+  ],
+  "uncoveredFunctions": [
+    "FN-02",
+    "FN-03",
+    "FN-05",
+    "FN-06",
+    "FN-07",
+    "FN-08",
+    "FN-09",
+    "FN-10",
+    "FN-11",
+    "FN-12",
+    "FN-13",
+    "FN-14",
+    "FN-25",
+    "FN-26",
+    "FN-27",
+    "FN-28",
+    "FN-29",
+    "FN-30",
+    "FN-31",
+    "FN-32",
+    "FN-33",
+    "FN-35",
+    "FN-36",
+    "FN-38",
+    "FN-40",
+    "FN-41",
+    "FN-42",
+    "FN-43",
+    "FN-44",
+    "FN-45",
+    "FN-46",
+    "FN-47",
+    "FN-48",
+    "FN-49"
+  ]
+}
+
+EXIT: 0
+FINISHED: 2026-11-24T21:04:40.7192524+07:00

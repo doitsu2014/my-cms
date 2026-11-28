@@ -1,0 +1,10 @@
+# >>> dtech-aidlc managed block v1
+/state.json
+/state.v1.bak.json
+/audit.jsonl
+/config.json
+/shared/
+/repos/
+/telemetry/
+*.tmp
+# <<< dtech-aidlc managed block

@@ -187,4 +187,96 @@ Không bật restore cho production trước khi các điều kiện sau đượ
 
 ## 9. Hiện trạng triển khai
 
-Gateway hiện có CLI skeleton tại `apps/api/gateway/src/backup_cli.rs`, nhưng lệnh backup/list chưa có S3 transfer adapter và restore đang từ chối chạy vì quy trình phục hồi đầy đủ cho Supabase chưa được xác minh. Hiện chưa có luồng ZIP hoàn chỉnh, UI admin, upload/import restore hoặc chọn instance. Vì vậy, đây là đặc tả mục tiêu; không nên coi các tiêu chí trên là đã được triển khai.
+> Cập nhật: đoạn dưới đây mô tả hiện trạng trước lát U1. Hiện trạng U1 (synthetic-only, database slice, không restore) nằm ở mục 14; các tiêu chí ZIP, upload/import restore và download ở mục 4 vẫn chưa được triển khai.
+
+Gateway hiện có CLI skeleton tại `apps/api/gateway/src/backup_cli.rs`, nhưng lệnh backup/list chưa có S3 transfer adapter và restore đang từ chối chạy vì quy trình phục hồi đầy đủ cho Supabase chưa được xác minh. Chưa có luồng ZIP hoàn chỉnh hoặc upload/import restore. Vì vậy, các mục 1-8 là đặc tả mục tiêu; không nên coi các tiêu chí đó là đã được triển khai.
+
+## 10. Yêu cầu phi chức năng chi tiết (từ thiết kế U1 localhost)
+
+Phạm vi U1 là localhost-only; chưa có SLO số, RPO/RTO hay dataset size được phê duyệt. Các giới hạn số chỉ được đặt sau benchmark và owner approval; thiếu giá trị vận hành bắt buộc thì từ chối thay vì dùng default không giới hạn.
+
+### 10.1 Bảo mật
+
+- Mọi endpoint yêu cầu actor xác thực và role administrator, kiểm tra server-side trước khi chạm configuration/job/metadata; mỗi lần đọc job kiểm tra quyền trên resource.
+- API chỉ nhận configured instance ID thuộc server allowlist; từ chối mọi endpoint, connection string, credential hoặc service-role key từ browser.
+- Credentials chỉ resolve trong server-side secret/config boundary; không xuất hiện trong response, browser bundle, error, audit, log hay metric (kiểm tra bằng secret-canary scan).
+- Backup staging chỉ ghi vào private server-side storage, mã hóa at-rest, least-privilege; không có public URL/download route. Staging chỉ bắt đầu khi byte/time/temp limits, expiry, cleanup policy và storage protection đều hữu hạn và hợp lệ.
+- Idempotency key lưu dạng digest scoped theo actor+operation; raw key không lưu/log. Adapter errors ánh xạ thành stable safe reason code; không lộ raw upstream response, SQL rows, auth data hay object bytes.
+- Audit trước side effect nhạy cảm: nếu audit store không khả dụng thì từ chối thao tác. Audit chỉ chứa actor/source/job/time/digest/outcome/reason code.
+- Transport admin↔API, API↔database, API↔object store dùng TLS; exception local loopback không mã hóa chỉ giới hạn localhost và không mang sang remote deployment.
+
+### 10.2 Độ tin cậy
+
+- Job được persist trước khi API trả accepted; persistence failure không tạo response accepted hoặc job giả.
+- Worker chỉ transition theo expected status/state version; idempotency chống duplicate submit; retry chỉ cho lỗi transient trên thao tác idempotent.
+- Timeout, crash hoặc kết quả adapter không rõ giữ job ở trạng thái non-success; không suy luận success từ file tồn tại hay process exit.
+- Job backup U1 chỉ kết thúc `incomplete` hoặc `failed`; không có trạng thái `succeeded` cho database-only slice vì Auth/Storage bắt buộc chưa được capture.
+- Staging có finite expiry và durable cleanup/reconciliation nhận diện orphan sau crash; cleanup retry bounded, lỗi không bỏ qua. Trước khi cơ chế này được thiết kế/tested, real-data staging bị disable.
+- Recovery/lease/restart semantics chưa chứng minh thì không claim automatic job resume hay exactly-once processing.
+
+### 10.3 Quan sát hệ thống
+
+- Structured events ghi job/correlation ID, actor ID, configured source ID, operation, from/to state, safe reason code, timestamp và digest/byte count nếu có. Tuyệt đối không ghi credential, token, password, connection string, raw DB row, object content, raw idempotency key hay upstream error body.
+- Error projection dùng stable safe code/message key + correlation/job ID cho admin; raw adapter detail chỉ giữ ở kênh bảo vệ nếu policy phê duyệt.
+- Metrics: đếm job theo operation/status, component capability unavailable, duration, bytes staging, cleanup success/failure, configured-limit rejection. Không dùng actor ID, secret, object key, email, raw path hay data content làm label. Không báo progress percentage nếu không có counter completed/total đáng tin.
+- Alerting/SLO thresholds chưa đặt (workload localhost); trước production cần owner xác nhận SLI/SLO/RPO/RTO. Tracing propagate correlation ID; span attributes chỉ dùng operation/component/status/code.
+
+### 10.4 Hiệu năng và mở rộng
+
+- API create-job chỉ làm authentication, allowlist/config validation, idempotency và durable commit; capture/archive chạy ngoài HTTP request với deadline hữu hạn từ cấu hình.
+- Worker tuân thủ finite whole-job, per-operation, temp-byte, archive-byte, concurrency và staging-expiry limits; không dùng "unbounded localhost" làm fallback.
+- Progress chỉ phát khi có số liệu đo thực; không giả lập phần trăm. Backup chỉ đọc/copy phần cần thiết cho database slice; không giữ toàn bộ raw rows trong process hay job metadata.
+- U1 không yêu cầu multi-process/multi-host coordination; local Tokio execution không được mô tả như scale-out hay crash-recovery guarantee. Mọi giới hạn/throughput benchmark trên dataset/fixture đại diện trước khi mở rộng; nếu cần nhiều worker/host, dataset vượt staging budget hoặc nhiều instance đồng thời thì phải bổ sung thiết kế concurrency/lease, streaming, backpressure và recovery trước.
+
+## 11. Lịch sử chính sách backup
+
+- **Chính sách S3 thủ công (intent 261116, đã thay thế):** backup thủ công vào S3 bucket `backup-system`, giữ đến khi xóa tay, operator có server access restore vào cùng môi trường theo kiểu thay thế, capture best-effort kèm kiểm tra toàn vẹn archive. Không hỗ trợ backup theo lịch, retention tự động, restore khác môi trường hay snapshot nhất quán xuyên store. Chính sách này đã được thay bằng luồng ZIP qua admin UI mô tả ở các mục 1–8.
+- **Phạm vi U1 (intent 261117):** lát localhost database-only; job chỉ terminal `incomplete` hoặc `failed`; artifact incomplete không downloadable; real-data staging disabled đến khi cleanup/reconciliation sau crash được chứng minh.
+
+## 12. Trạng thái triển khai U1 và điều kiện tiếp tục
+
+> Lịch sử: mục này ghi nhận điểm dừng của lượt Code Generation đầu tiên. Các điều kiện tiếp tục đã được giải quyết trong thiết kế đã duyệt và các work unit WU-01..WU-14; trạng thái hiện tại nằm ở mục 14.
+
+Code Generation U1 kết thúc mà không thay đổi mã nguồn ứng dụng nào (không sửa source, schema/migration, manifest hay UI; không chạy test trong lượt đó). Nguyên nhân dừng:
+
+1. Chưa quyết định owner persistence/migration và thiết kế cleanup/reconciliation bền vững có thể phục hồi.
+2. Mâu thuẫn contract/schema: contract công khai enum `queued | running | succeeded | failed | recovery-required`, trong khi functional spec và reliability design cho phép `incomplete` khi có artifact — chưa có mapping được phê duyệt.
+3. Chưa xác nhận schema/migration ownership, durable orphan index/cleanup mechanism, DB migration ownership và provider staging.
+
+Điều kiện tiếp tục: cần plan/design cập nhật và được phê duyệt giải quyết các mục trên trước khi quay lại Code Generation. Baseline suite được ghi nhận tại thời điểm đó: 8 lỗi `domain_posts`, 2 ignored do thiếu Docker trên Windows; các crate khác pass.
+
+## 13. Bối cảnh dự án liên quan
+
+- Brownfield: Rust API gateway + Supabase self-hosted; đợt đầu chỉ phát triển và kiểm thử localhost, không hỗ trợ restore production, không có bước phát hành/release riêng.
+- Thực hành nhóm: `test-after`, triển khai rồi kiểm thử từng lớp, mục tiêu bao phủ dòng 80%, CI xanh trước khi hợp nhất. CI/coverage tại thời điểm ghi nhận tạm vô hiệu hóa; cơ chế coverage/CI phải được khôi phục hoặc xác minh trước khi tiêu chí chất lượng được coi là khả thi.
+- Tài liệu coverage-report-failure (intent 261116-coverage-report-failure) thuộc CI coverage (`grcov` binary-path), không liên quan backup-restore và được giữ nguyên ngoài feature này.
+
+## 14. Trạng thái U1 hiện tại (verification sweep WU-15)
+
+Phạm vi được duyệt chỉ là lát U1: localhost, dữ liệu synthetic-only, chỉ administrator, database slice, không restore. Nhánh U1 nằm trên feature branch và không được merge vào `main` trong Develop (quyết định owner 2026-11-22; RK-16). Quyết định release-candidate gate chưa được đưa ra trong tài liệu này; bằng chứng nằm trong intent `use-dtech-aidlc-to-develop-the-backup-and-restor` (`.aidlc/intents/.../develop/build-and-verify/`).
+
+### 14.1 Đã có
+
+- **API** (`apps/api/domain_backup`, mount `Mount::AdministratorIngress` dưới `/backup`, gateway bọc timeout, giới hạn header và auth administrator): `GET /backup/status`, `GET /backup/instances`, `POST` và `GET /backup/jobs`, `GET /backup/jobs/{id}`, `GET /backup/jobs/{id}/download` (luôn 403 `DOWNLOAD_DENIED`), `POST /backup/previews/preflight` và `POST /backup/previews/restore-confirmation` (preview synthetic), và các route upload, preflight, restore luôn bị từ chối (capability bị tắt).
+- **Job**: persist trước khi trả 202, idempotency key lưu dạng digest, một job active cho mỗi instance, worker chạy ngoài request; job U1 chỉ kết thúc `incomplete` hoặc `failed`. `succeeded` và `recovery-required` không thể đạt được qua state machine, ràng buộc DB `backup_jobs_u1_status_guard` và serializer; UI vẫn render đủ mọi giá trị trạng thái.
+- **Vòng đời staging**: allocation ledger, reconciler, cleaner, sweeper và runtime start (khóa namespace, epoch, reconcile, cleanup khi khởi động) trong `domain_backup`.
+- **UI admin** (`apps/web/src/app/admin/backup`, route `/admin/backup`): banner trạng thái, chọn instance, tạo job, danh sách và chi tiết job có polling, preview synthetic. UI không có nút tải xuống.
+- **Synthetic-only**: phản hồi API mang cờ `synthetic` hoặc `synthetic_only`; UI ghi rõ job là synthetic, database-only và không restore được. Mọi nội dung là fixture, không có dữ liệu thật.
+
+### 14.2 Cách bật (cục bộ)
+
+Backup tắt mặc định. Đặt `BACKUP_ENABLED=true` cùng các khóa `BACKUP_*` bắt buộc (instance, nhãn, storage root, origin được phép, `BACKUP_REQUEST_TIMEOUT_SECS=30`, `BACKUP_MAX_HEADER_BYTES=16384`) và gateway bind loopback. Bảng đầy đủ các khóa, giá trị cố định và lý do `disabled_reason` nằm trong mục "Backup and restore (U1) configuration" của `README.md`. Các khóa CLI `BACKUP_S3_ENDPOINT` và `BACKUP_LOCAL_ROOT` là bề mặt riêng, không liên quan.
+
+### 14.3 Câu hỏi và hạng mục còn mở (không được coi là đã quyết)
+
+- **Q-04**: khôi phục Supabase Auth và Storage.
+- **Q-06**: RPO/RTO.
+- **Q-07**: chính sách production.
+- **Q-10**: mức nhất quán xuyên database, Auth và Storage.
+- **Q-11**: mã hóa và quản lý khóa (U1 không tuyên bố mã hóa at-rest).
+- **Q-12**: mức sẵn sàng toolchain/chất lượng ở phạm vi rộng hơn (baseline đã chạy và ghi nhận ngày 2026-11-22; CI hiện không chạy test `--ignored`).
+- **Audit retention** chưa được quyết định: U1 giữ mọi dòng audit và job purge bỏ qua audit.
+- **Non-owner technical guards** (chủ sở hữu có thể xác nhận hoặc thay): giới hạn body JSON 16 KiB, kích thước trang danh sách 20 (tối đa 100), kích thước fixture cố định, chu kỳ dò khôi phục DB 60 s.
+- **E2E-ENV-01**: UI chạy ở `localhost:3002` gọi API khác origin; chưa chọn cách kiểm thử trình duyệt, nên kiểm tra UI trong trình duyệt bị chặn (UI được phủ bằng component test).
+- **Chưa được cho phép**: staging dữ liệu thật, upload hoặc chấp nhận preflight, restore, download, dùng production, job `succeeded`, kết quả `recovery-required`.
+- **Giới hạn đã biết**: kiểm tra quyền chỉ chủ sở hữu (owner-only ACL) trên Windows chưa được xác minh (T-14, owner chấp nhận cho dữ liệu synthetic-only); `migrate down` và `migrate status` chỉ bao phủ migrator của posts nên không có đường rollback bằng CLI cho bảng backup (RK-08); CI hiện không chạy test cần Docker (RK-09), nên không có tuyên bố CI xanh.

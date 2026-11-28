@@ -1,0 +1,17 @@
+# WU-03 test-after mutations, conductor run 2026-11-22T21:27:51+07:00
+## store digest check removed
+test infra::tests::job_store::accept_refuses_digests_that_are_not_sha256_hex_without_writing ... FAILED
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 117 filtered out; finished in 1.99s
+restored
+## fingerprint check removed
+test infra::tests::job_store::accept_refuses_digests_that_are_not_sha256_hex_without_writing ... FAILED
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 117 filtered out; finished in 1.96s
+restored
+## every SQLSTATE treated as rejection
+test infra::tests::audit_sink::sqlstates_split_into_statement_rejections_and_fail_closed_outages ... FAILED
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 117 filtered out; finished in 1.94s
+restored
+## PL\/pgSQL P0 not a rejection
+test infra::tests::audit_sink::sqlstates_split_into_statement_rejections_and_fail_closed_outages ... FAILED
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 117 filtered out; finished in 1.93s
+restored

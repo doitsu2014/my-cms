@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "unit": "WU-09",
+  "scope": "full",
+  "commands": [
+    "cargo test --workspace --no-fail-fast (from apps/api; evidence/regression-wu09-normal.log)",
+    "cargo test --workspace --no-fail-fast -- --ignored --test-threads=4 (from apps/api; evidence/regression-wu09-ignored.log)",
+    "cargo test -p domain_backup --no-fail-fast -- ts09 ts10 ts43 ts53 ts60_preview ts64 (from apps/api; evidence/green-wu09-focused.log)",
+    "cargo fmt --all -- --check; cargo clippy -p domain_backup --all-targets; cargo check --workspace (from apps/api)",
+    "dtech-aidlc ids check --stage build-and-verify"
+  ],
+  "failures": []
+}

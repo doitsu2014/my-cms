@@ -1,0 +1,396 @@
+## RK-15 check 2026-11-22T16:31:36+07:00: fresh pgvector/pgvector:pg15, migrate up (run 1)
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\domain\response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_media\src\lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\domain\response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\bucket\access\access_handler.rs:14:1
+   |
+14 | / pub struct BucketAccessPolicy {
+15 | |     pub storage: SupabaseStorage,
+16 | |     pub cache: Arc<Cache<String, bool>>,
+17 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\create\create_handler.rs:9:1
+   |
+ 9 | / pub struct CreateMediaHandler {
+10 | |     pub media_config: Arc<MediaConfig>,
+11 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+ --> domain_media\src\handlers\delete\delete_handler.rs:5:1
+  |
+5 | / pub struct DeleteMediaHandler {
+6 | |     pub media_config: Arc<MediaConfig>,
+7 | | }
+  | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\list\list_handler.rs:8:1
+   |
+ 8 | / pub struct ListMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\read\metadata_handler.rs:8:1
+   |
+ 8 | / pub struct MetadataMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\read\read_handler.rs:24:1
+   |
+24 | / pub struct ReadMediaHandler {
+25 | |     pub media_config: Arc<MediaConfig>,
+26 | |     pub media_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
+27 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user\src\domain\response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_user\src\lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user\src\domain\response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\domain\response.rs:21:1
+   |
+21 | / pub struct ApiResponseWith<TData>
+22 | | where
+23 | |     TData: Serialize,
+...  |
+26 | |     data: TData,
+27 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_posts\src\lib.rs:9:9
+   |
+ 9 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\domain\response.rs:61:1
+   |
+61 | / pub struct ApiResponseError {
+62 | |     error_code: ErrorCode,
+63 | |     errors: Vec<String>,
+64 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\migrations\mod.rs:19:1
+   |
+19 | pub struct Migrator;
+   | ^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `FORMAT_VERSION` is never used
+  --> gateway\src\backup_cli.rs:15:7
+   |
+15 | const FORMAT_VERSION: u32 = 1;
+   |       ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `Manifest` is never constructed
+  --> gateway\src\backup_cli.rs:18:8
+   |
+18 | struct Manifest {
+   |        ^^^^^^^^
+
+warning: struct `ObjectEntry` is never constructed
+  --> gateway\src\backup_cli.rs:32:8
+   |
+32 | struct ObjectEntry {
+   |        ^^^^^^^^^^^
+
+warning: function `safe_relative_path` is never used
+  --> gateway\src\backup_cli.rs:46:4
+   |
+46 | fn safe_relative_path(value: &str) -> bool {
+   |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `digest` is never used
+  --> gateway\src\backup_cli.rs:55:4
+   |
+55 | fn digest(bytes: &[u8]) -> String {
+   |    ^^^^^^
+
+warning: function `now_seconds` is never used
+  --> gateway\src\backup_cli.rs:59:4
+   |
+59 | fn now_seconds() -> Result<u64, String> {
+   |    ^^^^^^^^^^^
+
+migrate up failed: orchestrator: migration execution failed: domain-seo: migration execution failed: domain_seo: Custom Error: Migration file of version 'm20240409_151952_release_100' is missing, this migration has been applied but its file is missing
+Migration file of version 'm20250330_151455_release_110' is missing, this migration has been applied but its file is missing
+Migration file of version 'm20260531_000001_pgvector' is missing, this migration has been applied but its file is missing
+Migration file of version 'm20260126_040610_release_300' is missing, this migration has been applied but its file is missing
+EXIT: 1
+
+## run 2 (simulates second boot)
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user\src\domain\response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_user\src\lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user\src\domain\response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\domain\response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_media\src\lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\domain\response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\bucket\access\access_handler.rs:14:1
+   |
+14 | / pub struct BucketAccessPolicy {
+15 | |     pub storage: SupabaseStorage,
+16 | |     pub cache: Arc<Cache<String, bool>>,
+17 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\create\create_handler.rs:9:1
+   |
+ 9 | / pub struct CreateMediaHandler {
+10 | |     pub media_config: Arc<MediaConfig>,
+11 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+ --> domain_media\src\handlers\delete\delete_handler.rs:5:1
+  |
+5 | / pub struct DeleteMediaHandler {
+6 | |     pub media_config: Arc<MediaConfig>,
+7 | | }
+  | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\list\list_handler.rs:8:1
+   |
+ 8 | / pub struct ListMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\read\metadata_handler.rs:8:1
+   |
+ 8 | / pub struct MetadataMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\read\read_handler.rs:24:1
+   |
+24 | / pub struct ReadMediaHandler {
+25 | |     pub media_config: Arc<MediaConfig>,
+26 | |     pub media_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
+27 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\domain\response.rs:21:1
+   |
+21 | / pub struct ApiResponseWith<TData>
+22 | | where
+23 | |     TData: Serialize,
+...  |
+26 | |     data: TData,
+27 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_posts\src\lib.rs:9:9
+   |
+ 9 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\domain\response.rs:61:1
+   |
+61 | / pub struct ApiResponseError {
+62 | |     error_code: ErrorCode,
+63 | |     errors: Vec<String>,
+64 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\migrations\mod.rs:19:1
+   |
+19 | pub struct Migrator;
+   | ^^^^^^^^^^^^^^^^^^^^
+
+warning: constant `FORMAT_VERSION` is never used
+  --> gateway\src\backup_cli.rs:15:7
+   |
+15 | const FORMAT_VERSION: u32 = 1;
+   |       ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `Manifest` is never constructed
+  --> gateway\src\backup_cli.rs:18:8
+   |
+18 | struct Manifest {
+   |        ^^^^^^^^
+
+warning: struct `ObjectEntry` is never constructed
+  --> gateway\src\backup_cli.rs:32:8
+   |
+32 | struct ObjectEntry {
+   |        ^^^^^^^^^^^
+
+warning: function `safe_relative_path` is never used
+  --> gateway\src\backup_cli.rs:46:4
+   |
+46 | fn safe_relative_path(value: &str) -> bool {
+   |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `digest` is never used
+  --> gateway\src\backup_cli.rs:55:4
+   |
+55 | fn digest(bytes: &[u8]) -> String {
+   |    ^^^^^^
+
+warning: function `now_seconds` is never used
+  --> gateway\src\backup_cli.rs:59:4
+   |
+59 | fn now_seconds() -> Result<u64, String> {
+   |    ^^^^^^^^^^^
+
+migrate up failed: orchestrator: migration execution failed: domain-seo: migration execution failed: domain_seo: Custom Error: Migration file of version 'm20240409_151952_release_100' is missing, this migration has been applied but its file is missing
+Migration file of version 'm20260531_000001_pgvector' is missing, this migration has been applied but its file is missing
+Migration file of version 'm20260126_040610_release_300' is missing, this migration has been applied but its file is missing
+Migration file of version 'm20250330_151455_release_110' is missing, this migration has been applied but its file is missing
+EXIT: 1
+
+## seaql_migrations contents
+m20240409_151952_release_100
+m20250330_151455_release_110
+m20260126_040610_release_300
+m20260531_000001_pgvector
+
+## migrate status
+   |        ^^^^^^^^
+
+warning: struct `ObjectEntry` is never constructed
+  --> gateway\src\backup_cli.rs:32:8
+   |
+32 | struct ObjectEntry {
+   |        ^^^^^^^^^^^
+
+warning: function `safe_relative_path` is never used
+  --> gateway\src\backup_cli.rs:46:4
+   |
+46 | fn safe_relative_path(value: &str) -> bool {
+   |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `digest` is never used
+  --> gateway\src\backup_cli.rs:55:4
+   |
+55 | fn digest(bytes: &[u8]) -> String {
+   |    ^^^^^^
+
+warning: function `now_seconds` is never used
+  --> gateway\src\backup_cli.rs:59:4
+   |
+59 | fn now_seconds() -> Result<u64, String> {
+   |    ^^^^^^^^^^^
+
+m20240409_151952_release_100 — status unavailable
+m20250330_151455_release_110 — status unavailable
+m20260126_040610_release_300 — status unavailable
+m20260531_000001_pgvector — status unavailable
+EXIT: 0

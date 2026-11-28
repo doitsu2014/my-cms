@@ -1,0 +1,235 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused variable: `id`
+   --> domain_backup\src\ports\job_store.rs:264:9
+    |
+264 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `expected_epoch`
+   --> domain_backup\src\ports\job_store.rs:265:9
+    |
+265 |         expected_epoch: i64,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_epoch`
+
+warning: unused variable: `expected_status`
+   --> domain_backup\src\ports\job_store.rs:266:9
+    |
+266 |         expected_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_status`
+
+warning: unused variable: `expected_state_version`
+   --> domain_backup\src\ports\job_store.rs:267:9
+    |
+267 |         expected_state_version: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_state_version`
+
+warning: unused variable: `target_status`
+   --> domain_backup\src\ports\job_store.rs:268:9
+    |
+268 |         target_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_status`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\job_store.rs:269:9
+    |
+269 |         reason: ReasonCode,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\job_store.rs:270:9
+    |
+270 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\cleaner.rs:20:1
+   |
+20 | pub struct Cleaner;
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> domain_backup\src\lib.rs:5:9
+   |
+ 5 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\reconciler.rs:61:1
+   |
+61 | / pub struct Reconciler {
+62 | |     jobs: Arc<dyn JobStore>,
+63 | |     allocs: Arc<dyn AllocationStore>,
+64 | |     storage: Arc<dyn FixtureStorage>,
+65 | |     audit: Arc<dyn AuditSink>,
+66 | |     config: ReconcilerConfig,
+67 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\sweeper.rs:17:1
+   |
+17 | pub struct Sweeper;
+   | ^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_backup` (lib test) generated 10 warnings (run `cargo fix --lib -p domain_backup --tests` to apply 7 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.53s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d5c5af4ad2d20f53\out\domain_backup-d5c5af4ad2d20f53.exe)
+
+running 19 tests
+test infra::tests::reconciler::ts24_unexpired_incomplete_allocation_with_missing_file_audits_each_full_scan_unchanged ... FAILED
+test infra::tests::reconciler::ts22_restart_advances_epoch_fences_running_and_queued_jobs_and_never_resumes ... FAILED
+test infra::tests::reconciler::ts22_lost_allocation_cas_changes_nothing_and_emits_no_event ... FAILED
+test infra::tests::reconciler::ts23_sweep_discovery_persists_a_file_added_after_start_and_never_deletes_or_fences ... FAILED
+test infra::tests::reconciler::ts24_unexpired_incomplete_allocation_with_its_file_present_is_retained_silently ... ok
+test infra::tests::reconciler::current_epoch_running_job_and_its_registered_allocation_are_left_to_the_worker ... ok
+test infra::tests::reconciler::advance_epoch_is_durable_and_strictly_increasing ... FAILED
+test infra::tests::reconciler::ts22_lost_job_fence_cas_changes_nothing_and_emits_no_event ... FAILED
+test infra::tests::reconciler::ts24_missing_file_audit_failure_fails_reconciliation_and_changes_no_state ... FAILED
+test infra::tests::reconciler::ts23_unowned_file_becomes_a_graced_orphan_and_ambiguous_names_stay_untouched ... FAILED
+test infra::tests::reconciler::ts23_truncated_sweep_discovery_persists_nothing ... FAILED
+test infra::tests::reconciler::cleanup_failed_allocation_is_terminal_for_automation_and_never_touched ... ok
+test infra::tests::reconciler::ts25_current_epoch_deleting_claim_belongs_to_the_live_cleaner ... ok
+test infra::tests::reconciler::ts24_failed_owner_or_expired_written_allocation_becomes_release_eligible ... FAILED
+test infra::tests::reconciler::ts21_registered_allocation_with_file_is_retained_as_owned_and_released_not_orphaned ... FAILED
+test infra::tests::reconciler::ts20_old_epoch_job_and_registered_allocation_without_file_are_fenced_then_released ... FAILED
+test infra::tests::reconciler::ts25_stale_deleting_claim_returns_to_release_pending_without_consuming_a_retry ... FAILED
+test infra::tests::reconciler::ts44b_ownerless_registered_allocation_is_released_with_allocation_correlation ... FAILED
+test infra::tests::reconciler::ts56_truncated_inventory_fails_closed_before_any_write ... FAILED
+
+failures:
+
+---- infra::tests::reconciler::ts24_unexpired_incomplete_allocation_with_missing_file_audits_each_full_scan_unchanged stdout ----
+
+thread 'infra::tests::reconciler::ts24_unexpired_incomplete_allocation_with_missing_file_audits_each_full_scan_unchanged' (10632) panicked at domain_backup\src\infra\tests\reconciler.rs:591:5:
+assertion `left == right` failed
+  left: (0, 0)
+ right: (1, 1)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- infra::tests::reconciler::ts22_restart_advances_epoch_fences_running_and_queued_jobs_and_never_resumes stdout ----
+
+thread 'infra::tests::reconciler::ts22_restart_advances_epoch_fences_running_and_queued_jobs_and_never_resumes' (20860) panicked at domain_backup\src\infra\tests\reconciler.rs:321:5:
+assertion `left == right` failed
+  left: 0
+ right: 1
+
+---- infra::tests::reconciler::ts22_lost_allocation_cas_changes_nothing_and_emits_no_event stdout ----
+
+thread 'infra::tests::reconciler::ts22_lost_allocation_cas_changes_nothing_and_emits_no_event' (8252) panicked at domain_backup\src\infra\tests\reconciler.rs:431:5:
+assertion `left == right` failed: only the interleaved writer's version bump is visible
+  left: ("written", 2)
+ right: ("written", 3)
+
+---- infra::tests::reconciler::ts23_sweep_discovery_persists_a_file_added_after_start_and_never_deletes_or_fences stdout ----
+
+thread 'infra::tests::reconciler::ts23_sweep_discovery_persists_a_file_added_after_start_and_never_deletes_or_fences' (11364) panicked at domain_backup\src\infra\tests\reconciler.rs:530:5:
+assertion `left == right` failed
+  left: 0
+ right: 1
+
+---- infra::tests::reconciler::advance_epoch_is_durable_and_strictly_increasing stdout ----
+
+thread 'infra::tests::reconciler::advance_epoch_is_durable_and_strictly_increasing' (19440) panicked at domain_backup\src\infra\tests\reconciler.rs:192:5:
+assertion `left == right` failed
+  left: Ok(0)
+ right: Ok(1)
+
+---- infra::tests::reconciler::ts22_lost_job_fence_cas_changes_nothing_and_emits_no_event stdout ----
+
+thread 'infra::tests::reconciler::ts22_lost_job_fence_cas_changes_nothing_and_emits_no_event' (38660) panicked at domain_backup\src\infra\tests\reconciler.rs:393:5:
+assertion `left == right` failed: only the interleaved writer's version bump is visible
+  left: ("running", 4)
+ right: ("running", 5)
+
+---- infra::tests::reconciler::ts24_missing_file_audit_failure_fails_reconciliation_and_changes_no_state stdout ----
+
+thread 'infra::tests::reconciler::ts24_missing_file_audit_failure_fails_reconciliation_and_changes_no_state' (3252) panicked at domain_backup\src\infra\tests\reconciler.rs:710:5:
+assertion `left == right` failed: audit failure fails reconciliation so admissions stay closed
+  left: Ok(ReconcileReport { fenced_jobs: 0, discovered_orphans: 0, missing_files: 0, released_allocations: 0, reset_claims: 0, ambiguous_entries: 0 })
+ right: Err(AuditUnavailable)
+
+---- infra::tests::reconciler::ts23_unowned_file_becomes_a_graced_orphan_and_ambiguous_names_stay_untouched stdout ----
+
+thread 'infra::tests::reconciler::ts23_unowned_file_becomes_a_graced_orphan_and_ambiguous_names_stay_untouched' (34656) panicked at domain_backup\src\infra\tests\reconciler.rs:479:5:
+assertion `left == right` failed
+  left: 0
+ right: 1
+
+---- infra::tests::reconciler::ts23_truncated_sweep_discovery_persists_nothing stdout ----
+
+thread 'infra::tests::reconciler::ts23_truncated_sweep_discovery_persists_nothing' (28536) panicked at domain_backup\src\infra\tests\reconciler.rs:558:5:
+assertion `left == right` failed
+  left: Ok(0)
+ right: Err(InventoryTruncated)
+
+---- infra::tests::reconciler::ts24_failed_owner_or_expired_written_allocation_becomes_release_eligible stdout ----
+
+thread 'infra::tests::reconciler::ts24_failed_owner_or_expired_written_allocation_becomes_release_eligible' (37696) panicked at domain_backup\src\infra\tests\reconciler.rs:651:9:
+assertion `left == right` failed
+  left: ("written", 1)
+ right: ("release_pending", 2)
+
+---- infra::tests::reconciler::ts21_registered_allocation_with_file_is_retained_as_owned_and_released_not_orphaned stdout ----
+
+thread 'infra::tests::reconciler::ts21_registered_allocation_with_file_is_retained_as_owned_and_released_not_orphaned' (42984) panicked at domain_backup\src\infra\tests\reconciler.rs:285:5:
+assertion `left == right` failed
+  left: "running"
+ right: "failed"
+
+---- infra::tests::reconciler::ts20_old_epoch_job_and_registered_allocation_without_file_are_fenced_then_released stdout ----
+
+thread 'infra::tests::reconciler::ts20_old_epoch_job_and_registered_allocation_without_file_are_fenced_then_released' (43860) panicked at domain_backup\src\infra\tests\reconciler.rs:227:5:
+assertion `left == right` failed
+  left: "running"
+ right: "failed"
+
+---- infra::tests::reconciler::ts25_stale_deleting_claim_returns_to_release_pending_without_consuming_a_retry stdout ----
+
+thread 'infra::tests::reconciler::ts25_stale_deleting_claim_returns_to_release_pending_without_consuming_a_retry' (31928) panicked at domain_backup\src\infra\tests\reconciler.rs:737:5:
+assertion `left == right` failed: a crash is not an unlink failure: attempts are unchanged
+  left: ("deleting", 3, 1)
+ right: ("release_pending", 4, 1)
+
+---- infra::tests::reconciler::ts44b_ownerless_registered_allocation_is_released_with_allocation_correlation stdout ----
+
+thread 'infra::tests::reconciler::ts44b_ownerless_registered_allocation_is_released_with_allocation_correlation' (31952) panicked at domain_backup\src\infra\tests\reconciler.rs:455:5:
+assertion `left == right` failed
+  left: ("registered", 1)
+ right: ("release_pending", 2)
+
+---- infra::tests::reconciler::ts56_truncated_inventory_fails_closed_before_any_write stdout ----
+
+thread 'infra::tests::reconciler::ts56_truncated_inventory_fails_closed_before_any_write' (45524) panicked at domain_backup\src\infra\tests\reconciler.rs:836:5:
+assertion `left == right` failed
+  left: Ok(ReconcileReport { fenced_jobs: 0, discovered_orphans: 0, missing_files: 0, released_allocations: 0, reset_claims: 0, ambiguous_entries: 0 })
+ right: Err(InventoryTruncated)
+
+
+failures:
+    infra::tests::reconciler::advance_epoch_is_durable_and_strictly_increasing
+    infra::tests::reconciler::ts20_old_epoch_job_and_registered_allocation_without_file_are_fenced_then_released
+    infra::tests::reconciler::ts21_registered_allocation_with_file_is_retained_as_owned_and_released_not_orphaned
+    infra::tests::reconciler::ts22_lost_allocation_cas_changes_nothing_and_emits_no_event
+    infra::tests::reconciler::ts22_lost_job_fence_cas_changes_nothing_and_emits_no_event
+    infra::tests::reconciler::ts22_restart_advances_epoch_fences_running_and_queued_jobs_and_never_resumes
+    infra::tests::reconciler::ts23_sweep_discovery_persists_a_file_added_after_start_and_never_deletes_or_fences
+    infra::tests::reconciler::ts23_truncated_sweep_discovery_persists_nothing
+    infra::tests::reconciler::ts23_unowned_file_becomes_a_graced_orphan_and_ambiguous_names_stay_untouched
+    infra::tests::reconciler::ts24_failed_owner_or_expired_written_allocation_becomes_release_eligible
+    infra::tests::reconciler::ts24_missing_file_audit_failure_fails_reconciliation_and_changes_no_state
+    infra::tests::reconciler::ts24_unexpired_incomplete_allocation_with_missing_file_audits_each_full_scan_unchanged
+    infra::tests::reconciler::ts25_stale_deleting_claim_returns_to_release_pending_without_consuming_a_retry
+    infra::tests::reconciler::ts44b_ownerless_registered_allocation_is_released_with_allocation_correlation
+    infra::tests::reconciler::ts56_truncated_inventory_fails_closed_before_any_write
+
+test result: FAILED. 4 passed; 15 failed; 0 ignored; 0 measured; 283 filtered out; finished in 20.83s
+
+error: test failed, to rerun pass `-p domain_backup --lib`

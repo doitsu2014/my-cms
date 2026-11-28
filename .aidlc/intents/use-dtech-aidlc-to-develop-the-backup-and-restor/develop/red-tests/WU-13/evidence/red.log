@@ -1,0 +1,812 @@
+
+ RUN  v4.1.8 /Users/doitsu2014/workspaces/doitsu-technology/my-cms/.claude/worktrees/wf_963bdb52-c92-2/apps/web
+
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+ ❯ src/app/admin/backup/components/instance-selector.test.tsx (6 tests | 6 failed) 56ms
+     × ts46_renders_the_instance_label_and_environment_label 46ms
+     × ts46_marks_the_selected_instance_and_reports_selection 2ms
+     × ts38_empty_list_offers_nothing_to_select_and_says_so 2ms
+     × ts38_unavailable_list_offers_nothing_to_select_and_a_retry 2ms
+     × ts38_loading_state_offers_nothing_to_select 2ms
+     × renders server strings only as text 1ms
+ ❯ src/app/admin/backup/components/job-create-panel.test.tsx (5 tests | 5 failed) 53ms
+     × ts52_sends_a_fresh_crypto_random_uuid_idempotency_key_for_every_submit 46ms
+     × ts52_double_submit_guard_sends_one_request_while_one_is_in_flight 2ms
+     × ts52_submit_without_a_selected_instance_sends_nothing 2ms
+     × reports the created job to the caller 1ms
+     × shows fixed failure copy, never server strings, and allows a retry with a new key 1ms
+ ❯ src/app/admin/components/left-menu.test.tsx (2 tests | 1 failed) 85ms
+     × ts35_only_shows_backup_navigation_to_administrators 64ms
+stderr | src/App.test.tsx > App backup route > ts35_backup_route_renders_for_administrators_inside_the_admin_layout
+No routes matched location "/admin/backup" 
+
+stderr | src/App.test.tsx > App backup route > ts35_backup_route_shows_access_denied_to_non_administrators
+No routes matched location "/admin/backup" 
+
+stderr | src/App.test.tsx > App backup route > ts35_backup_route_redirects_unauthenticated_visitors_to_login
+No routes matched location "/admin/backup" 
+
+ ❯ src/App.test.tsx (3 tests | 3 failed) 40ms
+     × ts35_backup_route_renders_for_administrators_inside_the_admin_layout 33ms
+     × ts35_backup_route_shows_access_denied_to_non_administrators 4ms
+     × ts35_backup_route_redirects_unauthenticated_visitors_to_login 2ms
+ ❯ src/app/admin/backup/page.test.tsx (5 tests | 5 failed) 4056ms
+     × lists instances with the caller token and renders label and environment 1010ms
+     × ts38_empty_instance_list_disables_submission 1003ms
+     × ts38_unavailable_instance_list_disables_submission_and_can_be_retried 1003ms
+     × ts38_submission_is_disabled_while_the_list_is_loading 34ms
+     × selects the single listed instance and creates a job for it with a fresh key 1003ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 20 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/App.test.tsx > App backup route > ts35_backup_route_renders_for_administrators_inside_the_admin_layout
+TestingLibraryElementError: Unable to find an element with the text: backup page content. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-atomic[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"Notifications alt+T"[39m
+      [33maria-live[39m=[32m"polite"[39m
+      [33maria-relevant[39m=[32m"additions text"[39m
+      [33mtabindex[39m=[32m"-1"[39m
+    [36m/>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/App.test.tsx:35:19
+     33|     auth.user.app_metadata.roles = [UserRoleEnum.Administrator];
+     34|     render(<App />);
+     35|     expect(screen.getByText('backup page content')).toBeInTheDocument(…
+       |                   ^
+     36|     expect(screen.getByTestId('admin-layout')).toContainElement(screen…
+     37|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/20]⎯
+
+ FAIL  src/App.test.tsx > App backup route > ts35_backup_route_shows_access_denied_to_non_administrators
+TestingLibraryElementError: Unable to find an element with the text: /do not have permission/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-atomic[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"Notifications alt+T"[39m
+      [33maria-live[39m=[32m"polite"[39m
+      [33maria-relevant[39m=[32m"additions text"[39m
+      [33mtabindex[39m=[32m"-1"[39m
+    [36m/>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/App.test.tsx:43:19
+     41|     render(<App />);
+     42|     expect(screen.queryByText('backup page content')).not.toBeInTheDoc…
+     43|     expect(screen.getByText(/do not have permission/i)).toBeInTheDocum…
+       |                   ^
+     44|   });
+     45|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/20]⎯
+
+ FAIL  src/App.test.tsx > App backup route > ts35_backup_route_redirects_unauthenticated_visitors_to_login
+TestingLibraryElementError: Unable to find an element with the text: login page content. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<section[39m
+      [33maria-atomic[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"Notifications alt+T"[39m
+      [33maria-live[39m=[32m"polite"[39m
+      [33maria-relevant[39m=[32m"additions text"[39m
+      [33mtabindex[39m=[32m"-1"[39m
+    [36m/>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/App.test.tsx:50:19
+     48|     render(<App />);
+     49|     expect(screen.queryByText('backup page content')).not.toBeInTheDoc…
+     50|     expect(screen.getByText('login page content')).toBeInTheDocument();
+       |                   ^
+     51|   });
+     52| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/20]⎯
+
+ FAIL  src/app/admin/backup/page.test.tsx > AdminBackupPage > lists instances with the caller token and renders label and environment
+TestingLibraryElementError: Unable to find an element with the text: Local synthetic instance. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/app/admin/backup/page.test.tsx:52:25
+     50|     listMock.mockResolvedValue({ synthetic: true, instances: [instance…
+     51|     renderPage();
+     52|     expect(await screen.findByText('Local synthetic instance')).toBeIn…
+       |                         ^
+     53|     expect(screen.getByText('development')).toBeInTheDocument();
+     54|     expect(listMock).toHaveBeenCalledWith('tok');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/20]⎯
+
+ FAIL  src/app/admin/backup/page.test.tsx > AdminBackupPage > ts38_empty_instance_list_disables_submission
+TestingLibraryElementError: Unable to find an element with the text: /no backup instance is available/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/app/admin/backup/page.test.tsx:62:25
+     60|     listMock.mockResolvedValue({ synthetic: true, instances: [] });
+     61|     renderPage();
+     62|     expect(await screen.findByText(/no backup instance is available/i)…
+       |                         ^
+     63|     expect(submit()).toBeDisabled();
+     64|     fireEvent.click(submit());
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/20]⎯
+
+ FAIL  src/app/admin/backup/page.test.tsx > AdminBackupPage > ts38_unavailable_instance_list_disables_submission_and_can_be_retried
+TestingLibraryElementError: Unable to find role="alert"
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ waitForWrapper node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:86:33
+ ❯ src/app/admin/backup/page.test.tsx:71:25
+     69|     listMock.mockRejectedValueOnce(new BackupApiError(503, 'BACKUP_DIS…
+     70|     renderPage();
+     71|     expect(await screen.findByRole('alert')).toHaveTextContent(/unable…
+       |                         ^
+     72|     expect(submit()).toBeDisabled();
+     73|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/20]⎯
+
+ FAIL  src/app/admin/backup/page.test.tsx > AdminBackupPage > ts38_submission_is_disabled_while_the_list_is_loading
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/create backup/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ submit src/app/admin/backup/page.test.tsx:41:29
+     39|
+     40| const renderPage = () => render(<MemoryRouter><AdminBackupPage /></Mem…
+     41| const submit = () => screen.getByRole('button', { name: /create backup…
+       |                             ^
+     42|
+     43| describe('AdminBackupPage', () => {
+ ❯ src/app/admin/backup/page.test.tsx:83:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/20]⎯
+
+ FAIL  src/app/admin/backup/page.test.tsx > AdminBackupPage > selects the single listed instance and creates a job for it with a fresh key
+TestingLibraryElementError: Unable to find role="button" and name `/create backup/i`
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div />[39m
+  [36m</body>[39m
+[36m</html>[39m
+ ❯ Proxy.waitForWrapper node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:163:27
+ ❯ src/app/admin/backup/page.test.tsx:90:11
+     88|     createMock.mockResolvedValue({ job, replayed: false });
+     89|     renderPage();
+     90|     await waitFor(() => expect(submit()).toBeEnabled());
+       |           ^
+     91|     fireEvent.click(submit());
+     92|     await waitFor(() => expect(createMock).toHaveBeenCalledTimes(1));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/20]⎯
+
+ FAIL  src/app/admin/components/left-menu.test.tsx > admin navigation > ts35_only_shows_backup_navigation_to_administrators
+TestingLibraryElementError: Unable to find an accessible element with the role "link" and name "Backup"
+
+Here are the accessible roles:
+
+  complementary:
+
+  Name "":
+  [36m<aside[39m
+    [33mclass[39m=[32m"bg-base-200 min-h-full w-64 p-4 flex flex-col"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  heading:
+
+  Name "User":
+  [36m<h2[39m
+    [33mclass[39m=[32m"font-bold text-sm truncate"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mclass[39m=[32m"text-xs opacity-70 truncate"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  [36m<ul[39m
+    [33mclass[39m=[32m"menu bg-base-200 rounded-box flex-1 w-full"[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<ul />[39m
+
+  Name "":
+  [36m<ul />[39m
+
+  --------------------------------------------------
+  listitem:
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  Name "":
+  [36m<li />[39m
+
+  --------------------------------------------------
+  link:
+
+  Name "Dashboard":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/admin"[39m
+  [36m/>[39m
+
+  Name "Categories":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/admin/categories"[39m
+  [36m/>[39m
+
+  Name "Blogs":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/admin/blogs"[39m
+  [36m/>[39m
+
+  Name "Media":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/admin/media"[39m
+  [36m/>[39m
+
+  Name "Users":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/admin/users"[39m
+  [36m/>[39m
+
+  Name "SEO head assets":
+  [36m<a[39m
+    [33mclass[39m=[32m""[39m
+    [33mdata-discover[39m=[32m"true"[39m
+    [33mhref[39m=[32m"/admin/seo/head-assets"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  group:
+
+  Name "":
+  [36m<details[39m
+    [33mopen[39m=[32m""[39m
+  [36m/>[39m
+
+  Name "":
+  [36m<details[39m
+    [33mopen[39m=[32m""[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<aside[39m
+      [33mclass[39m=[32m"bg-base-200 min-h-full w-64 p-4 flex flex-col"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"card bg-base-100 shadow-md mb-4"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"card-body p-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-3"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"avatar"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"w-12 rounded-full"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"bg-neutral text-neutral-content w-full h-full flex items-center justify-center"[39m
+                [36m>[39m
+                  [36m<svg[39m
+                    [33mclass[39m=[32m"lucide lucide-circle-user w-8 h-8"[39m
+                    [33mfill[39m=[32m"none"[39m
+                    [33mheight[39m=[32m"24"[39m
+                    [33mstroke[39m=[32m"currentColor"[39m
+                    [33mstroke-linecap[39m=[32m"round"[39m
+                    [33mstroke-linejoin[39m=[32m"round"[39m
+                    [33mstroke-width[39m=[32m"2"[39m
+                    [33mviewBox[39m=[32m"0 0 24 24"[39m
+                    [33mwidth[39m=[32m"24"[39m
+                    [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+                  [36m>[39m
+                    [36m<circle[39m
+                      [33mcx[39m=[32m"12"[39m
+                      [33mcy[39m=[32m"12"[39m
+                      [33mr[39m=[32m"10"[39m
+                    [36m/>[39m
+                    [36m<circle[39m
+                      [33mcx[39m=[32m"12"[39m
+                      [33mcy[39m=[32m"10"[39m
+                      [33mr[39m=[32m"3"[39m
+                    [36m/>[39m
+                    [36m<path[39m
+                      [33md[39m=[32m"M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"[39m
+                    [36m/>[39m
+                  [36m</svg>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1 min-w-0"[39m
+            [36m>[39m
+              [36m<h2[39m
+                [33mclass[39m=[32m"font-bold text-sm truncate"[39m
+              [36m>[39m
+                [0mUser[0m
+              [36m</h2>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-xs opacity-70 truncate"[39m
+              [36m>[39m
+                [0muser@example.com[0m
+              [36m</p>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<ul[39m
+        [33mclass[39m=[32m"menu bg-base-200 rounded-box flex-1 w-full"[39m
+      [36m>[39m
+        [36m<li>[39m
+          [36m<a[39m
+            [33mclass[39m=[32m""[39m
+            [33mdata-discover[39m=[32m"true"[39m
+            [33mhref[39m=[32m"/admin"[39m
+          [36m>[39m
+            [0mDashboard[0m
+          [36m</a>[39m
+        [36m</li>[39m
+        [36m<li>[39m
+          [36m<details[39m
+            [33mopen[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m"font-semibold"[39m
+            [36m>[39m
+              [0mResources[0m
+            [36m</summary>[39m
+            [36m<ul>[39m
+              [36m<li>[39m
+                [36m<a[39m
+                  [33mclass[39m=[32m""[39m
+                  [33mdata-discover[39m=[32m"true"[39m
+                  [33mhref[39m=[32m"/admin/categories"[39m
+                [36m>[39m
+                  [0mCategories[0m
+                [36m</a>[39m
+              [36m</li>[39m
+              [36m<li>[39m
+                [36m<a[39m
+                  [33mclass[39m=[32m""[39m
+                  [33mdata-discover[39m=[32m"true"[39m
+                  [33mhref[39m=[32m"/admin/blogs"[39m
+                [36m>[39m
+                  [0mBlogs[0m
+                [36m</a>[39m
+              [36m</li>[39m
+              [36m<li>[39m
+                [36m<a[39m
+                  [33mclass[39m=[32m""[39m
+                  [33mdata-discover[39m=[32m"true"[39m
+                  [33mhref[39m=[32m"/admin/media"[39m
+                [36m>[39m
+                  [0mMedia[0m
+                [36m</a>[39m
+              [36m</li>[39m
+            [36m</ul>[39m
+          [36m</details>[39m
+        [36m</li>[39m
+        [36m<li>[39m
+          [36m<details[39m
+            [33mopen[39m=[32m""[39m
+          [36m>[39m
+            [36m<summary[39m
+              [33mclass[39m=[32m"font-semibold"[39m
+            [36m>[39m
+              [0mAdministration[0m
+            [36m</summary>[39m
+            [36m<ul>[39m
+              [36m<li>[39m
+                [36m<a[39m
+                  [33mclass[39m=[32m""[39m
+                  [33mdata-discover[39m=[32m"true"[39m
+                  [33mhref[39m=[32m"/admin/users"[39m
+                [36m>[39m
+                  [0mUsers[0m
+                [36m</a>[39m
+              [36m</li>[39m
+              [36m<li>[39m
+                [36m<a[39m
+                  [33mclass[39m=[32m""[39m
+                  [33mdata-discover[39m=[32m"true"[39m
+                  [33mhref[39m=[32m"/admin/seo/head-assets"[39m
+                [36m>[39m
+                  [0mSEO head assets[0m
+                [36m</a>[39m
+              [36m</li>[39m
+            [36m</ul>[39m
+          [36m</details>[39m
+        [36m</li>[39m
+      [36m</ul>[39m
+    [36m</aside>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/components/left-menu.test.tsx:26:19
+     24|     auth.user.app_metadata.roles = [UserRoleEnum.Administrator];
+     25|     view.rerender(<MemoryRouter><LeftMenu /></MemoryRouter>);
+     26|     expect(screen.getByRole('link', { name: 'Backup' })).toHaveAttribu…
+       |                   ^
+     27|   });
+     28| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/20]⎯
+
+ FAIL  src/app/admin/backup/components/instance-selector.test.tsx > InstanceSelector > ts46_renders_the_instance_label_and_environment_label
+TestingLibraryElementError: Unable to find an accessible element with the role "radio" and name `/Local synthetic instance/`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/instance-selector.test.tsx:18:19
+     16|   it('ts46_renders_the_instance_label_and_environment_label', () => {
+     17|     render(<InstanceSelector instances={[instance]} state="ready" sele…
+     18|     expect(screen.getByRole('radio', { name: /Local synthetic instance…
+       |                   ^
+     19|     expect(screen.getByText('Local synthetic instance')).toBeInTheDocu…
+     20|     expect(screen.getByText('development')).toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/20]⎯
+
+ FAIL  src/app/admin/backup/components/instance-selector.test.tsx > InstanceSelector > ts46_marks_the_selected_instance_and_reports_selection
+TestingLibraryElementError: Unable to find an accessible element with the role "radio" and name `/Local synthetic instance/`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/instance-selector.test.tsx:26:27
+     24|     const onSelect = vi.fn();
+     25|     render(<InstanceSelector instances={[instance]} state="ready" sele…
+     26|     const option = screen.getByRole('radio', { name: /Local synthetic …
+       |                           ^
+     27|     expect(option).toBeChecked();
+     28|     fireEvent.click(option);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/20]⎯
+
+ FAIL  src/app/admin/backup/components/instance-selector.test.tsx > InstanceSelector > ts38_empty_list_offers_nothing_to_select_and_says_so
+TestingLibraryElementError: Unable to find an element with the text: /no backup instance is available/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/instance-selector.test.tsx:36:19
+     34|     render(<InstanceSelector instances={[]} state="ready" selectedId={…
+     35|     expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+     36|     expect(screen.getByText(/no backup instance is available/i)).toBeI…
+       |                   ^
+     37|   });
+     38|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/20]⎯
+
+ FAIL  src/app/admin/backup/components/instance-selector.test.tsx > InstanceSelector > ts38_unavailable_list_offers_nothing_to_select_and_a_retry
+TestingLibraryElementError: Unable to find an accessible element with the role "alert"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/instance-selector.test.tsx:43:19
+     41|     render(<InstanceSelector instances={[]} state="error" selectedId={…
+     42|     expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+     43|     expect(screen.getByRole('alert')).toHaveTextContent(/unable to loa…
+       |                   ^
+     44|     fireEvent.click(screen.getByRole('button', { name: /retry/i }));
+     45|     expect(onRetry).toHaveBeenCalledTimes(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/20]⎯
+
+ FAIL  src/app/admin/backup/components/instance-selector.test.tsx > InstanceSelector > ts38_loading_state_offers_nothing_to_select
+TestingLibraryElementError: Unable to find an accessible element with the role "status"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/instance-selector.test.tsx:51:19
+     49|     render(<InstanceSelector instances={[]} state="loading" selectedId…
+     50|     expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+     51|     expect(screen.getByRole('status')).toBeInTheDocument();
+       |                   ^
+     52|   });
+     53|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/20]⎯
+
+ FAIL  src/app/admin/backup/components/instance-selector.test.tsx > InstanceSelector > renders server strings only as text
+TestingLibraryElementError: Unable to find an element with the text: <img src=x onerror=alert(1)>. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/admin/backup/components/instance-selector.test.tsx:58:19
+     56|     const { container } = render(<InstanceSelector instances={[hostile…
+     57|     expect(container.querySelector('img')).toBeNull();
+     58|     expect(screen.getByText('<img src=x onerror=alert(1)>')).toBeInThe…
+       |                   ^
+     59|   });
+     60| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/20]⎯
+
+ FAIL  src/app/admin/backup/components/job-create-panel.test.tsx > JobCreatePanel > ts52_sends_a_fresh_crypto_random_uuid_idempotency_key_for_every_submit
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/create backup/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ submit src/app/admin/backup/components/job-create-panel.test.tsx:29:29
+     27|
+     28| const createMock = vi.mocked(createBackupJob);
+     29| const submit = () => screen.getByRole('button', { name: /create backup…
+       |                             ^
+     30|
+     31| describe('JobCreatePanel', () => {
+ ❯ src/app/admin/backup/components/job-create-panel.test.tsx:48:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/20]⎯
+
+ FAIL  src/app/admin/backup/components/job-create-panel.test.tsx > JobCreatePanel > ts52_double_submit_guard_sends_one_request_while_one_is_in_flight
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/create backup/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ submit src/app/admin/backup/components/job-create-panel.test.tsx:29:29
+     27|
+     28| const createMock = vi.mocked(createBackupJob);
+     29| const submit = () => screen.getByRole('button', { name: /create backup…
+       |                             ^
+     30|
+     31| describe('JobCreatePanel', () => {
+ ❯ src/app/admin/backup/components/job-create-panel.test.tsx:64:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/20]⎯
+
+ FAIL  src/app/admin/backup/components/job-create-panel.test.tsx > JobCreatePanel > ts52_submit_without_a_selected_instance_sends_nothing
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/create backup/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ submit src/app/admin/backup/components/job-create-panel.test.tsx:29:29
+     27|
+     28| const createMock = vi.mocked(createBackupJob);
+     29| const submit = () => screen.getByRole('button', { name: /create backup…
+       |                             ^
+     30|
+     31| describe('JobCreatePanel', () => {
+ ❯ src/app/admin/backup/components/job-create-panel.test.tsx:77:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/20]⎯
+
+ FAIL  src/app/admin/backup/components/job-create-panel.test.tsx > JobCreatePanel > reports the created job to the caller
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/create backup/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ submit src/app/admin/backup/components/job-create-panel.test.tsx:29:29
+     27|
+     28| const createMock = vi.mocked(createBackupJob);
+     29| const submit = () => screen.getByRole('button', { name: /create backup…
+       |                             ^
+     30|
+     31| describe('JobCreatePanel', () => {
+ ❯ src/app/admin/backup/components/job-create-panel.test.tsx:86:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/20]⎯
+
+ FAIL  src/app/admin/backup/components/job-create-panel.test.tsx > JobCreatePanel > shows fixed failure copy, never server strings, and allows a retry with a new key
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/create backup/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ submit src/app/admin/backup/components/job-create-panel.test.tsx:29:29
+     27|
+     28| const createMock = vi.mocked(createBackupJob);
+     29| const submit = () => screen.getByRole('button', { name: /create backup…
+       |                             ^
+     30|
+     31| describe('JobCreatePanel', () => {
+ ❯ src/app/admin/backup/components/job-create-panel.test.tsx:99:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/20]⎯
+
+
+ Test Files  5 failed (5)
+      Tests  20 failed | 1 passed (21)
+   Start at  20:16:50
+   Duration  4.65s (transform 568ms, setup 236ms, import 1.19s, tests 4.29s, environment 1.55s)
+

@@ -1,0 +1,374 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+    Checking domain_interface v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_interface)
+    Checking deadpool-runtime v0.1.4
+    Checking num_cpus v1.17.0
+    Checking tokio-test v0.4.5
+    Checking assert-json-diff v2.0.2
+    Checking domain_backup v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_backup)
+    Checking deadpool v0.12.3
+    Checking domain_auth v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_auth)
+    Checking domain_seo v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_seo)
+    Checking domain_user v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_user)
+    Checking domain_media v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_media)
+    Checking wiremock v0.6.5
+    Checking domain_posts v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_posts)
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user\src\domain\response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_user\src\lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user\src\domain\response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: `domain_user` (lib) generated 2 warnings
+warning: the `Err`-variant returned from this function is very large
+  --> domain_media\src\api\media\read\read_handler.rs:99:43
+   |
+99 | fn validate_bucket(name: Option<&str>) -> Result<Option<String>, Response> {
+   |                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the `Err`-variant is at least 128 bytes
+   |
+   = help: try reducing the size of `hyper::Response<axum::body::Body>`, for example by boxing large elements or replacing it with `Box<hyper::Response<axum::body::Body>>`
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.100.0/index.html#result_large_err
+   = note: `#[warn(clippy::result_large_err)]` on by default
+
+warning: called `Iterator::last` on a `DoubleEndedIterator`; this will needlessly iterate the entire iterator
+  --> domain_media\src\handlers\create\create_handler.rs:31:31
+   |
+31 |           let media_extension = media_name
+   |  _______________________________^
+32 | |             .clone()
+33 | |             .split('.')
+34 | |             .last()
+   | |___________________^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.100.0/index.html#double_ended_iterator_last
+   = note: `#[warn(clippy::double_ended_iterator_last)]` on by default
+help: try
+   |
+34 -             .last()
+34 +             .next_back()
+   |
+
+warning: called `Iterator::last` on a `DoubleEndedIterator`; this will needlessly iterate the entire iterator
+   --> domain_media\src\handlers\supabase_storage.rs:728:15
+    |
+728 |     let ext = path.split('.').last().unwrap_or("").to_lowercase();
+    |               ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.100.0/index.html#double_ended_iterator_last
+help: try
+    |
+728 -     let ext = path.split('.').last().unwrap_or("").to_lowercase();
+728 +     let ext = path.split('.').next_back().unwrap_or("").to_lowercase();
+    |
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\domain\response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_media\src\lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\domain\response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\bucket\access\access_handler.rs:14:1
+   |
+14 | / pub struct BucketAccessPolicy {
+15 | |     pub storage: SupabaseStorage,
+16 | |     pub cache: Arc<Cache<String, bool>>,
+17 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\create\create_handler.rs:9:1
+   |
+ 9 | / pub struct CreateMediaHandler {
+10 | |     pub media_config: Arc<MediaConfig>,
+11 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+ --> domain_media\src\handlers\delete\delete_handler.rs:5:1
+  |
+5 | / pub struct DeleteMediaHandler {
+6 | |     pub media_config: Arc<MediaConfig>,
+7 | | }
+  | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\list\list_handler.rs:8:1
+   |
+ 8 | / pub struct ListMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\read\metadata_handler.rs:8:1
+   |
+ 8 | / pub struct MetadataMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media\src\handlers\read\read_handler.rs:24:1
+   |
+24 | / pub struct ReadMediaHandler {
+25 | |     pub media_config: Arc<MediaConfig>,
+26 | |     pub media_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
+27 | | }
+   | |_^
+
+warning: very complex type used. Consider factoring parts into `type` definitions
+  --> domain_auth\src\factory.rs:88:17
+   |
+88 |         events: Arc<Mutex<Vec<Vec<(String, String)>>>>,
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.100.0/index.html#type_complexity
+   = note: `#[warn(clippy::type_complexity)]` on by default
+
+warning: `domain_media` (lib) generated 11 warnings (run `cargo clippy --fix --lib -p domain_media -- ` to apply 2 suggestions)
+warning: `domain_auth` (lib test) generated 1 warning
+warning: you seem to be trying to use `match` for an equality check. Consider using `if`
+   --> domain_posts\src\handlers\category\modify\modify_handler.rs:143:21
+    |
+143 | /                     match modified_result.rows_affected == 0 {
+144 | |                         true => {
+145 | |                             return Err(AppError::Logical("Row version is not matched".to_string()))
+...   |
+148 | |                     }
+    | |_____________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.100.0/index.html#single_match
+    = note: `#[warn(clippy::single_match)]` on by default
+help: try
+    |
+143 ~                     if modified_result.rows_affected == 0 == true {
+144 +                         return Err(AppError::Logical("Row version is not matched".to_string()))
+145 +                     }
+    |
+
+warning: you seem to be trying to use `match` for an equality check. Consider using `if`
+   --> domain_posts\src\handlers\post\modify\modify_handler.rs:133:21
+    |
+133 | /                     match modified_result.rows_affected == 0 {
+134 | |                         true => {
+135 | |                             return Err(AppError::Logical("Row version is not matched".to_string()))
+...   |
+138 | |                     }
+    | |_____________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.100.0/index.html#single_match
+help: try
+    |
+133 ~                     if modified_result.rows_affected == 0 == true {
+134 +                         return Err(AppError::Logical("Row version is not matched".to_string()))
+135 +                     }
+    |
+
+warning: `filter(..).map(..)` can be simplified as `filter_map(..)`
+   --> domain_posts\src\handlers\post\modify\modify_handler.rs:144:30
+    |
+144 |   ...                   .filter(|t| t.id.is_some())
+    |  ________________________^
+145 | | ...                   .map(|t| t.id.unwrap())
+    | |_____________________________________________^ help: try: `filter_map(|t| t.id)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.100.0/index.html#manual_filter_map
+    = note: `#[warn(clippy::manual_filter_map)]` on by default
+
+warning: redundant closure
+   --> domain_posts\src\handlers\post\translate\translate_handler.rs:736:22
+    |
+736 |             .map_err(|e| AppError::Db(e))?
+    |                      ^^^^^^^^^^^^^^^^^^^ help: replace the closure with the tuple variant itself: `AppError::Db`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.100.0/index.html#redundant_closure
+    = note: `#[warn(clippy::redundant_closure)]` on by default
+
+warning: redundant closure
+   --> domain_posts\src\handlers\post\translate\translate_handler.rs:743:42
+    |
+743 |             job.update(db).await.map_err(|e| AppError::Db(e))?;
+    |                                          ^^^^^^^^^^^^^^^^^^^ help: replace the closure with the tuple variant itself: `AppError::Db`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.100.0/index.html#redundant_closure
+
+warning: `to_string` applied to a type that implements `Display` in `format!` args
+   --> domain_posts\src\handlers\vector_store\vector_store_pg.rs:175:15
+    |
+175 |             id.to_string(),
+    |               ^^^^^^^^^^^^ help: remove this
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.100.0/index.html#to_string_in_format_args
+    = note: `#[warn(clippy::to_string_in_format_args)]` on by default
+
+warning: `to_string` applied to a type that implements `Display` in `format!` args
+   --> domain_posts\src\handlers\vector_store\vector_store_pg.rs:176:20
+    |
+176 |             post_id.to_string(),
+    |                    ^^^^^^^^^^^^ help: remove this
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.100.0/index.html#to_string_in_format_args
+
+warning: `to_string` applied to a type that implements `Display` in `format!` args
+   --> domain_posts\src\handlers\vector_store\vector_store_pg.rs:178:27
+    |
+178 |             translation_id.to_string(),
+    |                           ^^^^^^^^^^^^ help: remove this
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.100.0/index.html#to_string_in_format_args
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\domain\response.rs:21:1
+   |
+21 | / pub struct ApiResponseWith<TData>
+22 | | where
+23 | |     TData: Serialize,
+...  |
+26 | |     data: TData,
+27 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_posts\src\lib.rs:9:9
+   |
+ 9 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\domain\response.rs:61:1
+   |
+61 | / pub struct ApiResponseError {
+62 | |     error_code: ErrorCode,
+63 | |     errors: Vec<String>,
+64 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts\src\migrations\mod.rs:19:1
+   |
+19 | pub struct Migrator;
+   | ^^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_posts` (lib) generated 11 warnings (run `cargo clippy --fix --lib -p domain_posts -- ` to apply 8 suggestions)
+    Checking test_helpers v0.1.0 (D:\orca\my-cms\makara\apps\api\test_helpers)
+    Checking gateway v0.1.0 (D:\orca\my-cms\makara\apps\api\gateway)
+warning: constant `FORMAT_VERSION` is never used
+  --> gateway\src\backup_cli.rs:15:7
+   |
+15 | const FORMAT_VERSION: u32 = 1;
+   |       ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `Manifest` is never constructed
+  --> gateway\src\backup_cli.rs:18:8
+   |
+18 | struct Manifest {
+   |        ^^^^^^^^
+
+warning: struct `ObjectEntry` is never constructed
+  --> gateway\src\backup_cli.rs:32:8
+   |
+32 | struct ObjectEntry {
+   |        ^^^^^^^^^^^
+
+warning: function `safe_relative_path` is never used
+  --> gateway\src\backup_cli.rs:46:4
+   |
+46 | fn safe_relative_path(value: &str) -> bool {
+   |    ^^^^^^^^^^^^^^^^^^
+
+warning: function `digest` is never used
+  --> gateway\src\backup_cli.rs:55:4
+   |
+55 | fn digest(bytes: &[u8]) -> String {
+   |    ^^^^^^
+
+warning: function `now_seconds` is never used
+  --> gateway\src\backup_cli.rs:59:4
+   |
+59 | fn now_seconds() -> Result<u64, String> {
+   |    ^^^^^^^^^^^
+
+warning: `gateway` (bin "my-cms-api") generated 6 warnings
+warning: function `now_seconds` is never used
+  --> gateway\src\backup_cli.rs:59:4
+   |
+59 | fn now_seconds() -> Result<u64, String> {
+   |    ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
+   --> gateway\src\migrate_cli.rs:154:9
+    |
+154 | /         match previous {
+155 | |             Some(v) => std::env::set_var("DATABASE_URL", v),
+156 | |             None => {}
+157 | |         }
+    | |_________^ help: try: `if let Some(v) = previous { std::env::set_var("DATABASE_URL", v) }`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.100.0/index.html#single_match
+    = note: `#[warn(clippy::single_match)]` on by default
+
+warning: `gateway` (bin "my-cms-api" test) generated 2 warnings (run `cargo clippy --fix --bin "my-cms-api" -p gateway --tests -- ` to apply 1 suggestion)
+warning: `domain_user` (lib test) generated 2 warnings (2 duplicates)
+warning: `domain_media` (lib test) generated 11 warnings (11 duplicates)
+warning: `domain_posts` (lib test) generated 11 warnings (11 duplicates)
+warning: unused dependency `futures`
+  --> domain_interface\Cargo.toml:17:1
+   |
+17 | futures = "0.3"
+   | ^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `futures`
+warning: `domain_interface` (manifest) generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.74s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+EXIT: 0

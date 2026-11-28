@@ -1,0 +1,23 @@
+{
+  "source": "work-units.md (WU-01..WU-15, WU-17..WU-19; the sixteenth unit was split into WU-17, WU-18 and WU-19 on 2026-11-26); array order follows dependency order",
+  "units": [
+    { "id": "WU-01", "title": "Crate scaffold, domain types, config, clock, errors", "dependsOn": [] },
+    { "id": "WU-02", "title": "Migrations, entities, trigger guards, migrator table name", "dependsOn": ["WU-01"] },
+    { "id": "WU-03", "title": "Job store with CAS, claim, concurrency index", "dependsOn": ["WU-02"] },
+    { "id": "WU-04", "title": "Allocation ledger, fixture storage, namespace lock", "dependsOn": ["WU-02", "WU-03"] },
+    { "id": "WU-05", "title": "Worker, fixture capture, terminal rules, deadline", "dependsOn": ["WU-03", "WU-04"] },
+    { "id": "WU-06", "title": "Allocation reconciliation and retention store contracts", "dependsOn": ["WU-03", "WU-04"], "tests": ["TS-42", "TS-44", "TS-56", "TS-65"] },
+    { "id": "WU-17", "title": "Lifecycle reconciler: startup and recovery reconciliation, job fencing, orphan discovery", "dependsOn": ["WU-05", "WU-06"], "tests": ["TS-20", "TS-21", "TS-22", "TS-23", "TS-24", "TS-25", "TS-44", "TS-56"] },
+    { "id": "WU-18", "title": "Lifecycle cleaner: audited delete claim, unlink, retry and exhaustion", "dependsOn": ["WU-06", "WU-17"], "tests": ["TS-26", "TS-27", "TS-30", "TS-44", "TS-65"] },
+    { "id": "WU-19", "title": "Lifecycle sweeper and runtime: expiry and deadline sweeps, retention purge, startup barrier and outage recovery", "dependsOn": ["WU-06", "WU-17", "WU-18"], "tests": ["TS-28", "TS-29", "TS-30", "TS-32", "TS-42", "TS-65"] },
+    { "id": "WU-07", "title": "Idempotency, atomic acceptance", "dependsOn": ["WU-03"] },
+    { "id": "WU-08", "title": "Authorization policy, instance registry, REST read and create adapters, status endpoint, error projection", "dependsOn": ["WU-06", "WU-17", "WU-18", "WU-19", "WU-07"] },
+    { "id": "WU-09", "title": "Disabled capabilities, download denial, previews", "dependsOn": ["WU-08"] },
+    { "id": "WU-10", "title": "Gateway integration, runtime start, loopback guard, composed-router security", "dependsOn": ["WU-09"] },
+    { "id": "WU-11", "title": "CLI fail-closed tests and doc reconciliation", "dependsOn": ["WU-01"] },
+    { "id": "WU-12", "title": "Web foundation: types, API helpers, REST client", "dependsOn": ["WU-08"] },
+    { "id": "WU-13", "title": "Web page, route, menu, instance selector, create panel", "dependsOn": ["WU-12"] },
+    { "id": "WU-14", "title": "Web status, polling, preview, banner, accessibility", "dependsOn": ["WU-13"] },
+    { "id": "WU-15", "title": "Verification sweep: canary, e2e, doc updates, evidence for the release-candidate gate", "dependsOn": ["WU-10", "WU-11", "WU-14"] }
+  ]
+}

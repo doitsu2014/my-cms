@@ -1,0 +1,149 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+   Compiling domain_backup v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/.claude/worktrees/wf_6fc7eae6-d0c-1/apps/api/domain_backup)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.49s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/lib.rs (target/debug/build/domain_backup/90b1972bd40892cb/out/domain_backup-90b1972bd40892cb)
+
+running 21 tests
+test domain::fixtures::tests::ts53_catalog_trusts_exactly_three_synthetic_fixtures_by_exact_id ... FAILED
+test handlers::download_denied::tests::ts09_download_role_and_host_checks_precede_everything ... ok
+test handlers::disabled_capability::tests::ts09_role_host_and_origin_checks_precede_capability_disabled ... ok
+test infra::tests::capabilities_api::ts09_disabled_capabilities_leave_no_ledger_rows_or_files ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::capabilities_api::ts09_download_and_capability_denials_survive_an_audit_failure ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::capabilities_api::ts09_download_is_denied_for_every_status_and_changes_nothing ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::capabilities_api::ts09_download_unknown_foreign_and_malformed_ids_are_404_and_unaudited ... ignored, requires Docker for PostgreSQL testcontainer
+test handlers::preview::tests::ts09_preview_precedence_matrix ... FAILED
+test infra::tests::capabilities_api::ts10_client_flags_cannot_select_a_real_adapter ... ignored, requires Docker for PostgreSQL testcontainer
+test handlers::disabled_capability::tests::ts09_disabled_capabilities_never_poll_the_request_body ... FAILED
+test handlers::disabled_capability::tests::ts09_disabled_capabilities_return_403_whatever_the_backup_state ... FAILED
+test handlers::download_denied::tests::ts09_download_is_503_not_denied_while_backup_is_disabled_or_not_ready ... FAILED
+test handlers::disabled_capability::tests::ts09_denied_capabilities_create_no_files_and_record_one_denied_metric_each ... FAILED
+test handlers::disabled_capability::tests::ts09_capability_denial_attempts_audit_and_audit_failure_still_denies ... FAILED
+test handlers::preview::tests::ts64_request_supplied_target_values_are_rejected_not_echoed ... FAILED
+test handlers::preview::tests::ts53_unknown_fixture_ids_paths_and_uploads_are_rejected ... FAILED
+test handlers::preview::tests::ts60_preview_routes_enforce_media_type_and_the_16_kib_body_cap ... FAILED
+test handlers::preview::tests::ts43_confirm_and_cancel_previews_enqueue_nothing ... FAILED
+test handlers::preview::tests::ts53_preflight_preview_returns_the_canned_result_for_each_trusted_fixture ... FAILED
+test handlers::preview::tests::ts64_restore_confirmation_preview_carries_the_identification_fields ... FAILED
+test handlers::disabled_capability::tests::ts10_runtime_composition_holds_only_the_fixture_adapter ... ok
+
+failures:
+
+---- domain::fixtures::tests::ts53_catalog_trusts_exactly_three_synthetic_fixtures_by_exact_id stdout ----
+
+thread 'domain::fixtures::tests::ts53_catalog_trusts_exactly_three_synthetic_fixtures_by_exact_id' (11598237) panicked at domain_backup/src/domain/fixtures.rs:76:9:
+assertion `left == right` failed
+  left: []
+ right: ["fixture-valid", "fixture-incompatible", "fixture-corrupt"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- handlers::preview::tests::ts09_preview_precedence_matrix stdout ----
+
+thread 'handlers::preview::tests::ts09_preview_precedence_matrix' (11598246) panicked at domain_backup/src/handlers/disabled_capability/test_support.rs:241:5:
+assertion `left == right` failed: disabled /backup/previews/preflight: {"stub":true}
+  left: 501
+ right: 503
+
+---- handlers::disabled_capability::tests::ts09_disabled_capabilities_never_poll_the_request_body stdout ----
+
+thread 'handlers::disabled_capability::tests::ts09_disabled_capabilities_never_poll_the_request_body' (11598240) panicked at domain_backup/src/handlers/disabled_capability/test_support.rs:241:5:
+assertion `left == right` failed: disabled /backup/packages content-length 1073741824: {"stub":true}
+  left: 501
+ right: 403
+
+---- handlers::disabled_capability::tests::ts09_disabled_capabilities_return_403_whatever_the_backup_state stdout ----
+
+thread 'handlers::disabled_capability::tests::ts09_disabled_capabilities_return_403_whatever_the_backup_state' (11598241) panicked at domain_backup/src/handlers/disabled_capability/test_support.rs:241:5:
+assertion `left == right` failed: backup disabled /backup/packages: {"stub":true}
+  left: 501
+ right: 403
+
+---- handlers::download_denied::tests::ts09_download_is_503_not_denied_while_backup_is_disabled_or_not_ready stdout ----
+
+thread 'handlers::download_denied::tests::ts09_download_is_503_not_denied_while_backup_is_disabled_or_not_ready' (11598244) panicked at domain_backup/src/handlers/disabled_capability/test_support.rs:241:5:
+assertion `left == right` failed: disabled dfd27f4b-591d-4451-aa5d-983253e236bd: {"stub":true}
+  left: 501
+ right: 503
+
+---- handlers::disabled_capability::tests::ts09_denied_capabilities_create_no_files_and_record_one_denied_metric_each stdout ----
+
+thread 'handlers::disabled_capability::tests::ts09_denied_capabilities_create_no_files_and_record_one_denied_metric_each' (11598239) panicked at domain_backup/src/handlers/disabled_capability/test_support.rs:241:5:
+assertion `left == right` failed: /backup/packages: {"stub":true}
+  left: 501
+ right: 403
+
+---- handlers::disabled_capability::tests::ts09_capability_denial_attempts_audit_and_audit_failure_still_denies stdout ----
+
+thread 'handlers::disabled_capability::tests::ts09_capability_denial_attempts_audit_and_audit_failure_still_denies' (11598238) panicked at domain_backup/src/handlers/disabled_capability/test_support.rs:241:5:
+assertion `left == right` failed: /backup/packages: {"stub":true}
+  left: 501
+ right: 403
+
+---- handlers::preview::tests::ts64_request_supplied_target_values_are_rejected_not_echoed stdout ----
+
+thread 'handlers::preview::tests::ts64_request_supplied_target_values_are_rejected_not_echoed' (11598251) panicked at domain_backup/src/handlers/disabled_capability/test_support.rs:241:5:
+assertion `left == right` failed: /backup/previews/preflight target_instance_id: {"stub":true}
+  left: 501
+ right: 400
+
+---- handlers::preview::tests::ts53_unknown_fixture_ids_paths_and_uploads_are_rejected stdout ----
+
+thread 'handlers::preview::tests::ts53_unknown_fixture_ids_paths_and_uploads_are_rejected' (11598249) panicked at domain_backup/src/handlers/disabled_capability/test_support.rs:241:5:
+assertion `left == right` failed: /backup/previews/preflight "unknown": {"stub":true}
+  left: 501
+ right: 400
+
+---- handlers::preview::tests::ts60_preview_routes_enforce_media_type_and_the_16_kib_body_cap stdout ----
+
+thread 'handlers::preview::tests::ts60_preview_routes_enforce_media_type_and_the_16_kib_body_cap' (11598250) panicked at domain_backup/src/handlers/disabled_capability/test_support.rs:241:5:
+assertion `left == right` failed: /backup/previews/preflight Some("multipart/form-data; boundary=x"): {"stub":true}
+  left: 501
+ right: 415
+
+---- handlers::preview::tests::ts43_confirm_and_cancel_previews_enqueue_nothing stdout ----
+
+thread 'handlers::preview::tests::ts43_confirm_and_cancel_previews_enqueue_nothing' (11598247) panicked at domain_backup/src/handlers/preview/tests.rs:138:9:
+assertion `left == right` failed: {"stub":true}
+  left: 501
+ right: 200
+
+---- handlers::preview::tests::ts53_preflight_preview_returns_the_canned_result_for_each_trusted_fixture stdout ----
+
+thread 'handlers::preview::tests::ts53_preflight_preview_returns_the_canned_result_for_each_trusted_fixture' (11598248) panicked at domain_backup/src/handlers/preview/tests.rs:42:9:
+assertion `left == right` failed: fixture-valid: {"stub":true}
+  left: 501
+ right: 200
+
+---- handlers::preview::tests::ts64_restore_confirmation_preview_carries_the_identification_fields stdout ----
+
+thread 'handlers::preview::tests::ts64_restore_confirmation_preview_carries_the_identification_fields' (11598252) panicked at domain_backup/src/handlers/preview/tests.rs:73:9:
+assertion `left == right` failed: confirm: {"stub":true}
+  left: 501
+ right: 200
+
+
+failures:
+    domain::fixtures::tests::ts53_catalog_trusts_exactly_three_synthetic_fixtures_by_exact_id
+    handlers::disabled_capability::tests::ts09_capability_denial_attempts_audit_and_audit_failure_still_denies
+    handlers::disabled_capability::tests::ts09_denied_capabilities_create_no_files_and_record_one_denied_metric_each
+    handlers::disabled_capability::tests::ts09_disabled_capabilities_never_poll_the_request_body
+    handlers::disabled_capability::tests::ts09_disabled_capabilities_return_403_whatever_the_backup_state
+    handlers::download_denied::tests::ts09_download_is_503_not_denied_while_backup_is_disabled_or_not_ready
+    handlers::preview::tests::ts09_preview_precedence_matrix
+    handlers::preview::tests::ts43_confirm_and_cancel_previews_enqueue_nothing
+    handlers::preview::tests::ts53_preflight_preview_returns_the_canned_result_for_each_trusted_fixture
+    handlers::preview::tests::ts53_unknown_fixture_ids_paths_and_uploads_are_rejected
+    handlers::preview::tests::ts60_preview_routes_enforce_media_type_and_the_16_kib_body_cap
+    handlers::preview::tests::ts64_request_supplied_target_values_are_rejected_not_echoed
+    handlers::preview::tests::ts64_restore_confirmation_preview_carries_the_identification_fields
+
+test result: FAILED. 3 passed; 13 failed; 5 ignored; 0 measured; 349 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p domain_backup --lib`
+error: 1 target failed:
+    `-p domain_backup --lib`

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "unit": "WU-15",
+  "scope": "full",
+  "commands": [
+    "cargo test --workspace --no-fail-fast (apps/api; evidence/regression-wu15-rust-normal.log)",
+    "cargo test --workspace --no-fail-fast -- --ignored --test-threads=4 (apps/api; evidence/regression-wu15-rust-ignored.log)",
+    "pnpm test (apps/web; evidence/regression-wu15-web.log)",
+    "pnpm scan:bundle-canary (apps/web; evidence/green-wu15-bundle-canary-scan.log)",
+    "cargo test -p domain_backup verification_sweep -- --include-ignored (apps/api; evidence/green-wu15-sweep-focused.log)",
+    "dtech-aidlc ids check --stage build-and-verify"
+  ],
+  "failures": []
+}

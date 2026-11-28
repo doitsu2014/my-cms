@@ -1,0 +1,33 @@
+## WU-04 red (build-stage addition): delete fail-closed (2026-11-22T23:37:56+07:00)
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+   Compiling domain_backup v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_backup)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.75s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/b00dfc929d853c1e\out\domain_backup-b00dfc929d853c1e.exe)
+
+running 1 test
+test infra::tests::fs_fixture_storage::delete_fails_closed_when_the_namespace_directories_are_missing ... FAILED
+
+failures:
+
+---- infra::tests::fs_fixture_storage::delete_fails_closed_when_the_namespace_directories_are_missing stdout ----
+
+thread 'infra::tests::fs_fixture_storage::delete_fails_closed_when_the_namespace_directories_are_missing' (2372) panicked at domain_backup\src\infra\tests\fs_fixture_storage.rs:499:5:
+assertion `left == right` failed: missing alloc/ must not look like a deleted file
+  left: Ok(AlreadyAbsent)
+ right: Err(Unavailable)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    infra::tests::fs_fixture_storage::delete_fails_closed_when_the_namespace_directories_are_missing
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 185 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p domain_backup --lib`
+EXIT: 101

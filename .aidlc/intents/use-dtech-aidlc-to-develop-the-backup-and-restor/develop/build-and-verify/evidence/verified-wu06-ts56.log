@@ -1,0 +1,86 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused variable: `id`
+   --> domain_backup\src\ports\job_store.rs:229:9
+    |
+229 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `expected_epoch`
+   --> domain_backup\src\ports\job_store.rs:230:9
+    |
+230 |         expected_epoch: i64,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_epoch`
+
+warning: unused variable: `expected_status`
+   --> domain_backup\src\ports\job_store.rs:231:9
+    |
+231 |         expected_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_status`
+
+warning: unused variable: `expected_state_version`
+   --> domain_backup\src\ports\job_store.rs:232:9
+    |
+232 |         expected_state_version: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_state_version`
+
+warning: unused variable: `target_status`
+   --> domain_backup\src\ports\job_store.rs:233:9
+    |
+233 |         target_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_status`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\job_store.rs:234:9
+    |
+234 |         reason: ReasonCode,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\job_store.rs:235:9
+    |
+235 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\cleaner.rs:20:1
+   |
+20 | pub struct Cleaner;
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> domain_backup\src\lib.rs:5:9
+   |
+ 5 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\reconciler.rs:20:1
+   |
+20 | pub struct Reconciler;
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\sweeper.rs:17:1
+   |
+17 | pub struct Sweeper;
+   | ^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_backup` (lib test) generated 10 warnings (run `cargo fix --lib -p domain_backup --tests` to apply 7 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.55s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (apps\api\target\debug\build\domain_backup/3b844752f3f297a2\out\domain_backup-3b844752f3f297a2.exe)
+
+running 1 test
+test infra::tests::reconciliation::ts56_allocation_inventory_preserves_nullable_orphan_owners ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 257 filtered out; finished in 2.23s
+
+
+EXIT_CODE=0

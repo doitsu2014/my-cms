@@ -1,0 +1,215 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused variable: `id`
+   --> domain_backup\src\ports\job_store.rs:264:9
+    |
+264 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `expected_epoch`
+   --> domain_backup\src\ports\job_store.rs:265:9
+    |
+265 |         expected_epoch: i64,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_epoch`
+
+warning: unused variable: `expected_status`
+   --> domain_backup\src\ports\job_store.rs:266:9
+    |
+266 |         expected_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_status`
+
+warning: unused variable: `expected_state_version`
+   --> domain_backup\src\ports\job_store.rs:267:9
+    |
+267 |         expected_state_version: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_state_version`
+
+warning: unused variable: `target_status`
+   --> domain_backup\src\ports\job_store.rs:268:9
+    |
+268 |         target_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_status`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\job_store.rs:269:9
+    |
+269 |         reason: ReasonCode,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\job_store.rs:270:9
+    |
+270 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\cleaner.rs:20:1
+   |
+20 | pub struct Cleaner;
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> domain_backup\src\lib.rs:5:9
+   |
+ 5 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\reconciler.rs:20:1
+   |
+20 | pub struct Reconciler;
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\sweeper.rs:17:1
+   |
+17 | pub struct Sweeper;
+   | ^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_backup` (lib) generated 10 warnings (run `cargo fix --lib -p domain_backup` to apply 7 suggestions)
+warning: `domain_backup` (lib test) generated 10 warnings (10 duplicates)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.53s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d5c5af4ad2d20f53\out\domain_backup-d5c5af4ad2d20f53.exe)
+
+running 18 tests
+test domain::idempotency::tests::digest_never_contains_the_raw_key ... ok
+test domain::idempotency::tests::missing_key_is_missing_not_invalid ... ok
+test domain::idempotency::tests::separator_prevents_field_boundary_collisions ... FAILED
+test domain::idempotency::tests::digest_is_scoped_by_actor_operation_and_key ... FAILED
+test domain::idempotency::tests::digest_matches_the_reference_vector ... FAILED
+test domain::idempotency::tests::key_length_bounds_are_inclusive ... FAILED
+test domain::idempotency::tests::fingerprint_depends_on_operation_and_instance ... FAILED
+test handlers::create_job::request::tests::a_valid_request_is_accepted_with_the_key_and_instance ... FAILED
+test handlers::create_job::request::tests::missing_and_invalid_keys_have_distinct_errors ... FAILED
+test handlers::create_job::request::tests::a_non_configured_instance_is_refused ... FAILED
+test domain::idempotency::tests::fingerprint_matches_the_reference_vector ... FAILED
+test domain::idempotency::tests::key_character_set_is_ascii_alphanumeric_underscore_hyphen ... FAILED
+test handlers::create_job::request::tests::media_type_ignores_case_and_parameters_but_nothing_else ... FAILED
+test handlers::create_job::request::tests::check_order_is_media_type_then_size_then_body_then_key_then_instance ... FAILED
+test handlers::create_job::request::tests::size_is_checked_before_the_body_is_parsed ... FAILED
+test handlers::create_job::request::tests::body_cap_is_16_kib_inclusive ... FAILED
+test handlers::create_job::request::tests::strict_json_rejects_malformed_unknown_and_missing_fields ... ok
+test handlers::create_job::request::tests::the_raw_key_is_not_in_any_error_text ... ok
+
+failures:
+
+---- domain::idempotency::tests::separator_prevents_field_boundary_collisions stdout ----
+
+thread 'domain::idempotency::tests::separator_prevents_field_boundary_collisions' (20588) panicked at domain_backup\src\domain\idempotency.rs:105:9:
+assertion `left != right` failed
+  left: "0000000000000000000000000000000000000000000000000000000000000000"
+ right: "0000000000000000000000000000000000000000000000000000000000000000"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- domain::idempotency::tests::digest_is_scoped_by_actor_operation_and_key stdout ----
+
+thread 'domain::idempotency::tests::digest_is_scoped_by_actor_operation_and_key' (9704) panicked at domain_backup\src\domain\idempotency.rs:96:9:
+assertion `left != right` failed
+  left: "0000000000000000000000000000000000000000000000000000000000000000"
+ right: "0000000000000000000000000000000000000000000000000000000000000000"
+
+---- domain::idempotency::tests::digest_matches_the_reference_vector stdout ----
+
+thread 'domain::idempotency::tests::digest_matches_the_reference_vector' (40008) panicked at domain_backup\src\domain\idempotency.rs:83:9:
+assertion `left == right` failed
+  left: "0000000000000000000000000000000000000000000000000000000000000000"
+ right: "659aa45349ff4ac46019234dad8bc365a692ffcb7be0fa9c2f369c226ec2301b"
+
+---- domain::idempotency::tests::key_length_bounds_are_inclusive stdout ----
+
+thread 'domain::idempotency::tests::key_length_bounds_are_inclusive' (32112) panicked at domain_backup\src\domain\idempotency.rs:55:9:
+assertion `left == right` failed
+  left: Ok("1234567")
+ right: Err(Invalid)
+
+---- domain::idempotency::tests::fingerprint_depends_on_operation_and_instance stdout ----
+
+thread 'domain::idempotency::tests::fingerprint_depends_on_operation_and_instance' (22468) panicked at domain_backup\src\domain\idempotency.rs:128:9:
+assertion `left != right` failed
+  left: "0000000000000000000000000000000000000000000000000000000000000000"
+ right: "0000000000000000000000000000000000000000000000000000000000000000"
+
+---- handlers::create_job::request::tests::a_valid_request_is_accepted_with_the_key_and_instance stdout ----
+
+thread 'handlers::create_job::request::tests::a_valid_request_is_accepted_with_the_key_and_instance' (25496) panicked at domain_backup\src\handlers\create_job\request.rs:49:54:
+called `Result::unwrap()` on an `Err` value: MalformedRequest
+
+---- handlers::create_job::request::tests::missing_and_invalid_keys_have_distinct_errors stdout ----
+
+thread 'handlers::create_job::request::tests::missing_and_invalid_keys_have_distinct_errors' (37704) panicked at domain_backup\src\handlers\create_job\request.rs:129:9:
+assertion `left == right` failed
+  left: Err(MalformedRequest)
+ right: Err(IdempotencyKeyRequired)
+
+---- handlers::create_job::request::tests::a_non_configured_instance_is_refused stdout ----
+
+thread 'handlers::create_job::request::tests::a_non_configured_instance_is_refused' (42688) panicked at domain_backup\src\handlers\create_job\request.rs:145:9:
+assertion `left == right` failed
+  left: Err(MalformedRequest)
+ right: Err(InstanceNotAllowed)
+
+---- domain::idempotency::tests::fingerprint_matches_the_reference_vector stdout ----
+
+thread 'domain::idempotency::tests::fingerprint_matches_the_reference_vector' (30348) panicked at domain_backup\src\domain\idempotency.rs:119:9:
+assertion `left == right` failed
+  left: "0000000000000000000000000000000000000000000000000000000000000000"
+ right: "b384ffa6bef9835603e1e7c7eefd78748f112d50d502be0329d66cc3354312e6"
+
+---- domain::idempotency::tests::key_character_set_is_ascii_alphanumeric_underscore_hyphen stdout ----
+
+thread 'domain::idempotency::tests::key_character_set_is_ascii_alphanumeric_underscore_hyphen' (28260) panicked at domain_backup\src\domain\idempotency.rs:77:13:
+assertion `left == right` failed: "abcd efgh"
+  left: Ok("abcd efgh")
+ right: Err(Invalid)
+
+---- handlers::create_job::request::tests::media_type_ignores_case_and_parameters_but_nothing_else stdout ----
+
+thread 'handlers::create_job::request::tests::media_type_ignores_case_and_parameters_but_nothing_else' (21112) panicked at domain_backup\src\handlers\create_job\request.rs:61:13:
+application/json
+
+---- handlers::create_job::request::tests::check_order_is_media_type_then_size_then_body_then_key_then_instance stdout ----
+
+thread 'handlers::create_job::request::tests::check_order_is_media_type_then_size_then_body_then_key_then_instance' (28456) panicked at domain_backup\src\handlers\create_job\request.rs:159:9:
+assertion `left == right` failed
+  left: Err(MalformedRequest)
+ right: Err(UnsupportedMediaType)
+
+---- handlers::create_job::request::tests::size_is_checked_before_the_body_is_parsed stdout ----
+
+thread 'handlers::create_job::request::tests::size_is_checked_before_the_body_is_parsed' (10040) panicked at domain_backup\src\handlers\create_job\request.rs:100:9:
+assertion `left == right` failed
+  left: Err(MalformedRequest)
+ right: Err(PayloadTooLarge)
+
+---- handlers::create_job::request::tests::body_cap_is_16_kib_inclusive stdout ----
+
+thread 'handlers::create_job::request::tests::body_cap_is_16_kib_inclusive' (37188) panicked at domain_backup\src\handlers\create_job\request.rs:88:9:
+assertion failed: parse(JSON, Some(KEY), &at_cap).is_ok()
+
+
+failures:
+    domain::idempotency::tests::digest_is_scoped_by_actor_operation_and_key
+    domain::idempotency::tests::digest_matches_the_reference_vector
+    domain::idempotency::tests::fingerprint_depends_on_operation_and_instance
+    domain::idempotency::tests::fingerprint_matches_the_reference_vector
+    domain::idempotency::tests::key_character_set_is_ascii_alphanumeric_underscore_hyphen
+    domain::idempotency::tests::key_length_bounds_are_inclusive
+    domain::idempotency::tests::separator_prevents_field_boundary_collisions
+    handlers::create_job::request::tests::a_non_configured_instance_is_refused
+    handlers::create_job::request::tests::a_valid_request_is_accepted_with_the_key_and_instance
+    handlers::create_job::request::tests::body_cap_is_16_kib_inclusive
+    handlers::create_job::request::tests::check_order_is_media_type_then_size_then_body_then_key_then_instance
+    handlers::create_job::request::tests::media_type_ignores_case_and_parameters_but_nothing_else
+    handlers::create_job::request::tests::missing_and_invalid_keys_have_distinct_errors
+    handlers::create_job::request::tests::size_is_checked_before_the_body_is_parsed
+
+test result: FAILED. 4 passed; 14 failed; 0 ignored; 0 measured; 272 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p domain_backup --lib`

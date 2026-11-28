@@ -65,6 +65,7 @@ export default function LeftMenu() {
                 <MenuItem displayName="Users" slug="/admin/users" />
               </li>
               {isAdministrator && <li><MenuItem displayName="SEO head assets" slug="/admin/seo/head-assets" /></li>}
+              {isAdministrator && <li><MenuItem displayName="Backup" slug="/admin/backup" /></li>}
             </ul>
           </details>
         </li>

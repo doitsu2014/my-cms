@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "results": [
+    {
+      "name": "docker",
+      "ok": true,
+      "check": "docker info",
+      "hint": "Start Docker Desktop; DB-backed tests (testcontainers) and migration checks need it",
+      "exitCode": 0,
+      "startedAt": "2026-11-25T07:31:37.407Z"
+    }
+  ]
+}

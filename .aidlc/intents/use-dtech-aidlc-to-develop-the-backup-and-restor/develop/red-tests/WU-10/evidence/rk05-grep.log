@@ -1,0 +1,3 @@
+domain_posts/src/domain/layers.rs:13:/// CORS layer used by every mode. Mirrors the legacy `construct_cors_layer`.
+domain_posts/src/domain/layers.rs:14:pub fn cors_layer() -> CorsLayer {
+domain_posts/src/domain/layers.rs:33:pub fn body_limit_layer() -> DefaultBodyLimit {

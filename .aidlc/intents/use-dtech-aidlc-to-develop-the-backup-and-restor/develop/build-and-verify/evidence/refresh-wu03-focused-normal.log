@@ -1,0 +1,149 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused variable: `id`
+   --> domain_backup\src\ports\allocation_store.rs:185:9
+    |
+185 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `expected`
+   --> domain_backup\src\ports\allocation_store.rs:186:9
+    |
+186 |         expected: (AllocationState, i64, i64),
+    |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected`
+
+warning: unused variable: `to`
+   --> domain_backup\src\ports\allocation_store.rs:187:9
+    |
+187 |         to: AllocationState,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_to`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\allocation_store.rs:188:9
+    |
+188 |         reason: Option<ReasonCode>,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\allocation_store.rs:189:9
+    |
+189 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: unused variable: `id`
+   --> domain_backup\src\ports\job_store.rs:229:9
+    |
+229 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+
+warning: unused variable: `expected_epoch`
+   --> domain_backup\src\ports\job_store.rs:230:9
+    |
+230 |         expected_epoch: i64,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_epoch`
+
+warning: unused variable: `expected_status`
+   --> domain_backup\src\ports\job_store.rs:231:9
+    |
+231 |         expected_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_status`
+
+warning: unused variable: `expected_state_version`
+   --> domain_backup\src\ports\job_store.rs:232:9
+    |
+232 |         expected_state_version: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_state_version`
+
+warning: unused variable: `target_status`
+   --> domain_backup\src\ports\job_store.rs:233:9
+    |
+233 |         target_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_status`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\job_store.rs:234:9
+    |
+234 |         reason: ReasonCode,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\job_store.rs:235:9
+    |
+235 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\cleaner.rs:20:1
+   |
+20 | pub struct Cleaner;
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> domain_backup\src\lib.rs:5:9
+   |
+ 5 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\reconciler.rs:20:1
+   |
+20 | pub struct Reconciler;
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\sweeper.rs:17:1
+   |
+17 | pub struct Sweeper;
+   | ^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_backup` (lib test) generated 15 warnings (run `cargo fix --lib -p domain_backup --tests` to apply 12 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.49s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (apps\api\target\debug\build\domain_backup/3b844752f3f297a2\out\domain_backup-3b844752f3f297a2.exe)
+
+running 36 tests
+test infra::tests::job_store::a_claim_and_a_queued_failure_race_to_exactly_one_winner ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::a_claim_blocked_on_a_row_taken_by_another_transaction_does_not_claim_it_again ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::a_late_worker_cannot_overwrite_a_terminal_result ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::a_stale_version_or_status_loses_and_changes_nothing ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::a_transition_blocked_on_the_row_lock_loses_after_the_winner_commits ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::a_transition_hands_its_own_uncommitted_transaction_to_the_audit_sink ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::a_transition_writes_one_job_audit_row_with_its_event_and_ids ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::accept_inserts_a_queued_job_and_its_idempotency_row ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::accept_is_part_of_the_callers_transaction ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::accept_refuses_digests_that_are_not_sha256_hex_without_writing ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::accept_succeeds_after_the_active_job_is_terminal_and_for_other_instances ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::an_audit_failure_refuses_the_claim ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::an_audit_failure_refuses_the_transition ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::an_audit_outage_is_a_store_outage_for_transitions_and_claims ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::an_audit_row_written_before_the_sink_fails_rolls_back_with_the_claim ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::an_audit_row_written_before_the_sink_fails_rolls_back_with_the_transition ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::an_idempotency_key_collision_is_a_unique_violation_not_a_persistence_error ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::claim_next_claims_the_oldest_queued_job ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::claim_next_never_reclaims_a_running_or_terminal_job ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::concurrent_accepts_for_one_instance_create_exactly_one_job ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::concurrent_claims_never_claim_a_job_twice ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::conflicting_accept_leaves_no_job_or_idempotency_row ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::duplicate_job_id_is_a_persistence_error_not_a_concurrency_conflict ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::each_legal_edge_applies_bumps_the_version_and_stamps_times ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::edges_outside_the_u1_graph_are_refused_without_changes ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::exactly_one_of_n_concurrent_claims_wins ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::get_returns_the_stored_row_and_none_for_an_unknown_id ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::omitting_components_keeps_the_stored_components ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::racing_terminal_transitions_have_exactly_one_winner ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::second_accept_conflicts_while_a_job_is_running ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::second_accept_conflicts_while_the_first_job_is_queued ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::terminal_rows_are_immutable_through_the_store ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::the_claim_hands_its_own_uncommitted_transaction_to_the_audit_sink ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::the_job_audit_row_excludes_free_text_stored_on_the_job ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::transition_of_an_unknown_job_is_not_found ... ignored, requires Docker for PostgreSQL testcontainer
+test infra::tests::job_store::reason_codes_map_to_the_ifc_10_1_spellings ... ok
+
+test result: ok. 1 passed; 0 failed; 35 ignored; 0 measured; 221 filtered out; finished in 0.00s
+

@@ -1,0 +1,83 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+   Compiling domain_backup v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_backup)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.91s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d592c16f92cfabf7\out\domain_backup-d592c16f92cfabf7.exe)
+
+running 33 tests
+test migrations::tests::backup_jobs_defaults_apply ... ok
+test migrations::tests::down_refuses_while_audit_rows_exist_and_keeps_everything ... FAILED
+test migrations::tests::allocation_checks_and_epoch_singleton ... ok
+test migrations::tests::audit_rows_cannot_be_updated_or_deleted ... ok
+test migrations::tests::every_status_transition_pair_is_allowed_or_rejected_exactly ... ok
+test migrations::tests::down_refuses_while_an_allocation_is_not_deleted ... FAILED
+test migrations::tests::down_one_step_removes_only_the_jobs_trigger ... ok
+test migrations::tests::audit_digest_is_char_64 ... ok
+test migrations::tests::backup_jobs_columns_match_the_contract ... ok
+test migrations::tests::down_without_audit_rows_keeps_audit_table_and_trigger_and_drops_the_rest ... ok
+test migrations::tests::both_guard_triggers_are_present ... ok
+test migrations::tests::audit_cannot_be_truncated ... ok
+test migrations::tests::allocation_job_fk_and_column_defaults ... ok
+test migrations::tests::backup_jobs_row_checks_reject_bad_rows ... ok
+test migrations::tests::fresh_database_gets_all_five_backup_tables ... ok
+test migrations::tests::down_succeeds_when_every_allocation_is_deleted ... ok
+test migrations::tests::idempotency_unique_and_restrict_fk ... ok
+test migrations::tests::illegal_non_terminal_transitions_are_rejected ... ok
+test migrations::tests::legal_transitions_are_allowed ... ok
+test migrations::tests::migration_records_only_in_seaql_migrations_backup ... ok
+test migrations::tests::migrations_cli_run_applies_on_a_fresh_database ... ok
+test migrations::tests::only_one_active_job_per_instance ... ok
+test migrations::tests::other_backup_table_columns_match_the_contract ... FAILED
+test migrations::tests::second_up_is_a_no_op ... ok
+test migrations::tests::secondary_indexes_exist ... ok
+test migrations::tests::status_column_accepts_every_documented_value_when_u1_guard_is_removed ... ok
+test migrations::tests::status_column_check_keeps_all_six_documented_values ... ok
+test migrations::tests::terminal_job_cannot_be_updated ... ok
+test migrations::tests::terminal_job_without_idempotency_row_can_be_deleted_and_audit_has_no_fk ... ok
+test migrations::tests::u1_job_cannot_be_inserted_as_succeeded_or_recovery_required ... ok
+test migrations::tests::u1_job_cannot_be_updated_to_succeeded_or_recovery_required ... ok
+test migrations::tests::upgrade_beside_posts_and_seo_leaves_their_tables_untouched ... ok
+test migrations::tests::upgrade_from_000001_to_000002 ... ok
+
+failures:
+
+---- migrations::tests::down_refuses_while_audit_rows_exist_and_keeps_everything stdout ----
+
+thread 'migrations::tests::down_refuses_while_audit_rows_exist_and_keeps_everything' (36428) panicked at domain_backup\src\migrations\tests.rs:1261:10:
+down must refuse while backup_audit has rows: ()
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- migrations::tests::down_refuses_while_an_allocation_is_not_deleted stdout ----
+
+thread 'migrations::tests::down_refuses_while_an_allocation_is_not_deleted' (36392) panicked at domain_backup\src\migrations\tests.rs:1339:14:
+down must refuse while an allocation is `registered`: ()
+
+---- migrations::tests::other_backup_table_columns_match_the_contract stdout ----
+
+thread 'migrations::tests::other_backup_table_columns_match_the_contract' (1796) panicked at domain_backup\src\migrations\tests.rs:526:5:
+assertion `left == right` failed
+  left: ["bytes_reserved|bigint|NO", "cleanup_attempts|integer|NO", "created_at|timestamp with time zone|NO", "deleted_at|timestamp with time zone|YES", "epoch|bigint|NO", "expires_at|timestamp with time zone|NO", "id|uuid|NO", "job_id|uuid|YES", "last_reason_code|text|YES", "next_attempt_at|timestamp with time zone|YES", "orphan_grace_until|timestamp with time zone|YES", "state|text|NO", "state_version|bigint|NO", "storage_key|text|NO", "updated_at|timestamp with time zone|NO"]
+ right: ["bytes_reserved|bigint|NO", "cleanup_attempts|integer|NO", "created_at|timestamp with time zone|NO", "deleted_at|timestamp with time zone|YES", "epoch|bigint|NO", "expires_at|timestamp with time zone|NO", "id|uuid|NO", "job_id|uuid|YES", "last_reason_code|text|YES", "next_attempt_at|timestamp with time zone|YES", "orphan_grace_until|timestamp with time zone|YES", "state_version|bigint|NO", "state|text|NO", "storage_key|text|NO", "updated_at|timestamp with time zone|NO"]
+
+
+failures:
+    migrations::tests::down_refuses_while_an_allocation_is_not_deleted
+    migrations::tests::down_refuses_while_audit_rows_exist_and_keeps_everything
+    migrations::tests::other_backup_table_columns_match_the_contract
+
+test result: FAILED. 30 passed; 3 failed; 0 ignored; 0 measured; 37 filtered out; finished in 27.44s
+
+error: test failed, to rerun pass `-p domain_backup --lib`
+   Doc-tests domain_backup
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: 1 target failed:
+    `-p domain_backup --lib`

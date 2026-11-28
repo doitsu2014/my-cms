@@ -1,0 +1,27 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+    Blocking waiting for file lock on build directory
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.91s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d5c5af4ad2d20f53\out\domain_backup-d5c5af4ad2d20f53.exe)
+
+running 12 tests
+test infra::tests::runtime::a_runtime_that_was_never_started_refuses_ticks_and_recovery ... ok
+test infra::tests::runtime::ts56_a_truncated_inventory_keeps_startup_closed_and_not_ready ... ok
+test infra::tests::runtime::ts32_a_second_runtime_cannot_acquire_the_lock_and_mutates_nothing ... ok
+test infra::tests::runtime::ts29_a_truncated_recovery_stays_closed_and_degraded_until_it_succeeds ... ok
+test infra::tests::runtime::ts30_the_cleaner_ticks_every_60_seconds_and_the_sweep_every_15_minutes ... ok
+test infra::tests::runtime::ts32_startup_runs_lock_epoch_reconcile_cleanup_then_opens_admissions ... ok
+test infra::tests::runtime::ts29_a_refused_reconcile_audit_keeps_recovery_closed ... ok
+test infra::tests::runtime::ts56_a_truncated_sweep_scan_degrades_but_keeps_admissions_open ... ok
+test infra::tests::runtime::ts29_recovery_reconciles_then_cleans_then_sweeps_then_reopens_without_a_new_epoch ... ok
+test infra::tests::runtime::ts29_a_store_outage_closes_admissions_and_stops_all_store_work ... ok
+test infra::tests::runtime::ts29_three_refused_audit_sweeps_close_admissions_and_degrade ... ok
+test infra::tests::runtime::ts29_a_good_sweep_resets_the_refused_audit_count ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 319 filtered out; finished in 12.98s
+

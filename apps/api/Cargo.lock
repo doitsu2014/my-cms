@@ -1255,6 +1255,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "domain_backup"
+version = "0.1.0"
+dependencies = [
+ "async-graphql",
+ "async-trait",
+ "axum",
+ "base64",
+ "chrono",
+ "domain_interface",
+ "futures-core",
+ "sea-orm",
+ "sea-orm-migration",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "testcontainers",
+ "testcontainers-modules",
+ "thiserror 2.0.18",
+ "tokio",
+ "tower",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
 name = "domain_interface"
 version = "0.1.0"
 dependencies = [
@@ -1784,6 +1810,7 @@ dependencies = [
  "axum",
  "axum-tracing-opentelemetry",
  "domain_auth",
+ "domain_backup",
  "domain_interface",
  "domain_media",
  "domain_posts",
@@ -1792,6 +1819,7 @@ dependencies = [
  "dotenv",
  "hyper",
  "init-tracing-opentelemetry",
+ "jsonwebtoken",
  "sea-orm",
  "serde",
  "serde_json",

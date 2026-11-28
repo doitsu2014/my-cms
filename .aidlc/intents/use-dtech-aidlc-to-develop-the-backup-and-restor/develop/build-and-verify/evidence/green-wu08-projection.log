@@ -1,0 +1,17 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.42s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/7e2c0d45b3828181\out\domain_backup-7e2c0d45b3828181.exe)
+
+running 3 tests
+test handlers::job_response::tests::ts12b_projection_refuses_success_and_recovery_required ... ok
+test handlers::job_response::tests::ts49_projection_reports_progress_only_for_a_measured_database_component ... ok
+test handlers::job_response::tests::ts49_projection_omits_actor_and_unmeasured_progress_and_denies_download ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 341 filtered out; finished in 0.00s
+

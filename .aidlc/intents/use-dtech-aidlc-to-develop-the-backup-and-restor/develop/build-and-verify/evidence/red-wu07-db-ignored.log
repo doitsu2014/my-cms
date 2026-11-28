@@ -1,0 +1,187 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: unused variable: `id`
+   --> domain_backup\src\ports\job_store.rs:264:9
+    |
+264 |         id: Uuid,
+    |         ^^ help: if this is intentional, prefix it with an underscore: `_id`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `expected_epoch`
+   --> domain_backup\src\ports\job_store.rs:265:9
+    |
+265 |         expected_epoch: i64,
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_epoch`
+
+warning: unused variable: `expected_status`
+   --> domain_backup\src\ports\job_store.rs:266:9
+    |
+266 |         expected_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_status`
+
+warning: unused variable: `expected_state_version`
+   --> domain_backup\src\ports\job_store.rs:267:9
+    |
+267 |         expected_state_version: i64,
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_expected_state_version`
+
+warning: unused variable: `target_status`
+   --> domain_backup\src\ports\job_store.rs:268:9
+    |
+268 |         target_status: BackupJobStatus,
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_status`
+
+warning: unused variable: `reason`
+   --> domain_backup\src\ports\job_store.rs:269:9
+    |
+269 |         reason: ReasonCode,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_reason`
+
+warning: unused variable: `now`
+   --> domain_backup\src\ports\job_store.rs:270:9
+    |
+270 |         now: DateTime<Utc>,
+    |         ^^^ help: if this is intentional, prefix it with an underscore: `_now`
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\cleaner.rs:20:1
+   |
+20 | pub struct Cleaner;
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> domain_backup\src\lib.rs:5:9
+   |
+ 5 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\reconciler.rs:20:1
+   |
+20 | pub struct Reconciler;
+   | ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_backup\src\lifecycle\sweeper.rs:17:1
+   |
+17 | pub struct Sweeper;
+   | ^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_backup` (lib) generated 10 warnings (run `cargo fix --lib -p domain_backup` to apply 7 suggestions)
+warning: `domain_backup` (lib test) generated 10 warnings (10 duplicates)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.53s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d5c5af4ad2d20f53\out\domain_backup-d5c5af4ad2d20f53.exe)
+
+running 14 tests
+test handlers::create_job::tests::ts13_concurrent_same_key_same_body_yields_one_job_and_replays ... FAILED
+test handlers::create_job::tests::ts13_the_key_is_scoped_by_actor ... FAILED
+test handlers::create_job::tests::ts44a_job_accepted_event_has_every_field_and_no_excluded_content ... FAILED
+test handlers::create_job::tests::ts14b_concurrent_different_keys_leave_exactly_one_active_job ... FAILED
+test handlers::create_job::tests::ts15_an_audit_outage_is_store_unavailable_and_persists_nothing ... ok
+test handlers::create_job::tests::ts44a_the_accepted_event_is_written_on_the_acceptance_transaction ... FAILED
+test handlers::create_job::tests::ts13_concurrent_same_key_different_body_yields_accept_and_key_reused ... FAILED
+test handlers::create_job::tests::ts13_an_expired_but_unpurged_key_is_a_new_request ... FAILED
+test handlers::create_job::tests::ts14b_a_second_key_is_concurrency_limit_and_a_replay_never_is ... FAILED
+test handlers::create_job::tests::ts13_same_key_same_body_replays_the_existing_job ... FAILED
+test handlers::create_job::tests::ts15_a_rejected_audit_write_persists_nothing ... FAILED
+test handlers::create_job::tests::ts13_same_key_different_body_is_key_reused ... FAILED
+test handlers::create_job::tests::ts13_raw_key_is_absent_from_every_table_and_only_digests_are_stored ... FAILED
+test handlers::create_job::tests::ts16_a_failed_commit_is_not_accepted_and_a_retry_resolves ... FAILED
+
+failures:
+
+---- handlers::create_job::tests::ts13_concurrent_same_key_same_body_yields_one_job_and_replays stdout ----
+
+thread 'handlers::create_job::tests::ts13_concurrent_same_key_same_body_yields_one_job_and_replays' (32824) panicked at domain_backup\src\handlers\create_job\tests.rs:330:23:
+a duplicate must replay, never fail: StoreUnavailable
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- handlers::create_job::tests::ts13_the_key_is_scoped_by_actor stdout ----
+
+thread 'handlers::create_job::tests::ts13_the_key_is_scoped_by_actor' (38908) panicked at domain_backup\src\handlers\create_job\tests.rs:193:18:
+expected Created, got Err(StoreUnavailable)
+
+---- handlers::create_job::tests::ts44a_job_accepted_event_has_every_field_and_no_excluded_content stdout ----
+
+thread 'handlers::create_job::tests::ts44a_job_accepted_event_has_every_field_and_no_excluded_content' (43184) panicked at domain_backup\src\handlers\create_job\tests.rs:193:18:
+expected Created, got Err(StoreUnavailable)
+
+---- handlers::create_job::tests::ts14b_concurrent_different_keys_leave_exactly_one_active_job stdout ----
+
+thread 'handlers::create_job::tests::ts14b_concurrent_different_keys_leave_exactly_one_active_job' (33552) panicked at domain_backup\src\handlers\create_job\tests.rs:447:22:
+unexpected outcome Err(StoreUnavailable)
+
+---- handlers::create_job::tests::ts44a_the_accepted_event_is_written_on_the_acceptance_transaction stdout ----
+
+thread 'handlers::create_job::tests::ts44a_the_accepted_event_is_written_on_the_acceptance_transaction' (36148) panicked at domain_backup\src\handlers\create_job\tests.rs:193:18:
+expected Created, got Err(StoreUnavailable)
+
+---- handlers::create_job::tests::ts13_concurrent_same_key_different_body_yields_accept_and_key_reused stdout ----
+
+thread 'handlers::create_job::tests::ts13_concurrent_same_key_different_body_yields_accept_and_key_reused' (28632) panicked at domain_backup\src\handlers\create_job\tests.rs:360:9:
+assertion `left == right` failed: round 0: Err(StoreUnavailable) / Err(StoreUnavailable)
+  left: (0, 0)
+ right: (1, 1)
+
+---- handlers::create_job::tests::ts13_an_expired_but_unpurged_key_is_a_new_request stdout ----
+
+thread 'handlers::create_job::tests::ts13_an_expired_but_unpurged_key_is_a_new_request' (24840) panicked at domain_backup\src\handlers\create_job\tests.rs:193:18:
+expected Created, got Err(StoreUnavailable)
+
+---- handlers::create_job::tests::ts14b_a_second_key_is_concurrency_limit_and_a_replay_never_is stdout ----
+
+thread 'handlers::create_job::tests::ts14b_a_second_key_is_concurrency_limit_and_a_replay_never_is' (4932) panicked at domain_backup\src\handlers\create_job\tests.rs:193:18:
+expected Created, got Err(StoreUnavailable)
+
+---- handlers::create_job::tests::ts13_same_key_same_body_replays_the_existing_job stdout ----
+
+thread 'handlers::create_job::tests::ts13_same_key_same_body_replays_the_existing_job' (4036) panicked at domain_backup\src\handlers\create_job\tests.rs:193:18:
+expected Created, got Err(StoreUnavailable)
+
+---- handlers::create_job::tests::ts15_a_rejected_audit_write_persists_nothing stdout ----
+
+thread 'handlers::create_job::tests::ts15_a_rejected_audit_write_persists_nothing' (3000) panicked at domain_backup\src\handlers\create_job\tests.rs:462:5:
+assertion `left == right` failed
+  left: Err(StoreUnavailable)
+ right: Err(AuditUnavailable)
+
+---- handlers::create_job::tests::ts13_same_key_different_body_is_key_reused stdout ----
+
+thread 'handlers::create_job::tests::ts13_same_key_different_body_is_key_reused' (38128) panicked at domain_backup\src\handlers\create_job\tests.rs:193:18:
+expected Created, got Err(StoreUnavailable)
+
+---- handlers::create_job::tests::ts13_raw_key_is_absent_from_every_table_and_only_digests_are_stored stdout ----
+
+thread 'handlers::create_job::tests::ts13_raw_key_is_absent_from_every_table_and_only_digests_are_stored' (35688) panicked at domain_backup\src\handlers\create_job\tests.rs:193:18:
+expected Created, got Err(StoreUnavailable)
+
+---- handlers::create_job::tests::ts16_a_failed_commit_is_not_accepted_and_a_retry_resolves stdout ----
+
+thread 'handlers::create_job::tests::ts16_a_failed_commit_is_not_accepted_and_a_retry_resolves' (1964) panicked at domain_backup\src\handlers\create_job\tests.rs:193:18:
+expected Created, got Err(StoreUnavailable)
+
+
+failures:
+    handlers::create_job::tests::ts13_an_expired_but_unpurged_key_is_a_new_request
+    handlers::create_job::tests::ts13_concurrent_same_key_different_body_yields_accept_and_key_reused
+    handlers::create_job::tests::ts13_concurrent_same_key_same_body_yields_one_job_and_replays
+    handlers::create_job::tests::ts13_raw_key_is_absent_from_every_table_and_only_digests_are_stored
+    handlers::create_job::tests::ts13_same_key_different_body_is_key_reused
+    handlers::create_job::tests::ts13_same_key_same_body_replays_the_existing_job
+    handlers::create_job::tests::ts13_the_key_is_scoped_by_actor
+    handlers::create_job::tests::ts14b_a_second_key_is_concurrency_limit_and_a_replay_never_is
+    handlers::create_job::tests::ts14b_concurrent_different_keys_leave_exactly_one_active_job
+    handlers::create_job::tests::ts15_a_rejected_audit_write_persists_nothing
+    handlers::create_job::tests::ts16_a_failed_commit_is_not_accepted_and_a_retry_resolves
+    handlers::create_job::tests::ts44a_job_accepted_event_has_every_field_and_no_excluded_content
+    handlers::create_job::tests::ts44a_the_accepted_event_is_written_on_the_acceptance_transaction
+
+test result: FAILED. 1 passed; 13 failed; 0 ignored; 0 measured; 276 filtered out; finished in 17.88s
+
+error: test failed, to rerun pass `-p domain_backup --lib`

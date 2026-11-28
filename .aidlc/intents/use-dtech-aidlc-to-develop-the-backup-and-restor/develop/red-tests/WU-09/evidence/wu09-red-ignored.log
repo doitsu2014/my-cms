@@ -1,0 +1,61 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+   Compiling domain_backup v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/.claude/worktrees/wf_6fc7eae6-d0c-1/apps/api/domain_backup)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.76s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/lib.rs (target/debug/build/domain_backup/90b1972bd40892cb/out/domain_backup-90b1972bd40892cb)
+
+running 5 tests
+test infra::tests::capabilities_api::ts09_download_unknown_foreign_and_malformed_ids_are_404_and_unaudited ... FAILED
+test infra::tests::capabilities_api::ts09_disabled_capabilities_leave_no_ledger_rows_or_files ... FAILED
+test infra::tests::capabilities_api::ts09_download_and_capability_denials_survive_an_audit_failure ... FAILED
+test infra::tests::capabilities_api::ts09_download_is_denied_for_every_status_and_changes_nothing ... FAILED
+test infra::tests::capabilities_api::ts10_client_flags_cannot_select_a_real_adapter ... ok
+
+failures:
+
+---- infra::tests::capabilities_api::ts09_download_unknown_foreign_and_malformed_ids_are_404_and_unaudited stdout ----
+
+thread 'infra::tests::capabilities_api::ts09_download_unknown_foreign_and_malformed_ids_are_404_and_unaudited' (11590006) panicked at domain_backup/src/handlers/disabled_capability/test_support.rs:241:5:
+assertion `left == right` failed: 33a2b15f-c4d8-46f5-9af1-825728a86e8f: {"stub":true}
+  left: 501
+ right: 404
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- infra::tests::capabilities_api::ts09_disabled_capabilities_leave_no_ledger_rows_or_files stdout ----
+
+thread 'infra::tests::capabilities_api::ts09_disabled_capabilities_leave_no_ledger_rows_or_files' (11590003) panicked at domain_backup/src/handlers/disabled_capability/test_support.rs:241:5:
+assertion `left == right` failed: /backup/packages: {"stub":true}
+  left: 501
+ right: 403
+
+---- infra::tests::capabilities_api::ts09_download_and_capability_denials_survive_an_audit_failure stdout ----
+
+thread 'infra::tests::capabilities_api::ts09_download_and_capability_denials_survive_an_audit_failure' (11590004) panicked at domain_backup/src/handlers/disabled_capability/test_support.rs:241:5:
+assertion `left == right` failed: download: {"stub":true}
+  left: 501
+ right: 403
+
+---- infra::tests::capabilities_api::ts09_download_is_denied_for_every_status_and_changes_nothing stdout ----
+
+thread 'infra::tests::capabilities_api::ts09_download_is_denied_for_every_status_and_changes_nothing' (11590005) panicked at domain_backup/src/handlers/disabled_capability/test_support.rs:241:5:
+assertion `left == right` failed: Failed: {"stub":true}
+  left: 501
+ right: 403
+
+
+failures:
+    infra::tests::capabilities_api::ts09_disabled_capabilities_leave_no_ledger_rows_or_files
+    infra::tests::capabilities_api::ts09_download_and_capability_denials_survive_an_audit_failure
+    infra::tests::capabilities_api::ts09_download_is_denied_for_every_status_and_changes_nothing
+    infra::tests::capabilities_api::ts09_download_unknown_foreign_and_malformed_ids_are_404_and_unaudited
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 365 filtered out; finished in 1.59s
+
+error: test failed, to rerun pass `-p domain_backup --lib`
+error: 1 target failed:
+    `-p domain_backup --lib`

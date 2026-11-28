@@ -1,0 +1,383 @@
+## WU-02 red: cargo test -p domain_backup --no-fail-fast (2026-11-22T17:58:14+07:00)
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+   Compiling domain_backup v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_backup)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.30s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d592c16f92cfabf7\out\domain_backup-d592c16f92cfabf7.exe)
+
+running 70 tests
+test domain::config::tests::from_env_child_probe ... ok
+test domain::config::tests::disabled_reason_closed_set_spelling ... ok
+test domain::config::tests::escalation_owner_cannot_be_overridden ... ok
+test domain::config::tests::is_loopback_bind_accepts_only_loopback_ip_literals ... ok
+test domain::config::tests::forbidden_comparison_is_case_insensitive_on_windows ... ok
+test domain::config::tests::non_loopback_bind_takes_precedence_over_invalid_config ... ok
+test domain::config::tests::not_configured_takes_precedence ... ok
+test domain::config::tests::invalid_numeric_env_refuses_capability ... ok
+test domain::config::tests::defaults_match_owner_values ... ok
+test domain::config::tests::disabled_reason_projection_covers_null ... ok
+test domain::config::tests::disabled_unless_backup_enabled_is_true ... ok
+test domain::config::tests::host_default_is_loopback_and_non_loopback_host_disables ... ok
+test domain::config::tests::storage_root_metadata_error_is_inaccessible ... ok
+test domain::config::tests::storage_root_rejects_existing_file ... ok
+test domain::state_machine::tests::no_transition_reaches_succeeded_or_recovery_required ... ok
+test domain::config::tests::storage_root_rejects_parent_dir_component ... ok
+test domain::config::tests::origin_host_label_hyphen_edges_refused ... ok
+test domain::state_machine::tests::only_the_four_u1_edges_are_allowed ... ok
+test domain::state_machine::tests::terminal_states_have_no_outgoing_transitions ... ok
+test domain::config::tests::storage_root_rejects_verbatim_prefix_on_windows ... ok
+test domain::status::tests::no_write_or_projection_yields_succeeded_or_recovery_required ... ok
+test domain::status::tests::all_lists_every_variant_once ... ok
+test migrations::tests::allocation_checks_and_epoch_singleton ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::allocation_job_fk_and_column_defaults ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::audit_cannot_be_truncated ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::audit_digest_is_char_64 ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::audit_rows_cannot_be_updated_or_deleted ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::backup_jobs_columns_match_the_contract ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::backup_jobs_defaults_apply ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::backup_jobs_row_checks_reject_bad_rows ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::both_guard_triggers_are_present ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::down_one_step_removes_only_the_jobs_trigger ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::down_refuses_while_an_allocation_is_not_deleted ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::down_refuses_while_audit_rows_exist_and_keeps_everything ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::down_succeeds_when_every_allocation_is_deleted ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::down_without_audit_rows_keeps_audit_table_and_trigger_and_drops_the_rest ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::every_status_transition_pair_is_allowed_or_rejected_exactly ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::fresh_database_gets_all_five_backup_tables ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::idempotency_unique_and_restrict_fk ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::illegal_non_terminal_transitions_are_rejected ... ignored, requires Docker for PostgreSQL testcontainer
+test domain::status::tests::wire_spelling_keeps_documented_values_and_adds_incomplete ... ok
+test migrations::tests::legal_transitions_are_allowed ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::migration_records_only_in_seaql_migrations_backup ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::migrations_cli_run_applies_on_a_fresh_database ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::only_one_active_job_per_instance ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::other_backup_table_columns_match_the_contract ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::second_up_is_a_no_op ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::secondary_indexes_exist ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::backup_uses_its_own_migration_table ... FAILED
+test migrations::tests::status_column_accepts_every_documented_value_when_u1_guard_is_removed ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::status_column_check_keeps_all_six_documented_values ... ignored, requires Docker for PostgreSQL testcontainer
+test domain::config::tests::enabled_without_storage_root_refuses ... ok
+test migrations::tests::terminal_job_cannot_be_updated ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::migrator_lists_the_two_backup_migrations_in_order ... ok
+test migrations::tests::terminal_job_without_idempotency_row_can_be_deleted_and_audit_has_no_fk ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::u1_job_cannot_be_inserted_as_succeeded_or_recovery_required ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::u1_job_cannot_be_updated_to_succeeded_or_recovery_required ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::upgrade_beside_posts_and_seo_leaves_their_tables_untouched ... ignored, requires Docker for PostgreSQL testcontainer
+test migrations::tests::upgrade_from_000001_to_000002 ... ignored, requires Docker for PostgreSQL testcontainer
+test domain::config::tests::origin_port_bounds_are_enforced ... ok
+test domain::config::tests::padded_required_text_is_invalid_config ... ok
+test domain::config::tests::non_canonical_and_overflowing_numbers_are_invalid ... ok
+test domain::config::tests::invalid_config_always_yields_disabled_state ... ok
+test domain::config::tests::allowed_origins_required_and_well_formed ... ok
+test domain::config::tests::bounds_other_than_default_disable_with_invalid_config ... ok
+test domain::config::tests::ingress_limits_required ... ok
+test domain::config::tests::load_refuses_link_or_file_storage_root ... ok
+test domain::config::tests::storage_root_rejects_link_on_ancestor ... ok
+test domain::config::tests::from_env_non_utf8_value_fails_validation ... ok
+test domain::config::tests::storage_root_rejects_forbidden_and_relative_paths ... ok
+
+failures:
+
+---- migrations::tests::backup_uses_its_own_migration_table stdout ----
+
+thread 'migrations::tests::backup_uses_its_own_migration_table' (10676) panicked at domain_backup\src\migrations\tests.rs:241:5:
+assertion `left == right` failed
+  left: "seaql_migrations"
+ right: "seaql_migrations_backup"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    migrations::tests::backup_uses_its_own_migration_table
+
+test result: FAILED. 36 passed; 1 failed; 33 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+error: test failed, to rerun pass `-p domain_backup --lib`
+   Doc-tests domain_backup
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: 1 target failed:
+    `-p domain_backup --lib`
+EXIT: 101
+
+## WU-02 red: cargo test -p domain_backup --no-fail-fast -- --ignored (2026-11-22T17:58:19+07:00)
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/d592c16f92cfabf7\out\domain_backup-d592c16f92cfabf7.exe)
+
+running 33 tests
+test migrations::tests::audit_cannot_be_truncated ... FAILED
+test migrations::tests::both_guard_triggers_are_present ... FAILED
+test migrations::tests::backup_jobs_columns_match_the_contract ... FAILED
+test migrations::tests::allocation_checks_and_epoch_singleton ... FAILED
+test migrations::tests::down_refuses_while_an_allocation_is_not_deleted ... FAILED
+test migrations::tests::down_succeeds_when_every_allocation_is_deleted ... FAILED
+test migrations::tests::allocation_job_fk_and_column_defaults ... FAILED
+test migrations::tests::audit_rows_cannot_be_updated_or_deleted ... FAILED
+test migrations::tests::down_without_audit_rows_keeps_audit_table_and_trigger_and_drops_the_rest ... FAILED
+test migrations::tests::audit_digest_is_char_64 ... FAILED
+test migrations::tests::backup_jobs_row_checks_reject_bad_rows ... FAILED
+test migrations::tests::every_status_transition_pair_is_allowed_or_rejected_exactly ... FAILED
+test migrations::tests::down_one_step_removes_only_the_jobs_trigger ... FAILED
+test migrations::tests::backup_jobs_defaults_apply ... FAILED
+test migrations::tests::fresh_database_gets_all_five_backup_tables ... FAILED
+test migrations::tests::down_refuses_while_audit_rows_exist_and_keeps_everything ... FAILED
+test migrations::tests::idempotency_unique_and_restrict_fk ... FAILED
+test migrations::tests::illegal_non_terminal_transitions_are_rejected ... FAILED
+test migrations::tests::legal_transitions_are_allowed ... FAILED
+test migrations::tests::migration_records_only_in_seaql_migrations_backup ... FAILED
+test migrations::tests::migrations_cli_run_applies_on_a_fresh_database ... FAILED
+test migrations::tests::only_one_active_job_per_instance ... FAILED
+test migrations::tests::other_backup_table_columns_match_the_contract ... FAILED
+test migrations::tests::second_up_is_a_no_op ... FAILED
+test migrations::tests::secondary_indexes_exist ... FAILED
+test migrations::tests::status_column_accepts_every_documented_value_when_u1_guard_is_removed ... FAILED
+test migrations::tests::status_column_check_keeps_all_six_documented_values ... FAILED
+test migrations::tests::terminal_job_cannot_be_updated ... FAILED
+test migrations::tests::terminal_job_without_idempotency_row_can_be_deleted_and_audit_has_no_fk ... FAILED
+test migrations::tests::u1_job_cannot_be_inserted_as_succeeded_or_recovery_required ... FAILED
+test migrations::tests::u1_job_cannot_be_updated_to_succeeded_or_recovery_required ... FAILED
+test migrations::tests::upgrade_beside_posts_and_seo_leaves_their_tables_untouched ... FAILED
+test migrations::tests::upgrade_from_000001_to_000002 ... FAILED
+
+failures:
+
+---- migrations::tests::audit_cannot_be_truncated stdout ----
+
+thread 'migrations::tests::audit_cannot_be_truncated' (3288) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_audit (id, occurred_at, actor_sub, instance_id, job_id, operation, event, outcome, correlation_id) VALUES ('00000000-0000-0000-0000-000000000001', now(), 'admin', 'inst-a', NULL, 'backup_db_slice', 'job.accepted', 'accepted', 'corr-1')`: Execution Error: error returned from database: relation "backup_audit" does not exist
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- migrations::tests::both_guard_triggers_are_present stdout ----
+
+thread 'migrations::tests::both_guard_triggers_are_present' (17920) panicked at domain_backup\src\migrations\tests.rs:601:28:
+jobs trigger missing: []
+
+---- migrations::tests::backup_jobs_columns_match_the_contract stdout ----
+
+thread 'migrations::tests::backup_jobs_columns_match_the_contract' (34900) panicked at domain_backup\src\migrations\tests.rs:467:5:
+assertion `left == right` failed
+  left: []
+ right: ["actor_sub|text|NO", "components|jsonb|NO", "correlation_id|text|NO", "counters|jsonb|NO", "created_at|timestamp with time zone|NO", "deadline_at|timestamp with time zone|YES", "epoch|bigint|NO", "finished_at|timestamp with time zone|YES", "id|uuid|NO", "instance_id|text|NO", "operation|text|NO", "reason_code|text|YES", "retain_until|timestamp with time zone|NO", "started_at|timestamp with time zone|YES", "state_version|bigint|NO", "status|text|NO", "synthetic|boolean|NO", "updated_at|timestamp with time zone|NO"]
+
+---- migrations::tests::allocation_checks_and_epoch_singleton stdout ----
+
+thread 'migrations::tests::allocation_checks_and_epoch_singleton' (18004) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_allocations (id, job_id, storage_key, state, epoch, bytes_reserved, expires_at, cleanup_attempts, created_at, updated_at, deleted_at) VALUES ('00000000-0000-0000-0000-000000000001', NULL, 'alloc/1.bin', 'registered', 1, 268435456, now() + interval '1 day', 3, now(), now(), CASE WHEN 'registered' = 'deleted' THEN now() END)`: Execution Error: error returned from database: relation "backup_allocations" does not exist
+
+---- migrations::tests::down_refuses_while_an_allocation_is_not_deleted stdout ----
+
+thread 'migrations::tests::down_refuses_while_an_allocation_is_not_deleted' (27244) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_allocations (id, job_id, storage_key, state, epoch, bytes_reserved, expires_at, cleanup_attempts, created_at, updated_at, deleted_at) VALUES ('00000000-0000-0000-0000-000000000001', NULL, 'alloc/1.bin', 'registered', 1, 10, now() + interval '1 day', 0, now(), now(), CASE WHEN 'registered' = 'deleted' THEN now() END)`: Execution Error: error returned from database: relation "backup_allocations" does not exist
+
+---- migrations::tests::down_succeeds_when_every_allocation_is_deleted stdout ----
+
+thread 'migrations::tests::down_succeeds_when_every_allocation_is_deleted' (4636) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_allocations (id, job_id, storage_key, state, epoch, bytes_reserved, expires_at, cleanup_attempts, created_at, updated_at, deleted_at) VALUES ('00000000-0000-0000-0000-000000000001', NULL, 'alloc/1.bin', 'deleted', 1, 10, now() + interval '1 day', 0, now(), now(), CASE WHEN 'deleted' = 'deleted' THEN now() END)`: Execution Error: error returned from database: relation "backup_allocations" does not exist
+
+---- migrations::tests::allocation_job_fk_and_column_defaults stdout ----
+
+thread 'migrations::tests::allocation_job_fk_and_column_defaults' (37756) panicked at domain_backup\src\migrations\tests.rs:1095:5:
+unknown job: expected error containing `violates foreign key constraint`, got: Execution Error: error returned from database: relation "backup_allocations" does not exist
+
+---- migrations::tests::audit_rows_cannot_be_updated_or_deleted stdout ----
+
+thread 'migrations::tests::audit_rows_cannot_be_updated_or_deleted' (36148) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_audit (id, occurred_at, actor_sub, instance_id, job_id, operation, event, outcome, correlation_id) VALUES ('00000000-0000-0000-0000-000000000001', now(), 'admin', 'inst-a', NULL, 'backup_db_slice', 'job.accepted', 'accepted', 'corr-1')`: Execution Error: error returned from database: relation "backup_audit" does not exist
+
+---- migrations::tests::down_without_audit_rows_keeps_audit_table_and_trigger_and_drops_the_rest stdout ----
+
+thread 'migrations::tests::down_without_audit_rows_keeps_audit_table_and_trigger_and_drops_the_rest' (36404) panicked at domain_backup\src\migrations\tests.rs:1302:5:
+assertion `left == right` failed
+  left: []
+ right: ["backup_audit"]
+
+---- migrations::tests::audit_digest_is_char_64 stdout ----
+
+thread 'migrations::tests::audit_digest_is_char_64' (28012) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_audit (id, occurred_at, actor_sub, instance_id, job_id, operation, event, outcome, digest, correlation_id) VALUES ('00000000-0000-0000-0000-000000000001', now(), 'admin', 'inst-a', NULL, 'backup_db_slice', 'job.accepted', 'accepted', 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd', 'corr-1')`: Execution Error: error returned from database: relation "backup_audit" does not exist
+
+---- migrations::tests::backup_jobs_row_checks_reject_bad_rows stdout ----
+
+thread 'migrations::tests::backup_jobs_row_checks_reject_bad_rows' (13452) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_jobs (id, actor_sub, instance_id, operation, status, epoch, correlation_id, created_at, updated_at, finished_at, retain_until) VALUES ('00000000-0000-0000-0000-000000000001', 'admin', 'inst-a', 'backup_db_slice', 'queued', 1, 'corr-1', now(), now(), NULL, now() + interval '30 days')`: Execution Error: error returned from database: relation "backup_jobs" does not exist
+
+---- migrations::tests::every_status_transition_pair_is_allowed_or_rejected_exactly stdout ----
+
+thread 'migrations::tests::every_status_transition_pair_is_allowed_or_rejected_exactly' (32088) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_jobs (id, actor_sub, instance_id, operation, status, epoch, correlation_id, created_at, updated_at, finished_at, retain_until) VALUES ('00000000-0000-0000-0000-000000001001', 'admin', 'inst-pair-1001', 'backup_db_slice', 'queued', 1, 'corr-1001', now(), now(), NULL, now() + interval '30 days')`: Execution Error: error returned from database: relation "backup_jobs" does not exist
+
+---- migrations::tests::down_one_step_removes_only_the_jobs_trigger stdout ----
+
+thread 'migrations::tests::down_one_step_removes_only_the_jobs_trigger' (37660) panicked at domain_backup\src\migrations\tests.rs:95:29:
+query `SELECT version::text AS v FROM seaql_migrations_backup ORDER BY version`: Query Error: error returned from database: relation "seaql_migrations_backup" does not exist
+
+---- migrations::tests::backup_jobs_defaults_apply stdout ----
+
+thread 'migrations::tests::backup_jobs_defaults_apply' (35808) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_jobs (id, actor_sub, instance_id, operation, status, epoch, correlation_id, created_at, updated_at, finished_at, retain_until) VALUES ('00000000-0000-0000-0000-000000000001', 'admin', 'inst-a', 'backup_db_slice', 'queued', 1, 'corr-1', now(), now(), NULL, now() + interval '30 days')`: Execution Error: error returned from database: relation "backup_jobs" does not exist
+
+---- migrations::tests::fresh_database_gets_all_five_backup_tables stdout ----
+
+thread 'migrations::tests::fresh_database_gets_all_five_backup_tables' (27792) panicked at domain_backup\src\migrations\tests.rs:280:5:
+assertion `left == right` failed
+  left: []
+ right: ["backup_allocations", "backup_audit", "backup_epoch", "backup_idempotency", "backup_jobs"]
+
+---- migrations::tests::down_refuses_while_audit_rows_exist_and_keeps_everything stdout ----
+
+thread 'migrations::tests::down_refuses_while_audit_rows_exist_and_keeps_everything' (15812) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_audit (id, occurred_at, actor_sub, instance_id, job_id, operation, event, outcome, correlation_id) VALUES ('00000000-0000-0000-0000-000000000001', now(), 'admin', 'inst-a', NULL, 'backup_db_slice', 'job.accepted', 'accepted', 'corr-1')`: Execution Error: error returned from database: relation "backup_audit" does not exist
+
+---- migrations::tests::idempotency_unique_and_restrict_fk stdout ----
+
+thread 'migrations::tests::idempotency_unique_and_restrict_fk' (32780) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_jobs (id, actor_sub, instance_id, operation, status, epoch, correlation_id, created_at, updated_at, finished_at, retain_until) VALUES ('00000000-0000-0000-0000-000000000001', 'admin', 'inst-a', 'backup_db_slice', 'queued', 1, 'corr-1', now(), now(), NULL, now() + interval '30 days')`: Execution Error: error returned from database: relation "backup_jobs" does not exist
+
+---- migrations::tests::illegal_non_terminal_transitions_are_rejected stdout ----
+
+thread 'migrations::tests::illegal_non_terminal_transitions_are_rejected' (12640) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_jobs (id, actor_sub, instance_id, operation, status, epoch, correlation_id, created_at, updated_at, finished_at, retain_until) VALUES ('00000000-0000-0000-0000-000000000001', 'admin', 'inst-a', 'backup_db_slice', 'queued', 1, 'corr-1', now(), now(), NULL, now() + interval '30 days')`: Execution Error: error returned from database: relation "backup_jobs" does not exist
+
+---- migrations::tests::legal_transitions_are_allowed stdout ----
+
+thread 'migrations::tests::legal_transitions_are_allowed' (18132) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_jobs (id, actor_sub, instance_id, operation, status, epoch, correlation_id, created_at, updated_at, finished_at, retain_until) VALUES ('00000000-0000-0000-0000-000000000001', 'admin', 'inst-a', 'backup_db_slice', 'queued', 1, 'corr-1', now(), now(), NULL, now() + interval '30 days')`: Execution Error: error returned from database: relation "backup_jobs" does not exist
+
+---- migrations::tests::migration_records_only_in_seaql_migrations_backup stdout ----
+
+thread 'migrations::tests::migration_records_only_in_seaql_migrations_backup' (31916) panicked at domain_backup\src\migrations\tests.rs:95:29:
+query `SELECT version::text AS v FROM seaql_migrations_backup ORDER BY version`: Query Error: error returned from database: relation "seaql_migrations_backup" does not exist
+
+---- migrations::tests::migrations_cli_run_applies_on_a_fresh_database stdout ----
+
+thread 'migrations::tests::migrations_cli_run_applies_on_a_fresh_database' (38004) panicked at domain_backup\src\migrations\tests.rs:321:5:
+assertion `left == right` failed
+  left: []
+ right: ["backup_allocations", "backup_audit", "backup_epoch", "backup_idempotency", "backup_jobs"]
+
+---- migrations::tests::only_one_active_job_per_instance stdout ----
+
+thread 'migrations::tests::only_one_active_job_per_instance' (6744) panicked at domain_backup\src\migrations\tests.rs:966:28:
+partial unique index missing: []
+
+---- migrations::tests::other_backup_table_columns_match_the_contract stdout ----
+
+thread 'migrations::tests::other_backup_table_columns_match_the_contract' (34856) panicked at domain_backup\src\migrations\tests.rs:496:5:
+assertion `left == right` failed
+  left: []
+ right: ["actor_sub|text|NO", "created_at|timestamp with time zone|NO", "expires_at|timestamp with time zone|NO", "id|uuid|NO", "job_id|uuid|NO", "key_digest|character(64)|NO", "operation|text|NO", "request_fingerprint|character(64)|NO"]
+
+---- migrations::tests::second_up_is_a_no_op stdout ----
+
+thread 'migrations::tests::second_up_is_a_no_op' (11644) panicked at domain_backup\src\migrations\tests.rs:95:29:
+query `SELECT version || '@' || applied_at::text AS v FROM seaql_migrations_backup ORDER BY version`: Query Error: error returned from database: relation "seaql_migrations_backup" does not exist
+
+---- migrations::tests::secondary_indexes_exist stdout ----
+
+thread 'migrations::tests::secondary_indexes_exist' (12192) panicked at domain_backup\src\migrations\tests.rs:579:5:
+[]
+
+---- migrations::tests::status_column_accepts_every_documented_value_when_u1_guard_is_removed stdout ----
+
+thread 'migrations::tests::status_column_accepts_every_documented_value_when_u1_guard_is_removed' (36800) panicked at domain_backup\src\migrations\tests.rs:95:29:
+query `SELECT conname || ' => ' || pg_get_constraintdef(oid) AS d FROM pg_constraint WHERE conrelid = 'public.backup_jobs'::regclass AND contype = 'c' ORDER BY conname`: Query Error: error returned from database: relation "public.backup_jobs" does not exist
+
+---- migrations::tests::status_column_check_keeps_all_six_documented_values stdout ----
+
+thread 'migrations::tests::status_column_check_keeps_all_six_documented_values' (14804) panicked at domain_backup\src\migrations\tests.rs:95:29:
+query `SELECT conname || ' => ' || pg_get_constraintdef(oid) AS d FROM pg_constraint WHERE conrelid = 'public.backup_jobs'::regclass AND contype = 'c' ORDER BY conname`: Query Error: error returned from database: relation "public.backup_jobs" does not exist
+
+---- migrations::tests::terminal_job_cannot_be_updated stdout ----
+
+thread 'migrations::tests::terminal_job_cannot_be_updated' (37808) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_jobs (id, actor_sub, instance_id, operation, status, epoch, correlation_id, created_at, updated_at, finished_at, retain_until) VALUES ('00000000-0000-0000-0000-000000000001', 'admin', 'inst-a', 'backup_db_slice', 'failed', 1, 'corr-1', now(), now(), now(), now() + interval '30 days')`: Execution Error: error returned from database: relation "backup_jobs" does not exist
+
+---- migrations::tests::terminal_job_without_idempotency_row_can_be_deleted_and_audit_has_no_fk stdout ----
+
+thread 'migrations::tests::terminal_job_without_idempotency_row_can_be_deleted_and_audit_has_no_fk' (36964) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_jobs (id, actor_sub, instance_id, operation, status, epoch, correlation_id, created_at, updated_at, finished_at, retain_until) VALUES ('00000000-0000-0000-0000-000000000001', 'admin', 'inst-a', 'backup_db_slice', 'failed', 1, 'corr-1', now(), now(), now(), now() + interval '30 days')`: Execution Error: error returned from database: relation "backup_jobs" does not exist
+
+---- migrations::tests::u1_job_cannot_be_inserted_as_succeeded_or_recovery_required stdout ----
+
+thread 'migrations::tests::u1_job_cannot_be_inserted_as_succeeded_or_recovery_required' (34360) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_jobs (id, actor_sub, instance_id, operation, status, epoch, correlation_id, created_at, updated_at, finished_at, retain_until) VALUES ('00000000-0000-0000-0000-000000000001', 'admin', 'inst-a', 'backup_db_slice', 'queued', 1, 'corr-1', now(), now(), NULL, now() + interval '30 days')`: Execution Error: error returned from database: relation "backup_jobs" does not exist
+
+---- migrations::tests::u1_job_cannot_be_updated_to_succeeded_or_recovery_required stdout ----
+
+thread 'migrations::tests::u1_job_cannot_be_updated_to_succeeded_or_recovery_required' (2596) panicked at domain_backup\src\migrations\tests.rs:42:9:
+expected success for `INSERT INTO backup_jobs (id, actor_sub, instance_id, operation, status, epoch, correlation_id, created_at, updated_at, finished_at, retain_until) VALUES ('00000000-0000-0000-0000-000000000001', 'admin', 'inst-a', 'backup_db_slice', 'queued', 1, 'corr-1', now(), now(), NULL, now() + interval '30 days')`: Execution Error: error returned from database: relation "backup_jobs" does not exist
+
+---- migrations::tests::upgrade_beside_posts_and_seo_leaves_their_tables_untouched stdout ----
+
+thread 'migrations::tests::upgrade_beside_posts_and_seo_leaves_their_tables_untouched' (19820) panicked at domain_backup\src\migrations\tests.rs:416:10:
+backup migrator applies beside posts and seo: Custom("Migration file of version 'm20260531_000001_pgvector' is missing, this migration has been applied but its file is missing\nMigration file of version 'm20250330_151455_release_110' is missing, this migration has been applied but its file is missing\nMigration file of version 'm20240409_151952_release_100' is missing, this migration has been applied but its file is missing\nMigration file of version 'm20260126_040610_release_300' is missing, this migration has been applied but its file is missing")
+
+---- migrations::tests::upgrade_from_000001_to_000002 stdout ----
+
+thread 'migrations::tests::upgrade_from_000001_to_000002' (36076) panicked at domain_backup\src\migrations\tests.rs:95:29:
+query `SELECT version::text AS v FROM seaql_migrations_backup ORDER BY version`: Query Error: error returned from database: relation "seaql_migrations_backup" does not exist
+
+
+failures:
+    migrations::tests::allocation_checks_and_epoch_singleton
+    migrations::tests::allocation_job_fk_and_column_defaults
+    migrations::tests::audit_cannot_be_truncated
+    migrations::tests::audit_digest_is_char_64
+    migrations::tests::audit_rows_cannot_be_updated_or_deleted
+    migrations::tests::backup_jobs_columns_match_the_contract
+    migrations::tests::backup_jobs_defaults_apply
+    migrations::tests::backup_jobs_row_checks_reject_bad_rows
+    migrations::tests::both_guard_triggers_are_present
+    migrations::tests::down_one_step_removes_only_the_jobs_trigger
+    migrations::tests::down_refuses_while_an_allocation_is_not_deleted
+    migrations::tests::down_refuses_while_audit_rows_exist_and_keeps_everything
+    migrations::tests::down_succeeds_when_every_allocation_is_deleted
+    migrations::tests::down_without_audit_rows_keeps_audit_table_and_trigger_and_drops_the_rest
+    migrations::tests::every_status_transition_pair_is_allowed_or_rejected_exactly
+    migrations::tests::fresh_database_gets_all_five_backup_tables
+    migrations::tests::idempotency_unique_and_restrict_fk
+    migrations::tests::illegal_non_terminal_transitions_are_rejected
+    migrations::tests::legal_transitions_are_allowed
+    migrations::tests::migration_records_only_in_seaql_migrations_backup
+    migrations::tests::migrations_cli_run_applies_on_a_fresh_database
+    migrations::tests::only_one_active_job_per_instance
+    migrations::tests::other_backup_table_columns_match_the_contract
+    migrations::tests::second_up_is_a_no_op
+    migrations::tests::secondary_indexes_exist
+    migrations::tests::status_column_accepts_every_documented_value_when_u1_guard_is_removed
+    migrations::tests::status_column_check_keeps_all_six_documented_values
+    migrations::tests::terminal_job_cannot_be_updated
+    migrations::tests::terminal_job_without_idempotency_row_can_be_deleted_and_audit_has_no_fk
+    migrations::tests::u1_job_cannot_be_inserted_as_succeeded_or_recovery_required
+    migrations::tests::u1_job_cannot_be_updated_to_succeeded_or_recovery_required
+    migrations::tests::upgrade_beside_posts_and_seo_leaves_their_tables_untouched
+    migrations::tests::upgrade_from_000001_to_000002
+
+test result: FAILED. 0 passed; 33 failed; 0 ignored; 0 measured; 37 filtered out; finished in 51.75s
+
+error: test failed, to rerun pass `-p domain_backup --lib`
+   Doc-tests domain_backup
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: 1 target failed:
+    `-p domain_backup --lib`
+EXIT: 101

@@ -53,6 +53,11 @@ pub enum Mount {
     Protected,
     /// Administrator-only surface — bucket/migration/user management.
     Administrator,
+    /// Administrator-only surface that the gateway wraps with ingress limits
+    /// (request timeout, header-size limit) outside the administrator auth
+    /// layer. Used by the backup domain (F-38); every other domain keeps
+    /// `Administrator`.
+    AdministratorIngress,
 }
 
 /// A single route bundle produced by a domain.
@@ -212,11 +217,18 @@ mod tests {
         assert_eq!(json, "\"protected\"");
         let json = serde_json::to_string(&Mount::Administrator).unwrap();
         assert_eq!(json, "\"administrator\"");
+        let json = serde_json::to_string(&Mount::AdministratorIngress).unwrap();
+        assert_eq!(json, "\"administratoringress\"");
     }
 
     #[test]
     fn mount_round_trips_through_json() {
-        for m in [Mount::Public, Mount::Protected, Mount::Administrator] {
+        for m in [
+            Mount::Public,
+            Mount::Protected,
+            Mount::Administrator,
+            Mount::AdministratorIngress,
+        ] {
             let json = serde_json::to_string(&m).unwrap();
             let parsed: Mount = serde_json::from_str(&json).unwrap();
             assert_eq!(parsed, m);

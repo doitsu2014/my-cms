@@ -1,0 +1,7 @@
+COMMAND=dtech-aidlc ids check --stage build-and-verify 
+CWD=/d/orca/my-cms/makara
+STARTED=2026-11-25T14:34:07+07:00
+EXIT_CODE=0
+FINISHED=2026-11-25T14:34:07+07:00
+STDOUT=refresh-wu01-ids-check.stdout.log
+STDERR=refresh-wu01-ids-check.stderr.log

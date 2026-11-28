@@ -1,0 +1,36 @@
+# WU-03 claim mutations re-run by the conductor 2026-11-22T21:28:33+07:00 (agent report of 'not caught' for 9c was wrong: its edit did not apply)
+## naive read-then-update (no lock, no outer status recheck)
+test infra::tests::job_store::claim_next_claims_the_oldest_queued_job ... ok
+test infra::tests::job_store::claim_next_never_reclaims_a_running_or_terminal_job ... ok
+test infra::tests::job_store::a_claim_and_a_queued_failure_race_to_exactly_one_winner ... FAILED
+test infra::tests::job_store::concurrent_claims_never_claim_a_job_twice ... FAILED
+test infra::tests::job_store::exactly_one_of_n_concurrent_claims_wins ... FAILED
+test infra::tests::job_store::an_audit_outage_is_a_store_outage_for_transitions_and_claims ... ok
+test infra::tests::job_store::an_audit_row_written_before_the_sink_fails_rolls_back_with_the_claim ... ok
+test infra::tests::job_store::an_audit_failure_refuses_the_claim ... ok
+test infra::tests::job_store::a_claim_blocked_on_a_row_taken_by_another_transaction_does_not_claim_it_again ... FAILED
+test infra::tests::job_store::the_claim_hands_its_own_uncommitted_transaction_to_the_audit_sink ... ok
+test result: FAILED. 6 passed; 4 failed; 0 ignored; 0 measured; 108 filtered out; finished in 6.92s
+## FOR UPDATE without SKIP LOCKED
+test infra::tests::job_store::claim_next_never_reclaims_a_running_or_terminal_job ... ok
+test infra::tests::job_store::exactly_one_of_n_concurrent_claims_wins ... ok
+test infra::tests::job_store::a_claim_and_a_queued_failure_race_to_exactly_one_winner ... ok
+test infra::tests::job_store::concurrent_claims_never_claim_a_job_twice ... ok
+test infra::tests::job_store::the_claim_hands_its_own_uncommitted_transaction_to_the_audit_sink ... ok
+test infra::tests::job_store::claim_next_claims_the_oldest_queued_job ... ok
+test infra::tests::job_store::a_claim_blocked_on_a_row_taken_by_another_transaction_does_not_claim_it_again ... ok
+test infra::tests::job_store::an_audit_row_written_before_the_sink_fails_rolls_back_with_the_claim ... ok
+test infra::tests::job_store::an_audit_outage_is_a_store_outage_for_transitions_and_claims ... ok
+test infra::tests::job_store::an_audit_failure_refuses_the_claim ... ok
+## no row lock, outer status recheck kept
+test infra::tests::job_store::a_claim_blocked_on_a_row_taken_by_another_transaction_does_not_claim_it_again ... ok
+test infra::tests::job_store::concurrent_claims_never_claim_a_job_twice ... ok
+test infra::tests::job_store::a_claim_and_a_queued_failure_race_to_exactly_one_winner ... ok
+test infra::tests::job_store::exactly_one_of_n_concurrent_claims_wins ... ok
+test infra::tests::job_store::the_claim_hands_its_own_uncommitted_transaction_to_the_audit_sink ... ok
+test infra::tests::job_store::an_audit_failure_refuses_the_claim ... ok
+test infra::tests::job_store::an_audit_outage_is_a_store_outage_for_transitions_and_claims ... ok
+test infra::tests::job_store::claim_next_never_reclaims_a_running_or_terminal_job ... ok
+test infra::tests::job_store::an_audit_row_written_before_the_sink_fails_rolls_back_with_the_claim ... ok
+test infra::tests::job_store::claim_next_claims_the_oldest_queued_job ... ok
+restored

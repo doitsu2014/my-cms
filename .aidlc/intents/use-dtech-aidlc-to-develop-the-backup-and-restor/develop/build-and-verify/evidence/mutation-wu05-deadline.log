@@ -1,0 +1,29 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+   Compiling domain_backup v0.1.0 (D:\orca\my-cms\makara\apps\api\domain_backup)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.76s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src\lib.rs (target\debug\build\domain_backup/3b844752f3f297a2\out\domain_backup-3b844752f3f297a2.exe)
+
+running 1 test
+test lifecycle::worker::tests::deadline_budget_excludes_time_spent_registering_allocation ... FAILED
+
+failures:
+
+---- lifecycle::worker::tests::deadline_budget_excludes_time_spent_registering_allocation stdout ----
+
+thread 'lifecycle::worker::tests::deadline_budget_excludes_time_spent_registering_allocation' (13804) panicked at domain_backup\src\lifecycle\test_support.rs:823:19:
+the worker did not finish: the deadline is not enforced on tokio time
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    lifecycle::worker::tests::deadline_budget_excludes_time_spent_registering_allocation
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 233 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p domain_backup --lib`

@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "unit": "WU-02",
+  "scope": "full",
+  "commands": [
+    "cargo test --workspace --no-fail-fast (from apps/api)",
+    "cargo test --workspace --no-fail-fast -- --ignored (from apps/api)"
+  ],
+  "failures": [
+    {
+      "test": "lifecycle::lifecycle_tests::ts20_registered_row_without_file_is_transitioned_to_release_pending",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-20"
+      ]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts21_file_after_register_before_mark_written_is_retained_as_owned",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-21"
+      ]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts22_old_epoch_running_job_is_failed_with_restart_reason_and_audit",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-22"
+      ]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts23_orphan_is_persisted_before_grace_and_ambiguous_entry_is_untouched",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-23"
+      ]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts25_crashed_old_epoch_deleting_claim_returns_to_cleanup_without_retry",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-25"
+      ]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts26_unlinked_file_with_deleting_row_commits_deleted_idempotently",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-26"
+      ]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-27"
+      ]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts29_store_outage_closes_work_and_recovery_reconciles_before_reopening",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-29"
+      ]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts30_fake_time_enforces_retry_expiry_grace_and_sweep_boundaries",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-30"
+      ]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts32_startup_lock_epoch_reconcile_cleanup_barrier_precedes_admissions",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-32"
+      ]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts42_purge_at_retention_boundary_removes_eligible_metadata_but_keeps_audit",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-42"
+      ]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts65_audit_refusal_blocks_delete_claim_delete_commit_and_purge",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-65"
+      ]
+    },
+    {
+      "test": "lifecycle::lifecycle_tests::ts56_truncated_inventory_makes_reconciliation_fail_closed",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-56"
+      ]
+    },
+    {
+      "test": "infra::tests::reconciliation::job_store_reconciliation_inventory_and_epoch_are_durable",
+      "suite": "domain_backup",
+      "owner": "WU-16"
+    },
+    {
+      "test": "infra::tests::reconciliation::ts22_job_fence_cas_is_epoch_status_version_checked_and_audited_atomically",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-22"
+      ]
+    },
+    {
+      "test": "infra::tests::reconciliation::ts30_deadline_inventory_includes_only_due_jobs_at_epoch",
+      "suite": "domain_backup",
+      "owner": "WU-16",
+      "ts": [
+        "TS-30"
+      ]
+    }
+  ]
+}

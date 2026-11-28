@@ -1,0 +1,41 @@
+[
+ {
+  "name": "restore returns SUCCESS",
+  "compiled": false,
+  "failed": [
+   "ts33_a_fully_configured_cli_contacts_no_database_or_object_store",
+   "ts33_restore_always_refuses_and_never_succeeds"
+  ]
+ },
+ {
+  "name": "create returns SUCCESS when fully configured",
+  "compiled": false,
+  "failed": [
+   "ts33_a_fully_configured_cli_contacts_no_database_or_object_store",
+   "ts33_create_fails_closed_in_every_configuration"
+  ]
+ },
+ {
+  "name": "unknown input returns SUCCESS",
+  "compiled": false,
+  "failed": [
+   "ts33_unknown_and_empty_input_fail_closed_and_only_help_succeeds",
+   "ts33_a_fully_configured_cli_contacts_no_database_or_object_store"
+  ]
+ },
+ {
+  "name": "list returns SUCCESS with credentials",
+  "compiled": false,
+  "failed": [
+   "ts33_a_fully_configured_cli_contacts_no_database_or_object_store",
+   "ts33_list_fails_closed_with_and_without_credentials"
+  ]
+ },
+ {
+  "name": "create opens a connection to BACKUP_S3_ENDPOINT",
+  "compiled": false,
+  "failed": [
+   "ts33_a_fully_configured_cli_contacts_no_database_or_object_store"
+  ]
+ }
+]

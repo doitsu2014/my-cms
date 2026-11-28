@@ -1,0 +1,58 @@
+[
+ {
+  "name": "a release_pending row is claimed before its backoff ends",
+  "compileError": false,
+  "failed": [
+   "ts30_retry_is_due_exactly_at_its_backoff_time_and_not_before"
+  ]
+ },
+ {
+  "name": "an orphan is claimed before its grace ends",
+  "compileError": false,
+  "failed": [
+   "ts23_orphan_is_removed_only_at_or_after_its_grace_and_after_an_audited_claim"
+  ]
+ },
+ {
+  "name": "an unlink failure is treated as success",
+  "compileError": false,
+  "failed": [
+   "ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time",
+   "ts27a_a_retry_that_succeeds_commits_deleted_and_keeps_the_attempt_count"
+  ]
+ },
+ {
+  "name": "a failed unlink reports Retry as Exhausted",
+  "compileError": false,
+  "failed": [
+   "ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time",
+   "ts27a_a_retry_that_succeeds_commits_deleted_and_keeps_the_attempt_count"
+  ]
+ },
+ {
+  "name": "an exhausted unlink is reported as a scheduled retry",
+  "compileError": false,
+  "failed": [
+   "ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time"
+  ]
+ },
+ {
+  "name": "a lost deleted commit is reported as Deleted",
+  "compileError": false,
+  "failed": [
+   "a_concurrent_change_during_the_unlink_makes_the_deleted_commit_lost"
+  ]
+ },
+ {
+  "name": "clean_due ignores the due list and cleans nothing",
+  "compileError": false,
+  "failed": [
+   "ts27a_three_unlink_failures_are_spaced_exhausted_and_never_attempted_a_fourth_time",
+   "ts20_full_sequence_fence_reconcile_claim_then_deleted_for_a_missing_file",
+   "clean_due_handles_due_rows_and_leaves_future_retries_untouched",
+   "ts23_orphan_is_removed_only_at_or_after_its_grace_and_after_an_audited_claim",
+   "ts25_stale_deleting_claim_is_reset_then_reclaimed_with_a_fresh_audited_claim",
+   "ts21_full_sequence_an_existing_file_is_removed_only_after_the_audited_claim"
+  ]
+ }
+]

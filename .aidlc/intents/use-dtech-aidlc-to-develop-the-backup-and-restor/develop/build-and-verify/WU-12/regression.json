@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "unit": "WU-12",
+  "scope": "full",
+  "commands": [
+    "pnpm test (apps/web; evidence/regression-wu12-web.log)",
+    "cargo test --workspace --no-fail-fast (apps/api; evidence/regression-wu12-rust-normal.log)",
+    "cargo test --workspace --no-fail-fast -- --ignored --test-threads=4 (apps/api; evidence/regression-wu12-rust-ignored.log)",
+    "pnpm exec vitest run src/domains/backup.test.ts (apps/web; evidence/green-wu12-focused.log)",
+    "pnpm exec tsc --noEmit (apps/web; evidence/green-wu12-tsc.log)",
+    "dtech-aidlc ids check --stage build-and-verify"
+  ],
+  "failures": []
+}

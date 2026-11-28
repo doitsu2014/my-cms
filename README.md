@@ -166,6 +166,37 @@ pnpm --dir ../ducth-dev-website test
 pnpm --dir ../ducth-dev-website build
 ```
 
+## Backup and restore (U1) configuration
+
+The backup slice is administrator-only, localhost-only and uses synthetic fixtures. It is off unless `BACKUP_ENABLED=true`, and it forces itself off (`NON_LOOPBACK_BIND`) when the gateway binds a non-loopback `HOST`; the Compose stack sets `HOST=0.0.0.0`, so it stays disabled there. A missing or invalid key never stops the CMS: backup is disabled with `INVALID_CONFIG` and `GET /backup/status` reports the reason. The `/backup/**` routes sit behind the administrator auth layer, a request timeout and a header-size limit (the two required values below). Bearer tokens are the only accepted credential.
+
+Every key is read by `apps/api/domain_backup/src/domain/config.rs`. Keys marked fixed accept only the owner-approved value: any other value disables backup with `INVALID_CONFIG`.
+
+| Key | Default or required value | Notes |
+| --- | --- | --- |
+| `BACKUP_ENABLED` | default: unset (disabled, `NOT_CONFIGURED`) | Must be exactly `true` to enable. |
+| `BACKUP_INSTANCE_ID` | required when enabled | Stable id of the configured instance; no default. |
+| `BACKUP_INSTANCE_LABEL` | required when enabled | Display label returned by the API; no default. |
+| `BACKUP_STORAGE_ROOT` | required when enabled | Absolute, link-free, private (mode 0700) directory for synthetic fixtures. Not the legacy `BACKUP_LOCAL_ROOT`. |
+| `BACKUP_ALLOWED_ORIGINS` | required when enabled | Comma-separated exact origins, for example `http://localhost:3002`; no wildcard. |
+| `BACKUP_REQUEST_TIMEOUT_SECS` | required when enabled; owner-approved value `30` | Ingress timeout (CFG-17). The API answers 408 `REQUEST_TIMEOUT` past it. No built-in default: the key must be set, to `30` unless the owner approves another value. |
+| `BACKUP_MAX_HEADER_BYTES` | required when enabled; owner-approved value `16384` | Header-size limit (CFG-18), name plus value bytes of all headers. The API answers 431 `HEADER_TOO_LARGE` over it, before authentication. No built-in default: set it to `16384` unless the owner approves another value. |
+| `BACKUP_STAGING_EXPIRY_SECS` | default `86400` (fixed) | Staging expiry, 24 h. |
+| `BACKUP_ORPHAN_GRACE_SECS` | default `3600` (fixed) | Orphan grace, 1 h. |
+| `BACKUP_SWEEP_INTERVAL_SECS` | default `900` (fixed) | Sweep period, 15 min. |
+| `BACKUP_CLEANUP_MAX_ATTEMPTS` | default `3` (fixed) | Cleanup retries. |
+| `BACKUP_CLEANUP_BACKOFF_SECS` | default `60` (fixed) | Cleanup backoff, 1 min. |
+| `BACKUP_JOB_DEADLINE_SECS` | default `600` (fixed) | Job deadline, 10 min. |
+| `BACKUP_MAX_CONCURRENT_JOBS` | default `1` (fixed) | One queued or running job. |
+| `BACKUP_ALLOC_MAX_BYTES` | default `268435456` (fixed) | 256 MiB per allocation. |
+| `BACKUP_TOTAL_MAX_BYTES` | default `1073741824` (fixed) | 1 GiB across allocations. |
+| `BACKUP_RETENTION_DAYS` | default `30` (fixed) | Audit and job retention. |
+| `BACKUP_ESCALATION_OWNER` | default `project_owner` (fixed) | Escalation owner shown in status. |
+
+The operator CLI `my-cms-api backup` is a separate, fail-closed surface with its own keys, `BACKUP_S3_ENDPOINT` and `BACKUP_LOCAL_ROOT`. They are unrelated to the keys above.
+
+Backup tables use their own migration table, `seaql_migrations_backup`; the backup migrations run on every `migrate up` and gateway start, whether or not backup is enabled. `my-cms-api migrate down` and `migrate status` cover the posts migrator only; `migrate --list` prints the posts, SEO and backup identities in that order.
+
 ## Documentation and change process
 
 - [Documentation index](docs/README.md) — entry point for current project documentation.
