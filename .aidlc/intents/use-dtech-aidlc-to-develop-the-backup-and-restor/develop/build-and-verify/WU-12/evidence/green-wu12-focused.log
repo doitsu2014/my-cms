@@ -1,0 +1,9 @@
+
+ RUN  v4.1.8 /Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/web
+
+
+ Test Files  1 passed (1)
+      Tests  33 passed (33)
+   Start at  19:57:33
+   Duration  678ms (transform 33ms, setup 56ms, import 68ms, tests 9ms, environment 475ms)
+

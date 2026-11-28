@@ -576,7 +576,7 @@
       "status": "in_progress",
       "startedAt": "2026-11-22T06:56:17.617Z",
       "detail": null,
-      "reportedAt": "2026-11-28T12:47:43.081Z",
+      "reportedAt": "2026-11-28T12:58:14.456Z",
       "reports": [
         {
           "at": "2026-11-22T07:12:29.787Z",
@@ -866,6 +866,12 @@
           "result": "complete",
           "detail": null,
           "unit": "WU-09"
+        },
+        {
+          "at": "2026-11-28T12:58:14.456Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-12"
         }
       ],
       "units": {
@@ -924,6 +930,10 @@
         "WU-09": {
           "status": "complete",
           "reportedAt": "2026-11-28T12:47:43.081Z"
+        },
+        "WU-12": {
+          "status": "complete",
+          "reportedAt": "2026-11-28T12:58:14.456Z"
         }
       },
       "artifacts": [
@@ -1082,6 +1092,18 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-09/red-evidence.md",
           "bytes": 2249,
           "sha256": "08cee1f9cc3ece040eb68e27a7808ec03466fb5c52542d50b86e82fcf47a325b"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-12/failing-tests.md",
+          "bytes": 2769,
+          "sha256": "f5ca29838235b9f4fb97292c09849dbc8f84d7e1094afeebdc4059fbf76598cb"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-12/red-evidence.md",
+          "bytes": 2654,
+          "sha256": "dac1890e63ae41136aecb2027d5b3d9971e197377b7d5089ff4cce7f7222824f"
         }
       ],
       "resumedAt": "2026-11-22T09:30:17.226Z",
@@ -1091,7 +1113,7 @@
       "status": "in_progress",
       "startedAt": "2026-11-22T07:12:29.973Z",
       "detail": null,
-      "reportedAt": "2026-11-28T12:56:46.863Z",
+      "reportedAt": "2026-11-28T12:59:47.396Z",
       "reports": [
         {
           "at": "2026-11-22T07:26:43.015Z",
@@ -1302,6 +1324,12 @@
           "result": "complete",
           "detail": null,
           "unit": "WU-09"
+        },
+        {
+          "at": "2026-11-28T12:59:47.396Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-12"
         }
       ],
       "units": {
@@ -1356,6 +1384,10 @@
         "WU-09": {
           "status": "complete",
           "reportedAt": "2026-11-28T12:56:46.863Z"
+        },
+        "WU-12": {
+          "status": "complete",
+          "reportedAt": "2026-11-28T12:59:47.396Z"
         }
       },
       "artifacts": [
@@ -1982,6 +2014,30 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-09/known-limitations.md",
           "bytes": 1379,
           "sha256": "04cbd446d3ed59b643410911a327aea2a8cf50565030524465db1e352e46c95d"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-12/implementation.md",
+          "bytes": 3054,
+          "sha256": "4c7a047edf95c0ea48b7469e413f885503069e6c5da26e1b2d13700e5368ce8b"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-12/green-verification-report.md",
+          "bytes": 1994,
+          "sha256": "57c83b936dfaea48396420080a558e7a890cc9f70e0f8f2370f1400e1e05fd26"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-12/regression-report.md",
+          "bytes": 750,
+          "sha256": "9f960dc13e83645c6282fe295cfac452ce0f3613182203f95c43bbd28209d0f0"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-12/known-limitations.md",
+          "bytes": 1349,
+          "sha256": "842e17b7ea87cad1aab622cb3ca0d7faf07b5c342a20d099091f13c759a90ed6"
         }
       ],
       "reworkResetAt": "2026-11-26T06:08:59.820Z",
@@ -1991,7 +2047,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-28T12:56:46.865Z",
+  "updatedAt": "2026-11-28T12:59:47.398Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -2132,7 +2188,7 @@
     },
     {
       "id": "WU-12",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-08"
       ]
@@ -2189,8 +2245,8 @@
       "WU-15",
       "WU-16"
     ],
-    "progressSeq": 17,
-    "syncedAt": "2026-11-28T12:56:46.863Z",
+    "progressSeq": 18,
+    "syncedAt": "2026-11-28T12:59:47.396Z",
     "units": {
       "WU-01": {
         "title": "Crate scaffold, domain types, config, clock, errors",
@@ -2964,23 +3020,37 @@
           "WU-08"
         ],
         "tests": [],
-        "status": "pending",
-        "selectedAt": "2026-11-28T12:28:46.890Z",
+        "status": "verified",
+        "selectedAt": "2026-11-28T12:58:14.456Z",
         "steps": {
-          "red-tests": null,
-          "build-and-verify": null
+          "red-tests": "complete",
+          "build-and-verify": "complete"
         },
-        "attempts": {},
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
         "blockedStreak": null,
         "park": null,
         "parkHistory": [],
         "inputFingerprint": "sha256:69cdd7618426d4bb8ed0d5be695ad62a9d35c7f733bc61de7b799321a3d035cb",
         "priorResults": [],
-        "history": [],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "complete",
+            "at": "2026-11-28T12:58:14.456Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-28T12:59:47.396Z"
+          }
+        ],
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T05:50:09.585Z"
+        "updatedAt": "2026-11-28T12:59:47.396Z"
       },
       "WU-13": {
         "title": "Web page, route, menu, instance selector, create panel",
@@ -3524,15 +3594,7 @@
       "priorResults": 12,
       "preSha256": "cc6eee0c8cf68dcc230a882f3d8bf10eeef183e3169e51cede99a19ba17022e5"
     },
-    "parallelSince": "2026-11-28T12:28:46.890Z",
-    "claims": [
-      {
-        "unit": "WU-12",
-        "stage": "red-tests",
-        "claimedAt": "2026-11-28T12:28:46.890Z"
-      }
-    ],
-    "lastSatisfiedAt": "2026-11-28T12:56:46.863Z"
+    "lastSatisfiedAt": "2026-11-28T12:59:47.396Z"
   },
   "currentUnit": "WU-09"
 }

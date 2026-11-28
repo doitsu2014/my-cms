@@ -1,0 +1,371 @@
+
+ RUN  v4.1.8 /Users/doitsu2014/workspaces/doitsu-technology/my-cms/.claude/worktrees/wf_6fc7eae6-d0c-2/apps/web
+
+ ❯ src/domains/backup.test.ts (33 tests | 21 failed) 9ms
+     × maps an unknown status string to unknown instead of failing 2ms
+     × rejects a status that is not a string 1ms
+     × classifies terminal statuses exhaustively and treats unknown as non-terminal 0ms
+     × tolerates an unknown status inside a job and still marks it safe 0ms
+     × fails closed when a job claims to be downloadable or not synthetic 0ms
+     × rejects missing or mistyped required fields 0ms
+     × parses list and instance envelopes strictly 0ms
+     × rejects a disabled_reason outside the closed set and a missing one 0ms
+     × accepts every documented state and rejects others 0ms
+     × requires synthetic_only to be true and counters to be non-negative integers 0ms
+     × lists instances with an authorised GET against the backup path 1ms
+     × creates a job with Idempotency-Key, JSON content type and only instance_id in the body 0ms
+     × reports an idempotent replay from the Idempotent-Replay header on a 200 0ms
+     × lists jobs with limit and cursor query parameters only when supplied 0ms
+     × gets one job by encoded id and tolerates an unknown status 0ms
+     × gets the status object including a disabled state 0ms
+     × parses the crate error body into a typed BackupApiError 0ms
+     × keeps BACKUP_DISABLED and BACKUP_NOT_READY 503 reasons 1ms
+     × falls back to the HTTP status for non-JSON error bodies such as a plain-text 413 0ms
+     × rejects a success response whose body does not match the contract 0ms
+     × does not copy server error strings into the error message 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 21 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: status schema > maps an unknown status string to unknown instead of failing
+AssertionError: expected 'archived' to be 'unknown' // Object.is equality
+
+Expected: "unknown"
+Received: "archived"
+
+ ❯ src/domains/backup.test.ts:102:53
+    100|
+    101|   it('maps an unknown status string to unknown instead of failing', ()…
+    102|     expect(backupJobStatusSchema.parse('archived')).toBe('unknown');
+       |                                                     ^
+    103|     expect(backupJobStatusSchema.parse('')).toBe('unknown');
+    104|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: status schema > rejects a status that is not a string
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/domains/backup.test.ts:108:60
+    106|   it('rejects a status that is not a string', () => {
+    107|     for (const bad of [undefined, null, 3, {}, ['queued']]) {
+    108|       expect(backupJobStatusSchema.safeParse(bad).success).toBe(false);
+       |                                                            ^
+    109|     }
+    110|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: status schema > classifies terminal statuses exhaustively and treats unknown as non-terminal
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/domains/backup.test.ts:117:49
+    115|     expect(isTerminalBackupJobStatus('unknown')).toBe(false);
+    116|     for (const status of ['incomplete', 'failed', 'succeeded', 'recove…
+    117|       expect(isTerminalBackupJobStatus(status)).toBe(true);
+       |                                                 ^
+    118|     }
+    119|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: job schema > tolerates an unknown status inside a job and still marks it safe
+AssertionError: expected 'archived' to be 'unknown' // Object.is equality
+
+Expected: "unknown"
+Received: "archived"
+
+ ❯ src/domains/backup.test.ts:136:27
+    134|   it('tolerates an unknown status inside a job and still marks it safe…
+    135|     const parsed = backupJobSchema.parse({ ...queuedJob, status: 'arch…
+    136|     expect(parsed.status).toBe('unknown');
+       |                           ^
+    137|     expect(parsed.download_eligible).toBe(false);
+    138|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: job schema > fails closed when a job claims to be downloadable or not synthetic
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/domains/backup.test.ts:141:90
+    139|
+    140|   it('fails closed when a job claims to be downloadable or not synthet…
+    141|     expect(backupJobSchema.safeParse({ ...queuedJob, download_eligible…
+       |                                                                                          ^
+    142|     expect(backupJobSchema.safeParse({ ...queuedJob, synthetic: false …
+    143|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: job schema > rejects missing or mistyped required fields
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/domains/backup.test.ts:148:58
+    146|     const withoutId: Record<string, unknown> = { ...queuedJob };
+    147|     delete withoutId.id;
+    148|     expect(backupJobSchema.safeParse(withoutId).success).toBe(false);
+       |                                                          ^
+    149|     expect(backupJobSchema.safeParse({ ...queuedJob, created_at: 5 }).…
+    150|     expect(backupJobSchema.safeParse({ ...queuedJob, components: [{ na…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: job schema > parses list and instance envelopes strictly
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/domains/backup.test.ts:157:82
+    155|   it('parses list and instance envelopes strictly', () => {
+    156|     expect(backupJobListResponseSchema.parse({ jobs: [queuedJob, incom…
+    157|     expect(backupJobListResponseSchema.safeParse({ jobs: [queuedJob] }…
+       |                                                                                  ^
+    158|     const instances = {
+    159|       synthetic: true,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: status object > rejects a disabled_reason outside the closed set and a missing one
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/domains/backup.test.ts:185:83
+    183|
+    184|   it('rejects a disabled_reason outside the closed set and a missing o…
+    185|     expect(backupStatusSchema.safeParse(disabledStatus('SOMETHING_NEW'…
+       |                                                                                   ^
+    186|     const withoutReason: Record<string, unknown> = { ...disabledStatus…
+    187|     delete withoutReason.disabled_reason;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: status object > accepts every documented state and rejects others
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/domains/backup.test.ts:195:88
+    193|       expect(backupStatusSchema.safeParse({ ...readyStatus, state }).s…
+    194|     }
+    195|     expect(backupStatusSchema.safeParse({ ...readyStatus, state: 'on_f…
+       |                                                                                        ^
+    196|   });
+    197|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: status object > requires synthetic_only to be true and counters to be non-negative integers
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/domains/backup.test.ts:199:93
+    197|
+    198|   it('requires synthetic_only to be true and counters to be non-negati…
+    199|     expect(backupStatusSchema.safeParse({ ...readyStatus, synthetic_on…
+       |                                                                                             ^
+    200|     expect(backupStatusSchema.safeParse({ ...readyStatus, cleanup: { .…
+    201|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: REST calls > lists instances with an authorised GET against the backup path
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ lastCall src/domains/backup.test.ts:88:21
+     86|
+     87| function lastCall() {
+     88|   expect(fetchMock).toHaveBeenCalledTimes(1);
+       |                     ^
+     89|   const [url, options] = fetchMock.mock.calls[0] as [string, RequestIn…
+     90|   return { url, options };
+ ❯ src/domains/backup.test.ts:208:30
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: REST calls > creates a job with Idempotency-Key, JSON content type and only instance_id in the body
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ lastCall src/domains/backup.test.ts:88:21
+     86|
+     87| function lastCall() {
+     88|   expect(fetchMock).toHaveBeenCalledTimes(1);
+       |                     ^
+     89|   const [url, options] = fetchMock.mock.calls[0] as [string, RequestIn…
+     90|   return { url, options };
+ ❯ src/domains/backup.test.ts:219:30
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: REST calls > reports an idempotent replay from the Idempotent-Replay header on a 200
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ src/domains/backup.test.ts:233:29
+    231|     fetchMock.mockResolvedValue(json({ job: queuedJob }, { status: 200…
+    232|     const result = await createBackupJob('tok', 'local-1', 'k');
+    233|     expect(result.replayed).toBe(true);
+       |                             ^
+    234|     expect(result.job.status).toBe('queued');
+    235|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: REST calls > lists jobs with limit and cursor query parameters only when supplied
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ lastCall src/domains/backup.test.ts:88:21
+     86|
+     87| function lastCall() {
+     88|   expect(fetchMock).toHaveBeenCalledTimes(1);
+       |                     ^
+     89|   const [url, options] = fetchMock.mock.calls[0] as [string, RequestIn…
+     90|   return { url, options };
+ ❯ src/domains/backup.test.ts:240:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: REST calls > gets one job by encoded id and tolerates an unknown status
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ lastCall src/domains/backup.test.ts:88:21
+     86|
+     87| function lastCall() {
+     88|   expect(fetchMock).toHaveBeenCalledTimes(1);
+       |                     ^
+     89|   const [url, options] = fetchMock.mock.calls[0] as [string, RequestIn…
+     90|   return { url, options };
+ ❯ src/domains/backup.test.ts:256:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: REST calls > gets the status object including a disabled state
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ lastCall src/domains/backup.test.ts:88:21
+     86|
+     87| function lastCall() {
+     88|   expect(fetchMock).toHaveBeenCalledTimes(1);
+       |                     ^
+     89|   const [url, options] = fetchMock.mock.calls[0] as [string, RequestIn…
+     90|   return { url, options };
+ ❯ src/domains/backup.test.ts:263:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: error handling > parses the crate error body into a typed BackupApiError
+AssertionError: expected {} to be an instance of BackupApiError
+ ❯ src/domains/backup.test.ts:278:19
+    276|     }, { status: 409 }));
+    277|     const error = await createBackupJob('tok', 'local-1', 'k').catch((…
+    278|     expect(error).toBeInstanceOf(BackupApiError);
+       |                   ^
+    279|     expect(error).toEqual(expect.objectContaining({ status: 409, error…
+    280|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: error handling > keeps BACKUP_DISABLED and BACKUP_NOT_READY 503 reasons
+AssertionError: promise resolved "{}" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
+- }
++ {}
+
+ ❯ src/domains/backup.test.ts:284:44
+    282|   it('keeps BACKUP_DISABLED and BACKUP_NOT_READY 503 reasons', async (…
+    283|     fetchMock.mockResolvedValue(json({ error_code: 'Unavailable', erro…
+    284|     await expect(listBackupInstances('tok')).rejects.toEqual(expect.ob…
+       |                                            ^
+    285|   });
+    286|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: error handling > falls back to the HTTP status for non-JSON error bodies such as a plain-text 413
+AssertionError: expected {} to be an instance of BackupApiError
+ ❯ src/domains/backup.test.ts:290:19
+    288|     fetchMock.mockResolvedValue(new Response('payload too large', { st…
+    289|     const error = await createBackupJob('tok', 'local-1', 'k').catch((…
+    290|     expect(error).toBeInstanceOf(BackupApiError);
+       |                   ^
+    291|     expect(error).toEqual(expect.objectContaining({ status: 413 }));
+    292|     expect((error as BackupApiError).reasonCode).toBeUndefined();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: error handling > rejects a success response whose body does not match the contract
+AssertionError: expected {} to be an instance of BackupApiError
+ ❯ src/domains/backup.test.ts:298:19
+    296|     fetchMock.mockResolvedValue(json({ job: { ...queuedJob, download_e…
+    297|     const error = await createBackupJob('tok', 'local-1', 'k').catch((…
+    298|     expect(error).toBeInstanceOf(BackupApiError);
+       |                   ^
+    299|     expect((error as BackupApiError).reasonCode).toBe('INVALID_RESPONS…
+    300|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/21]⎯
+
+ FAIL  src/domains/backup.test.ts > TS-52 client: error handling > does not copy server error strings into the error message
+AssertionError: the given combination of arguments (undefined and string) is invalid for this assertion. You can use an array, a map, an object, a set, a string, or a weakset instead of a string
+ ❯ src/domains/backup.test.ts:308:31
+    306|     fetchMock.mockResolvedValue(json({ error_code: 'Forbidden', errors…
+    307|     const error = (await getBackupStatus('tok').catch((e: unknown) => …
+    308|     expect(error.message).not.toContain('onerror');
+       |                               ^
+    309|     expect(error.reasonCode).toBe('ROLE_REQUIRED');
+    310|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/21]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  21 failed | 12 passed (33)
+   Start at  19:32:45
+   Duration  352ms (transform 23ms, setup 25ms, import 32ms, tests 9ms, environment 219ms)
+
