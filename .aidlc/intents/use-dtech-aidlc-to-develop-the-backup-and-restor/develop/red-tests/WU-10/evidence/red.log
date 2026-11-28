@@ -1,0 +1,315 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/domain/response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_media/src/lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/domain/response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/bucket/access/access_handler.rs:14:1
+   |
+14 | / pub struct BucketAccessPolicy {
+15 | |     pub storage: SupabaseStorage,
+16 | |     pub cache: Arc<Cache<String, bool>>,
+17 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/create/create_handler.rs:9:1
+   |
+ 9 | / pub struct CreateMediaHandler {
+10 | |     pub media_config: Arc<MediaConfig>,
+11 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+ --> domain_media/src/handlers/delete/delete_handler.rs:5:1
+  |
+5 | / pub struct DeleteMediaHandler {
+6 | |     pub media_config: Arc<MediaConfig>,
+7 | | }
+  | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/list/list_handler.rs:8:1
+   |
+ 8 | / pub struct ListMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/read/metadata_handler.rs:8:1
+   |
+ 8 | / pub struct MetadataMediaHandler {
+ 9 | |     pub media_config: Arc<MediaConfig>,
+10 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_media/src/handlers/read/read_handler.rs:24:1
+   |
+24 | / pub struct ReadMediaHandler {
+25 | |     pub media_config: Arc<MediaConfig>,
+26 | |     pub media_cache: Arc<Cache<MediaCacheKey, CachedMedia>>,
+27 | | }
+   | |_^
+
+warning: `domain_media` (lib) generated 8 warnings
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user/src/domain/response.rs:19:1
+   |
+19 | / pub struct ApiResponseWith<TData>
+20 | | where
+21 | |     TData: Serialize,
+...  |
+24 | |     data: TData,
+25 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_user/src/lib.rs:13:9
+   |
+13 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_user/src/domain/response.rs:59:1
+   |
+59 | / pub struct ApiResponseError {
+60 | |     error_code: ErrorCode,
+61 | |     errors: Vec<String>,
+62 | | }
+   | |_^
+
+warning: `domain_user` (lib) generated 2 warnings
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts/src/domain/response.rs:21:1
+   |
+21 | / pub struct ApiResponseWith<TData>
+22 | | where
+23 | |     TData: Serialize,
+...  |
+26 | |     data: TData,
+27 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> domain_posts/src/lib.rs:9:9
+   |
+ 9 | #![warn(missing_debug_implementations)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts/src/domain/response.rs:61:1
+   |
+61 | / pub struct ApiResponseError {
+62 | |     error_code: ErrorCode,
+63 | |     errors: Vec<String>,
+64 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> domain_posts/src/migrations/mod.rs:19:1
+   |
+19 | pub struct Migrator;
+   | ^^^^^^^^^^^^^^^^^^^^
+
+warning: `domain_posts` (lib) generated 3 warnings
+   Compiling gateway v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/.claude/worktrees/wf_963bdb52-c92-1/apps/api/gateway)
+warning: function `now_seconds` is never used
+  --> gateway/src/backup_cli.rs:66:4
+   |
+66 | fn now_seconds() -> Result<u64, String> {
+   |    ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `gateway` (bin "my-cms-api" test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.30s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/main.rs (target/debug/build/gateway/678d4755420dd8cf/out/my_cms_api-678d4755420dd8cf)
+
+running 44 tests
+test backup_cli::tests::disallows_invalid_object_keys ... ok
+test backup_cli::tests::rejects_incomplete_manifest_for_success ... ok
+test backup_cli::tests::reports_missing_credentials_without_echoing_secrets ... ok
+test backup_cli::tests::rejects_unsafe_backup_ids_and_paths ... ok
+test migration_tests::database_with_only_posts_applied_upgrades_cleanly ... ignored, requires Docker for PostgreSQL testcontainer
+test migration_tests::posts_and_seo_migrations_apply_on_fresh_database_and_second_boot ... ignored, requires Docker for PostgreSQL testcontainer
+test tests::backup_runtime_starts_after_migrations_and_composed_api_is_ready ... ignored, requires Docker for PostgreSQL testcontainer
+test migrate_cli::tests::handle_args_list_succeeds_even_without_database_url ... ok
+test migrate_cli::tests::handle_args_help_dash_dash_exits_zero ... ok
+test migrate_cli::tests::handle_args_unknown_verb_exits_one ... ok
+test migrate_cli::tests::handle_args_help_exits_zero ... ok
+test migrate_cli::tests::handle_args_up_missing_database_url_exits_one ... ok
+test backup_cli::tests::ts33_create_fails_closed_in_every_configuration ... ok
+test backup_cli::tests::ts33_list_fails_closed_with_and_without_credentials ... ok
+test backup_cli::tests::ts33_restore_always_refuses_and_never_succeeds ... ok
+test backup_cli::tests::hashes_archive_payload_deterministically ... ok
+test tests::migrate_usage_documents_down_status_posts_only_limit ... FAILED
+test migrate_cli::tests::all_migration_identities_include_seo_after_posts ... FAILED
+test tests::scheduler_step_ticks_and_recovers_after_outage ... ignored, requires Docker for PostgreSQL testcontainer
+test backup_cli::tests::ts33_a_fully_configured_cli_contacts_no_database_or_object_store ... ok
+test backup_cli::tests::ts33_unknown_and_empty_input_fail_closed_and_only_help_succeeds ... ok
+test tests::migrate_list_chains_backup_identities_after_seo ... FAILED
+test tests::readme_env_section_lists_every_backup_key_with_default_or_required_value ... FAILED
+test tests::ts08b_effective_bind_host_is_what_the_config_sees ... FAILED
+test tests::ts08b_non_loopback_bind_forces_backup_disabled ... FAILED
+test backup_cli::tests::manifest_requires_full_version_and_integrity_fields ... ok
+test tests::ts55_layers_read_cfg17_and_cfg18_from_backup_config ... FAILED
+test tests::disabled_backup_does_not_start_a_runtime ... ok
+test tests::backup_service_registers_under_administrator_ingress ... FAILED
+test tests::disabled_or_invalid_otlp_exporter_uses_text_logging_fallback ... ok
+test tests::compose_routers_supplies_cookie_extractor_to_domain_routes ... ok
+test tests::compose_routers_traces_rejected_protected_requests_without_calling_handler ... ok
+test tests::ts07_cookie_only_mutation_is_not_authorized ... ok
+test tests::ts55_header_limit_boundary_is_exact ... FAILED
+test tests::ts07_backup_routes_carry_no_cors_headers ... ok
+test tests::ts55_oversized_headers_get_431_before_auth_and_never_reach_handler ... FAILED
+test tests::runtime_start_failure_leaves_backup_not_ready_without_aborting_gateway ... ok
+test tests::compose_routers_traces_health_requests_without_changing_response ... ok
+test tests::ts55_unauthenticated_request_within_limits_gets_401 ... ok
+test tests::ts03_backup_routes_deny_unauthorized_tokens_before_handler ... ok
+test tests::manifest_with_five_services_returns_five_entries ... FAILED
+test tests::ts55_authenticated_request_within_limits_reaches_handler ... ok
+test tests::ts55_non_backup_routes_are_unaffected_by_ingress_layers ... ok
+test tests::ts55_slow_authenticated_request_gets_408_with_crate_error_body ... FAILED
+
+failures:
+
+---- tests::migrate_usage_documents_down_status_posts_only_limit stdout ----
+
+thread 'tests::migrate_usage_documents_down_status_posts_only_limit' (11699077) panicked at gateway/src/main.rs:1796:9:
+USAGE must state that down/status cover the posts migrator only: Usage: my-cms-api migrate <verb>
+
+Verbs:
+  up       Apply pending migrations via the gateway orchestrator (default).
+  down     Revert the most recent migration batch.
+  status   Print applied / pending status per migration.
+  --list   Print migration identities in original order.
+  --help   Print this help and exit 0.
+
+Environment:
+  DATABASE_URL, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, MEDIA_BUCKET,
+  MEDIA_BASE_URL — required by the gateway composition root.
+
+---- migrate_cli::tests::all_migration_identities_include_seo_after_posts stdout ----
+
+thread 'migrate_cli::tests::all_migration_identities_include_seo_after_posts' (11699063) panicked at gateway/src/migrate_cli.rs:184:9:
+assertion `left == right` failed
+  left: Some("m20260822_000001_seo_head_assets")
+ right: Some("m20261122_000002_backup_terminal_guards")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- tests::migrate_list_chains_backup_identities_after_seo stdout ----
+
+thread 'tests::migrate_list_chains_backup_identities_after_seo' (11699076) panicked at gateway/src/main.rs:1783:9:
+backup ids must come last: ["m20240409_151952_release_100", "m20250330_151455_release_110", "m20260126_040610_release_300", "m20260531_000001_pgvector", "m20260822_000001_seo_head_assets"]
+
+---- tests::readme_env_section_lists_every_backup_key_with_default_or_required_value stdout ----
+
+thread 'tests::readme_env_section_lists_every_backup_key_with_default_or_required_value' (11699078) panicked at gateway/src/main.rs:1749:51:
+README has no table row for `BACKUP_ALLOC_MAX_BYTES`
+
+---- tests::ts08b_effective_bind_host_is_what_the_config_sees stdout ----
+
+thread 'tests::ts08b_effective_bind_host_is_what_the_config_sees' (11699083) panicked at gateway/src/main.rs:1232:9:
+assertion `left == right` failed
+  left: None
+ right: Some("NON_LOOPBACK_BIND")
+
+---- tests::ts08b_non_loopback_bind_forces_backup_disabled stdout ----
+
+thread 'tests::ts08b_non_loopback_bind_forces_backup_disabled' (11699084) panicked at gateway/src/main.rs:1204:13:
+assertion `left == right` failed: bind host "0.0.0.0" must disable backup
+  left: None
+ right: Some("NON_LOOPBACK_BIND")
+
+---- tests::ts55_layers_read_cfg17_and_cfg18_from_backup_config stdout ----
+
+thread 'tests::ts55_layers_read_cfg17_and_cfg18_from_backup_config' (11699087) panicked at gateway/src/main.rs:1485:9:
+assertion `left == right` failed
+  left: IngressLimits { request_timeout: 30s, max_header_bytes: 16384 }
+ right: IngressLimits { request_timeout: 7s, max_header_bytes: 9000 }
+
+---- tests::backup_service_registers_under_administrator_ingress stdout ----
+
+thread 'tests::backup_service_registers_under_administrator_ingress' (11699069) panicked at gateway/src/main.rs:1511:13:
+assertion `left == right` failed
+  left: Administrator
+ right: AdministratorIngress
+
+---- tests::ts55_header_limit_boundary_is_exact stdout ----
+
+thread 'tests::ts55_header_limit_boundary_is_exact' (11699086) panicked at gateway/src/main.rs:1330:9:
+assertion `left == right` failed: one byte over the limit
+  left: 401
+ right: 431
+
+---- tests::ts55_oversized_headers_get_431_before_auth_and_never_reach_handler stdout ----
+
+thread 'tests::ts55_oversized_headers_get_431_before_auth_and_never_reach_handler' (11699089) panicked at gateway/src/main.rs:1265:13:
+assertion `left == right` failed: GET /backup/instances unauthenticated with oversized headers
+  left: 401
+ right: 431
+
+---- tests::manifest_with_five_services_returns_five_entries stdout ----
+
+thread 'tests::manifest_with_five_services_returns_five_entries' (11699075) panicked at gateway/src/main.rs:820:9:
+assertion `left == right` failed
+  left: 5
+ right: 6
+
+---- tests::ts55_slow_authenticated_request_gets_408_with_crate_error_body stdout ----
+
+thread 'tests::ts55_slow_authenticated_request_gets_408_with_crate_error_body' (11699090) panicked at gateway/src/main.rs:1369:9:
+assertion `left == right` failed
+  left: 200
+ right: 408
+
+
+failures:
+    migrate_cli::tests::all_migration_identities_include_seo_after_posts
+    tests::backup_service_registers_under_administrator_ingress
+    tests::manifest_with_five_services_returns_five_entries
+    tests::migrate_list_chains_backup_identities_after_seo
+    tests::migrate_usage_documents_down_status_posts_only_limit
+    tests::readme_env_section_lists_every_backup_key_with_default_or_required_value
+    tests::ts08b_effective_bind_host_is_what_the_config_sees
+    tests::ts08b_non_loopback_bind_forces_backup_disabled
+    tests::ts55_header_limit_boundary_is_exact
+    tests::ts55_layers_read_cfg17_and_cfg18_from_backup_config
+    tests::ts55_oversized_headers_get_431_before_auth_and_never_reach_handler
+    tests::ts55_slow_authenticated_request_gets_408_with_crate_error_body
+
+test result: FAILED. 28 passed; 12 failed; 4 ignored; 0 measured; 0 filtered out; finished in 1.52s
+
+error: test failed, to rerun pass `-p gateway --bin my-cms-api`
+error: 1 target failed:
+    `-p gateway --bin my-cms-api`

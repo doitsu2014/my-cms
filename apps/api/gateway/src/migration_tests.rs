@@ -16,7 +16,7 @@ use test_helpers::{setup_test_space_with_pgvector, TestSpaceWithPgVector};
 /// Connect without applying any migrations. `ContainerAsyncPostgresEx` would
 /// run the posts migrator as a side effect, and the shared helper's readiness
 /// check can fire during PostgreSQL's init restart, so retry briefly.
-async fn connect_untouched(space: &TestSpaceWithPgVector) -> DatabaseConnection {
+pub(crate) async fn connect_untouched(space: &TestSpaceWithPgVector) -> DatabaseConnection {
     let port = space
         .postgres
         .get_host_port_ipv4(5432)
@@ -50,7 +50,7 @@ fn posts_and_seo() -> Vec<Box<dyn DomainService>> {
     ]
 }
 
-async fn recorded_versions(conn: &DatabaseConnection, table: &str) -> Vec<String> {
+pub(crate) async fn recorded_versions(conn: &DatabaseConnection, table: &str) -> Vec<String> {
     let rows = conn
         .query_all(Statement::from_string(
             DbBackend::Postgres,

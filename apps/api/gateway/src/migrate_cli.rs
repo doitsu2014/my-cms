@@ -4,14 +4,16 @@
 //! Routes:
 //! - `up` (default for the migrate CLI): connects, builds the manifest, runs
 //!   the gateway's `run_orchestrator` against the registered domains.
-//! - `down` / `status` / `--list` / `--help`: thin forward to
-//!   `domain_posts::migrations_cli::handle_args`.
+//! - `down` / `status`: thin forward to `domain_posts::migrations_cli::handle_args`. They
+//!   cover the posts migrator only (RK-08); the seo and backup migrators have their own
+//!   tables and are applied by `up` and listed by `--list`.
+//! - `--list` / `--help`: print the chained identities (posts, seo, backup) or the usage.
 //! - unknown verb: prints usage to stderr, exits with `ExitCode::FAILURE`.
 
 use std::process::ExitCode;
 
 /// Operator-facing help banner. Mirrors the migration CLI's usage string.
-const USAGE: &str = "Usage: my-cms-api migrate <verb>
+pub(crate) const USAGE: &str = "Usage: my-cms-api migrate <verb>
 \n\
 Verbs:\n  \
   up       Apply pending migrations via the gateway orchestrator (default).\n  \
@@ -19,6 +21,12 @@ Verbs:\n  \
   status   Print applied / pending status per migration.\n  \
   --list   Print migration identities in original order.\n  \
   --help   Print this help and exit 0.\n\
+\n\
+Limits:\n  \
+  down and status operate on the posts migrator only. The seo and backup\n  \
+  migrators keep their own tables (seaql_migrations_seo,\n  \
+  seaql_migrations_backup); they are applied by `up` and listed by --list,\n  \
+  but are not reverted or reported by down or status.\n\
 \n\
 Environment:\n  \
   DATABASE_URL, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, MEDIA_BUCKET,\n  \
@@ -74,10 +82,11 @@ fn list_all_migrations() -> Result<(), String> {
     Ok(())
 }
 
-fn all_migration_identities() -> Vec<&'static str> {
+pub(crate) fn all_migration_identities() -> Vec<&'static str> {
     domain_posts::migrations_cli::list_identities()
         .into_iter()
         .chain(domain_seo::migrations_cli::list_identities())
+        .chain(domain_backup::migrations_cli::list_identities())
         .collect()
 }
 
@@ -96,7 +105,7 @@ async fn run_up_orchestrator() -> Result<(), String> {
     };
     let user_state = crate::build_user_state().map_err(|e| format!("user state: {}", e))?;
 
-    let services = crate::manifest(media_config, user_state);
+    let services = crate::manifest(media_config, user_state, crate::backup_service());
     let conn = crate::connect_database()
         .await
         .map_err(|e| format!("database: {}", e))?;
@@ -169,7 +178,18 @@ mod tests {
 
     #[test]
     fn all_migration_identities_include_seo_after_posts() {
+        // RK-08 (WU-10): the backup identities are chained after the SEO identity, so SEO
+        // stays after posts and backup comes last.
         let ids = all_migration_identities();
-        assert_eq!(ids.last(), Some(&"m20260822_000001_seo_head_assets"));
+        let seo = ids
+            .iter()
+            .position(|id| *id == "m20260822_000001_seo_head_assets")
+            .expect("seo identity listed");
+        let posts_last = domain_posts::migrations_cli::list_identities()
+            .len()
+            .checked_sub(1)
+            .expect("posts identities");
+        assert!(seo > posts_last, "seo identities follow posts: {ids:?}");
+        assert_eq!(ids.last(), Some(&"m20261122_000002_backup_terminal_guards"));
     }
 }

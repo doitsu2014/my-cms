@@ -576,7 +576,7 @@
       "status": "in_progress",
       "startedAt": "2026-11-22T06:56:17.617Z",
       "detail": null,
-      "reportedAt": "2026-11-28T12:58:14.456Z",
+      "reportedAt": "2026-11-28T13:40:50.421Z",
       "reports": [
         {
           "at": "2026-11-22T07:12:29.787Z",
@@ -872,6 +872,12 @@
           "result": "complete",
           "detail": null,
           "unit": "WU-12"
+        },
+        {
+          "at": "2026-11-28T13:40:50.421Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-10"
         }
       ],
       "units": {
@@ -934,6 +940,10 @@
         "WU-12": {
           "status": "complete",
           "reportedAt": "2026-11-28T12:58:14.456Z"
+        },
+        "WU-10": {
+          "status": "complete",
+          "reportedAt": "2026-11-28T13:40:50.421Z"
         }
       },
       "artifacts": [
@@ -1104,6 +1114,18 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-12/red-evidence.md",
           "bytes": 2654,
           "sha256": "dac1890e63ae41136aecb2027d5b3d9971e197377b7d5089ff4cce7f7222824f"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-10/failing-tests.md",
+          "bytes": 7185,
+          "sha256": "8a4acfb8186c55477763523b5d411590c3a6fb85f7e6c7194d8ec14d059f424c"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-10/red-evidence.md",
+          "bytes": 6756,
+          "sha256": "25347e162f82d437d6492758c2919a9a7ae9c24843513de16f3f2be1e2a931ab"
         }
       ],
       "resumedAt": "2026-11-22T09:30:17.226Z",
@@ -1113,7 +1135,7 @@
       "status": "in_progress",
       "startedAt": "2026-11-22T07:12:29.973Z",
       "detail": null,
-      "reportedAt": "2026-11-28T12:59:47.396Z",
+      "reportedAt": "2026-11-28T13:44:04.661Z",
       "reports": [
         {
           "at": "2026-11-22T07:26:43.015Z",
@@ -1330,6 +1352,12 @@
           "result": "complete",
           "detail": null,
           "unit": "WU-12"
+        },
+        {
+          "at": "2026-11-28T13:44:04.661Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-10"
         }
       ],
       "units": {
@@ -1388,6 +1416,10 @@
         "WU-12": {
           "status": "complete",
           "reportedAt": "2026-11-28T12:59:47.396Z"
+        },
+        "WU-10": {
+          "status": "complete",
+          "reportedAt": "2026-11-28T13:44:04.661Z"
         }
       },
       "artifacts": [
@@ -2038,6 +2070,30 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-12/known-limitations.md",
           "bytes": 1349,
           "sha256": "842e17b7ea87cad1aab622cb3ca0d7faf07b5c342a20d099091f13c759a90ed6"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-10/implementation.md",
+          "bytes": 8240,
+          "sha256": "20ad0eff8f7511e7a01c15ff5b57b858ade3abbf16926873781937e29b6ea35e"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-10/green-verification-report.md",
+          "bytes": 3469,
+          "sha256": "1a47630cc9ef4f8ba0adae5bfdb44f8ecbebabffd831c0a031f66d18132a3210"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-10/regression-report.md",
+          "bytes": 922,
+          "sha256": "d8c24ea370d923c6a3a137cb9c79052118a4f9d0a18b319eb7d2f4c6b937c009"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-10/known-limitations.md",
+          "bytes": 3840,
+          "sha256": "e77a0d89faaa1ee3331ad1456b69fadc545718a2d060c1fc39dbcb4567be228e"
         }
       ],
       "reworkResetAt": "2026-11-26T06:08:59.820Z",
@@ -2047,7 +2103,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-28T12:59:47.398Z",
+  "updatedAt": "2026-11-28T13:44:04.663Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -2174,7 +2230,7 @@
     },
     {
       "id": "WU-10",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-09"
       ]
@@ -2245,8 +2301,8 @@
       "WU-15",
       "WU-16"
     ],
-    "progressSeq": 18,
-    "syncedAt": "2026-11-28T12:59:47.396Z",
+    "progressSeq": 19,
+    "syncedAt": "2026-11-28T13:44:04.661Z",
     "units": {
       "WU-01": {
         "title": "Crate scaffold, domain types, config, clock, errors",
@@ -2958,23 +3014,37 @@
           "WU-09"
         ],
         "tests": [],
-        "status": "pending",
-        "selectedAt": null,
+        "status": "verified",
+        "selectedAt": "2026-11-28T13:40:50.421Z",
         "steps": {
-          "red-tests": null,
-          "build-and-verify": null
+          "red-tests": "complete",
+          "build-and-verify": "complete"
         },
-        "attempts": {},
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
         "blockedStreak": null,
         "park": null,
         "parkHistory": [],
         "inputFingerprint": "sha256:4e0ffe78f35a33d34059fa67deaee172054bff6298f82e155bba7469b958a65d",
         "priorResults": [],
-        "history": [],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "complete",
+            "at": "2026-11-28T13:40:50.421Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-28T13:44:04.661Z"
+          }
+        ],
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T05:50:09.585Z"
+        "updatedAt": "2026-11-28T13:44:04.661Z"
       },
       "WU-11": {
         "title": "CLI fail-closed tests and doc reconciliation",
@@ -3059,7 +3129,7 @@
         ],
         "tests": [],
         "status": "pending",
-        "selectedAt": null,
+        "selectedAt": "2026-11-28T13:13:46.518Z",
         "steps": {
           "red-tests": null,
           "build-and-verify": null
@@ -3594,7 +3664,15 @@
       "priorResults": 12,
       "preSha256": "cc6eee0c8cf68dcc230a882f3d8bf10eeef183e3169e51cede99a19ba17022e5"
     },
-    "lastSatisfiedAt": "2026-11-28T12:59:47.396Z"
+    "lastSatisfiedAt": "2026-11-28T13:44:04.661Z",
+    "parallelSince": "2026-11-28T13:13:46.518Z",
+    "claims": [
+      {
+        "unit": "WU-13",
+        "stage": "red-tests",
+        "claimedAt": "2026-11-28T13:13:46.518Z"
+      }
+    ]
   },
-  "currentUnit": "WU-09"
+  "currentUnit": "WU-10"
 }

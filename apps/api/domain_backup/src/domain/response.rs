@@ -123,6 +123,35 @@ pub fn project_error(err: &AppError, correlation_id: &str) -> SafeErrorBody {
     }
 }
 
+/// 408 body of the gateway request-timeout ingress layer (CFG-17, F-38). The layer is
+/// applied by the gateway before any handler runs, so the body is built here to keep the
+/// crate error format in one place.
+pub fn ingress_request_timeout() -> SafeErrorBody {
+    ingress_error(
+        CoarseErrorCode::RequestTimeout,
+        "REQUEST_TIMEOUT",
+        "The request took too long.",
+    )
+}
+
+/// 431 body of the gateway header-size ingress layer (CFG-18, F-38).
+pub fn ingress_header_too_large() -> SafeErrorBody {
+    ingress_error(
+        CoarseErrorCode::HeaderTooLarge,
+        "HEADER_TOO_LARGE",
+        "Request headers are too large.",
+    )
+}
+
+fn ingress_error(code: CoarseErrorCode, reason_code: &str, message: &str) -> SafeErrorBody {
+    SafeErrorBody {
+        error_code: code,
+        errors: vec![message.to_owned()],
+        reason_code: reason_code.to_owned(),
+        correlation_id: uuid::Uuid::new_v4().to_string(),
+    }
+}
+
 pub fn project_create_error(
     err: crate::handlers::create_job::CreateJobError,
     correlation_id: &str,
@@ -169,5 +198,35 @@ pub fn project_create_error(
         errors: vec![message.to_owned()],
         reason_code: err.reason_code().to_owned(),
         correlation_id: correlation_id.to_owned(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::response::IntoResponse;
+
+    #[test]
+    fn ingress_errors_map_to_408_and_431_with_the_crate_body_shape() {
+        let timeout = ingress_request_timeout();
+        assert_eq!(timeout.reason_code, "REQUEST_TIMEOUT");
+        assert_eq!(timeout.errors.len(), 1);
+        assert!(!timeout.correlation_id.is_empty());
+        assert_eq!(
+            timeout.into_response().status(),
+            StatusCode::REQUEST_TIMEOUT
+        );
+
+        let header = ingress_header_too_large();
+        assert_eq!(header.reason_code, "HEADER_TOO_LARGE");
+        assert_eq!(
+            header.into_response().status(),
+            StatusCode::REQUEST_HEADER_FIELDS_TOO_LARGE
+        );
+        assert_ne!(
+            ingress_request_timeout().correlation_id,
+            ingress_request_timeout().correlation_id,
+            "every response carries a fresh correlation id"
+        );
     }
 }

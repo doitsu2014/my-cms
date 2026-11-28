@@ -1117,3 +1117,58 @@ async fn ts17_store_outage_paths_are_safe_and_status_stays_200_degraded() {
         assert!(!persisted.contains(key_canary), "canary in {table}");
     }
 }
+
+/// WU-10 / F-37 + F-16: the production composition must drive the worker. Without a worker
+/// driver a job created through the composed API stays `queued` until the sweeper fails it
+/// with `DISPATCH_FAILED` (FD 7.1), so AC-002 S1 could never reach `incomplete` in production.
+#[tokio::test]
+#[ignore = "requires Docker for PostgreSQL testcontainer"]
+async fn f37_started_service_runs_a_created_job_to_incomplete() {
+    use crate::service::DomainBackupService;
+    use domain_interface::DomainService;
+
+    let db = backup_test_db().await;
+    let temp = crate::infra::tests::fs_support::TempDir::new("service-worker");
+    let service = DomainBackupService::new(config(&temp.root()));
+    let ctx = test_domain_context(db.conn.clone());
+    service.startup_health(&ctx).await.unwrap();
+    assert_eq!(service.runtime().unwrap().state(), RuntimeState::Ready);
+    let app = service
+        .register_routes(&ctx)
+        .remove(0)
+        .router
+        .with_state(ctx.clone());
+
+    let create = Request::builder()
+        .method("POST")
+        .uri("/backup/jobs")
+        .header(header::HOST, "localhost:8989")
+        .header("Origin", "http://localhost:3002")
+        .header(header::CONTENT_TYPE, "application/json")
+        .header("Idempotency-Key", "service-worker-key-0001")
+        .extension(admin())
+        .body(Body::from(br#"{"instance_id":"local-1"}"#.to_vec()))
+        .unwrap();
+    let (status, created) = body(app.clone().oneshot(create).await.unwrap()).await;
+    assert_eq!(status, StatusCode::ACCEPTED);
+    assert_eq!(created["job"]["status"], "queued");
+    let id = created["job"]["id"].as_str().unwrap().to_owned();
+
+    assert_eq!(
+        service.worker_step().await,
+        1,
+        "the worker runs the queued job"
+    );
+    let (status, job) = body(
+        app.clone()
+            .oneshot(request("GET", &format!("/backup/jobs/{id}")))
+            .await
+            .unwrap(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(job["job"]["status"], "incomplete", "{job}");
+    assert_eq!(job["job"]["reason_code"], "REQUIRED_COMPONENTS_UNAVAILABLE");
+    assert_eq!(job["job"]["download_eligible"], false);
+    assert_eq!(service.worker_step().await, 0, "nothing left to run");
+}

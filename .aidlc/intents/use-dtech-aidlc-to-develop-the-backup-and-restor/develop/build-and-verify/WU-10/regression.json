@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "unit": "WU-10",
+  "scope": "full",
+  "commands": [
+    "cargo test --workspace --no-fail-fast (from apps/api; evidence/regression-wu10-normal.log)",
+    "cargo test --workspace --no-fail-fast -- --ignored --test-threads=4 (from apps/api; evidence/regression-wu10-ignored.log)",
+    "cargo test -p gateway --no-fail-fast (from apps/api; evidence/green-wu10-gateway.log)",
+    "cargo fmt --all -- --check; cargo clippy -p gateway -p domain_backup -p domain_interface --all-targets; cargo check --workspace (from apps/api)",
+    "dtech-aidlc ids check --stage build-and-verify"
+  ],
+  "failures": []
+}
