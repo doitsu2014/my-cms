@@ -187,7 +187,9 @@ Không bật restore cho production trước khi các điều kiện sau đượ
 
 ## 9. Hiện trạng triển khai
 
-Gateway hiện có CLI skeleton tại `apps/api/gateway/src/backup_cli.rs`, nhưng lệnh backup/list chưa có S3 transfer adapter và restore đang từ chối chạy vì quy trình phục hồi đầy đủ cho Supabase chưa được xác minh. Hiện chưa có luồng ZIP hoàn chỉnh, UI admin, upload/import restore hoặc chọn instance. Vì vậy, đây là đặc tả mục tiêu; không nên coi các tiêu chí trên là đã được triển khai.
+> Cập nhật: đoạn dưới đây mô tả hiện trạng trước lát U1. Hiện trạng U1 (synthetic-only, database slice, không restore) nằm ở mục 14; các tiêu chí ZIP, upload/import restore và download ở mục 4 vẫn chưa được triển khai.
+
+Gateway hiện có CLI skeleton tại `apps/api/gateway/src/backup_cli.rs`, nhưng lệnh backup/list chưa có S3 transfer adapter và restore đang từ chối chạy vì quy trình phục hồi đầy đủ cho Supabase chưa được xác minh. Chưa có luồng ZIP hoàn chỉnh hoặc upload/import restore. Vì vậy, các mục 1-8 là đặc tả mục tiêu; không nên coi các tiêu chí đó là đã được triển khai.
 
 ## 10. Yêu cầu phi chức năng chi tiết (từ thiết kế U1 localhost)
 
@@ -233,6 +235,8 @@ Phạm vi U1 là localhost-only; chưa có SLO số, RPO/RTO hay dataset size đ
 
 ## 12. Trạng thái triển khai U1 và điều kiện tiếp tục
 
+> Lịch sử: mục này ghi nhận điểm dừng của lượt Code Generation đầu tiên. Các điều kiện tiếp tục đã được giải quyết trong thiết kế đã duyệt và các work unit WU-01..WU-14; trạng thái hiện tại nằm ở mục 14.
+
 Code Generation U1 kết thúc mà không thay đổi mã nguồn ứng dụng nào (không sửa source, schema/migration, manifest hay UI; không chạy test trong lượt đó). Nguyên nhân dừng:
 
 1. Chưa quyết định owner persistence/migration và thiết kế cleanup/reconciliation bền vững có thể phục hồi.
@@ -246,3 +250,33 @@ Code Generation U1 kết thúc mà không thay đổi mã nguồn ứng dụng n
 - Brownfield: Rust API gateway + Supabase self-hosted; đợt đầu chỉ phát triển và kiểm thử localhost, không hỗ trợ restore production, không có bước phát hành/release riêng.
 - Thực hành nhóm: `test-after`, triển khai rồi kiểm thử từng lớp, mục tiêu bao phủ dòng 80%, CI xanh trước khi hợp nhất. CI/coverage tại thời điểm ghi nhận tạm vô hiệu hóa; cơ chế coverage/CI phải được khôi phục hoặc xác minh trước khi tiêu chí chất lượng được coi là khả thi.
 - Tài liệu coverage-report-failure (intent 261116-coverage-report-failure) thuộc CI coverage (`grcov` binary-path), không liên quan backup-restore và được giữ nguyên ngoài feature này.
+
+## 14. Trạng thái U1 hiện tại (verification sweep WU-15)
+
+Phạm vi được duyệt chỉ là lát U1: localhost, dữ liệu synthetic-only, chỉ administrator, database slice, không restore. Nhánh U1 nằm trên feature branch và không được merge vào `main` trong Develop (quyết định owner 2026-11-22; RK-16). Quyết định release-candidate gate chưa được đưa ra trong tài liệu này; bằng chứng nằm trong intent `use-dtech-aidlc-to-develop-the-backup-and-restor` (`.aidlc/intents/.../develop/build-and-verify/`).
+
+### 14.1 Đã có
+
+- **API** (`apps/api/domain_backup`, mount `Mount::AdministratorIngress` dưới `/backup`, gateway bọc timeout, giới hạn header và auth administrator): `GET /backup/status`, `GET /backup/instances`, `POST` và `GET /backup/jobs`, `GET /backup/jobs/{id}`, `GET /backup/jobs/{id}/download` (luôn 403 `DOWNLOAD_DENIED`), `POST /backup/previews/preflight` và `POST /backup/previews/restore-confirmation` (preview synthetic), và các route upload, preflight, restore luôn bị từ chối (capability bị tắt).
+- **Job**: persist trước khi trả 202, idempotency key lưu dạng digest, một job active cho mỗi instance, worker chạy ngoài request; job U1 chỉ kết thúc `incomplete` hoặc `failed`. `succeeded` và `recovery-required` không thể đạt được qua state machine, ràng buộc DB `backup_jobs_u1_status_guard` và serializer; UI vẫn render đủ mọi giá trị trạng thái.
+- **Vòng đời staging**: allocation ledger, reconciler, cleaner, sweeper và runtime start (khóa namespace, epoch, reconcile, cleanup khi khởi động) trong `domain_backup`.
+- **UI admin** (`apps/web/src/app/admin/backup`, route `/admin/backup`): banner trạng thái, chọn instance, tạo job, danh sách và chi tiết job có polling, preview synthetic. UI không có nút tải xuống.
+- **Synthetic-only**: phản hồi API mang cờ `synthetic` hoặc `synthetic_only`; UI ghi rõ job là synthetic, database-only và không restore được. Mọi nội dung là fixture, không có dữ liệu thật.
+
+### 14.2 Cách bật (cục bộ)
+
+Backup tắt mặc định. Đặt `BACKUP_ENABLED=true` cùng các khóa `BACKUP_*` bắt buộc (instance, nhãn, storage root, origin được phép, `BACKUP_REQUEST_TIMEOUT_SECS=30`, `BACKUP_MAX_HEADER_BYTES=16384`) và gateway bind loopback. Bảng đầy đủ các khóa, giá trị cố định và lý do `disabled_reason` nằm trong mục "Backup and restore (U1) configuration" của `README.md`. Các khóa CLI `BACKUP_S3_ENDPOINT` và `BACKUP_LOCAL_ROOT` là bề mặt riêng, không liên quan.
+
+### 14.3 Câu hỏi và hạng mục còn mở (không được coi là đã quyết)
+
+- **Q-04**: khôi phục Supabase Auth và Storage.
+- **Q-06**: RPO/RTO.
+- **Q-07**: chính sách production.
+- **Q-10**: mức nhất quán xuyên database, Auth và Storage.
+- **Q-11**: mã hóa và quản lý khóa (U1 không tuyên bố mã hóa at-rest).
+- **Q-12**: mức sẵn sàng toolchain/chất lượng ở phạm vi rộng hơn (baseline đã chạy và ghi nhận ngày 2026-11-22; CI hiện không chạy test `--ignored`).
+- **Audit retention** chưa được quyết định: U1 giữ mọi dòng audit và job purge bỏ qua audit.
+- **Non-owner technical guards** (chủ sở hữu có thể xác nhận hoặc thay): giới hạn body JSON 16 KiB, kích thước trang danh sách 20 (tối đa 100), kích thước fixture cố định, chu kỳ dò khôi phục DB 60 s.
+- **E2E-ENV-01**: UI chạy ở `localhost:3002` gọi API khác origin; chưa chọn cách kiểm thử trình duyệt, nên kiểm tra UI trong trình duyệt bị chặn (UI được phủ bằng component test).
+- **Chưa được cho phép**: staging dữ liệu thật, upload hoặc chấp nhận preflight, restore, download, dùng production, job `succeeded`, kết quả `recovery-required`.
+- **Giới hạn đã biết**: kiểm tra quyền chỉ chủ sở hữu (owner-only ACL) trên Windows chưa được xác minh (T-14, owner chấp nhận cho dữ liệu synthetic-only); `migrate down` và `migrate status` chỉ bao phủ migrator của posts nên không có đường rollback bằng CLI cho bảng backup (RK-08); CI hiện không chạy test cần Docker (RK-09), nên không có tuyên bố CI xanh.

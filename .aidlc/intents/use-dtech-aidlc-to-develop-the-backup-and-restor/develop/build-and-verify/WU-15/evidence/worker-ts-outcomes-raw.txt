@@ -1,0 +1,142 @@
+#### TS-01
+WU-01 | - `FN-01` configuration behavior: focused config tests passed, including approved defaults, disabled reasons, required values, strict numeric parsing, storage-root checks and CFG validation (`TS-01`, `TS-02`).
+#### TS-02
+WU-01 | - `FN-01` configuration behavior: focused config tests passed, including approved defaults, disabled reasons, required values, strict numeric parsing, storage-root checks and CFG validation (`TS-01`, `TS-02`).
+#### TS-03
+WU-10 | | TS-03, TS-07, TS-08b, TS-55 green | tests listed in `red-tests/WU-10/failing-tests.md` | pass |
+#### TS-04
+WU-08 | | TS-04 unknown and foreign ids same 404 | `http_api::ts04_foreign_and_unknown_ids_are_the_same_404_and_ts49_is_safe` | pass |
+#### TS-05a
+#### TS-05b
+WU-08 | | TS-05b claim-time policy re-check | `policy::ts05b_claim_policy_rechecks_only_the_registered_instance` | pass |
+#### TS-06
+WU-08 | | TS-06 strict create payload, no side effects | `http_api::ts45_...` (unsafe/unknown fields, disallowed instance, durable counts unchanged) | pass |
+#### TS-07
+WU-10 | | TS-03, TS-07, TS-08b, TS-55 green | tests listed in `red-tests/WU-10/failing-tests.md` | pass |
+#### TS-08a
+WU-01 | - `FN-39` loopback IP guard: covered by the passing config suite (`TS-08a`). Gateway wiring is later work and was not verified.
+#### TS-08b
+WU-10 | | TS-03, TS-07, TS-08b, TS-55 green | tests listed in `red-tests/WU-10/failing-tests.md` | pass |
+#### TS-09
+WU-09 | | TS-09 incl. body-not-read spies | `ts09_disabled_capabilities_never_poll_the_request_body` and the other TS-09 tests in `failing-tests.md` | pass |
+#### TS-10
+WU-09 | | TS-10 only the fixture adapter | `ts10_runtime_composition_holds_only_the_fixture_adapter`, `ts10_client_flags_cannot_select_a_real_adapter` | pass |
+#### TS-11
+WU-01 | - `FN-15` pure state guard and U1 status write/projection guard: focused state-machine and status suites passed (pure `TS-11` portion). Persistence and API projections are later work and not claimed here.
+#### TS-12a
+WU-14 | | TS-12a every status value incl. `succeeded` / `recovery-required` rendered exhaustively, download always denied | `ts12a_*` in `job-status-badge.test.tsx` and `job-detail.test.tsx` | pass |
+#### TS-12b
+WU-08 | | TS-12b / TS-49 safe projection, `download_eligible` false | `handlers::job_response` tests, `http_api::ts04_...` | pass |
+#### TS-13
+WU-07 | | TS-13 (7 tests): replay, key reuse, actor scope, raw key absent from every table, 8-way concurrent same key, concurrent same key with different body (4 rounds), expired unpurged key | pass |
+#### TS-14a
+#### TS-14b
+WU-07 | | TS-14b (2 tests): `CONCURRENCY_LIMIT` for a new key and never for a replay; 6-way concurrent distinct keys leave exactly one active job | pass |
+#### TS-15
+WU-07 | | TS-15 (2 tests): rejected audit is `AUDIT_UNAVAILABLE`, outage is `STORE_UNAVAILABLE`, nothing persisted in either case | pass |
+#### TS-16
+WU-07 | | TS-16 (1 test): a COMMIT-time fault gives no accepted answer and persists nothing; the same key then creates one job and replays | pass |
+#### TS-17
+WU-08 | | TS-17 (API outputs) | `http_api::ts45_...` (success, replay, validation, denial, conflict) and `http_api::ts17_store_outage_...` (outage); bodies, headers, tracing with positive control, metrics, status, all five `backup_*` tables | pass |
+#### TS-18
+WU-14 | | TS-18 server strings render only as React text | HTML/canary-bearing strings asserted escaped in `job-detail.test.tsx`, `backup-status-banner.test.tsx`, `job-list.test.tsx` | pass |
+#### TS-19
+WU-04 | | TS-19 path/junction/reparse safety | Focused filesystem suite passed. Windows file-symlink tests exercise their visible skip path if symlink privilege is unavailable; no Unix symlink or permission claim is made from Windows. |
+#### TS-20
+WU-02 | `cargo test --manifest-path apps/api/Cargo.toml -p domain_backup --no-fail-fast` was also run to determine the current crate state. It exited 101: 116 passed, 13 failed, 128 ignored. Every observed failure is in `lifecycle::lifecycle_tests` (TS-20/21/22/23/25/26/27a/29/30/32/42/56/65), not in `migrations::tests`. These are later
+WU-18 | - TS-20, TS-21, TS-25: the complete sequences. `reconcile.fenced`, `allocation.reconciled`, `allocation.delete_claimed`, `allocation.deleted`; the file survives reconciliation and goes only after the claim; a stale `deleting` row costs no retry. This closes the limitation recorded in KL-17.
+#### TS-21
+WU-18 | - TS-20, TS-21, TS-25: the complete sequences. `reconcile.fenced`, `allocation.reconciled`, `allocation.delete_claimed`, `allocation.deleted`; the file survives reconciliation and goes only after the claim; a stale `deleting` row costs no retry. This closes the limitation recorded in KL-17.
+#### TS-22
+#### TS-23
+#### TS-24
+#### TS-25
+WU-18 | - TS-20, TS-21, TS-25: the complete sequences. `reconcile.fenced`, `allocation.reconciled`, `allocation.delete_claimed`, `allocation.deleted`; the file survives reconciliation and goes only after the claim; a stale `deleting` row costs no retry. This closes the limitation recorded in KL-17.
+#### TS-26
+#### TS-27a
+#### TS-27b
+WU-08 | | TS-27b escalation, disabled state and each `disabled_reason` | `handlers::status::tests::ts27b_disabled_state_and_closed_disabled_reasons_are_projected`, `http_api::ts45_...` durable counts, `http_api::ts17_store_outage_...` degraded escalation | pass |
+#### TS-28
+#### TS-29
+#### TS-30
+WU-04 | | TS-30 allocation budgets | 28 allocation-store integration tests passed with Docker, including per-allocation and total-budget enforcement, concurrency, cleanup retry behavior, and audit coupling. Deadline behavior is outside WU-04. |
+#### TS-31
+WU-04 | | TS-31 storage privacy | Windows focused tests passed where applicable. Unix 0700/0600 checks are not compiled on Windows; Windows owner-only ACL verification is the recorded accepted residual for synthetic-only U1. |
+WU-04 | Windows cannot exercise the `cfg(unix)` TS-31 mode checks. File-symlink tests can skip when the host lacks privilege. The owner-accepted Windows ACL residual and the remaining race/locking limitations are listed in `known-limitations.md`. The full-suite later-unit failures mean the intent-wide regression result is blocked; WU-04
+#### TS-32
+WU-04 | | TS-32 lock | 11 focused tests passed, including two-process lock exclusivity. Gateway startup and admission ordering are outside WU-04. |
+#### TS-33
+WU-11 | | `cargo test -p gateway backup_cli` | 0 | 11 passed: the 6 existing tests and the 5 new TS-33 tests | `green-wu11-focused.log` |
+#### TS-34
+#### TS-35
+WU-13 | | TS-35 menu gated by `isAdministrator`; route inside `ProtectedRoute > AdminLayout > AdminOnlyRoute` | `ts35_only_shows_backup_navigation_to_administrators`, `ts35_backup_route_renders_for_administrators_inside_the_admin_layout`, `ts35_backup_route_shows_access_denied_to_non_administrators`, `ts35_backup_route_redirects_unauthe
+#### TS-36
+WU-14 | | TS-36 polling stops at a terminal state, bounded unknown polling, cleanup on unmount | `use-backup-jobs.test.ts` (fake timers) | pass |
+#### TS-37
+WU-14 | | TS-37 accessible status (text label, hidden icon, live regions) | `ts37_*` tests | pass (automated part; manual AT review not claimed) |
+#### TS-38
+WU-13 | | TS-38 empty or unavailable instance list disables submission | `ts38_empty_instance_list_disables_submission`, `ts38_unavailable_instance_list_disables_submission_and_can_be_retried`, `ts38_submission_is_disabled_while_the_list_is_loading`, selector `ts38_*` | pass |
+#### TS-39
+#### TS-40
+#### TS-41
+#### TS-42
+WU-06 | | TS-42 adapter `retention_purge_orders_eligible_rows_and_retains_audit_and_ineligible_rows` | **PASS**, 1/1 | Purges 2 eligible terminal jobs, 2 idempotency rows, 1 deleted allocation; retains queued/running jobs and all jobs with unresolved allocations; purge audit is written first in same transaction, actual delete order is i
+WU-06 | Re-verified after the 1.1.0 migration with no WU-06 source or test changes: retention store 2 passed (TS-42 adapter, TS-65 store rollback); allocation reconciliation store 4 passed (TS-56 owner-joined inventory, allocation CAS with audit, lost CAS emits nothing, audit failure rolls back). The 3 other tests in infra::tests::recon
+WU-06 | Re-verified after the 1.1.0 migration with no WU-06 source or test changes: retention store 2 passed (TS-42 adapter, TS-65 store rollback); allocation reconciliation store 4 passed (TS-56 owner-joined inventory, allocation CAS with audit, lost CAS emits nothing, audit failure rolls back). The 3 other tests in infra::tests::recon
+#### TS-43
+WU-09 | | TS-43 confirm and cancel enqueue nothing | `ts43_confirm_and_cancel_previews_enqueue_nothing` | pass |
+#### TS-44a
+WU-07 | | TS-44a (2 tests): every `job.accepted` column as specified; the audit row is written on the acceptance transaction while the job is invisible to another connection | pass |
+#### TS-44b
+WU-06 | | TS-44b applied `allocation_reconciliation_cas_updates_state_and_audits_atomically` | **PASS**, 1/1 | Applied expected-state/version/epoch CAS returns Applied; raw allocation is `release_pending`, version 3; one audit has event `allocation.reconciled`, outcome `success`, reason `RECONCILED`, configured instance, null actor/job 
+WU-06 | | TS-44b lost `lost_allocation_reconciliation_cas_has_no_audit_or_state_change` | **PASS**, 1/1 | CAS returns Lost; raw allocation remains `written`, version 2, and no audit event is appended. Log: `evidence/observed-green-wu06-cas.log` (exact successful excerpt captured; later replay log records the Docker failure before assert
+WU-06 | | TS-44b rejected audit `reconciliation_audit_failure_rolls_back_allocation_and_audit` | **PASS**, 1/1 | Rejecting `WriteThenFailSink` is reached. The test verifies the raw allocation and audit rows equal their pre-call snapshots after rejection. Log: `evidence/observed-green-wu06-cas-audit-rollback.log` (exact successful excerp
+#### TS-45
+WU-08 | | TS-45 instance registry | `instance::tests::ts45_...`, `http_api::ts45_...` | pass |
+#### TS-46
+WU-13 | | TS-46 selector renders instance label and environment | `ts46_renders_the_instance_label_and_environment_label`, `ts46_marks_the_selected_instance_and_reports_selection` | pass |
+#### TS-47
+WU-05 | | US-02, US-06 | AC-002 S2/S3 | FN-18 | `happy_path_ends_incomplete_with_exact_components`, `no_path_ends_succeeded_or_recovery_required`, DB TS-47 | passed |
+#### TS-48
+WU-05 | | US-02, US-06 | AC-002 S2 | FN-19 | TS-48 worker failure tests for adapter, persistence, allocation, dispatch; deadline tests | passed |
+#### TS-49
+WU-08 | | TS-12b / TS-49 safe projection, `download_eligible` false | `handlers::job_response` tests, `http_api::ts04_...` | pass |
+#### TS-50
+WU-14 | | TS-50 banner renders IF-11 payloads incl. `disabled` with each `disabled_reason`, names the project owner | `backup-status-banner.test.tsx`, `use-backup-status.test.ts` | pass |
+#### TS-51
+WU-14 | | TS-51 synthetic preview panel labelled synthetic; fixture package, target instance label, data in scope from IF-09/IF-10 | `synthetic-preview-panel.test.tsx`, preview client tests in `backup.test.ts` | pass |
+#### TS-52
+WU-12 | | TS-52 client part green incl. unknown-status tolerance | `backup.test.ts` status-schema and job-schema cases | pass |
+WU-13 | | TS-52 panel: fresh `crypto.randomUUID()` per submit, double-submit guard | `ts52_sends_a_fresh_crypto_random_uuid_idempotency_key_for_every_submit`, `ts52_double_submit_guard_sends_one_request_while_one_is_in_flight` | pass |
+#### TS-53
+WU-09 | | TS-53 trusted fixture ids only, no uploads/paths | `ts53_*` (3 tests) | pass |
+#### TS-55
+WU-10 | | TS-03, TS-07, TS-08b, TS-55 green | tests listed in `red-tests/WU-10/failing-tests.md` | pass |
+#### TS-56
+WU-04 | - The bounded filesystem inventory portion of TS-56 is owned here and passed in the focused storage suite. Complete nullable owner-joined allocation inventory is WU-06; lifecycle behavior for truncated inventory is WU-17/18/19 and is not claimed as passed here.
+WU-04 | | TS-56 bounded inventory | Filesystem bound/truncation producer tests passed. Later allocation join/reconciler tests are outside WU-04 and currently fail as WU-06/WU-17/18/19 work. |
+WU-06 | | TS-56 `ts56_allocation_inventory_preserves_nullable_orphan_owners` | **PASS**, 1/1 | Full unfiltered set includes all 3 seeded allocation ids. Owner status/epoch is decoded for failed and incomplete jobs; the NULL-job orphan is retained with null owner fields. A non-null missing owner cannot be seeded because the schema FK pre
+WU-06 | Re-verified after the 1.1.0 migration with no WU-06 source or test changes: retention store 2 passed (TS-42 adapter, TS-65 store rollback); allocation reconciliation store 4 passed (TS-56 owner-joined inventory, allocation CAS with audit, lost CAS emits nothing, audit failure rolls back). The 3 other tests in infra::tests::recon
+#### TS-57
+WU-08 | | TS-57 closed metric label set, canary-free | `domain::metrics` tests, `http_api::ts45_...`, `http_api::ts17_store_outage_...` | pass |
+#### TS-58
+#### TS-59
+WU-08 | | TS-59 role, Host, Origin precedence | `policy::ts59_...`, `http_api::ts45_...` | pass |
+#### TS-60
+WU-08 | | TS-60 16 KiB cap, 413 | `http_api::ts45_...` (declared and streamed) | pass |
+#### TS-61
+WU-08 | | TS-61 IF-03 limit/cursor 400 | `http_api::ts45_...` | pass |
+#### TS-62
+WU-08 | | TS-62 415 on IF-02 | `http_api::ts45_...` (missing, `text/plain`) | pass |
+#### TS-63
+WU-08 | | TS-63 malformed JSON, unknown field, bad type, non-UUID path, no echo | `http_api::ts45_...`, `http_api::ts63_...` | pass |
+#### TS-64
+WU-09 | | TS-64 identification fields, no echoed targets | `ts64_*` (2 tests) | pass |
+#### TS-65
+WU-06 | | TS-65 store `retention_purge_audit_failure_rolls_back_every_table` | **PASS**, 1/1 | Explicit `retention.purged` sink invocation counter equals exactly one before the refusal is assessed; rejection is observed and raw job/allocation/idempotency/audit state equals pre-call snapshots, with no purge audit row. Log: `evidence/obse
+WU-06 | Re-verified after the 1.1.0 migration with no WU-06 source or test changes: retention store 2 passed (TS-42 adapter, TS-65 store rollback); allocation reconciliation store 4 passed (TS-56 owner-joined inventory, allocation CAS with audit, lost CAS emits nothing, audit failure rolls back). The 3 other tests in infra::tests::recon
+WU-06 | Re-verified after the 1.1.0 migration with no WU-06 source or test changes: retention store 2 passed (TS-42 adapter, TS-65 store rollback); allocation reconciliation store 4 passed (TS-56 owner-joined inventory, allocation CAS with audit, lost CAS emits nothing, audit failure rolls back). The 3 other tests in infra::tests::recon
+#### TS-66
+#### TS-67
+#### TS-68
+#### TS-69

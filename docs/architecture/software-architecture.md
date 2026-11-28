@@ -47,6 +47,7 @@ startup. The current manifest registers:
 | `domain_auth` | Supabase JWT-layer configuration | Supabase authentication configuration |
 | `domain_media` | Media upload/read/delete and bucket management | Supabase Storage |
 | `domain_user` | Administrative user operations | Supabase GoTrue management API |
+| `domain_backup` | Backup U1 (synthetic-only, database slice, no restore): jobs, worker, staging lifecycle | CMS PostgreSQL and a private local staging directory |
 
 The gateway owns process-level work:
 
@@ -76,6 +77,37 @@ The gateway merges the router first, then applies the policy exactly once:
 | Public | Anyone | `/`, `/health`, `/healthz`, immutable post GraphQL |
 | Protected | Supabase `writer` or `administrator` role | Post/category CRUD, post translation, AI model list, mutable post GraphQL |
 | Administrator | Supabase `administrator` role | Domain-owned administration routes such as bucket and user management |
+| AdministratorIngress | Supabase `administrator` role, behind ingress limits | The `/backup/**` routes of `domain_backup` |
+
+### Backup domain mount and ingress layers
+
+`domain_backup` registers its routes under `Mount::AdministratorIngress` with the
+prefix `/backup`. The gateway merges these registrations into a separate router
+instead of the plain administrator router and wraps it, outermost to
+innermost, with the request timeout (`BACKUP_REQUEST_TIMEOUT_SECS`, answers 408),
+the header-size limit (`BACKUP_MAX_HEADER_BYTES`, answers 431 before
+authentication), the administrator auth layer, and then the routes
+(`compose_routers_with_limits` in `apps/api/gateway/src/main.rs`). Only the
+backup routes get these ingress layers; every other mount keeps its layering.
+The domain itself adds no authentication layer.
+
+Backup is off unless `BACKUP_ENABLED=true`, and a non-loopback `HOST` forces it
+off (`NON_LOOPBACK_BIND`). Backup migrations use their own table
+(`seaql_migrations_backup`) and run with the other domains' migrations. For the
+`BACKUP_*` keys see the README; for scope and open items see
+[backup and restore](../features/backup-restore.md).
+
+### Backup runtime and worker start
+
+Runtime start happens in the domain's `startup_health`, after the gateway has
+run the migrations: the service builds the runtime (stores, fixture storage and
+namespace lock), starts it (lock, epoch, reconciliation, start-up cleanup, then
+admissions) and builds the worker for that epoch. A failure never aborts the
+gateway; the runtime stays not ready and the API answers `BACKUP_NOT_READY`.
+When a runtime exists, the gateway spawns two drivers: a worker driver that
+calls `worker_step` every 2 seconds (one job at a time) and a scheduler driver
+that calls `scheduler_step` every 60 seconds, which runs recovery after a
+database outage or the due sweep and cleanup tick.
 
 Domains must not add their own global authentication or cookie layers. Keeping
 routers bare prevents a route receiving a different security envelope depending
@@ -136,7 +168,7 @@ ownership. Keep the owning domain responsible for its schema, commands,
 validation, and migrations; use a designed integration point for everything
 else.
 
-The gateway manifest registers five domains: posts, auth, media, user, and
-SEO. Record a non-trivial change through AI-DLC and follow
+The gateway manifest registers six domains: posts, auth, media, user, SEO, and
+backup. Record a non-trivial change through AI-DLC and follow
 [agent workflow](../development/agent-team.md). Requirements are in
 `aidlc/spaces/default/knowledge/aidlc-shared/`.

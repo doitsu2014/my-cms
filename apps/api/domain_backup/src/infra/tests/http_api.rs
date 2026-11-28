@@ -34,7 +34,7 @@ use tower::ServiceExt;
 use tracing_subscriber::layer::SubscriberExt;
 use uuid::Uuid;
 
-fn config(root: &Path) -> BackupConfigState {
+pub(super) fn config(root: &Path) -> BackupConfigState {
     BackupConfig::load(|key| {
         Some(match key {
             "BACKUP_ENABLED" => "true".into(),
@@ -49,7 +49,7 @@ fn config(root: &Path) -> BackupConfigState {
     })
 }
 
-fn test_domain_context(conn: sea_orm::DatabaseConnection) -> DomainContext {
+pub(super) fn test_domain_context(conn: sea_orm::DatabaseConnection) -> DomainContext {
     use async_graphql::dynamic::{Field, FieldFuture, Object, Schema, TypeRef};
     use async_graphql::Value;
     let schema = || {
@@ -71,7 +71,7 @@ fn test_domain_context(conn: sea_orm::DatabaseConnection) -> DomainContext {
     }
 }
 
-fn admin() -> AuthenticatedActor {
+pub(super) fn admin() -> AuthenticatedActor {
     AuthenticatedActor {
         user_id: "test-admin".into(),
         email: None,
@@ -80,7 +80,7 @@ fn admin() -> AuthenticatedActor {
     }
 }
 
-fn request(method: &str, uri: &str) -> Request<Body> {
+pub(super) fn request(method: &str, uri: &str) -> Request<Body> {
     Request::builder()
         .method(method)
         .uri(uri)
@@ -90,7 +90,7 @@ fn request(method: &str, uri: &str) -> Request<Body> {
         .unwrap()
 }
 
-async fn body(response: axum::response::Response) -> (StatusCode, Value) {
+pub(super) async fn body(response: axum::response::Response) -> (StatusCode, Value) {
     let status = response.status();
     let bytes = to_bytes(response.into_body(), 64 * 1024).await.unwrap();
     let payload = String::from_utf8_lossy(&bytes);

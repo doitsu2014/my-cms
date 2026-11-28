@@ -1,0 +1,21 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+   Compiling domain_backup v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/api/domain_backup)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.84s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`
+     Running unittests src/lib.rs (target/debug/build/domain_backup/90b1972bd40892cb/out/domain_backup-90b1972bd40892cb)
+
+running 4 tests
+test infra::tests::verification_sweep::ts58_feature_doc_lists_open_items_as_open_and_synthetic_only ... ok
+test infra::tests::verification_sweep::ts41_admin_creates_job_ends_incomplete_and_download_is_denied ... ok
+TS40_LOAD rounds=5 creators_per_round=12 workers_per_round=4 accepted=5 concurrency_limited=55 worker_runs=5 jobs=5 terminal=5 max_active_jobs=1 max_live_reserved_bytes=20480 max_single_allocation_bytes=4096 max_disk_bytes=20480 (budget per alloc=268435456, total=1073741824)
+TS39_LATENCY_MS samples=30 min=1.15 median=1.75 p95=3.32 max=6.26 (no target; P-01..P-05 open)
+test infra::tests::verification_sweep::ts40_concurrency_and_temporary_bytes_stay_bounded_under_load ... ok
+test infra::tests::verification_sweep::ts39_job_creation_latency_is_measured_without_a_target ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 372 filtered out; finished in 1.60s
+

@@ -1,0 +1,26 @@
+
+> admin_side@1.0.0 scan:bundle-canary /Users/doitsu2014/workspaces/doitsu-technology/my-cms/.claude/worktrees/wf_7bd2a7ba-228-1/apps/web
+> node scripts/bundle-canary-scan.mjs
+
+dist/static/js/lib-react.4a5a88a7.js    182.9 kB    57.9 kB
+dist/static/js/index.5fc39fdd.js        217.9 kB    47.2 kB
+dist/static/js/async/6926.79c9f907.js   264.0 kB    76.8 kB
+dist/static/css/index.64d0a450.css      291.2 kB    31.9 kB
+dist/static/js/async/9876.b98f9eaa.js   430.4 kB    134.8 kB
+dist/static/js/async/1977.5800a36d.js   665.8 kB    143.9 kB
+dist/static/js/async/6294.72461e93.js   722.0 kB    177.0 kB
+dist/static/js/2220.1b20cb55.js         2794.8 kB   850.5 kB
+
+                               Total:   6895.5 kB   1938.7 kB
+
+
+info    build started...
+ready   built in 0.009 s
+
+File (web)                         Size      Gzip   
+dist/static/js/index.2e0a3f43.js   0.07 kB   0.09 kB
+dist/index.html                    0.25 kB   0.20 kB
+
+                          Total:   0.32 kB   0.29 kB
+
+{"canaries":6,"distFiles":79,"buildHits":[],"controlInjectedDetected":true,"controlLeakDetected":true,"result":"PASS"}

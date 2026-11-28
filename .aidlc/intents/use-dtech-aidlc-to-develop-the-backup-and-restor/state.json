@@ -573,10 +573,10 @@
       "resumedAt": "2026-11-25T06:56:52.214Z"
     },
     "red-tests": {
-      "status": "in_progress",
+      "status": "complete",
       "startedAt": "2026-11-22T06:56:17.617Z",
       "detail": null,
-      "reportedAt": "2026-11-28T13:57:06.167Z",
+      "reportedAt": "2026-11-28T14:19:08.730Z",
       "reports": [
         {
           "at": "2026-11-22T07:12:29.787Z",
@@ -890,6 +890,12 @@
           "result": "complete",
           "detail": null,
           "unit": "WU-14"
+        },
+        {
+          "at": "2026-11-28T14:19:08.730Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-15"
         }
       ],
       "units": {
@@ -964,6 +970,10 @@
         "WU-14": {
           "status": "complete",
           "reportedAt": "2026-11-28T13:57:06.167Z"
+        },
+        "WU-15": {
+          "status": "complete",
+          "reportedAt": "2026-11-28T14:19:08.730Z"
         }
       },
       "artifacts": [
@@ -1170,6 +1180,18 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-14/red-evidence.md",
           "bytes": 2663,
           "sha256": "cf8c4b4a34f3c0f41f964d8741cd303338a9bff38fe31274ebe8e1e88fa645dc"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-15/failing-tests.md",
+          "bytes": 3893,
+          "sha256": "9d205b2801cfa784149c09693811f3a8dd65d822248c29f10ffb344cd4dbfc0a"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-15/red-evidence.md",
+          "bytes": 2608,
+          "sha256": "01a8f4b83d49827e076c5e1572ed4c69ee6b56135defaa933a3fd9e1e0a0ccb4"
         }
       ],
       "resumedAt": "2026-11-22T09:30:17.226Z",
@@ -1179,7 +1201,7 @@
       "status": "in_progress",
       "startedAt": "2026-11-22T07:12:29.973Z",
       "detail": null,
-      "reportedAt": "2026-11-28T13:59:26.378Z",
+      "reportedAt": "2026-11-28T14:21:32.219Z",
       "reports": [
         {
           "at": "2026-11-22T07:26:43.015Z",
@@ -1414,6 +1436,12 @@
           "result": "complete",
           "detail": null,
           "unit": "WU-14"
+        },
+        {
+          "at": "2026-11-28T14:21:32.219Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-15"
         }
       ],
       "units": {
@@ -1484,6 +1512,10 @@
         "WU-14": {
           "status": "complete",
           "reportedAt": "2026-11-28T13:59:26.378Z"
+        },
+        "WU-15": {
+          "status": "pending",
+          "reportedAt": "2026-11-28T14:21:32.219Z"
         }
       },
       "artifacts": [
@@ -2206,6 +2238,30 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-14/known-limitations.md",
           "bytes": 1293,
           "sha256": "5a59c01cb6a1b7c4789cd7313ff3ed00855b6697798159d50fb968617d70b33e"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-15/implementation.md",
+          "bytes": 1541,
+          "sha256": "6e070a47fa78ab60d11cfb9a13b53d9f781b4c05dd09b3816b5918d2bd7f1d33"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-15/green-verification-report.md",
+          "bytes": 14582,
+          "sha256": "31aee4d6dd949ebcd7855604866e871f916add4e5b732ac572d17c0e08bc22b0"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-15/regression-report.md",
+          "bytes": 829,
+          "sha256": "c85ec01d7e2c528b938a1a3a4d70d3b9ab3ef88e0b32acc50ec84aff2988f762"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-15/known-limitations.md",
+          "bytes": 2121,
+          "sha256": "455c12549b66317e0bc7a11ce8065e94e2abf9a358d017dae4a3c37e76a0c5f8"
         }
       ],
       "reworkResetAt": "2026-11-26T06:08:59.820Z",
@@ -2215,7 +2271,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-28T13:59:26.379Z",
+  "updatedAt": "2026-11-28T14:21:32.222Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -2413,8 +2469,8 @@
       "WU-15",
       "WU-16"
     ],
-    "progressSeq": 21,
-    "syncedAt": "2026-11-28T13:59:26.378Z",
+    "progressSeq": 22,
+    "syncedAt": "2026-11-28T14:21:32.219Z",
     "units": {
       "WU-01": {
         "title": "Crate scaffold, domain types, config, clock, errors",
@@ -3318,23 +3374,37 @@
           "WU-14"
         ],
         "tests": [],
-        "status": "pending",
-        "selectedAt": null,
+        "status": "verified",
+        "selectedAt": "2026-11-28T14:19:08.751Z",
         "steps": {
-          "red-tests": null,
-          "build-and-verify": null
+          "red-tests": "complete",
+          "build-and-verify": "complete"
         },
-        "attempts": {},
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
         "blockedStreak": null,
         "park": null,
         "parkHistory": [],
         "inputFingerprint": "sha256:1562b507811315acfe4c2c7d5a5351f3509a064944f7309bd981c661762d54e2",
         "priorResults": [],
-        "history": [],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "complete",
+            "at": "2026-11-28T14:19:08.730Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-28T14:21:32.219Z"
+          }
+        ],
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T05:50:09.585Z"
+        "updatedAt": "2026-11-28T14:21:32.219Z"
       },
       "WU-16": {
         "title": "Lifecycle reconciliation, cleanup, runtime and recovery",
@@ -3806,5 +3876,5 @@
     },
     "lastSatisfiedAt": "2026-11-28T13:46:38.499Z"
   },
-  "currentUnit": "WU-14"
+  "currentUnit": "WU-15"
 }

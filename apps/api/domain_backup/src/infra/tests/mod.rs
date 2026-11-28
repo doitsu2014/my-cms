@@ -21,4 +21,5 @@ mod retention;
 mod runtime;
 mod support;
 mod sweeper;
+mod verification_sweep;
 mod worker;

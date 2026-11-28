@@ -1,0 +1,63 @@
+
+ RUN  v4.1.8 /Users/doitsu2014/workspaces/doitsu-technology/my-cms/.claude/worktrees/wf_7bd2a7ba-228-1/apps/web
+
+ ❯ scripts/bundle-canary-scan.test.mjs (4 tests | 2 failed) 8ms
+     × positive control: reports a canary placed in a js asset 4ms
+     × positive control: reports a canary in html, css, json and map files 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/bundle-canary-scan.test.mjs > TS-17 bundle canary scanner > positive control: reports a canary placed in a js asset
+AssertionError: expected [] to deeply equal [ ObjectContaining{…} ]
+
+- Expected
++ Received
+
+- [
+-   ObjectContaining {
+-     "canary": "CANARY-backup-dsn-0001",
+-     "file": "static/js/main.abc.js",
+-   },
+- ]
++ []
+
+ ❯ scripts/bundle-canary-scan.test.mjs:43:18
+     41|     });
+     42|     const hits = await scanDirectory(dist, Object.values(BUILD_CANARIE…
+     43|     expect(hits).toEqual([
+       |                  ^
+     44|       expect.objectContaining({ canary, file: join('static', 'js', 'ma…
+     45|     ]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  scripts/bundle-canary-scan.test.mjs > TS-17 bundle canary scanner > positive control: reports a canary in html, css, json and map files
+AssertionError: expected [] to deeply equal [ 'CANARY-backup-dsn-0001', …(3) ]
+
+- Expected
++ Received
+
+- [
+-   "CANARY-backup-dsn-0001",
+-   "CANARY-backup-storage-key-0002",
+-   "CANARY-public-backup-secret-0004",
+-   "CANARY-vite-backup-secret-0003",
+- ]
++ []
+
+ ❯ scripts/bundle-canary-scan.test.mjs:57:46
+     55|     });
+     56|     const hits = await scanDirectory(dist, Object.values(BUILD_CANARIE…
+     57|     expect(hits.map((h) => h.canary).sort()).toEqual([a, b, c, d].sort…
+       |                                              ^
+     58|   });
+     59|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 2 passed (4)
+   Start at  21:03:41
+   Duration  655ms (transform 15ms, setup 45ms, import 8ms, tests 8ms, environment 438ms)
+

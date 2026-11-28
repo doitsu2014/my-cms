@@ -10,6 +10,7 @@
     "format": "prettier --write .",
     "lint": "eslint .",
     "preview": "rsbuild preview",
+    "scan:bundle-canary": "node scripts/bundle-canary-scan.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
