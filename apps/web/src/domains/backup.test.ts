@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  BACKUP_FIXTURE_IDS,
   BackupApiError,
+  backupPreflightPreviewSchema,
+  backupRestoreConfirmationSchema,
+  previewBackupPreflight,
+  previewBackupRestoreConfirmation,
   backupInstancesResponseSchema,
   backupJobListResponseSchema,
   backupJobSchema,
@@ -307,5 +312,74 @@ describe('TS-52 client: error handling', () => {
     const error = (await getBackupStatus('tok').catch((e: unknown) => e)) as BackupApiError;
     expect(error.message).not.toContain('onerror');
     expect(error.reasonCode).toBe('ROLE_REQUIRED');
+  });
+});
+
+const preflightBody = {
+  synthetic: true,
+  result: 'compatible',
+  fixture_label: 'Synthetic valid fixture',
+  target_instance_id: 'local-1',
+  target_instance_label: 'Local development instance',
+  target_environment: 'local',
+  data_scope: ['database (synthetic rows only)'],
+  impact_summary: 'Synthetic preview only. No file was uploaded or read.',
+};
+
+const confirmationBody = {
+  synthetic: true,
+  executed: false,
+  decision: 'confirm',
+  fixture_label: 'Synthetic valid fixture',
+  target_instance_id: 'local-1',
+  target_instance_label: 'Local development instance',
+  target_environment: 'local',
+  data_scope: ['database (synthetic rows only)'],
+  message: 'Synthetic preview only. Nothing was recorded and no restore was performed.',
+};
+
+describe('TS-51 client: synthetic preview calls (IF-09, IF-10)', () => {
+  it('posts only fixture_id to the preflight path with JSON content type and the bearer token', async () => {
+    fetchMock.mockResolvedValue(json(preflightBody));
+    const result = await previewBackupPreflight('tok', 'fixture-valid');
+    const { url, options } = lastCall();
+    expect(url).toBe('https://api.example.test/backup/previews/preflight');
+    expect(options.method).toBe('POST');
+    expect(options.headers['Content-Type']).toBe('application/json');
+    expect(options.headers.Authorization).toBe('Bearer tok');
+    expect(JSON.parse(options.body as string)).toEqual({ fixture_id: 'fixture-valid' });
+    expect(result.result).toBe('compatible');
+    expect(result.target_instance_label).toBe('Local development instance');
+    expect(result.data_scope).toEqual(['database (synthetic rows only)']);
+  });
+
+  it('posts fixture_id and decision to the restore-confirmation path', async () => {
+    fetchMock.mockResolvedValue(json({ ...confirmationBody, decision: 'cancel' }));
+    const result = await previewBackupRestoreConfirmation('tok', 'fixture-valid', 'cancel');
+    const { url, options } = lastCall();
+    expect(url).toBe('https://api.example.test/backup/previews/restore-confirmation');
+    expect(options.method).toBe('POST');
+    expect(JSON.parse(options.body as string)).toEqual({ fixture_id: 'fixture-valid', decision: 'cancel' });
+    expect(result.executed).toBe(false);
+    expect(result.decision).toBe('cancel');
+  });
+
+  it('closes the fixture id, result, executed and decision sets in the schemas', () => {
+    expect(BACKUP_FIXTURE_IDS).toEqual(['fixture-valid', 'fixture-incompatible', 'fixture-corrupt']);
+    expect(backupPreflightPreviewSchema.safeParse({ ...preflightBody, result: 'maybe' }).success).toBe(false);
+    expect(backupPreflightPreviewSchema.safeParse({ ...preflightBody, synthetic: false }).success).toBe(false);
+    expect(backupRestoreConfirmationSchema.safeParse({ ...confirmationBody, executed: true }).success).toBe(false);
+    expect(backupRestoreConfirmationSchema.safeParse({ ...confirmationBody, decision: 'run' }).success).toBe(false);
+  });
+
+  it('rejects a preview body that does not match the contract and surfaces typed errors', async () => {
+    fetchMock.mockResolvedValue(json({ synthetic: true }));
+    await expect(previewBackupPreflight('tok', 'fixture-valid')).rejects.toEqual(
+      expect.objectContaining({ reasonCode: 'INVALID_RESPONSE' }),
+    );
+    fetchMock.mockResolvedValue(json({ error_code: 'Unavailable', reason_code: 'BACKUP_DISABLED' }, { status: 503 }));
+    const error = (await previewBackupRestoreConfirmation('tok', 'fixture-valid', 'confirm').catch((e: unknown) => e)) as BackupApiError;
+    expect(error).toBeInstanceOf(BackupApiError);
+    expect(error.status).toBe(503);
   });
 });

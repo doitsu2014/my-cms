@@ -7,7 +7,23 @@ import { BackupApiError, createBackupJob, listBackupInstances, type BackupInstan
 vi.mock('@/auth/AuthContext', () => ({ useAuth: () => ({ token: 'tok', userInfo: { name: 'Admin', email: 'admin@example.com' } }) }));
 vi.mock('@/domains/backup', async () => {
   const actual = await vi.importActual<typeof import('@/domains/backup')>('@/domains/backup');
-  return { ...actual, listBackupInstances: vi.fn(), createBackupJob: vi.fn() };
+  // WU-14 test-support: the page now also loads the job list and IF-11 status through these two calls.
+  return {
+    ...actual,
+    listBackupInstances: vi.fn(),
+    createBackupJob: vi.fn(),
+    listBackupJobs: vi.fn(async () => ({ jobs: [], next_cursor: null })),
+    getBackupStatus: vi.fn(async () => ({
+      state: 'ready',
+      disabled_reason: null,
+      db_healthy: true,
+      admissions_open: true,
+      synthetic_only: true,
+      reconciliation: null,
+      cleanup: null,
+      escalation: { owner: 'project_owner', visible: false },
+    })),
+  };
 });
 
 const listMock = vi.mocked(listBackupInstances);

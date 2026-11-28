@@ -220,3 +220,60 @@ export async function getBackupStatus(token: string | null): Promise<BackupStatu
   const response = await authenticatedFetch(getBackupApiUrl('/status'), token, { cache: 'no-store' });
   return parseResponse(response, backupStatusSchema);
 }
+
+/** Trusted synthetic fixture ids (IF-09). The API accepts nothing else; no upload or path exists in U1. */
+export const BACKUP_FIXTURE_IDS = ['fixture-valid', 'fixture-incompatible', 'fixture-corrupt'] as const;
+export type BackupFixtureId = (typeof BACKUP_FIXTURE_IDS)[number];
+export type BackupRestoreDecision = 'confirm' | 'cancel';
+
+/** IF-09 response: identification fields of a synthetic preflight (interfaces-and-contracts 2.9). */
+export const backupPreflightPreviewSchema = z.object({
+  synthetic: z.literal(true),
+  result: z.enum(['compatible', 'incompatible', 'corrupt']),
+  fixture_label: z.string(),
+  target_instance_id: z.string(),
+  target_instance_label: z.string(),
+  target_environment: z.string(),
+  data_scope: z.array(z.string()),
+  impact_summary: z.string(),
+});
+
+/** IF-10 response. `executed` is always false: restore execution is not authorized in U1. */
+export const backupRestoreConfirmationSchema = z.object({
+  synthetic: z.literal(true),
+  executed: z.literal(false),
+  decision: z.enum(['confirm', 'cancel']),
+  fixture_label: z.string(),
+  target_instance_id: z.string(),
+  target_instance_label: z.string(),
+  target_environment: z.string(),
+  data_scope: z.array(z.string()),
+  message: z.string(),
+});
+
+export type BackupPreflightPreview = z.infer<typeof backupPreflightPreviewSchema>;
+export type BackupRestoreConfirmation = z.infer<typeof backupRestoreConfirmationSchema>;
+
+/** IF-09 `POST /backup/previews/preflight`. Sends only a trusted fixture id: no upload, path or target. */
+export async function previewBackupPreflight(token: string | null, fixtureId: BackupFixtureId): Promise<BackupPreflightPreview> {
+  const response = await authenticatedFetch(getBackupApiUrl('/previews/preflight'), token, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fixture_id: fixtureId }),
+  });
+  return parseResponse(response, backupPreflightPreviewSchema);
+}
+
+/** IF-10 `POST /backup/previews/restore-confirmation`. Stateless on the server: nothing is executed. */
+export async function previewBackupRestoreConfirmation(
+  token: string | null,
+  fixtureId: BackupFixtureId,
+  decision: BackupRestoreDecision,
+): Promise<BackupRestoreConfirmation> {
+  const response = await authenticatedFetch(getBackupApiUrl('/previews/restore-confirmation'), token, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fixture_id: fixtureId, decision }),
+  });
+  return parseResponse(response, backupRestoreConfirmationSchema);
+}

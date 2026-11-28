@@ -576,7 +576,7 @@
       "status": "in_progress",
       "startedAt": "2026-11-22T06:56:17.617Z",
       "detail": null,
-      "reportedAt": "2026-11-28T13:44:57.797Z",
+      "reportedAt": "2026-11-28T13:57:06.167Z",
       "reports": [
         {
           "at": "2026-11-22T07:12:29.787Z",
@@ -884,6 +884,12 @@
           "result": "complete",
           "detail": null,
           "unit": "WU-13"
+        },
+        {
+          "at": "2026-11-28T13:57:06.167Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-14"
         }
       ],
       "units": {
@@ -954,6 +960,10 @@
         "WU-13": {
           "status": "complete",
           "reportedAt": "2026-11-28T13:44:57.797Z"
+        },
+        "WU-14": {
+          "status": "complete",
+          "reportedAt": "2026-11-28T13:57:06.167Z"
         }
       },
       "artifacts": [
@@ -1148,6 +1158,18 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-13/red-evidence.md",
           "bytes": 2197,
           "sha256": "baab0eae5114ad1321a22882b015b112d86c5da98c7a1d637cc424d59d43e424"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-14/failing-tests.md",
+          "bytes": 9360,
+          "sha256": "a88ff9aa8f644f036dd5b3d6af85e4c1b6c4eadc39504caf29c5622245f7e139"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-14/red-evidence.md",
+          "bytes": 2663,
+          "sha256": "cf8c4b4a34f3c0f41f964d8741cd303338a9bff38fe31274ebe8e1e88fa645dc"
         }
       ],
       "resumedAt": "2026-11-22T09:30:17.226Z",
@@ -1157,7 +1179,7 @@
       "status": "in_progress",
       "startedAt": "2026-11-22T07:12:29.973Z",
       "detail": null,
-      "reportedAt": "2026-11-28T13:46:38.499Z",
+      "reportedAt": "2026-11-28T13:59:26.378Z",
       "reports": [
         {
           "at": "2026-11-22T07:26:43.015Z",
@@ -1386,6 +1408,12 @@
           "result": "complete",
           "detail": null,
           "unit": "WU-13"
+        },
+        {
+          "at": "2026-11-28T13:59:26.378Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-14"
         }
       ],
       "units": {
@@ -1452,6 +1480,10 @@
         "WU-13": {
           "status": "complete",
           "reportedAt": "2026-11-28T13:46:38.499Z"
+        },
+        "WU-14": {
+          "status": "complete",
+          "reportedAt": "2026-11-28T13:59:26.378Z"
         }
       },
       "artifacts": [
@@ -2150,6 +2182,30 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-13/known-limitations.md",
           "bytes": 648,
           "sha256": "7aa78376c32eeb63f56f3d13bd4908bc4eae8ccb7641864f82aa4864fc1b0492"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-14/implementation.md",
+          "bytes": 3970,
+          "sha256": "9ce3be49c962ef642336370d0157fad12970de8a538466a7b9c87f245cc1a67e"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-14/green-verification-report.md",
+          "bytes": 2259,
+          "sha256": "4d1e1c4d8faf0d17a2e7c315c0297db0fdf3941f9d206efa356d7db223c0dad5"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-14/regression-report.md",
+          "bytes": 761,
+          "sha256": "ef45d5d4758d2e57e6c074e340f472a61a6f90bce1c7c08f3dba5b3561ba593e"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-14/known-limitations.md",
+          "bytes": 1293,
+          "sha256": "5a59c01cb6a1b7c4789cd7313ff3ed00855b6697798159d50fb968617d70b33e"
         }
       ],
       "reworkResetAt": "2026-11-26T06:08:59.820Z",
@@ -2159,7 +2215,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-28T13:46:38.500Z",
+  "updatedAt": "2026-11-28T13:59:26.379Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -2314,7 +2370,7 @@
     },
     {
       "id": "WU-14",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-13"
       ]
@@ -2357,8 +2413,8 @@
       "WU-15",
       "WU-16"
     ],
-    "progressSeq": 20,
-    "syncedAt": "2026-11-28T13:46:38.499Z",
+    "progressSeq": 21,
+    "syncedAt": "2026-11-28T13:59:26.378Z",
     "units": {
       "WU-01": {
         "title": "Crate scaffold, domain types, config, clock, errors",
@@ -3222,23 +3278,37 @@
           "WU-13"
         ],
         "tests": [],
-        "status": "pending",
-        "selectedAt": null,
+        "status": "verified",
+        "selectedAt": "2026-11-28T13:57:06.281Z",
         "steps": {
-          "red-tests": null,
-          "build-and-verify": null
+          "red-tests": "complete",
+          "build-and-verify": "complete"
         },
-        "attempts": {},
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
         "blockedStreak": null,
         "park": null,
         "parkHistory": [],
         "inputFingerprint": "sha256:6f8cb37db25ffceaa3b9ed953553cdb5ecbb28d71e661664d0c6f75e56bb3caf",
         "priorResults": [],
-        "history": [],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "complete",
+            "at": "2026-11-28T13:57:06.167Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-28T13:59:26.378Z"
+          }
+        ],
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T05:50:09.585Z"
+        "updatedAt": "2026-11-28T13:59:26.378Z"
       },
       "WU-15": {
         "title": "Verification sweep: canary, e2e, doc updates, evidence for the release-candidate gate",
@@ -3736,5 +3806,5 @@
     },
     "lastSatisfiedAt": "2026-11-28T13:46:38.499Z"
   },
-  "currentUnit": "WU-10"
+  "currentUnit": "WU-14"
 }
