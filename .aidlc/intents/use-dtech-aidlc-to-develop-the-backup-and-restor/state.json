@@ -7,7 +7,7 @@
   "projectScope": "solo",
   "depth": "full",
   "mode": "ai",
-  "status": "active",
+  "status": "complete",
   "currentStage": null,
   "stages": {
     "problem-framing": {
@@ -2307,12 +2307,85 @@
       ],
       "reworkResetAt": "2026-11-26T06:08:59.820Z",
       "resumedAt": "2026-11-24T07:20:05.366Z"
+    },
+    "intent-record": {
+      "status": "complete",
+      "startedAt": "2026-11-28T14:28:09.808Z",
+      "detail": null,
+      "reportedAt": "2026-11-28T14:29:28.874Z",
+      "reports": [
+        {
+          "at": "2026-11-28T14:29:28.874Z",
+          "result": "complete",
+          "detail": null
+        }
+      ],
+      "units": {},
+      "artifacts": [
+        {
+          "output": "intent-summary",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/archived/intent-record/intent-summary.md",
+          "bytes": 2658,
+          "sha256": "4736e560534ae678796dac5cd5830869b769f2b242ae09c3537eb4397c36a462"
+        },
+        {
+          "output": "completed-scope",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/archived/intent-record/completed-scope.md",
+          "bytes": 3787,
+          "sha256": "4cc18c20fbe18cab402ead4c291b13e118aef6672f38690be886c3cda55b022f"
+        },
+        {
+          "output": "artifact-index",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/archived/intent-record/artifact-index.md",
+          "bytes": 9347,
+          "sha256": "d216cd2cd66206dec04c9cf7420293b082ffd1a05eb8ccc8b55836b6aba4189b"
+        }
+      ]
+    },
+    "knowledge-writeback": {
+      "status": "complete",
+      "startedAt": "2026-11-28T14:29:28.887Z",
+      "detail": null,
+      "reportedAt": "2026-11-28T14:30:23.925Z",
+      "reports": [
+        {
+          "at": "2026-11-28T14:30:23.925Z",
+          "result": "complete",
+          "detail": null,
+          "approval": {
+            "decision": "approved",
+            "by": "AI Orchestrator",
+            "bySource": "flag",
+            "mode": "ai",
+            "note": null,
+            "openItems": {
+              "writtenApproval": 0,
+              "followUp": 2
+            }
+          }
+        }
+      ],
+      "units": {},
+      "artifacts": [
+        {
+          "output": "knowledge-record",
+          "path": ".aidlc/knowledge/use-dtech-aidlc-to-develop-the-backup-and-restor.md",
+          "bytes": 6079,
+          "sha256": "c715bd1988a89eef8c37cc8e0c34d5b3c78353ba2293f1cef53d0e12985677cd"
+        },
+        {
+          "output": "next-intent-notes",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/archived/knowledge-writeback/next-intent-notes.md",
+          "bytes": 1991,
+          "sha256": "27349585a41371309b70a471a684bdb6b90029d0f2b5efb98784c0c732286a9b"
+        }
+      ]
     }
   },
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-28T14:27:57.894Z",
+  "updatedAt": "2026-11-28T14:30:23.927Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -2358,6 +2431,24 @@
       "openItems": {
         "writtenApproval": 0,
         "followUp": 9
+      }
+    },
+    "intent-closure": {
+      "phase": "archived",
+      "stage": "knowledge-writeback",
+      "decision": "approved",
+      "result": "complete",
+      "by": "AI Orchestrator",
+      "bySource": "flag",
+      "mode": "ai",
+      "at": "2026-11-28T14:30:23.925Z",
+      "note": null,
+      "detail": null,
+      "skippedStages": [],
+      "artifacts": [],
+      "openItems": {
+        "writtenApproval": 0,
+        "followUp": 2
       }
     }
   },
@@ -2529,7 +2620,7 @@
       "WU-16"
     ],
     "progressSeq": 22,
-    "syncedAt": "2026-11-28T14:27:57.891Z",
+    "syncedAt": "2026-11-28T14:30:23.925Z",
     "units": {
       "WU-01": {
         "title": "Crate scaffold, domain types, config, clock, errors",
