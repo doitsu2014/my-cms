@@ -15,4 +15,14 @@ describe('admin navigation', () => {
     view.rerender(<MemoryRouter><LeftMenu /></MemoryRouter>);
     expect(screen.getByText('SEO head assets')).toBeInTheDocument();
   });
+
+  // TS-35 (UX only; not evidence for server-side authorization)
+  it('ts35_only_shows_backup_navigation_to_administrators', () => {
+    auth.user.app_metadata.roles = [];
+    const view = render(<MemoryRouter><LeftMenu /></MemoryRouter>);
+    expect(screen.queryByRole('link', { name: 'Backup' })).not.toBeInTheDocument();
+    auth.user.app_metadata.roles = [UserRoleEnum.Administrator];
+    view.rerender(<MemoryRouter><LeftMenu /></MemoryRouter>);
+    expect(screen.getByRole('link', { name: 'Backup' })).toHaveAttribute('href', '/admin/backup');
+  });
 });

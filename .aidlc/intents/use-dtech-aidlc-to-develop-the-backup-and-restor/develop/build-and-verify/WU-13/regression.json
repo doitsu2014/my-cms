@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "unit": "WU-13",
+  "scope": "full",
+  "commands": [
+    "pnpm test (apps/web; evidence/regression-wu13-web.log)",
+    "cargo test --workspace --no-fail-fast (apps/api; evidence/regression-wu13-rust-normal.log)",
+    "cargo test --workspace --no-fail-fast -- --ignored --test-threads=4 (apps/api; evidence/regression-wu13-rust-ignored.log)",
+    "pnpm exec vitest run src/App.test.tsx src/app/admin/backup src/app/admin/components/left-menu.test.tsx (apps/web; evidence/green-wu13-focused.log)",
+    "dtech-aidlc ids check --stage build-and-verify"
+  ],
+  "failures": []
+}

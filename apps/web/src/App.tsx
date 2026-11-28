@@ -22,6 +22,7 @@ import AdminMetadataBoundary from './metadata/AdminMetadataBoundary';
 import AdminSeoHeadAssetsPage from './app/admin/seo/head-assets/page';
 import AdminCreateSeoHeadAssetPage from './app/admin/seo/head-assets/create/page';
 import AdminEditSeoHeadAssetPage from './app/admin/seo/head-assets/edit/page';
+import AdminBackupPage from './app/admin/backup/page';
 
 const App = () => {
   return (
@@ -46,6 +47,7 @@ const App = () => {
             <Route path="/admin/seo/head-assets" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminSeoHeadAssetsPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/seo/head-assets/create" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminCreateSeoHeadAssetPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/seo/head-assets/edit/:id" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminEditSeoHeadAssetPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />
+            <Route path="/admin/backup" element={<ProtectedRoute><AdminLayout><AdminOnlyRoute><AdminBackupPage /></AdminOnlyRoute></AdminLayout></ProtectedRoute>} />
             <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route path="/" element={<Navigate to="/admin" replace />} />
           </Routes>
