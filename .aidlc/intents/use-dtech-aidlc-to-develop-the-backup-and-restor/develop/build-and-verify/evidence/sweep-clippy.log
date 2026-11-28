@@ -1,0 +1,73 @@
+warning: virtual workspace defaulting to `resolver = "1"` despite one or more workspace members being on edition 2021 which implies `resolver = "2"`
+  |
+  = note: to keep the current resolver, specify `workspace.resolver = "1"` in the workspace root's manifest
+  = note: to use the edition 2021 resolver, specify `workspace.resolver = "2"` in the workspace root's manifest
+  = note: for more details see https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+    Checking domain_interface v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/api/domain_interface)
+    Checking num_cpus v1.17.0
+    Checking deadpool-runtime v0.1.4
+    Checking tokio-test v0.4.5
+    Checking assert-json-diff v2.0.2
+    Checking deadpool v0.12.3
+    Checking wiremock v0.6.5
+    Checking domain_auth v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/api/domain_auth)
+    Checking domain_user v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/api/domain_user)
+    Checking domain_seo v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/api/domain_seo)
+    Checking domain_media v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/api/domain_media)
+    Checking domain_backup v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/api/domain_backup)
+    Checking domain_posts v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/api/domain_posts)
+domain_auth/src/factory.rs:88:17: warning: very complex type used. Consider factoring parts into `type` definitions
+warning: `domain_auth` (lib test) generated 1 warning
+domain_user/src/domain/response.rs:19:1: warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+domain_user/src/domain/response.rs:59:1: warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+warning: `domain_user` (lib) generated 2 warnings
+domain_media/src/api/media/read/read_handler.rs:99:43: warning: the `Err`-variant returned from this function is very large: the `Err`-variant is at least 128 bytes
+domain_media/src/handlers/create/create_handler.rs:31:31: warning: called `Iterator::last` on a `DoubleEndedIterator`; this will needlessly iterate the entire iterator
+domain_media/src/handlers/supabase_storage.rs:728:15: warning: called `Iterator::last` on a `DoubleEndedIterator`; this will needlessly iterate the entire iterator
+domain_media/src/domain/response.rs:19:1: warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+domain_media/src/domain/response.rs:59:1: warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+domain_media/src/handlers/bucket/access/access_handler.rs:14:1: warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+domain_media/src/handlers/create/create_handler.rs:9:1: warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+domain_media/src/handlers/delete/delete_handler.rs:5:1: warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+domain_media/src/handlers/list/list_handler.rs:8:1: warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+domain_media/src/handlers/read/metadata_handler.rs:8:1: warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+domain_media/src/handlers/read/read_handler.rs:24:1: warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+warning: `domain_media` (lib) generated 11 warnings (run `cargo clippy --fix --lib -p domain_media -- ` to apply 2 suggestions)
+domain_posts/src/handlers/category/modify/modify_handler.rs:143:21: warning: you seem to be trying to use `match` for an equality check. Consider using `if`
+domain_posts/src/handlers/post/modify/modify_handler.rs:133:21: warning: you seem to be trying to use `match` for an equality check. Consider using `if`
+domain_posts/src/handlers/post/modify/modify_handler.rs:144:30: warning: `filter(..).map(..)` can be simplified as `filter_map(..)`: help: try: `filter_map(|t| t.id)`
+domain_posts/src/handlers/post/translate/translate_handler.rs:736:22: warning: redundant closure: help: replace the closure with the tuple variant itself: `AppError::Db`
+domain_posts/src/handlers/post/translate/translate_handler.rs:743:42: warning: redundant closure: help: replace the closure with the tuple variant itself: `AppError::Db`
+domain_posts/src/handlers/vector_store/vector_store_pg.rs:175:15: warning: `to_string` applied to a type that implements `Display` in `format!` args: help: remove this
+domain_posts/src/handlers/vector_store/vector_store_pg.rs:176:20: warning: `to_string` applied to a type that implements `Display` in `format!` args: help: remove this
+domain_posts/src/handlers/vector_store/vector_store_pg.rs:178:27: warning: `to_string` applied to a type that implements `Display` in `format!` args: help: remove this
+domain_posts/src/domain/response.rs:21:1: warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+domain_posts/src/domain/response.rs:61:1: warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+domain_posts/src/migrations/mod.rs:19:1: warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+warning: `domain_posts` (lib) generated 11 warnings (run `cargo clippy --fix --lib -p domain_posts -- ` to apply 8 suggestions)
+    Checking test_helpers v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/api/test_helpers)
+    Checking gateway v0.1.0 (/Users/doitsu2014/workspaces/doitsu-technology/my-cms/apps/api/gateway)
+gateway/src/backup_cli.rs:21:7: warning: constant `FORMAT_VERSION` is never used
+gateway/src/backup_cli.rs:24:8: warning: struct `Manifest` is never constructed
+gateway/src/backup_cli.rs:39:8: warning: struct `ObjectEntry` is never constructed
+gateway/src/backup_cli.rs:53:4: warning: function `safe_relative_path` is never used
+gateway/src/backup_cli.rs:62:4: warning: function `digest` is never used
+gateway/src/backup_cli.rs:66:4: warning: function `now_seconds` is never used
+warning: `gateway` (bin "my-cms-api") generated 6 warnings
+gateway/src/migrate_cli.rs:163:9: warning: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`: help: try: `if let Some(v) = previous { std::env::set_var("DATABASE_URL", v) }`
+warning: `gateway` (bin "my-cms-api" test) generated 2 warnings (1 duplicate) (run `cargo clippy --fix --bin "my-cms-api" -p gateway --tests -- ` to apply 1 suggestion)
+warning: `domain_user` (lib test) generated 2 warnings (2 duplicates)
+warning: `domain_media` (lib test) generated 11 warnings (11 duplicates)
+warning: `domain_posts` (lib test) generated 11 warnings (11 duplicates)
+warning: unused dependency `futures`
+  --> domain_interface/Cargo.toml:17:1
+   |
+17 | futures = "0.3"
+   | ^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::unused_dependencies` is set to `warn` by default
+help: consider removing the dependency on `futures`
+warning: `domain_interface` (manifest) generated 1 warning
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5.02s
+warning: the following packages contain code that will be rejected by a future version of Rust: proc-macro-error2 v2.0.1
+note: to see what the problems were, use the option `--future-incompat-report`, or run `cargo report future-incompatibilities --id 1`

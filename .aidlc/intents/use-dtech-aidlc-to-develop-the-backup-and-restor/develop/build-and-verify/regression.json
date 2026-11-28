@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "unit": "sweep",
+  "scope": "full",
+  "commands": [
+    "cargo test --workspace --no-fail-fast (apps/api; evidence/sweep-rust-normal.log)",
+    "cargo test --workspace --no-fail-fast -- --ignored --test-threads=4 (apps/api; evidence/sweep-rust-ignored.log)",
+    "cargo fmt --all -- --check; cargo clippy --workspace --all-targets; cargo check --workspace (apps/api; evidence/sweep-fmt.log, sweep-clippy.log, sweep-check.log)",
+    "pnpm test (apps/web; evidence/sweep-web.log)",
+    "pnpm exec tsc --noEmit (apps/web; evidence/sweep-web-tsc.log)",
+    "pnpm scan:bundle-canary (apps/web; evidence/sweep-bundle-canary-scan.log)",
+    "dtech-aidlc ids check --stage build-and-verify (evidence/sweep-ids.log)"
+  ],
+  "failures": []
+}

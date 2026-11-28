@@ -1198,10 +1198,10 @@
       "reworkResetAt": "2026-11-26T06:08:59.820Z"
     },
     "build-and-verify": {
-      "status": "in_progress",
+      "status": "complete",
       "startedAt": "2026-11-22T07:12:29.973Z",
       "detail": null,
-      "reportedAt": "2026-11-28T14:21:32.219Z",
+      "reportedAt": "2026-11-28T14:27:57.891Z",
       "reports": [
         {
           "at": "2026-11-22T07:26:43.015Z",
@@ -1442,6 +1442,23 @@
           "result": "complete",
           "detail": null,
           "unit": "WU-15"
+        },
+        {
+          "at": "2026-11-28T14:27:57.891Z",
+          "result": "complete",
+          "detail": null,
+          "approval": {
+            "decision": "approved",
+            "by": "AI Orchestrator",
+            "bySource": "flag",
+            "mode": "ai",
+            "note": null,
+            "openItems": {
+              "writtenApproval": 0,
+              "followUp": 9
+            }
+          },
+          "sweep": true
         }
       ],
       "units": {
@@ -1514,7 +1531,7 @@
           "reportedAt": "2026-11-28T13:59:26.378Z"
         },
         "WU-15": {
-          "status": "pending",
+          "status": "complete",
           "reportedAt": "2026-11-28T14:21:32.219Z"
         }
       },
@@ -2262,6 +2279,30 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-15/known-limitations.md",
           "bytes": 2121,
           "sha256": "455c12549b66317e0bc7a11ce8065e94e2abf9a358d017dae4a3c37e76a0c5f8"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/implementation.md",
+          "bytes": 1751,
+          "sha256": "70a4821840c59636fd873b75076931b01c26d9fadfc68a154941170cbcb9f188"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/green-verification-report.md",
+          "bytes": 2153,
+          "sha256": "1c898b2203f9131dd79cfbf0ae5e318d84333a5d7a175f8e83c4a59bb09ffd59"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/regression-report.md",
+          "bytes": 3053,
+          "sha256": "a2ebdc1e6fc82db109d83d7a2b6efb69d754c6312291785c11b3e2c27d588462"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/known-limitations.md",
+          "bytes": 2208,
+          "sha256": "c56738c33e7c76fc5176a66cdcd7ecdf67f9a1cb56ad3a74d9a2480ab905bd86"
         }
       ],
       "reworkResetAt": "2026-11-26T06:08:59.820Z",
@@ -2271,7 +2312,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-28T14:21:32.222Z",
+  "updatedAt": "2026-11-28T14:27:57.894Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -2300,6 +2341,24 @@
       "detail": null,
       "skippedStages": [],
       "artifacts": []
+    },
+    "release-candidate": {
+      "phase": "develop",
+      "stage": "build-and-verify",
+      "decision": "approved",
+      "result": "complete",
+      "by": "AI Orchestrator",
+      "bySource": "flag",
+      "mode": "ai",
+      "at": "2026-11-28T14:27:57.891Z",
+      "note": null,
+      "detail": null,
+      "skippedStages": [],
+      "artifacts": [],
+      "openItems": {
+        "writtenApproval": 0,
+        "followUp": 9
+      }
     }
   },
   "units": [
@@ -2433,7 +2492,7 @@
     },
     {
       "id": "WU-15",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-10",
         "WU-11",
@@ -2470,13 +2529,13 @@
       "WU-16"
     ],
     "progressSeq": 22,
-    "syncedAt": "2026-11-28T14:21:32.219Z",
+    "syncedAt": "2026-11-28T14:27:57.891Z",
     "units": {
       "WU-01": {
         "title": "Crate scaffold, domain types, config, clock, errors",
         "dependsOn": [],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-26T05:54:13.061Z",
         "steps": {
           "red-tests": "skipped",
@@ -2517,7 +2576,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T16:27:50.137Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-02": {
         "title": "Migrations, entities, trigger guards, migrator table name",
@@ -2525,7 +2584,7 @@
           "WU-01"
         ],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-26T06:00:04.642Z",
         "steps": {
           "red-tests": "skipped",
@@ -2566,7 +2625,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T16:27:50.137Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-03": {
         "title": "Job store with CAS, claim, concurrency index",
@@ -2574,7 +2633,7 @@
           "WU-02"
         ],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-26T06:13:08.871Z",
         "steps": {
           "red-tests": "skipped",
@@ -2631,7 +2690,7 @@
         ],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T16:27:50.137Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-04": {
         "title": "Allocation ledger, fixture storage, namespace lock",
@@ -2640,7 +2699,7 @@
           "WU-03"
         ],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-26T06:13:38.439Z",
         "steps": {
           "red-tests": "skipped",
@@ -2697,7 +2756,7 @@
         ],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T16:27:50.137Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-05": {
         "title": "Worker, fixture capture, terminal rules, deadline",
@@ -2706,7 +2765,7 @@
           "WU-04"
         ],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-26T06:13:39.418Z",
         "steps": {
           "red-tests": "skipped",
@@ -2763,7 +2822,7 @@
         ],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T16:27:50.137Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-06": {
         "title": "Allocation reconciliation and retention store contracts",
@@ -2777,7 +2836,7 @@
           "TS-56",
           "TS-65"
         ],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-26T06:13:40.372Z",
         "steps": {
           "red-tests": "skipped",
@@ -2857,7 +2916,7 @@
         ],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T16:27:50.137Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-17": {
         "title": "Lifecycle reconciler: startup and recovery reconciliation, job fencing, orphan discovery",
@@ -2875,7 +2934,7 @@
           "TS-44",
           "TS-56"
         ],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-26T08:00:37.564Z",
         "steps": {
           "red-tests": "complete",
@@ -2903,7 +2962,9 @@
             "revisitedAt": "2026-11-26T07:43:39.714Z",
             "revisitReason": "manual",
             "revisitDetail": "Duc Tran (owner) directed in chat on 2026-11-26: run the next three work units (WU-17, WU-18, WU-19) now that WU-07 is done. The earlier scheduling deferral no longer applies. The CLI in AI mode records this as AI Orchestrator, so the release gate lists it as unconfirmed.",
-            "decidedBy": "AI Orchestrator"
+            "decidedBy": "AI Orchestrator",
+            "confirmedBy": "Duc Tran",
+            "confirmedAt": "2026-11-28T14:27:23.593Z"
           }
         ],
         "inputFingerprint": "sha256:b86fe015474a777ecc5ba130d5d53717e76225b9d6dd9686b1fef9aefc9240b7",
@@ -2927,7 +2988,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T16:27:50.137Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-18": {
         "title": "Lifecycle cleaner: audited delete claim, unlink, retry and exhaustion",
@@ -2942,7 +3003,7 @@
           "TS-44",
           "TS-65"
         ],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-26T08:15:40.806Z",
         "steps": {
           "red-tests": "complete",
@@ -2971,7 +3032,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T16:27:50.137Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-19": {
         "title": "Lifecycle sweeper and runtime: expiry and deadline sweeps, retention purge, startup barrier and outage recovery",
@@ -2988,7 +3049,7 @@
           "TS-42",
           "TS-65"
         ],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-26T08:25:11.427Z",
         "steps": {
           "red-tests": "complete",
@@ -3017,7 +3078,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T16:27:50.137Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-07": {
         "title": "Idempotency, atomic acceptance",
@@ -3025,7 +3086,7 @@
           "WU-03"
         ],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-26T06:40:34.097Z",
         "steps": {
           "red-tests": "complete",
@@ -3055,7 +3116,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T16:27:50.137Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-08": {
         "title": "Authorization policy, instance registry, REST read and create adapters, status endpoint, error projection",
@@ -3067,7 +3128,7 @@
           "WU-07"
         ],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-27T08:11:41.500Z",
         "steps": {
           "red-tests": "complete",
@@ -3095,7 +3156,9 @@
             "revisitedAt": "2026-11-27T05:14:04.672Z",
             "revisitReason": "manual",
             "revisitDetail": "Owner requests revisiting WU-08 to finish remaining tests and complete its approved scope; continue bounded tests within registered WU-08 identifiers, leave WU-10 gateway composition and WU-09 disabled/download/preview scope to their units.",
-            "decidedBy": "AI Orchestrator"
+            "decidedBy": "AI Orchestrator",
+            "confirmedBy": "Duc Tran",
+            "confirmedAt": "2026-11-28T14:27:23.606Z"
           }
         ],
         "inputFingerprint": "sha256:82f4fb922aa466d2beeb1ab25b34102bc406d01a6adfbb5b06bda72e197f8997",
@@ -3136,7 +3199,7 @@
         ],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-28T11:59:03.212Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-09": {
         "title": "Disabled capabilities, download denial, previews",
@@ -3144,7 +3207,7 @@
           "WU-08"
         ],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-28T12:47:43.081Z",
         "steps": {
           "red-tests": "complete",
@@ -3174,7 +3237,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-28T12:56:46.863Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-10": {
         "title": "Gateway integration, runtime start, loopback guard, composed-router security",
@@ -3182,7 +3245,7 @@
           "WU-09"
         ],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-28T13:40:50.421Z",
         "steps": {
           "red-tests": "complete",
@@ -3212,7 +3275,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-28T13:44:04.661Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-11": {
         "title": "CLI fail-closed tests and doc reconciliation",
@@ -3220,7 +3283,7 @@
           "WU-01"
         ],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-26T06:50:34.195Z",
         "steps": {
           "red-tests": "skipped",
@@ -3250,7 +3313,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T16:27:50.137Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-12": {
         "title": "Web foundation: types, API helpers, REST client",
@@ -3258,7 +3321,7 @@
           "WU-08"
         ],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-28T12:58:14.456Z",
         "steps": {
           "red-tests": "complete",
@@ -3288,7 +3351,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-28T12:59:47.396Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-13": {
         "title": "Web page, route, menu, instance selector, create panel",
@@ -3296,7 +3359,7 @@
           "WU-12"
         ],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-28T13:44:57.797Z",
         "steps": {
           "red-tests": "complete",
@@ -3326,7 +3389,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-28T13:46:38.499Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-14": {
         "title": "Web status, polling, preview, banner, accessibility",
@@ -3334,7 +3397,7 @@
           "WU-13"
         ],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-28T13:57:06.281Z",
         "steps": {
           "red-tests": "complete",
@@ -3364,7 +3427,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-28T13:59:26.378Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-15": {
         "title": "Verification sweep: canary, e2e, doc updates, evidence for the release-candidate gate",
@@ -3374,7 +3437,7 @@
           "WU-14"
         ],
         "tests": [],
-        "status": "verified",
+        "status": "done",
         "selectedAt": "2026-11-28T14:19:08.751Z",
         "steps": {
           "red-tests": "complete",
@@ -3404,7 +3467,7 @@
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-28T14:21:32.219Z"
+        "updatedAt": "2026-11-28T14:27:57.891Z"
       },
       "WU-16": {
         "title": "Lifecycle reconciliation, cleanup, runtime and recovery",
@@ -3856,12 +3919,22 @@
       }
     ],
     "sweep": {
-      "status": "pending",
-      "selectedAt": null,
-      "at": null,
+      "status": "green",
+      "selectedAt": "2026-11-28T14:21:49.058Z",
+      "at": "2026-11-28T14:27:57.891Z",
       "failures": [],
-      "attempts": 0,
-      "via": null
+      "attempts": 1,
+      "via": null,
+      "commands": [
+        "cargo test --workspace --no-fail-fast (apps/api; evidence/sweep-rust-normal.log)",
+        "cargo test --workspace --no-fail-fast -- --ignored --test-threads=4 (apps/api; evidence/sweep-rust-ignored.log)",
+        "cargo fmt --all -- --check; cargo clippy --workspace --all-targets; cargo check --workspace (apps/api; evidence/sweep-fmt.log, sweep-clippy.log, sweep-check.log)",
+        "pnpm test (apps/web; evidence/sweep-web.log)",
+        "pnpm exec tsc --noEmit (apps/web; evidence/sweep-web-tsc.log)",
+        "pnpm scan:bundle-canary (apps/web; evidence/sweep-bundle-canary-scan.log)",
+        "dtech-aidlc ids check --stage build-and-verify (evidence/sweep-ids.log)"
+      ],
+      "baselineFailures": []
     },
     "baselineTests": [],
     "rework": null,
@@ -3875,6 +3948,5 @@
       "preSha256": "cc6eee0c8cf68dcc230a882f3d8bf10eeef183e3169e51cede99a19ba17022e5"
     },
     "lastSatisfiedAt": "2026-11-28T13:46:38.499Z"
-  },
-  "currentUnit": "WU-15"
+  }
 }
