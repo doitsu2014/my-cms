@@ -1,4 +1,5 @@
-//! Axum adapter for backup REST read/create routes (IF-01..IF-04; FN-05, FN-09).
+//! Axum adapter for the backup REST routes: read/create (IF-01..IF-04, IF-11; FN-05, FN-09),
+//! download denial (IF-05), disabled capabilities (IF-06..IF-08) and previews (IF-09, IF-10).
 
 use std::sync::Arc;
 
@@ -7,7 +8,7 @@ use axum::extract::{Extension, Path, Query, State};
 use axum::http::{header, HeaderMap, Request, StatusCode};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
-use axum::routing::get;
+use axum::routing::{get, post};
 use axum::{Json, Router};
 use base64::Engine;
 use chrono::{DateTime, Utc};
@@ -28,6 +29,7 @@ use crate::domain::response::{project_create_error, project_error, SafeErrorBody
 use crate::handlers::create_job::{AcceptContext, Accepted, CreateJobError, CreateJobHandler};
 use crate::handlers::job_response::JobResponse;
 use crate::handlers::status::{project_status, CleanupStatus, StatusResponse};
+use crate::handlers::{disabled_capability, download_denied, preview};
 use crate::infra::db_audit_sink::DbAuditSink;
 use crate::infra::db_job_store::DbJobStore;
 use crate::lifecycle::runtime::{Runtime, RuntimeState};
@@ -47,8 +49,8 @@ pub struct BackupApiState {
     pub db_healthy: bool,
     pub cleanup: Option<CleanupStatus>,
     pub metrics: Arc<MetricRecorder>,
-    store: Arc<dyn JobStore>,
-    audit: Arc<dyn AuditSink>,
+    pub(crate) store: Arc<dyn JobStore>,
+    pub(crate) audit: Arc<dyn AuditSink>,
 }
 
 impl std::fmt::Debug for BackupApiState {
@@ -123,7 +125,7 @@ impl BackupApiState {
         self.metrics.snapshot()
     }
 
-    fn record_metric(&self, outcome: MetricOutcome, error_code: MetricErrorCode) {
+    pub(crate) fn record_metric(&self, outcome: MetricOutcome, error_code: MetricErrorCode) {
         self.metrics.record(MetricLabels {
             job_kind: MetricJobKind::BackupDbSlice,
             outcome,
@@ -131,7 +133,7 @@ impl BackupApiState {
         });
     }
 
-    fn record_refusal(&self, error: &AppError) {
+    pub(crate) fn record_refusal(&self, error: &AppError) {
         self.record_metric(
             MetricOutcome::Refused,
             match error {
@@ -153,22 +155,22 @@ impl BackupApiState {
         );
     }
 
-    fn config_enabled(&self) -> Option<&crate::domain::config::BackupConfig> {
+    pub(crate) fn config_enabled(&self) -> Option<&crate::domain::config::BackupConfig> {
         match &self.config {
             BackupConfigState::Enabled(config) => Some(config),
             BackupConfigState::Disabled { .. } => None,
         }
     }
 
-    fn registry(&self) -> Option<InstanceRegistry> {
+    pub(crate) fn registry(&self) -> Option<InstanceRegistry> {
         self.config_enabled().map(InstanceRegistry::from_config)
     }
 
-    fn policy(&self) -> Option<BackupPolicy> {
+    pub(crate) fn policy(&self) -> Option<BackupPolicy> {
         self.registry().map(BackupPolicy::new)
     }
 
-    fn operational_error(&self) -> Option<AppError> {
+    pub(crate) fn operational_error(&self) -> Option<AppError> {
         if self.config_enabled().is_none() {
             return Some(AppError::BackupDisabled);
         }
@@ -185,7 +187,7 @@ impl BackupApiState {
         None
     }
 
-    fn correlation_id(&self) -> String {
+    pub(crate) fn correlation_id(&self) -> String {
         (self.correlation_id)()
     }
 }
@@ -196,6 +198,21 @@ pub fn routes(state: BackupApiState) -> Router<DomainContext> {
         .route("/backup/instances", get(list_instances))
         .route("/backup/jobs", get(list_jobs).post(create_job))
         .route("/backup/jobs/{job_id}", get(get_job))
+        .route(
+            "/backup/jobs/{job_id}/download",
+            get(download_denied::deny_download),
+        )
+        .route("/backup/packages", post(disabled_capability::upload))
+        .route("/backup/preflight", post(disabled_capability::preflight))
+        .route("/backup/restore", post(disabled_capability::restore))
+        .route(
+            "/backup/previews/preflight",
+            post(preview::preview_preflight),
+        )
+        .route(
+            "/backup/previews/restore-confirmation",
+            post(preview::preview_restore_confirmation),
+        )
         .route("/backup/status", get(status))
         .layer(middleware::from_fn_with_state(
             shared.clone(),
@@ -535,7 +552,7 @@ async fn get_job(
     }
 }
 
-fn store_error(error: StoreError, correlation_id: &str) -> Response {
+pub(crate) fn store_error(error: StoreError, correlation_id: &str) -> Response {
     let app = match error {
         StoreError::NotFound => AppError::NotFound,
         StoreError::AuditUnavailable => AppError::Unavailable {

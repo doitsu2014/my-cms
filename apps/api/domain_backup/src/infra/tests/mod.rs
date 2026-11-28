@@ -7,6 +7,7 @@
 mod alloc_support;
 mod allocation_store;
 mod audit_sink;
+mod capabilities_api;
 mod cleaner;
 mod fs_fixture_storage;
 mod fs_namespace_lock;

@@ -37,6 +37,8 @@ tokio = { version = "1.52.3", default-features = false, features = ["macros", "r
 uuid = { version = "1.23.2", features = ["v4", "serde"] }
 
 [dev-dependencies]
+# futures-core: Stream impl for the request-body polling spy (WU-09 tests); already in Cargo.lock.
+futures-core = "0.3.32"
 async-graphql = { version = "7.2.1", features = ["dynamic-schema"] }
 tower = { version = "0.5.3", features = ["util"] }
 tracing = "0.1.44"

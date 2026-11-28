@@ -934,7 +934,7 @@ async fn ts04_foreign_and_unknown_ids_are_the_same_404_and_ts49_is_safe() {
 }
 
 /// Starts a Ready lifecycle runtime over the real test database (same composition as the tests above).
-async fn ready_runtime(conn: &sea_orm::DatabaseConnection, root: &Path) -> Arc<Runtime> {
+pub(super) async fn ready_runtime(conn: &sea_orm::DatabaseConnection, root: &Path) -> Arc<Runtime> {
     let clock = Arc::new(FixedClock(t0()));
     let audit = Arc::new(DbAuditSink::new(conn.clone()));
     let allocs: Arc<dyn AllocationStore> = Arc::new(DbAllocationStore::new(

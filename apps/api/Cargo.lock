@@ -1264,6 +1264,7 @@ dependencies = [
  "base64",
  "chrono",
  "domain_interface",
+ "futures-core",
  "sea-orm",
  "sea-orm-migration",
  "serde",

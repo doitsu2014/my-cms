@@ -8,7 +8,7 @@
   "depth": "full",
   "mode": "ai",
   "status": "active",
-  "currentStage": "red-tests",
+  "currentStage": null,
   "stages": {
     "problem-framing": {
       "status": "complete",
@@ -576,7 +576,7 @@
       "status": "in_progress",
       "startedAt": "2026-11-22T06:56:17.617Z",
       "detail": null,
-      "reportedAt": "2026-11-26T16:44:25.002Z",
+      "reportedAt": "2026-11-28T12:47:43.081Z",
       "reports": [
         {
           "at": "2026-11-22T07:12:29.787Z",
@@ -860,6 +860,12 @@
           "result": "complete",
           "detail": null,
           "unit": "WU-08"
+        },
+        {
+          "at": "2026-11-28T12:47:43.081Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-09"
         }
       ],
       "units": {
@@ -914,6 +920,10 @@
         "WU-08": {
           "status": "complete",
           "reportedAt": "2026-11-26T16:44:25.002Z"
+        },
+        "WU-09": {
+          "status": "complete",
+          "reportedAt": "2026-11-28T12:47:43.081Z"
         }
       },
       "artifacts": [
@@ -1060,6 +1070,18 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-08/red-evidence.md",
           "bytes": 3303,
           "sha256": "3bac7fa0833df82938efb98b7fcaca24bff62cfdcb2fb41416492edb08e02c68"
+        },
+        {
+          "output": "failing-tests",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-09/failing-tests.md",
+          "bytes": 4383,
+          "sha256": "007e0724114021ac9842a954d5e2fac94d62b33591df58b59238d9074a90b4f3"
+        },
+        {
+          "output": "red-evidence",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/red-tests/WU-09/red-evidence.md",
+          "bytes": 2249,
+          "sha256": "08cee1f9cc3ece040eb68e27a7808ec03466fb5c52542d50b86e82fcf47a325b"
         }
       ],
       "resumedAt": "2026-11-22T09:30:17.226Z",
@@ -1068,8 +1090,8 @@
     "build-and-verify": {
       "status": "in_progress",
       "startedAt": "2026-11-22T07:12:29.973Z",
-      "detail": "WU-08 Done-when met: added TS-17 store-outage canary/IF-11 degraded test and RK-03 empty-role test; fixed macOS test temp-dir symlink (test-only). Workspace normal 404/0, ignored 208/0, fmt/clippy/check/ids ok.",
-      "reportedAt": "2026-11-28T11:59:03.212Z",
+      "detail": null,
+      "reportedAt": "2026-11-28T12:56:46.863Z",
       "reports": [
         {
           "at": "2026-11-22T07:26:43.015Z",
@@ -1274,6 +1296,12 @@
           "result": "complete",
           "detail": "WU-08 Done-when met: added TS-17 store-outage canary/IF-11 degraded test and RK-03 empty-role test; fixed macOS test temp-dir symlink (test-only). Workspace normal 404/0, ignored 208/0, fmt/clippy/check/ids ok.",
           "unit": "WU-08"
+        },
+        {
+          "at": "2026-11-28T12:56:46.863Z",
+          "result": "complete",
+          "detail": null,
+          "unit": "WU-09"
         }
       ],
       "units": {
@@ -1324,6 +1352,10 @@
         "WU-08": {
           "status": "complete",
           "reportedAt": "2026-11-28T11:59:03.212Z"
+        },
+        "WU-09": {
+          "status": "complete",
+          "reportedAt": "2026-11-28T12:56:46.863Z"
         }
       },
       "artifacts": [
@@ -1926,6 +1958,30 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-08/known-limitations.md",
           "bytes": 2603,
           "sha256": "e007ee03ab7191d83cc8aae38a24333305878d50beb835a31b4f197cf1552bff"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-09/implementation.md",
+          "bytes": 2901,
+          "sha256": "5dba35425465556889ae9f241b46826c1c2eec7ff391dc0ee4207b459bba68eb"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-09/green-verification-report.md",
+          "bytes": 2426,
+          "sha256": "53eccab4039da2d74b494d56d1250b25f486b6dbe73ca08b6583677cf8f9ae2b"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-09/regression-report.md",
+          "bytes": 1161,
+          "sha256": "043a30b7c75b7ea5126fc6b6d9c5f8663e965760056dd2ea9fdffda124c81dc7"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-09/known-limitations.md",
+          "bytes": 1379,
+          "sha256": "04cbd446d3ed59b643410911a327aea2a8cf50565030524465db1e352e46c95d"
         }
       ],
       "reworkResetAt": "2026-11-26T06:08:59.820Z",
@@ -1935,7 +1991,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-28T11:59:12.216Z",
+  "updatedAt": "2026-11-28T12:56:46.865Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -2055,7 +2111,7 @@
     },
     {
       "id": "WU-09",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-08"
       ]
@@ -2133,8 +2189,8 @@
       "WU-15",
       "WU-16"
     ],
-    "progressSeq": 16,
-    "syncedAt": "2026-11-28T11:59:11.757Z",
+    "progressSeq": 17,
+    "syncedAt": "2026-11-28T12:56:46.863Z",
     "units": {
       "WU-01": {
         "title": "Crate scaffold, domain types, config, clock, errors",
@@ -2808,23 +2864,37 @@
           "WU-08"
         ],
         "tests": [],
-        "status": "pending",
-        "selectedAt": "2026-11-28T11:59:11.757Z",
+        "status": "verified",
+        "selectedAt": "2026-11-28T12:47:43.081Z",
         "steps": {
-          "red-tests": null,
-          "build-and-verify": null
+          "red-tests": "complete",
+          "build-and-verify": "complete"
         },
-        "attempts": {},
+        "attempts": {
+          "red-tests": 1,
+          "build-and-verify": 1
+        },
         "blockedStreak": null,
         "park": null,
         "parkHistory": [],
         "inputFingerprint": "sha256:85c47770e0167e6e6e880f206ed63be22cef9cfe667b8bad949700d214af7330",
         "priorResults": [],
-        "history": [],
+        "history": [
+          {
+            "stage": "red-tests",
+            "result": "complete",
+            "at": "2026-11-28T12:47:43.081Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-28T12:56:46.863Z"
+          }
+        ],
         "reopened": [],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-26T05:50:09.585Z"
+        "updatedAt": "2026-11-28T12:56:46.863Z"
       },
       "WU-10": {
         "title": "Gateway integration, runtime start, loopback guard, composed-router security",
@@ -2895,7 +2965,7 @@
         ],
         "tests": [],
         "status": "pending",
-        "selectedAt": null,
+        "selectedAt": "2026-11-28T12:28:46.890Z",
         "steps": {
           "red-tests": null,
           "build-and-verify": null
@@ -3453,7 +3523,16 @@
       ],
       "priorResults": 12,
       "preSha256": "cc6eee0c8cf68dcc230a882f3d8bf10eeef183e3169e51cede99a19ba17022e5"
-    }
+    },
+    "parallelSince": "2026-11-28T12:28:46.890Z",
+    "claims": [
+      {
+        "unit": "WU-12",
+        "stage": "red-tests",
+        "claimedAt": "2026-11-28T12:28:46.890Z"
+      }
+    ],
+    "lastSatisfiedAt": "2026-11-28T12:56:46.863Z"
   },
   "currentUnit": "WU-09"
 }
