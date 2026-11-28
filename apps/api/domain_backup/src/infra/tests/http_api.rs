@@ -932,3 +932,188 @@ async fn ts04_foreign_and_unknown_ids_are_the_same_404_and_ts49_is_safe() {
     assert_eq!(json["job"]["progress"], Value::Null);
     assert!(json["job"].get("actor_sub").is_none());
 }
+
+/// Starts a Ready lifecycle runtime over the real test database (same composition as the tests above).
+async fn ready_runtime(conn: &sea_orm::DatabaseConnection, root: &Path) -> Arc<Runtime> {
+    let clock = Arc::new(FixedClock(t0()));
+    let audit = Arc::new(DbAuditSink::new(conn.clone()));
+    let allocs: Arc<dyn AllocationStore> = Arc::new(DbAllocationStore::new(
+        conn.clone(),
+        audit.clone(),
+        clock.clone(),
+        "local-1",
+        AllocationLimits::default(),
+    ));
+    let storage: Arc<dyn FixtureStorage> =
+        Arc::new(FsFixtureStorage::open(root, allocs.clone()).unwrap());
+    let jobs: Arc<dyn JobStore> =
+        Arc::new(DbJobStore::new(conn.clone(), audit.clone(), clock.clone()));
+    let retention: Arc<dyn RetentionStore> = Arc::new(DbRetentionStore::new(
+        conn.clone(),
+        audit.clone(),
+        "local-1",
+    ));
+    let reconciler = Arc::new(Reconciler::new(
+        jobs.clone(),
+        allocs.clone(),
+        storage.clone(),
+        audit,
+        ReconcilerConfig::new("local-1"),
+    ));
+    let cleaner = Arc::new(Cleaner::new(allocs.clone(), storage));
+    let sweeper = Arc::new(Sweeper::new(
+        jobs,
+        allocs,
+        retention,
+        reconciler.clone(),
+        SweeperConfig::default(),
+    ));
+    let runtime = Arc::new(Runtime::new(
+        reconciler,
+        cleaner,
+        sweeper,
+        Arc::new(|root: &Path| {
+            <FsNamespaceLock as crate::ports::namespace_lock::NamespaceLock>::try_acquire(root)
+        }),
+        clock,
+        RuntimeConfig::new(root.to_path_buf()),
+    ));
+    runtime.start().await.unwrap();
+    runtime
+}
+
+/// TS-17 (API outputs, outage path) and IF-11 "never 503": the lifecycle runtime is Ready but every
+/// store call made by the API adapter fails. Reads and create return safe 503 bodies, status stays
+/// 200 `degraded` with DB-derived values null, and no canary reaches responses, headers, captured
+/// tracing, metrics or any `backup_*` table.
+#[tokio::test]
+#[ignore = "requires Docker for PostgreSQL testcontainer"]
+async fn ts17_store_outage_paths_are_safe_and_status_stays_200_degraded() {
+    let db = backup_test_db().await;
+    let temp = crate::infra::tests::fs_support::TempDir::new("http-outage");
+    let runtime = ready_runtime(&db.conn, &temp.root()).await;
+    assert_eq!(runtime.state(), RuntimeState::Ready);
+    let app_state = BackupApiState::new(
+        sea_orm::DatabaseConnection::Disconnected,
+        config(&temp.root()),
+    )
+    .with_runtime(runtime);
+    let app = routes(app_state.clone()).with_state(test_domain_context(db.conn.clone()));
+
+    let captured_events = Arc::new(Mutex::new(Vec::new()));
+    let subscriber = tracing_subscriber::registry().with(CapturedEvents(captured_events.clone()));
+    let _subscriber_guard = tracing::subscriber::set_default(subscriber);
+    let control = "CANARY-outage-positive-control-0001";
+    tracing::warn!(canary = control, "positive-control");
+    assert!(scan_canary(
+        captured_events.lock().unwrap().iter().map(String::as_str),
+        control
+    ));
+    captured_events.lock().unwrap().clear();
+
+    let key_canary = "CANARY-outage-key-0001";
+    let mut outputs: Vec<String> = Vec::new();
+
+    let (status, status_json) = body(
+        app.clone()
+            .oneshot(request("GET", "/backup/status"))
+            .await
+            .unwrap(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "IF-11 never returns 503");
+    assert_eq!(status_json["state"], "degraded", "{status_json}");
+    assert_eq!(status_json["db_healthy"], false);
+    assert_eq!(status_json["admissions_open"], false);
+    assert_eq!(status_json["reconciliation"], Value::Null);
+    assert_eq!(status_json["cleanup"], Value::Null);
+    assert_eq!(status_json["escalation"]["visible"], true);
+    assert_eq!(status_json["disabled_reason"], Value::Null);
+    outputs.push(status_json.to_string());
+
+    for uri in [
+        "/backup/jobs".to_owned(),
+        format!("/backup/jobs/{}", Uuid::new_v4()),
+    ] {
+        let response = app.clone().oneshot(request("GET", &uri)).await.unwrap();
+        outputs.push(format!("{:?}", response.headers()));
+        let (status, error) = body(response).await;
+        assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE, "{uri}");
+        assert_eq!(error["reason_code"], "STORE_UNAVAILABLE", "{uri}");
+        assert!(error["correlation_id"].is_string());
+        outputs.push(error.to_string());
+    }
+
+    let create = Request::builder()
+        .method("POST")
+        .uri("/backup/jobs")
+        .header(header::HOST, "localhost:8989")
+        .header("Origin", "http://localhost:3002")
+        .header(header::CONTENT_TYPE, "application/json")
+        .header("Idempotency-Key", key_canary)
+        .extension(admin())
+        .body(Body::from(br#"{"instance_id":"local-1"}"#.to_vec()))
+        .unwrap();
+    let response = app.clone().oneshot(create).await.unwrap();
+    outputs.push(format!("{:?}", response.headers()));
+    let (status, error) = body(response).await;
+    assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
+    assert!(
+        ["STORE_UNAVAILABLE", "AUDIT_UNAVAILABLE"]
+            .contains(&error["reason_code"].as_str().unwrap()),
+        "unexpected outage reason {error}"
+    );
+    assert!(
+        error.get("job").is_none(),
+        "no accepted body during an outage"
+    );
+    outputs.push(error.to_string());
+
+    let metrics = app_state.metric_snapshot();
+    assert!(metrics.iter().any(|(labels, _)| {
+        labels.outcome == crate::domain::metrics::MetricOutcome::Refused
+            && matches!(
+                labels.error_code,
+                crate::domain::metrics::MetricErrorCode::StoreUnavailable
+                    | crate::domain::metrics::MetricErrorCode::AuditUnavailable
+            )
+    }));
+    assert!(metrics.iter().all(
+        |(labels, _)| labels.attributes().iter().all(|(key, value)| [
+            "job_kind",
+            "outcome",
+            "error_code"
+        ]
+        .contains(key)
+            && !value.contains("CANARY"))
+    ));
+    outputs.push(format!("{metrics:?}"));
+
+    let events = captured_events.lock().unwrap().clone();
+    for text in outputs.iter().chain(events.iter()) {
+        assert!(!text.contains(key_canary), "canary leaked: {text}");
+        assert!(!text.contains(control), "canary leaked: {text}");
+    }
+
+    assert_eq!(jobs_for_instance(&db.conn, "local-1").await, 0);
+    for table in [
+        "backup_jobs",
+        "backup_idempotency",
+        "backup_audit",
+        "backup_allocations",
+        "backup_epoch",
+    ] {
+        let sql = format!(
+            "SELECT COALESCE(string_agg(row_to_json(r)::text, ''), '') AS content FROM {table} r"
+        );
+        let persisted: String = db
+            .conn
+            .query_one(pg(&sql, vec![]))
+            .await
+            .unwrap()
+            .unwrap()
+            .try_get("", "content")
+            .unwrap();
+        assert!(!persisted.contains(key_canary), "canary in {table}");
+    }
+}

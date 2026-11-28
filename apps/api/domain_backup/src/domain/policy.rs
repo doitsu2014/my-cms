@@ -143,7 +143,7 @@ mod tests {
     }
 
     fn registry() -> InstanceRegistry {
-        let root = std::env::temp_dir().join(format!("backup-policy-{}", std::process::id()));
+        let root = crate::test_temp_dir().join(format!("backup-policy-{}", std::process::id()));
         let state = crate::domain::config::BackupConfig::load(|key| {
             Some(match key {
                 "BACKUP_ENABLED" => "true".into(),
@@ -172,6 +172,27 @@ mod tests {
             headers.insert(header::ORIGIN, origin.parse().unwrap());
         }
         headers
+    }
+
+    /// RK-03: `AuthenticatedActor::has_any_role(&[])` is true, so the in-handler re-assertion
+    /// must use a non-empty role constant; an actor with no roles is still refused.
+    #[test]
+    fn rk03_role_reassertion_never_uses_an_empty_role_list() {
+        assert!(!ADMIN_ROLE.is_empty());
+        assert!(
+            actor(&[]).has_any_role(&[]),
+            "upstream semantics this guards against"
+        );
+        assert_eq!(
+            authorize_operation(
+                Some(&actor(&[])),
+                &headers("localhost:8989", None),
+                false,
+                8989,
+                &["http://localhost:3002".to_owned()],
+            ),
+            Err(AuthorizationFailure::RoleRequired)
+        );
     }
 
     #[test]

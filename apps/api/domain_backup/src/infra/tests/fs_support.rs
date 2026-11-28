@@ -63,7 +63,7 @@ pub(super) struct TempDir {
 
 impl TempDir {
     pub fn new(tag: &str) -> Self {
-        let path = std::env::temp_dir().join(format!(
+        let path = crate::test_temp_dir().join(format!(
             "makara-wu04-{tag}-{}-{}",
             std::process::id(),
             Uuid::new_v4().simple()

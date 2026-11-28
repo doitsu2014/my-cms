@@ -1,23 +1,29 @@
 # WU-08 implementation
 
-- **Status:** Partial implementation with verified bounded API coverage; WU-08 is not complete.
-- **Scope:** WU-08 only. Gateway composition, disabled/download/preview handlers, web work, schemas and migrations were not changed.
-- **Identifiers:** Cites registered identifiers only; final `ids check` returned `ok: true`.
+- **Status:** Complete against the WU-08 "Done when" in `implementation-design/work-units.md` (attempt 4, 2026-11-28).
+- **Scope:** WU-08 only. Gateway composition and runtime start (WU-10), disabled/download/preview handlers (WU-09), web units, the full TS-17 bundle scan (WU-15), schemas and migrations were not changed.
+- **Identifiers:** Cites registered identifiers only; `dtech-aidlc ids check --stage build-and-verify` returned `ok: true`.
 
-## Implemented and verified
+## Implemented and verified (carried from attempts 1-3, re-verified on this tree)
 
-- `InstanceRegistry` and `BackupPolicy` implement the configured local instance, safe label/capability projection, admin-first role assertion, loopback Host and configured Origin checks, plus the worker claim-time resource check (FN-02..FN-04; TS-05b, TS-45, TS-59).
-- `JobResponse` protects the U1 projection: no actor/internal fields, `download_eligible` is always false, forbidden U1 terminal statuses are refused, and progress is null unless a measured DB component exists (FN-10; TS-12b, TS-49). Projection tests and four focused mutations pass/are killed (see `evidence/green-wu08-mutations.json`).
-- `JobStore`/`DbJobStore` now list instance-scoped jobs newest-first with opaque cursor pagination and the bounded page limit (FN-09; TS-61).
-- The Axum adapter exposes IF-01..IF-04 and IF-11 handlers, safe error bodies, create parsing/accept/replay, role/resource/Host/Origin checks, capped body reading, and durable status counts for pending, cleanup-exhausted, orphan-discovered and ambiguous-ownership rows (FN-09, FN-35, FN-36).
-- PostgreSQL-backed HTTP tests cover instance/status output, durable TS-27b counts/escalation, TS-04 foreign/unknown 404 equivalence, TS-49 safe projection, invalid UUID (TS-63), invalid/unknown list query variants (TS-61), missing/wrong content type (TS-62), malformed JSON, unknown field, URL/DSN/key/synthetic fields, disallowed instance and no persistence effects (TS-06), successful create plus idempotent replay and sequential active-job conflict, durable job/idempotency/audit counts, raw-key canary absence from response/audit/idempotency/job/allocation/epoch rows, wrong Host/Origin/writer denial, and declared/streamed over-limit bodies (TS-59/TS-60). The sequential conflict check is not a concurrency-race test.
-- `MetricRecorder` counts accepted/refused/denied API operations using fixed enum dimensions only; `BackupApiState` exposes the in-memory snapshot via `metric_snapshot()` for testing (TS-57). No production metrics export/telemetry endpoint was added; WU-08 has no approved exporter composition interface in scope.
+- `InstanceRegistry` / `BackupPolicy` (FN-02..FN-04): configured single local instance, safe capability projection, administrator re-assertion with the non-empty `ADMIN_ROLE` constant, loopback Host and configured POST Origin checks, claim-time instance re-check (TS-05b, TS-45, TS-59).
+- `JobResponse` (FN-10): no actor/internal fields, `download_eligible` always false, forbidden U1 statuses refused, progress null unless measured (TS-12b, TS-49).
+- `JobStore`/`DbJobStore` list (FN-09): instance-scoped, newest first, opaque cursor, bounded limit (TS-61); unknown and foreign ids are the same 404 (TS-04).
+- Axum adapter for IF-01..IF-04 and IF-11 (FN-09, FN-35, FN-36): safe error bodies with `reason_code` + `correlation_id`, strict create parsing, accept/replay, 16 KiB body cap (TS-60), 415 on missing/wrong content type (TS-62), malformed JSON / unknown field / bad type / non-UUID path (TS-63), durable cleanup counts and escalation (TS-27b), disabled state with each closed `disabled_reason` (TS-27b).
+- `MetricRecorder` (TS-57): accepted/refused/denied counters with the closed label set `job_kind`, `outcome`, `error_code` only.
+- Actor extraction (RK-03): handlers take `Extension<AuthenticatedActor>`, the same extractor as `domain_user` (`api/routes.rs:46`) and `domain_media`.
 
-## Remaining WU-08 work / boundary
+## Changes in this attempt
 
-- **TS-17:** the focused route test checks a raw-key canary in responses, audit/idempotency tables, jobs, allocations and epoch rows. It is not the full canary scan across captured logs, all API outputs, and emitted telemetry. WU-15 owns the full web-bundle scan.
-- **TS-57:** typed in-memory counters are exercised on accepted/refused/denied HTTP paths; the IF-11 snapshot exposes only closed enum label values and exact fixed keys. Gateway OTLP/exporter telemetry is not integrated or verified.
-- **TS-27b/FN-36:** durable cleanup counts and escalation visibility are now tested. Reconciliation `last_completed_at` / `last_result` remain simplified runtime projection fields and are not persisted/projected from a runtime record.
-- **TS-62/TS-63:** tests cover missing/wrong content-type, malformed JSON, unknown fields, invalid UUID, invalid/unknown limit and cursor. Every extractor/transport/parser rejection combination is not covered; the standalone `json_rejection` helper is not wired to a `Json` extractor.
-- **FN-37 production composition:** `DomainBackupService::register_routes` constructs `BackupApiState` without a ready `Runtime`; standalone API tests inject a ready test runtime. Production reads/create remain `BACKUP_NOT_READY` until runtime/gateway startup wiring in WU-10. Gateway auth-before-handler ordering, effective bind, CFG-17/CFG-18 ingress, CORS/cookie and composed-router security are WU-10, not verified here.
-- No WU-09 disabled/download/preview work, WU-10 gateway integration, web work, schema/migration, deployment or launch is included.
+| File | Change | Why |
+|---|---|---|
+| `apps/api/domain_backup/src/infra/tests/http_api.rs` | New `ts17_store_outage_paths_are_safe_and_status_stays_200_degraded` plus a `ready_runtime` helper | TS-17 (API outputs) requires the outage path in the canary scan; IF-11 "never 503" during a DB outage was untested. Ready runtime + API adapter on a disconnected store: status 200 `degraded`, `db_healthy=false`, `admissions_open=false`, `reconciliation`/`cleanup` null, escalation visible; list/get 503 `STORE_UNAVAILABLE` with correlation id; create 503 with no accepted body; refusal metric recorded with closed labels; tracing positive control detected; canary absent from bodies, headers, captured tracing, metrics and all five `backup_*` tables. |
+| `apps/api/domain_backup/src/domain/policy.rs` | New `rk03_role_reassertion_never_uses_an_empty_role_list` | Implementation plan RK-03 asks for a unit test that an empty role list cannot be passed (`has_any_role(&[])` is true upstream). |
+| `apps/api/domain_backup/src/lib.rs` | Test-only `test_temp_dir()` (resolves links on Unix, raw path on Windows) | On macOS the OS temp dir is behind `/var -> /private/var`; CFG-04 correctly rejects a link on any storage-root ancestor, so 18 normal and 4 Docker tests (WU-01 config, WU-08 instance/policy/HTTP) failed with `INVALID_CONFIG`. Prior runs were Windows-only. |
+| `domain/config.rs`, `domain/instance.rs`, `domain/policy.rs`, `infra/tests/fs_support.rs` | `std::env::temp_dir()` -> `crate::test_temp_dir()` in test code only | Same platform fix. No production code path changed; CFG-04 validation is unchanged. `config.rs` and `fs_support.rs` belong to completed units WU-01/WU-04; the edit is confined to their `#[cfg(test)]` fixtures. |
+
+## Boundary (owned elsewhere, not WU-08 "Done when")
+
+- Production composition: `DomainBackupService::register_routes` builds `BackupApiState` without a started runtime, so production reads/create answer `BACKUP_NOT_READY` until WU-10 ("Gateway integration, runtime start"), which lists F-37 and owns runtime start after migrations, F-38 ingress layers, TS-03/TS-07/TS-08b/TS-55.
+- TS-17 full run including the web bundle scan is WU-15.
+- TS-62 for IF-09/IF-10 (previews) is WU-09.

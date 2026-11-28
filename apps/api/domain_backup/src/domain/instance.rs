@@ -65,7 +65,7 @@ mod tests {
     use super::*;
 
     fn config() -> BackupConfig {
-        let root = std::env::temp_dir().join(format!("backup-instance-{}", std::process::id()));
+        let root = crate::test_temp_dir().join(format!("backup-instance-{}", std::process::id()));
         let state = BackupConfig::load(|key| {
             Some(match key {
                 "BACKUP_ENABLED" => "true".into(),

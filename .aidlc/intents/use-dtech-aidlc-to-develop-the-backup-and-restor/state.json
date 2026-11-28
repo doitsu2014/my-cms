@@ -8,7 +8,7 @@
   "depth": "full",
   "mode": "ai",
   "status": "active",
-  "currentStage": "build-and-verify",
+  "currentStage": "red-tests",
   "stages": {
     "problem-framing": {
       "status": "complete",
@@ -1068,8 +1068,8 @@
     "build-and-verify": {
       "status": "in_progress",
       "startedAt": "2026-11-22T07:12:29.973Z",
-      "detail": "Owner-directed WU-08 revisit completed additional registered test coverage: route-level TS-06 create rejection and durable no-side-effect assertions, accepted create/replay and canary absence in responses/audit/idempotency tables, TS-27b durable cleanup/escalation counts, TS-57 in-memory closed-label counter recording exposed via IF-11 with route assertions, additional TS-61 query errors, TS-62 missing/wrong content-type, TS-63 malformed JSON/unknown fields/invalid UUID, TS-59 Host and Origin, TS-60 declared and streamed over-cap bodies. Current package/workspace normal+ignored suites, format, clippy, workspace check, focused tests and IDs check pass. Still incomplete by design/authority: no full TS-17 scan of captured logs and all output/metrics, metrics remain in-memory status snapshots (no approved exporter wiring), reconciliation timestamps/results are simplified, complete rejection matrix not covered, and production service has no ready Runtime until WU-10 startup composition (which cannot be implemented in WU-08 scope). See updated WU-08 implementation.md and known-limitations.md.",
-      "reportedAt": "2026-11-27T08:10:54.130Z",
+      "detail": "WU-08 Done-when met: added TS-17 store-outage canary/IF-11 degraded test and RK-03 empty-role test; fixed macOS test temp-dir symlink (test-only). Workspace normal 404/0, ignored 208/0, fmt/clippy/check/ids ok.",
+      "reportedAt": "2026-11-28T11:59:03.212Z",
       "reports": [
         {
           "at": "2026-11-22T07:26:43.015Z",
@@ -1268,6 +1268,12 @@
           "result": "blocked",
           "detail": "Owner-directed WU-08 revisit completed additional registered test coverage: route-level TS-06 create rejection and durable no-side-effect assertions, accepted create/replay and canary absence in responses/audit/idempotency tables, TS-27b durable cleanup/escalation counts, TS-57 in-memory closed-label counter recording exposed via IF-11 with route assertions, additional TS-61 query errors, TS-62 missing/wrong content-type, TS-63 malformed JSON/unknown fields/invalid UUID, TS-59 Host and Origin, TS-60 declared and streamed over-cap bodies. Current package/workspace normal+ignored suites, format, clippy, workspace check, focused tests and IDs check pass. Still incomplete by design/authority: no full TS-17 scan of captured logs and all output/metrics, metrics remain in-memory status snapshots (no approved exporter wiring), reconciliation timestamps/results are simplified, complete rejection matrix not covered, and production service has no ready Runtime until WU-10 startup composition (which cannot be implemented in WU-08 scope). See updated WU-08 implementation.md and known-limitations.md.",
           "unit": "WU-08"
+        },
+        {
+          "at": "2026-11-28T11:59:03.212Z",
+          "result": "complete",
+          "detail": "WU-08 Done-when met: added TS-17 store-outage canary/IF-11 degraded test and RK-03 empty-role test; fixed macOS test temp-dir symlink (test-only). Workspace normal 404/0, ignored 208/0, fmt/clippy/check/ids ok.",
+          "unit": "WU-08"
         }
       ],
       "units": {
@@ -1316,8 +1322,8 @@
           "reportedAt": "2026-11-26T16:27:50.137Z"
         },
         "WU-08": {
-          "status": "blocked",
-          "reportedAt": "2026-11-27T08:10:54.130Z"
+          "status": "complete",
+          "reportedAt": "2026-11-28T11:59:03.212Z"
         }
       },
       "artifacts": [
@@ -1896,6 +1902,30 @@
           "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-19/known-limitations.md",
           "bytes": 2371,
           "sha256": "2e236e85f5a982be9eb2dae72fc322ec6d2e30802098b4356927193b5d156dac"
+        },
+        {
+          "output": "implementation",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-08/implementation.md",
+          "bytes": 4100,
+          "sha256": "9725d0d0ee036a0e442de55af58aaef012878e5e9b7586c3ab6c21201532e5ad"
+        },
+        {
+          "output": "green-verification-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-08/green-verification-report.md",
+          "bytes": 3597,
+          "sha256": "11f23fb9134470f2b5cd654cb2f437bd61293716d18c97e3fec57e46affbb14f"
+        },
+        {
+          "output": "regression-report",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-08/regression-report.md",
+          "bytes": 1461,
+          "sha256": "6eef203d113c6e956773822480a767ef618d48674452c0d8a0111b669caf49ad"
+        },
+        {
+          "output": "known-limitations",
+          "path": ".aidlc/intents/use-dtech-aidlc-to-develop-the-backup-and-restor/develop/build-and-verify/WU-08/known-limitations.md",
+          "bytes": 2603,
+          "sha256": "e007ee03ab7191d83cc8aae38a24333305878d50beb835a31b4f197cf1552bff"
         }
       ],
       "reworkResetAt": "2026-11-26T06:08:59.820Z",
@@ -1905,7 +1935,7 @@
   "dependencies": {},
   "createdAt": "2026-11-21T12:42:56.822Z",
   "modeSource": "config",
-  "updatedAt": "2026-11-27T12:33:12.606Z",
+  "updatedAt": "2026-11-28T11:59:12.216Z",
   "gates": {
     "analysis-baseline": {
       "phase": "analyze",
@@ -2014,7 +2044,7 @@
     },
     {
       "id": "WU-08",
-      "status": "in_progress",
+      "status": "complete",
       "dependsOn": [
         "WU-06",
         "WU-17",
@@ -2103,8 +2133,8 @@
       "WU-15",
       "WU-16"
     ],
-    "progressSeq": 15,
-    "syncedAt": "2026-11-27T12:33:12.360Z",
+    "progressSeq": 16,
+    "syncedAt": "2026-11-28T11:59:11.757Z",
     "units": {
       "WU-01": {
         "title": "Crate scaffold, domain types, config, clock, errors",
@@ -2701,20 +2731,17 @@
           "WU-07"
         ],
         "tests": [],
-        "status": "blocked",
+        "status": "verified",
         "selectedAt": "2026-11-27T08:11:41.500Z",
         "steps": {
           "red-tests": "complete",
-          "build-and-verify": "blocked"
+          "build-and-verify": "complete"
         },
         "attempts": {
           "red-tests": 1,
-          "build-and-verify": 3
+          "build-and-verify": 4
         },
-        "blockedStreak": {
-          "signature": "b3942b0ef5eaee0f81521612c910a1c0ded107fffef87f34f0b1633f0f8bda3d",
-          "count": 1
-        },
+        "blockedStreak": null,
         "park": null,
         "parkHistory": [
           {
@@ -2757,6 +2784,11 @@
             "stage": "build-and-verify",
             "result": "blocked",
             "at": "2026-11-27T08:10:54.130Z"
+          },
+          {
+            "stage": "build-and-verify",
+            "result": "complete",
+            "at": "2026-11-28T11:59:03.212Z"
           }
         ],
         "reopened": [
@@ -2768,7 +2800,7 @@
         ],
         "removed": false,
         "splitInto": null,
-        "updatedAt": "2026-11-27T08:10:54.130Z"
+        "updatedAt": "2026-11-28T11:59:03.212Z"
       },
       "WU-09": {
         "title": "Disabled capabilities, download denial, previews",
@@ -2777,7 +2809,7 @@
         ],
         "tests": [],
         "status": "pending",
-        "selectedAt": null,
+        "selectedAt": "2026-11-28T11:59:11.757Z",
         "steps": {
           "red-tests": null,
           "build-and-verify": null
@@ -3423,5 +3455,5 @@
       "preSha256": "cc6eee0c8cf68dcc230a882f3d8bf10eeef183e3169e51cede99a19ba17022e5"
     }
   },
-  "currentUnit": "WU-08"
+  "currentUnit": "WU-09"
 }

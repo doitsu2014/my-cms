@@ -415,7 +415,7 @@ mod tests {
     type Env = HashMap<String, String>;
 
     fn test_root() -> String {
-        std::env::temp_dir()
+        crate::test_temp_dir()
             .join("makara-backup-config-test-root")
             .to_string_lossy()
             .into_owned()
@@ -678,7 +678,7 @@ mod tests {
 
     impl Scratch {
         fn new(name: &str) -> Self {
-            let dir = std::env::temp_dir()
+            let dir = crate::test_temp_dir()
                 .join(format!("makara-backup-wu01-{name}-{}", std::process::id()));
             let _ = std::fs::remove_dir_all(&dir);
             std::fs::create_dir_all(&dir).unwrap();
